@@ -1,0 +1,41 @@
+{
+  "name": "finance-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "seed": "node scripts/seed.mjs",
+    "type-check": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@auth/mongodb-adapter": "^3.0.0",
+    "@nuxt/image": "^1.7.0",
+    "@nuxtjs/color-mode": "^3.4.2",
+    "@pinia/nuxt": "^0.5.1",
+    "@tensorflow/tfjs": "^4.20.0",
+    "@vueuse/nuxt": "^10.9.0",
+    "chart.js": "^4.4.2",
+    "date-fns": "^3.6.0",
+    "lucide-vue-next": "^0.383.0",
+    "mongoose": "^8.3.4",
+    "next-auth": "^4.24.7",
+    "nuxt": "^3.11.2",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.27",
+    "vue-chartjs": "^5.3.0",
+    "vue-router": "^4.3.2"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "@types/node": "^20.12.7",
+    "@vite-pwa/nuxt": "^0.6.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5"
+  }
+}

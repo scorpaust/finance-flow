@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.yarn/
+
+# Build
+.nuxt/
+.output/
+dist/
+
+# Environment
+.env
+.env.local
+.env.example
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PWA
+public/sw.js
+public/workbox-*.js

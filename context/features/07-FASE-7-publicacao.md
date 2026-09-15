@@ -1,6 +1,6 @@
-# FASE 5 — Publicação (Google Play + Deploy Web de Produção)
+# FASE 7 — Publicação (Google Play + Deploy Web de Produção)
 
-> Pré-requisito: Fases 1 a 4 concluídas e todos os critérios de aceitação
+> Pré-requisito: Fases 1 a 6 concluídas e todos os critérios de aceitação
 > cumpridos. Esta é a fase final antes de utilizadores reais.
 
 ## Objetivo
@@ -25,7 +25,12 @@ produto).
 - [ ] Screenshots em pelo menos telemóvel e tablet, ícone de alta resolução,
       banner de destaque
 - [ ] Classificação de conteúdo (questionário da Play Console)
-- [ ] Política de privacidade (link obrigatório, produzido na Fase 4)
+- [ ] Política de privacidade (link obrigatório, produzido na Fase 6) —
+      atualizar para cobrir também o envio de dados financeiros agregados à
+      Anthropic e aos utilizadores da secção de insights/IA (Fase 3),
+      disponível nas 6 línguas suportadas (Fase 5)
+- [ ] Ficha da Play Store traduzida para os 6 idiomas suportados (Fase 5),
+      não só PT-PT
 
 ### 3. Programa de pagamentos externos (Google Play / EEA)
 - [ ] Confirmar aprovação do pedido de inscrição no programa de pagamentos

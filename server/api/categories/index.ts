@@ -1,5 +1,7 @@
 import { Category } from '../../models'
 import { requireAuth } from '../../utils/auth'
+import { getUserTier } from '../../utils/requireFeature'
+import { TIER_LIMITS } from '../../../shared/features'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
@@ -20,6 +22,19 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { name, type, icon, color } = body
     if (!name || !type) throw createError({ statusCode: 400, message: 'Nome e tipo obrigatórios' })
+
+    const tier = await getUserTier(userId)
+    const customLimit = TIER_LIMITS[tier].customCategories
+    if (customLimit !== null) {
+      const customCount = await Category.countDocuments({ userId, isDefault: false })
+      if (customCount >= customLimit) {
+        throw createError({
+          statusCode: 403,
+          message: `Limite de ${customLimit} categorias personalizadas do plano Gratuito atingido`,
+          data: { error: 'feature_locked', requiredTier: 'pro' },
+        })
+      }
+    }
 
     const existing = await Category.findOne({
       userId,

@@ -246,6 +246,13 @@
       </button>
       <p class="text-white/20 text-xs mt-4">Precisas de pelo menos 3 meses de dados</p>
     </div>
+
+    <PaywallModal
+      v-if="showPaywall"
+      required-tier="premium"
+      feature-label="Previsões com IA"
+      @close="showPaywall = false"
+    />
   </div>
 </template>
 
@@ -264,6 +271,8 @@ const isTraining = ml.isTraining   // top-level ref so Vue auto-unwraps in templ
 const progress   = ml.progress
 const statusMsg  = ml.statusMsg
 const toast = useToastStore()
+const sub = useSubscription()
+const showPaywall = ref(false)
 
 const result = ref<any>(null)
 const historicalData = ref<any[]>([])
@@ -282,6 +291,11 @@ function trendLabel(t: string) {
 }
 
 async function runPrediction() {
+  if (!sub.hasFeature('predictions')) {
+    showPaywall.value = true
+    return
+  }
+
   const runId = ++predictionRunId.value
   try {
     const data = await $fetch<any>('/api/predictions/data', { params: { months: 12 } })

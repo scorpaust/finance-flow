@@ -1,5 +1,7 @@
 import { Transaction, Category } from '../../models'
 import { requireAuth } from '../../utils/auth'
+import { getUserTier } from '../../utils/requireFeature'
+import { TIER_LIMITS } from '../../../shared/features'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
@@ -73,6 +75,20 @@ export default defineEventHandler(async (event) => {
 
     if (!type || !amount || !description || !categoryId || !date) {
       throw createError({ statusCode: 400, message: 'Missing required fields' })
+    }
+
+    const tier = await getUserTier(userId)
+    const monthlyLimit = TIER_LIMITS[tier].transactionsPerMonth
+    if (monthlyLimit !== null) {
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      const countThisMonth = await Transaction.countDocuments({ userId, createdAt: { $gte: startOfMonth } })
+      if (countThisMonth >= monthlyLimit) {
+        throw createError({
+          statusCode: 403,
+          message: `Limite de ${monthlyLimit} transações/mês do plano Gratuito atingido`,
+          data: { error: 'feature_locked', requiredTier: 'pro' },
+        })
+      }
     }
 
     const category = await Category.findOne({ _id: categoryId, userId }).lean()

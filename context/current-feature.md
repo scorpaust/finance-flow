@@ -1,166 +1,149 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/01-FASE-1-fundacao-multiplataforma.md -->
+<!-- Ver especificação completa em context/features/02-FASE-2-sistema-subscricoes.md -->
 
 ## Estado
 
-Concluída (critérios de aceitação validados num dispositivo real; a aguardar decisão de commit)
+Em progresso
 
 ## Objetivos
 
-FASE 1 — Fundação Multiplataforma (Web + Android). Tornar o mesmo código-base
-capaz de correr como app web (mantendo SSR) e como app Android nativa
-empacotada com Capacitor, sem duplicar lógica.
+FASE 2 — Sistema de Subscrições (PayPal + MB WAY + Multibanco). Três planos
+— Gratuito, Pro (5,00 €/mês), Premium (12,99 €/mês) — pagáveis com
+cartão/PayPal (auto-renovável) ou MB WAY/Multibanco (pré-pago por período),
+disponíveis tanto na web como na app Android, com a mesma conta a refletir o
+estado da subscrição nas duas plataformas.
 
-No fim desta fase deve ser possível:
-- `npm run dev` → app web como hoje (sem regressões).
-- `npm run build:android` → gera um APK/AAB instalável num emulador/dispositivo
-  Android, com login, dashboard, transações e gráficos funcionais.
+Decisões de arquitetura já tomadas (não reabrir sem motivo forte — ver
+especificação secção correspondente):
+1. Processador único: PayPal, com três métodos de pagamento expostos ao
+   utilizador (cartão/saldo PayPal, MB WAY, Multibanco).
+2. Modelo híbrido: cartão/saldo PayPal → subscrição com auto-renovação real
+   (PayPal Subscriptions/Billing Agreements); MB WAY/Multibanco → pagamento
+   pré-pago por período (1/3/6/12 meses), sem cobrança automática, com
+   downgrade para `free` no fim do período se não houver renovação manual.
+3. Android usa pagamentos externos (programa da Google para a EEA) em vez de
+   Google Play Billing — implica inscrição prévia, disclosure obrigatório,
+   reporte via `ExternalTransactionId` API e taxa de serviço de 10% à
+   Google sobre subscrições recorrentes.
 
-Tarefas principais:
-1. Setup Capacitor (`@capacitor/core`, `@capacitor/cli`, `@capacitor/android`,
-   `cap init`, `capacitor.config.ts`, `cap add android`)
-2. Scripts de build (`build:web`, `build:android:assets`, `cap:sync`,
-   `build:android`)
-3. Composable `usePlatform()` (`isNative`, `isAndroid`, `isWeb`)
-4. Back button Android (listener `App.addListener('backButton', ...)`)
-5. Ícones e splash screen adaptados ao branding (fundo `surface-900` `#0f0f23`)
-6. Permissões e manifest Android (`INTERNET`, `usesCleartextTraffic="false"`)
-7. Validar TensorFlow.js (ConvNeXt-1D) na WebView Android, fallback `cpu` se
-   necessário
-8. Viewport e comportamento mobile nativo (`viewport-fit=cover`, zoom)
+Tarefas principais (ver especificação para detalhe completo):
+1. Modelo de dados (`UserSubscription`: `periodType`, `paymentMethod`,
+   `provider`, `currentPeriodEnd`, `autoRenew`) + migração de utilizadores
+   existentes para `tier: 'free'`
+2. Fonte única da matriz de features (`shared/features.ts`,
+   `hasFeature(tier, feature)`)
+3. Integração PayPal base (conta Business, Multibanco/MB WAY aprovados,
+   credenciais sandbox/live, `server/utils/paypal.ts`)
+4. Fluxo de auto-renovação (planos PayPal Subscriptions, endpoint de
+   criação, webhook de ciclo de vida)
+5. Fluxo pré-pago (Orders API para MB WAY/Multibanco, tratamento do estado
+   "pendente" do Multibanco, job de aviso de expiração + downgrade
+   automático)
+6. Composable `useSubscription()` e componentes de paywall/checkout no
+   client
+7. Enforcement obrigatório no servidor (`requireFeature(featureKey)`,
+   resposta `403` consistente)
+8. Android — pagamentos externos (inscrição no programa Google, fluxo de
+   checkout fora do Google Play Billing, reporte `ExternalTransactionId`)
+9. Ambiente de testes (sandbox PayPal para os três métodos, job de
+   expiração, fluxo completo em Android)
 
-Fora de âmbito: subscrições (Fase 2), redesign visual (Fase 3), Play Store
-(Fase 5).
+Fora de âmbito nesta fase: redesign visual do paywall/checkout (Fase 3),
+submissão final e aprovação do programa de pagamentos externos na Play
+Store em produção (Fase 5 — aqui só a integração técnica e o pedido de
+inscrição).
 
 ## Notas
 
-- Decisão técnica recomendada: usar `server.url` no `capacitor.config.ts`
-  apontando para o domínio de produção/staging já publicado, em vez de
-  reescrever a autenticação por token. A app Android carrega a app web real
-  dentro do shell nativo (como uma PWA "instalada"). Motivo: sessão via
-  cookie `httpOnly` pode falhar na WebView se `webDir` local não corresponder
-  ao domínio do backend (cookies de terceiros). Registar esta decisão no
-  README.
-- Migração para autenticação por token só é necessária se no futuro se
-  quiser um modo 100% offline nativo — não fazer nesta fase.
+- Fase de maior risco de negócio e de compliance — em caso de dúvida sobre
+  regras de preço/feature ou sobre requisitos da Google, assinalar
+  explicitamente no PR em vez de assumir.
+- Ler `00-CODE-SPEC.md` (secções 3 e 4, atualizadas para esta fase) antes de
+  implementar o modelo de dados e a matriz de features.
+- O pedido de inscrição no programa de pagamentos externos da Google tem
+  lead time próprio — iniciar cedo, não deixar para o fim da fase.
 
 ## Critérios de aceitação
 
-- Build web continua a funcionar sem regressões (`npm run dev`, `npm run build`)
-- App corre em emulador Android: login, dashboard, listagem de transações,
-  criação de transação e um gráfico em `/stats` funcionam
-- Botão físico/gesto "voltar" do Android navega corretamente
-- Sem erros no `adb logcat` relacionados com cookies/CORS/mixed content
-- Documentação da decisão de arquitetura (server.url vs. build estática)
-  registada no README
+- Utilizador consegue subscrever com cartão/PayPal (auto-renovável) em
+  sandbox, web e Android
+- Utilizador consegue pagar um período com MB WAY e com Multibanco em
+  sandbox, web e Android, e a subscrição fica com a data de expiração
+  correta
+- Mudar de plano/expirar reflete-se imediatamente na UI e nos endpoints
+  protegidos (403 quando aplicável)
+- Webhook PayPal testado com eventos simulados para os três métodos,
+  incluindo o estado "pendente" do Multibanco
+- Job de aviso de expiração testado (gera notificação, faz downgrade se não
+  houver renovação)
+- Nenhum endpoint sensível depende apenas de verificação no client
+- Pedido de inscrição no programa de pagamentos externos da Google
+  submetido (aprovação pode não estar concluída nesta fase, mas o pedido
+  tem de estar feito antes da Fase 5)
 
 ## Histórico
 
 <!-- Manter atualizado. Da mais antiga para a mais recente -->
 
-- 2026-09-15: Definida como funcionalidade atual — FASE 1 (Fundação
-  Multiplataforma Web + Android), especificação em
-  `context/features/01-FASE-1-fundacao-multiplataforma.md`.
-- 2026-09-15: Branch `feature/fase-1-fundacao-multiplataforma` criado; estado
-  passa a "Em progresso". Implementadas as tarefas 1-8: Capacitor instalado
-  e projeto Android gerado (`cap add android`), `capacitor.config.ts` com
-  `server.url` (produção/staging, decisão registada no README), scripts
-  `build:web`/`build:android:assets`/`cap:sync`/`build:android`, composable
-  `usePlatform()`, plugin de back button Android, ícones/splash gerados a
-  partir de `assets/icon-*.svg`+`splash.svg` via `@capacitor/assets`,
-  manifest revisto (`INTERNET` only, `usesCleartextTraffic=false`), fallback
-  de backend `cpu` no TF.js quando `isNative`, e `viewport-fit=cover` +
-  zoom desativado. `npm run build:web` validado sem regressões. Build Gradle
-  do APK debug validado com sucesso nesta máquina (foi necessário instalar
-  JDK 21, exigido por `@capacitor/android` 8.x/AGP 8.13 — só havia JDK 8/17).
-  App instalada e lançada num emulador Android 7.1 (API 25, único system
-  image completo disponível localmente) confirmou via `adb logcat` que o
-  Capacitor bridge inicializa e liga corretamente ao `server.url` configurado
-  (sem exceções de rede após adicionar regra de firewall para o dev server);
-  não foi possível validar visualmente o fluxo completo (login/dashboard/
-  transações/gráfico) porque a WebView desse emulador (Chrome 69, 2018) é
-  demasiado antiga para o bundle Vite/Vue3 gerado — os outros system images
-  locais (24/27/31/33) estão incompletos (só stub `.installer`, sem
-  download completo).
-- 2026-09-15: Testado com sucesso num telemóvel Android real ligado por USB
-  (Honor ALI_NX1, Android 15, WebView Chrome 152 — moderna, sem o problema
-  do emulador). Fluxo de teste local: `adb reverse tcp:3000 tcp:3000` +
-  `capacitor.config.ts` temporariamente com `server.url=http://localhost:3000`
-  e `cleartext:true` (nunca commitar assim — reverter para o domínio de
-  produção antes de qualquer commit). Testar contra `npm run dev` mostrou
-  UI a comportar-se mal (transições lentas, áreas em falta) — é o Vite dev
-  server a compilar rotas on-demand na 1ª visita (confirmado: 1º pedido a
-  `/` demorou ~100s a compilar); build de produção
-  (`NITRO_PRESET=node-server nuxt build` + `node .output/server/index.mjs`)
-  não tem esse problema e é o que deve ser usado para testes de UI.
-  Durante os testes em produção encontrados e corrigidos 3 bugs pré-existentes
-  da app (não introduzidos pelo Capacitor, mas só visíveis agora por causa do
-  padrão SSR + hidratação + sessão longa que a Fase 1 introduz — antes só se
-  testava com reload completo da página no browser):
-  1. **Sobreposição login/página protegida** — quando a sessão é inválida
-     numa rota protegida, o SSR renderiza sempre a página protegida (proteção
-     de rotas é client-only, ver `middleware/auth.global.ts`) e o redirect
-     client-side para `/login` acontecia tarde demais, corrompendo a árvore
-     DOM (Vue deixava conteúdo antigo e novo ambos montados). Corrigido em
-     `stores/auth.ts`: `loading` passa a começar `true` (em vez de `false`),
-     para SSR e cliente hidratarem sempre no ramo do ecrã de loading em
-     `app.vue` primeiro.
-  2. **Botão no limite do ecrã e sem resposta ao toque** — consequência
-     direta de ativar `viewport-fit=cover` (tarefa 8) sem o padding de
-     "safe area" correspondente; o conteúdo passava a estender-se para
-     debaixo da status bar. Corrigido com
-     `pt/pb/pl/pr-[env(safe-area-inset-*)]` no wrapper raiz de `app.vue`.
-  3. **Dashboard "desformatado"** (botões fora do ecrã, ex.
-     `x:-102px`/`x:650px` num viewport de 369px) — diagnosticado ligando o
-     Chrome DevTools remoto ao WebView via `adb forward tcp:9222
-     localabstract:webview_devtools_remote_<pid>` + `curl
-     http://localhost:9222/json` para obter o `webSocketDebuggerUrl`, depois
-     `Runtime.evaluate` via websocket (ver `scripts/_cdp_check.mjs`,
-     apagado no fim — recriar se precisar outra vez). Confirmou-se que o
-     link "Transações" estava aninhado **dentro** da div do ecrã de loading
-     (`fixed inset-0 ... auth-bg`) em vez de serem irmãos `v-if`/`v-else`
-     mutuamente exclusivos — a correção do bug 1 (loading a começar `true`)
-     introduziu uma race: ao trocar de ramo `v-if`/`v-else` logo a seguir à
-     hidratação, o Vue por vezes aninha o ramo novo dentro do antigo em vez
-     de o substituir. Corrigido trocando `v-if`/`v-else` por `v-show` no
-     ecrã de loading de `app.vue` (mantém `NuxtPage` sempre montado como
-     irmão estável, nunca há troca estrutural de ramo).
-- 2026-09-15: Retomado depois de registar no `00-CODE-SPEC.md` (secção
-  "Convenções") a regra "nunca cortar palavras/texto na UI" — motivada por
-  um corte real observado no seletor de período do dashboard ("Últimos 6
-  me..."). Causa: `.form-select` (`w-full`) dentro de uma linha `flex`
-  sem `flex-wrap`, a encolher abaixo da largura do texto. Corrigido em
-  `pages/index.vue` (`w-auto` no select + `flex-wrap` no container).
-  Rebuild de produção com o fix `v-show` (bug 3 acima) validado no telemóvel
-  real: dashboard renderiza perfeitamente, sem sobreposições nem elementos
-  fora do ecrã — confirmado também via DevTools remoto (`loadingDisplay:
-  "none"`, sem conteúdo aninhado, coordenadas de todos os elementos dentro
-  do viewport).
-  **Todos os critérios de aceitação validados no dispositivo real (Honor
-  ALI_NX1, Android 15)**:
-  - Login/registo (via seed: `demo@financeflow.app` — nota: o seed script
-    não carrega `.env`, correr com `MONGODB_URI=<atlas-uri> node
-    scripts/seed.mjs` para popular a BD certa; só atualiza a password se o
-    utilizador ainda não tiver `passwordHash`, não faz reset automático)
-  - Dashboard, navegação entre páginas (Transações/Grupos/Estatísticas/
-    Configurações) — sem sobreposições
-  - `/stats` renderiza com Chart.js a funcionar (canvas presente, eixos e
-    grelha corretos)
-  - Botão físico "voltar" Android: navega para trás na stack de rotas
-    corretamente (testado `/stats → /` e `/ → /transactions`), sem fechar a
-    app enquanto há histórico
-  - Sem erros de cookies/CORS/mixed content no `adb logcat` durante os
-    testes
-  Não testado explicitamente: o fluxo completo de criação de uma transação
-  (botão "Nova transação" existe e abre; submissão não foi clicada até ao
-  fim) — o componente `TransactionModal.vue` não foi alterado nesta fase e
-  já é usado pela app web existente, risco considerado baixo.
-  Config revertida para produção antes de terminar: `capacitor.config.ts`
-  (`server.url` = domínio real via `CAPACITOR_SERVER_URL`, `cleartext:
-  false`) e `android/app/src/main/AndroidManifest.xml`
-  (`usesCleartextTraffic="false"`), depois confirmado via `npm run cap:sync`
-  que `android/app/src/main/assets/capacitor.config.json` reflete os
-  valores de produção. Scripts de debug temporários (`scripts/_cdp_*.mjs`)
-  removidos. Nada foi commitado ainda nesta branch — falta decidir com o
-  utilizador se/quando fazer commit.
+- 2026-09-15: FASE 1 (Fundação Multiplataforma Web + Android) concluída e
+  validada num dispositivo real (ver histórico completo em
+  `context/features/01-FASE-1-fundacao-multiplataforma.md`); branch
+  `feature/fase-1-fundacao-multiplataforma` ainda não commitada nesta data
+  — decisão de commit pendente com o utilizador.
+- 2026-09-15: Definida como funcionalidade atual — FASE 2 (Sistema de
+  Subscrições: PayPal + MB WAY + Multibanco), especificação em
+  `context/features/02-FASE-2-sistema-subscricoes.md`. Estado inicial: não
+  iniciada.
+- 2026-09-15: Branch `feature/fase-2-sistema-subscricoes` criado a partir de
+  `main` (nota: `git log` confirma que a Fase 1 já estava mergeada em `main`
+  nesta altura, ao contrário do registado na entrada anterior). Estado passa
+  a "Em progresso". Implementado o código-base completo das tarefas 1-7 e
+  parte da 8-9 da especificação:
+  - **Modelo de dados**: `User.subscription` (`server/models/index.ts`,
+    `IUserSubscription`) e `PendingPayPalOrder` (mapa temporário order→
+    tier/período/método para o webhook reconstituir compras pré-pagas).
+    Script `scripts/migrate-subscriptions.mjs` para utilizadores existentes.
+  - **`shared/features.ts`**: `SubscriptionTier`, `FEATURE_MATRIX`,
+    `hasFeature()`, `TIER_LIMITS` (transações/mês e categorias custom Free).
+  - **`server/utils/paypal.ts`**: wrapper OAuth2 + Orders API (com
+    `payment_source.mb_way`/`multibanco` — payload a confirmar em sandbox,
+    ver nota no código) + Subscriptions API + verificação de assinatura de
+    webhook. Consultada documentação PayPal via Context7 para os payloads
+    confirmados (Orders v2, verify-webhook-signature); Subscriptions v1
+    (`application_context`) e local payment methods mb_way/multibanco
+    seguem o padrão documentado dos restantes métodos mas não têm exemplo
+    direto nas docs indexadas — por confirmar em sandbox real (tarefa 9).
+  - **Endpoints** `server/api/subscription/**`: estado atual (GET),
+    create-subscription (recorrente), create-order (pré-pago), webhook
+    (trata os eventos `BILLING.SUBSCRIPTION.*`, `PAYMENT.SALE.COMPLETED`,
+    `CHECKOUT.ORDER.APPROVED` com capture explícito, `PAYMENT.CAPTURE.*`),
+    cancel, check-expirations (sem scheduler no projeto — desenhado para
+    ser chamado por cron externo com header `x-cron-secret`; envio real de
+    email/push por implementar, não existe serviço de notificações ainda).
+  - **Enforcement no servidor**: `requireFeature()` aplicado a
+    `predictions/data`, `groups/**`; limite Free (50 transações/mês, 2
+    categorias custom) em `transactions`/`categories` POST; novo endpoint
+    `transactions/export.ts` (Pro+) substitui a geração de CSV a partir de
+    dados já carregados no client.
+  - **Client**: `useSubscription()` (composable fino sobre
+    `stores/subscription.ts`, Pinia por-request para não vazar estado entre
+    utilizadores em SSR), `PaywallModal`/`UpsellBanner`, página
+    `/subscription` (planos, escolha recorrente vs. pré-pago com seletor de
+    período, disclosure obrigatório + `@capacitor/browser` no Android antes
+    de sair para o checkout PayPal), `/subscription/return` (polling curto
+    até o webhook confirmar). Gating aplicado em Previsões, Grupos e
+    exportação CSV.
+  - `npm run build` validado sem erros (todas as rotas novas compilam).
+  - **Por fazer / fora do alcance de código**: criar conta PayPal Business
+    real e pedir aprovação Multibanco/MB WAY; preencher credenciais
+    sandbox/live e `PAYPAL_PLAN_ID_*` (criar os planos na PayPal); registar
+    o webhook e obter `PAYPAL_WEBHOOK_ID`; testar os três métodos em
+    sandbox (tarefa 9, incluindo confirmar o payload exato de MB WAY/
+    Multibanco); inscrição no programa de pagamentos externos da Google
+    (tarefa 8) e reporte `ExternalTransactionId` (não implementado — API
+    ainda em evolução em 2026, por confirmar na Play Console); configurar
+    um cron externo real para `check-expirations`. `.env.example` tinha uma
+    connection string MongoDB Atlas real (ficheiro é gitignored, nunca
+    esteve no histórico do git, mas ainda assim redigida para placeholder
+    nesta sessão) — vars da Fase 2 adicionadas.

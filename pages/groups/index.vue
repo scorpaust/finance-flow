@@ -1,16 +1,33 @@
 <template>
   <div class="space-y-5 animate-fade-in">
+    <button
+      class="btn-secondary text-sm py-2 px-4 flex items-center gap-2"
+      type="button"
+      @click="navigateTo('/')"
+    >
+      <ArrowLeft class="w-4 h-4" />
+      Voltar ao dashboard
+    </button>
+
+    <!-- Loading subscription status -->
+    <div v-if="subLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div v-for="i in 3" :key="i" class="skeleton rounded-3xl h-36" />
+    </div>
+
+    <!-- Locked (Free tier) -->
+    <div v-else-if="!canUseGroups" class="glass-card rounded-3xl p-12 text-center">
+      <div class="text-5xl mb-4">🔒</div>
+      <h3 class="font-semibold text-white mb-2">Grupos é uma funcionalidade Pro</h3>
+      <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
+        Agrupa transações por projetos, viagens ou orçamentos com tetos e alertas — disponível a partir do plano Pro.
+      </p>
+      <button class="btn-primary" @click="navigateTo('/subscription')">Ver planos</button>
+    </div>
+
+    <template v-else>
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
-        <button
-          class="btn-secondary text-sm py-2 px-4 mb-4 flex items-center gap-2"
-          type="button"
-          @click="navigateTo('/')"
-        >
-          <ArrowLeft class="w-4 h-4" />
-          Voltar ao dashboard
-        </button>
         <h2 class="font-display font-bold text-2xl text-white">Grupos</h2>
         <p class="text-white/40 text-xs mt-0.5">Agrupa transações relacionadas</p>
       </div>
@@ -273,6 +290,7 @@
         </div>
       </div>
     </Teleport>
+    </template>
   </div>
 </template>
 
@@ -286,6 +304,9 @@ definePageMeta({ layout: 'default' })
 const groupsStore = useGroupsStore()
 const toast = useToastStore()
 const { formatCurrency, formatCompact, formatDate } = useFormatters()
+const sub = useSubscription()
+const subLoading = sub.isLoading   // top-level ref so Vue auto-unwraps in template
+const canUseGroups = computed(() => sub.hasFeature('groups'))
 
 const showModal = ref(false)
 const saving = ref(false)
@@ -370,5 +391,9 @@ async function doDeleteGroup(id: string) {
   }
 }
 
-onMounted(() => groupsStore.fetchGroups())
+// canUseGroups só fica certo depois do fetch assíncrono de useSubscription()
+// resolver — não dá para decidir isto de forma síncrona em onMounted.
+watch(canUseGroups, (allowed) => {
+  if (allowed) groupsStore.fetchGroups()
+}, { immediate: true })
 </script>

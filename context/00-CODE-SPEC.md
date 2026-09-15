@@ -1,7 +1,7 @@
 # CODE SPEC — FinanceFlow (Web + Android + Subscrições)
 
 > Documento de referência transversal. Todos os agentes (Claude Code) devem ler
-> este ficheiro antes de iniciar qualquer fase. As fases (01 a 05) implementam
+> este ficheiro antes de iniciar qualquer fase. As fases (01 a 07) implementam
 > este spec de forma incremental. Não avançar de fase sem os critérios de
 > aceitação da anterior cumpridos.
 
@@ -24,9 +24,12 @@
 | Billing (web + Android) | PayPal — Orders API + Subscriptions API, com MB WAY e Multibanco como métodos de pagamento | Fase 2 |
 | Billing Android — enquadramento | Pagamentos externos (fora do Google Play Billing), via programa de pagamentos externos da Google na EEA | Fase 2 |
 | Reconciliação de subscrição | Webhook PayPal → MongoDB | Fase 2 |
-| Validação de input server-side | Zod | Fase 4 |
-| Testes | Vitest (unit/integração) + Playwright (e2e) | Fase 4 |
-| Monitorização | Sentry (ou equivalente) | Fase 4 |
+| Insights com IA (estatísticas) | Anthropic API, `claude-haiku-4-5` | Fase 3 |
+| Dicas de investimento educativas | Anthropic API + dados de mercado (Twelve Data, grátis) | Fase 3 |
+| Internacionalização | `@nuxtjs/i18n` (6 idiomas) + MaxMind GeoLite2 (país por IP) | Fase 5 |
+| Validação de input server-side | Zod | Fase 6 |
+| Testes | Vitest (unit/integração) + Playwright (e2e) | Fase 6 |
+| Monitorização | Sentry (ou equivalente) | Fase 6 |
 
 **Porquê PayPal como processador único**: é o único dos processadores
 avaliados com MB WAY e Multibanco disponíveis como métodos de pagamento
@@ -45,8 +48,30 @@ Portugal) a partir de 30 de junho de 2026, através do programa de pagamentos
 externos da Google. Isto implica inscrição prévia, requisitos de disclosure
 ao utilizador, reporte de transações à Google (`ExternalTransactionId` API) e
 uma taxa de serviço à Google mesmo pagando por fora — confirmar valores e
-requisitos atualizados na Play Console antes do lançamento (Fase 5), pois
+requisitos atualizados na Play Console antes do lançamento (Fase 7), pois
 esta é uma política recente e sujeita a evolução.
+
+**Porquê Anthropic + Twelve Data para os insights da Fase 3**: `claude-haiku-4-5`
+é o modelo atual mais barato da Anthropic, suficiente para gerar JSON
+estruturado a partir de agregados já calculados no servidor — não há
+necessidade de um modelo mais caro. A Twelve Data foi escolhida entre as
+alternativas gratuitas avaliadas por ter o plano grátis mais generoso (800
+pedidos/dia) — irrelevante ter dados em tempo real aqui, o snapshot de
+mercado é diário e partilhado por todos os utilizadores Premium, nunca
+pedido por utilizador/pedido. **Limitação a respeitar em toda a Fase 3**:
+a secção de investimento é estritamente educativa por perfil de risco,
+nunca recomendações específicas de compra/venda — ver
+`03-FASE-3-insights-ia.md` para o detalhe e o motivo regulatório.
+
+**Porquê internacionalização só depois do Design System (Fase 5, não antes)**:
+traduzir strings de templates que a Fase 4 ainda vai reescrever é
+retrabalho. Idioma da UI e país para métodos de pagamento são **sinais
+independentes** — idioma vem da preferência do browser (com override
+manual), país vem de geolocalização de IP (MaxMind GeoLite2). Lançamento
+com 6 idiomas (PT-PT, EN, FR, DE, IT, ES), EN como fallback universal.
+Métodos de pagamento pré-pagos continuam exclusivos de Portugal (MB WAY/
+Multibanco) — expandir a outros países fica fora desta fase, ver
+`05-FASE-5-internacionalizacao.md`.
 
 ## 3. Modelo de subscrição (regra de negócio)
 
@@ -85,6 +110,8 @@ webhook.
 | Grupos/orçamentos | ❌ | ✅ | ✅ |
 | Estatísticas avançadas (gráficos completos) | básico | ✅ | ✅ |
 | Exportar CSV | ❌ | ✅ | ✅ |
+| Interpretação de estatísticas com IA (Fase 3) | ❌ | ✅ | ✅ |
+| Dicas de investimento educativas com IA (Fase 3) | ❌ | ❌ | ✅ |
 | Previsões IA / ML (ConvNeXt-1D) | ❌ | ❌ | ✅ |
 | Suporte prioritário / extras futuros | ❌ | ❌ | ✅ |
 
@@ -107,12 +134,14 @@ duplicar a lógica em dois sítios.
 - TypeScript estrito em todo o código novo.
 - Composables para lógica reutilizável (`use*.ts`), nunca duplicar lógica de
   negócio em componentes.
-- Nomes de ficheiros de fase (`01-...md` a `05-...md`) definem o âmbito de
+- Nomes de ficheiros de fase (`01-...md` a `07-...md`) definem o âmbito de
   cada PR/branch — não misturar tarefas de fases diferentes no mesmo commit.
-- Todas as strings visíveis ao utilizador em PT-PT (consistente com o resto
-  da app).
+- Todas as strings visíveis ao utilizador em PT-PT (até à Fase 5, que
+  introduz suporte multi-idioma — ver `05-FASE-5-internacionalizacao.md`;
+  depois disso, todas as strings passam por chaves de tradução, nunca texto
+  fixo num só idioma).
 - Cores, tipografia e espaçamento passam a viver em tokens Tailwind
-  centralizados (ver Fase 3) — não usar valores hardcoded em componentes.
+  centralizados (ver Fase 4) — não usar valores hardcoded em componentes.
 - **Nunca cortar palavras/texto na UI.** Nenhum texto visível (labels,
   botões, `<select>`/`<option>`, inputs, cards, badges) pode ficar truncado
   a meio de uma palavra por falta de largura — nem com reticências (`...`)
@@ -126,8 +155,10 @@ duplicar a lógica em dois sítios.
 
 1. `01-FASE-1-fundacao-multiplataforma.md`
 2. `02-FASE-2-sistema-subscricoes.md`
-3. `03-FASE-3-design-system-ui.md`
-4. `04-FASE-4-seguranca-qualidade.md`
-5. `05-FASE-5-publicacao.md`
-6. `AGENT-RULES.md`
-7. `CONFIG-REFERENCE.md`
+3. `03-FASE-3-insights-ia.md`
+4. `04-FASE-4-design-system-ui.md`
+5. `05-FASE-5-internacionalizacao.md`
+6. `06-FASE-6-seguranca-qualidade.md`
+7. `07-FASE-7-publicacao.md`
+8. `AGENT-RULES.md`
+9. `CONFIG-REFERENCE.md`

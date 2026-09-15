@@ -1,7 +1,8 @@
-# FASE 3 — Design System, Safe Areas e Responsividade
+# FASE 4 — Design System, Safe Areas e Responsividade
 
-> Pré-requisito: Fases 1 e 2 concluídas (para poder aplicar o novo visual
-> também ao paywall e secções gated). Ler `00-CODE-SPEC.md` secção 5.
+> Pré-requisito: Fases 1, 2 e 3 concluídas (para poder aplicar o novo visual
+> também ao paywall, secções gated e às novas secções de IA da Fase 3). Ler
+> `00-CODE-SPEC.md` secção 5.
 
 ## Objetivo
 
@@ -69,7 +70,9 @@ com:
 
 ## Fora de âmbito nesta fase
 - Alterações a regras de negócio de subscrição (Fase 2 já fechada)
-- Otimizações de performance profundas (Fase 4)
+- Alterações às features de IA (Fase 3 já fechada)
+- Internacionalização/idiomas (Fase 5)
+- Otimizações de performance profundas (Fase 6)
 
 ## Critérios de aceitação
 - [ ] Sem overflow horizontal em nenhum breakpoint testado

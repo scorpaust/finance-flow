@@ -63,6 +63,15 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow',
+    // Fase 2 — Subscrições (PayPal + MB WAY + Multibanco). Ver context/CONFIG-REFERENCE.md.
+    paypalEnv: process.env.PAYPAL_ENV || 'sandbox',
+    paypalClientId: process.env.PAYPAL_CLIENT_ID || '',
+    paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
+    paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID || '',
+    paypalPlanIdPro: process.env.PAYPAL_PLAN_ID_PRO || '',
+    paypalPlanIdPremium: process.env.PAYPAL_PLAN_ID_PREMIUM || '',
+    subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '3',
+    cronSecret: process.env.CRON_SECRET || '',
     public: {
       appUrl: process.env.APP_URL || 'http://localhost:3000',
     },

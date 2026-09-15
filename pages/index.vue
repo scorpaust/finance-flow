@@ -33,6 +33,8 @@
       </div>
     </div>
 
+    <UpsellBanner />
+
     <!-- Quick navigation -->
     <div class="flex flex-wrap gap-2">
       <NuxtLink to="/transactions" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">

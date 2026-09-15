@@ -194,6 +194,13 @@
       @close="showModal = false; editTx = null"
       @saved="onSaved"
     />
+
+    <PaywallModal
+      v-if="showExportPaywall"
+      required-tier="pro"
+      feature-label="Exportar CSV"
+      @close="showExportPaywall = false"
+    />
   </div>
 </template>
 
@@ -205,8 +212,10 @@ definePageMeta({ layout: 'default' })
 
 const finance = useFinanceStore()
 const toast = useToastStore()
+const sub = useSubscription()
 
 const showModal = ref(false)
+const showExportPaywall = ref(false)
 const editTx = ref<Transaction | null>(null)
 const pageSize = ref('20')
 const sortKey = ref('date:desc')
@@ -298,17 +307,30 @@ async function onSaved() {
   await fetchNow()
 }
 
-function exportCSV() {
+async function exportCSV() {
+  if (!sub.hasFeature('csvExport')) {
+    showExportPaywall.value = true
+    return
+  }
+
+  let rows: any[]
+  try {
+    rows = await $fetch<any[]>('/api/transactions/export', { params: buildFetchParams() })
+  } catch (e: any) {
+    toast.error(e?.data?.message || 'Erro ao exportar CSV')
+    return
+  }
+
   const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor', 'Tags']
-  const rows = finance.transactions.map((t) => [
+  const csvRows = rows.map((t) => [
     t.date,
     t.type === 'income' ? 'Receita' : 'Despesa',
     t.description,
-    (t as any).categoryId?.name || '',
+    t.category || '',
     t.type === 'income' ? t.amount : -t.amount,
-    t.tags?.join(';') || '',
+    (t.tags || []).join(';'),
   ])
-  const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
+  const csv = [headers, ...csvRows].map((r) => r.join(',')).join('\n')
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

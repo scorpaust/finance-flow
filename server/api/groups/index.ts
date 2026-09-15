@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 import { TransactionGroup, Transaction } from '../../models'
-import { requireAuth } from '../../utils/auth'
+import { requireFeature } from '../../utils/requireFeature'
 
 export default defineEventHandler(async (event) => {
-  const userId = await requireAuth(event)
+  const { userId } = await requireFeature(event, 'groups')
   const method = getMethod(event)
   const uid = new mongoose.Types.ObjectId(userId)
 

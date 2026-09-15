@@ -78,6 +78,37 @@
       </div>
     </div>
 
+    <!-- Advanced stats (Pro+) -->
+    <div>
+      <div class="flex items-center gap-2 mb-4">
+        <h3 class="font-display font-bold text-lg text-white">Estatísticas Avançadas</h3>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-300 font-semibold">Pro</span>
+      </div>
+
+      <div v-if="!canUseAdvanced" class="glass-card rounded-3xl p-10 text-center">
+        <div class="text-4xl mb-3">📊</div>
+        <h4 class="font-semibold text-white mb-2">Distribuição de gastos e quartis por categoria</h4>
+        <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
+          Vê como os teus gastos se distribuem e que categorias têm despesas mais erráticas vs. estáveis — disponível a partir do plano Pro.
+        </p>
+        <button class="btn-primary" @click="navigateTo('/subscription')">Ver planos</button>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="chart-wrapper">
+          <h3 class="font-semibold text-white mb-1">Distribuição de Despesas</h3>
+          <p class="text-white/40 text-xs mb-5">Frequência por faixa de valor</p>
+          <DistributionHistogram :data="advancedStats?.distribution || []" :loading="loadingAdvanced" />
+        </div>
+
+        <div class="chart-wrapper">
+          <h3 class="font-semibold text-white mb-1">Quartis por Categoria</h3>
+          <p class="text-white/40 text-xs mb-5">Mediana, Q1–Q3 e outliers dos gastos</p>
+          <CategoryBoxplot :data="advancedStats?.boxplot || []" :loading="loadingAdvanced" />
+        </div>
+      </div>
+    </div>
+
     <!-- Monthly detail table -->
     <div class="glass-card rounded-3xl overflow-hidden">
       <div class="p-6 border-b border-white/[0.08]">
@@ -152,9 +183,13 @@ import { pt } from 'date-fns/locale'
 definePageMeta({ layout: 'default' })
 
 const { formatCurrency, formatCompact } = useFormatters()
+const sub = useSubscription()
+const canUseAdvanced = computed(() => sub.hasFeature('statsAdvanced'))
 const loading = ref(false)
 const stats = ref<any>(null)
 const period = ref('6')
+const advancedStats = ref<any>(null)
+const loadingAdvanced = ref(false)
 
 const periodOptions = [
   { value: '3', label: '3M' },
@@ -170,7 +205,24 @@ async function loadStats() {
   } finally {
     loading.value = false
   }
+  await loadAdvancedStats()
 }
+
+async function loadAdvancedStats() {
+  if (!canUseAdvanced.value) return
+  loadingAdvanced.value = true
+  try {
+    advancedStats.value = await $fetch('/api/stats/advanced', { params: { months: period.value } })
+  } finally {
+    loadingAdvanced.value = false
+  }
+}
+
+// canUseAdvanced só fica certo depois do fetch assíncrono de useSubscription()
+// resolver — se ficou true depois do primeiro loadStats(), vai buscar agora.
+watch(canUseAdvanced, (allowed) => {
+  if (allowed && !advancedStats.value) loadAdvancedStats()
+})
 
 const expenseCategories = computed(() =>
   (stats.value?.topCategories || []).filter((c: any) => c.type === 'expense')

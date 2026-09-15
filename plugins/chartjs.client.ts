@@ -6,12 +6,14 @@ import {
   BarElement, ArcElement,
   Title, Tooltip, Legend, Filler,
 } from 'chart.js'
+import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot'
 
 Chart.register(
   CategoryScale, LinearScale,
   PointElement, LineElement,
   BarElement, ArcElement,
-  Title, Tooltip, Legend, Filler
+  Title, Tooltip, Legend, Filler,
+  BoxPlotController, BoxAndWiskers
 )
 
 // Global Chart.js dark-mode defaults

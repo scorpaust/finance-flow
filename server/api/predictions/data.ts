@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 import { Transaction } from '../../models'
-import { requireAuth } from '../../utils/auth'
+import { requireFeature } from '../../utils/requireFeature'
 
 export default defineEventHandler(async (event) => {
-  const userId = await requireAuth(event)
+  const { userId } = await requireFeature(event, 'predictions')
   const query = getQuery(event) as { months?: string }
   const historyMonths = parseInt(query.months || '12')
   const uid = new mongoose.Types.ObjectId(userId)

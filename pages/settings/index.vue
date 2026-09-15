@@ -31,6 +31,22 @@
       </div>
     </div>
 
+    <!-- Subscription -->
+    <div class="glass-card rounded-3xl p-6">
+      <h3 class="font-semibold text-white mb-4 flex items-center gap-2"><Crown class="w-4 h-4 text-brand-400" /> Subscrição</h3>
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <p class="text-white font-bold">{{ TIER_LABEL[currentTier] }}</p>
+          <p class="text-white/40 text-xs mt-0.5">
+            {{ currentTier === 'free' ? 'Faz upgrade para desbloquear grupos, exportação CSV e previsões IA' : 'Gerir plano, método de pagamento e faturação' }}
+          </p>
+        </div>
+        <button class="btn-primary text-sm py-2" type="button" @click="navigateTo('/subscription')">
+          {{ currentTier === 'free' ? 'Ver planos' : 'Gerir subscrição' }}
+        </button>
+      </div>
+    </div>
+
     <!-- Categories -->
     <div class="glass-card rounded-3xl overflow-hidden">
       <div class="flex items-center justify-between p-6 border-b border-white/[0.08]">
@@ -136,14 +152,16 @@
 </template>
 
 <script setup lang="ts">
-import { User, Tag, Plus, Trash2, X, ArrowLeft } from 'lucide-vue-next'
+import { User, Tag, Plus, Trash2, X, ArrowLeft, Crown } from 'lucide-vue-next'
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '~/types'
+import { TIER_LABEL } from '~/shared/features'
 
 definePageMeta({ layout: 'default' })
 
 const auth = useAuthStore()
 const finance = useFinanceStore()
 const toast = useToastStore()
+const currentTier = useSubscription().tier
 
 const showCatModal = ref(false)
 const catFilter = ref('all')

@@ -4,7 +4,8 @@
 
 ## Estado
 
-Em progresso
+Concluída (mergeada em `main`; MB WAY implementado mas bloqueado por
+aprovação pendente da PayPal — ver histórico)
 
 ## Objetivos
 
@@ -147,3 +148,47 @@ inscrição).
     connection string MongoDB Atlas real (ficheiro é gitignored, nunca
     esteve no histórico do git, mas ainda assim redigida para placeholder
     nesta sessão) — vars da Fase 2 adicionadas.
+- 2026-09-15: Testes de sandbox validados: corrigido o payload real da
+  Orders API (chave `mbway`, não `mb_way`; header `PayPal-Request-Id`
+  obrigatório quando a order já inclui `payment_source`; Multibanco é
+  redirect-based com capture automático via
+  `processing_instruction: ORDER_COMPLETE_ON_PAYMENT_APPROVAL`, ao contrário
+  do que a doc consultada sugeria). Fluxo recorrente (cartão/saldo PayPal) e
+  Multibanco confirmados de ponta a ponta em sandbox real (order criada,
+  redirect, referência gerada, webhook `PAYMENT.CAPTURE.COMPLETED`
+  processado, tier atualizado). MB WAY implementado e com payload correto,
+  mas bloqueado por `NOT_ENABLED_FOR_PAYMENT_SOURCE` — a conta sandbox
+  ainda não tem a capacidade beta aprovada pela PayPal (pedido feito via
+  `bizsignup`, aprovação pendente do lado da PayPal, fora do controlo do
+  código).
+  Corrigidos dois bugs de design encontrados nos testes: (1) uma referência
+  Multibanco pendente deixava de refletir o plano real do utilizador
+  (sobrescrevia `tier`/`status` para a compra em curso, mesmo sem
+  pagamento confirmado) — agora só se escreve em `User.subscription` com o
+  pagamento confirmado; uma compra pendente vive só em `PendingPayPalOrder`,
+  exposta ao client como `pendingPurchase` à parte do plano atual, com
+  endpoint para o utilizador limpar uma referência abandonada; (2)
+  cancelamento de auto-renovação fazia downgrade imediato para `free` — API
+  ainda referida no plano — corrigido para manter o acesso até
+  `currentPeriodEnd` e só descer no job de expiração.
+  Adicionado, a pedido do utilizador: upgrade/downgrade in-place de planos
+  recorrentes (`change-plan.post.ts`, via revise da Subscriptions API —
+  acesso imediato à nova tier, cobrança ao novo preço só no ciclo seguinte
+  porque a PayPal não proraciona automaticamente, decisão aceite
+  explicitamente); duas estatísticas avançadas novas (histograma de
+  distribuição de despesas, box-plot de quartis por categoria via
+  `@sgratzl/chartjs-chart-boxplot`), gated Pro+ (`statsAdvanced`), a fechar
+  o gap entre a matriz de features documentada e o que estava realmente
+  implementado.
+  Testado num deploy de teste separado (Netlify) e depois num túnel
+  Cloudflare para um build `node-server` local — o preset serverless do
+  Nitro para Netlify tem um bug de empacotamento (perde ficheiros JS do
+  bundle do cliente) nesta configuração; sem impacto porque a produção real
+  usa `node-server` em Docker (decisão da Fase 1), não Netlify.
+  Branch `feature/fase-2-sistema-subscricoes` commitado (`accd41b`),
+  mergeado em `main` (merge commit) e removido. Estado passa a "Concluída".
+  Nesta sessão, `context/features/` foi também reorganizado para abrir
+  espaço a duas fases novas acordadas com o utilizador — Fase 3 (Insights
+  com IA, Pro+/Premium) e Fase 5 (Internacionalização) — com as fases de
+  design system/segurança/publicação renumeradas em conformidade; ver
+  `00-CODE-SPEC.md` e os respetivos ficheiros de fase para o detalhe.

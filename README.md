@@ -166,6 +166,91 @@ Output: valor previsto (receita ou despesa)
 
 ---
 
+## 🤖 App Android Nativa (Capacitor)
+
+O mesmo código-base Nuxt corre também como app Android nativa, empacotada com
+[Capacitor](https://capacitorjs.com), sem duplicar lógica de negócio.
+
+### Arquitetura: `server.url` em vez de build estática local
+
+A app usa sessão via cookie `httpOnly`. Se a WebView Android carregasse os
+ficheiros estáticos locais (`webDir`), o domínio não corresponderia ao do
+backend e o cookie seria tratado como de terceiros — quebrando o login.
+
+**Decisão**: `capacitor.config.ts` usa `server.url` a apontar para o domínio
+de produção/staging já publicado da app web. A app Android é, na prática, um
+shell nativo que carrega a app web real (semelhante a uma PWA "instalada"),
+com `server.cleartext: false` e `android.allowMixedContent: false`. O
+`webDir` (`.output/public`, gerado por `nuxi generate`) fica apenas como
+fallback offline mínimo, não como fonte principal.
+
+Se no futuro se quiser um modo 100% offline nativo, isso implica migrar a
+autenticação de cookie `httpOnly` para token (ex.: JWT em storage seguro) —
+fora de âmbito da Fase 1.
+
+Define o domínio real antes de gerar builds de produção, via variável de
+ambiente `CAPACITOR_SERVER_URL` (ou editando diretamente `capacitor.config.ts`):
+
+```bash
+CAPACITOR_SERVER_URL=https://app.financeflow.com npx cap sync android
+```
+
+### Scripts
+
+| Script | Descrição |
+|---|---|
+| `npm run build:web` | Build SSR normal (produção web, sem alterações) |
+| `npm run build:android:assets` | `nuxi generate` — build estática usada como fallback local do shell Capacitor |
+| `npm run cap:sync` | `cap sync android` — copia assets web + plugins nativos para o projeto Android |
+| `npm run build:android` | Encadeia os dois anteriores |
+| `npm run cap:open:android` | Abre o projeto no Android Studio |
+
+### Fluxo de desenvolvimento
+
+```bash
+npm run build:android      # gera .output/public + sincroniza com o projeto Android
+npm run cap:open:android   # abre o Android Studio
+# Correr num emulador/dispositivo a partir do Android Studio (Run ▶)
+```
+
+### Deteção de plataforma
+
+O composable [`usePlatform()`](composables/usePlatform.ts) expõe `isNative`,
+`isAndroid` e `isWeb` (via `Capacitor.isNativePlatform()` /
+`Capacitor.getPlatform()`), usado para diferenciar comportamento entre web e
+app nativa (ex.: backend TensorFlow.js, navegação).
+
+### Botão "voltar" Android
+
+[`plugins/capacitor-back-button.client.ts`](plugins/capacitor-back-button.client.ts)
+regista um listener (`@capacitor/app`) que navega para trás na stack de rotas
+Nuxt; na página inicial, minimiza a app em vez de a fechar.
+
+### TensorFlow.js na WebView
+
+O backend WebGL do TF.js pode não ser estável em todas as WebViews Android
+(risco de crash de contexto GL em dispositivos com pouca RAM). Em app nativa
+(`isNative`), [`useMLPrediction.ts`](composables/useMLPrediction.ts) força o
+backend `cpu` — mais lento a treinar, mas fiável. Na web mantém-se o backend
+automático (normalmente WebGL).
+
+### Ícones e splash screen
+
+Gerados a partir de `assets/icon-*.svg` e `assets/splash.svg` (fundo
+`surface-900` `#0f0f23`) via `@capacitor/assets`:
+
+```bash
+npx capacitor-assets generate --android
+```
+
+### Permissões
+
+`AndroidManifest.xml` gerado apenas com `INTERNET` (necessária para
+`server.url`) e `android:usesCleartextTraffic="false"` definido
+explicitamente.
+
+---
+
 ## 📝 Licença
 
 MIT

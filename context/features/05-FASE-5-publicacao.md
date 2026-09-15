@@ -1,0 +1,74 @@
+# FASE 5 — Publicação (Google Play + Deploy Web de Produção)
+
+> Pré-requisito: Fases 1 a 4 concluídas e todos os critérios de aceitação
+> cumpridos. Esta é a fase final antes de utilizadores reais.
+
+## Objetivo
+
+App publicada (pelo menos em faixa de teste interno) na Google Play Store, e
+versão web acessível em produção com HTTPS, ambas ligadas a billing real (ou
+sandbox validado, consoante o momento de lançamento decidido pelo dono do
+produto).
+
+## Tarefas
+
+### 1. Assinatura e build Android
+- [ ] Gerar keystore de produção e guardar em local seguro (nunca no
+      repositório) — documentar processo de backup da chave (perda da chave
+      impede atualizações futuras da app)
+- [ ] Gerar Android App Bundle (`.aab`) assinado via Capacitor/Gradle
+- [ ] Confirmar `versionCode`/`versionName` e política de incremento para
+      futuras atualizações
+
+### 2. Ficha da Google Play Console
+- [ ] Título, descrição curta/longa, categoria (Finanças)
+- [ ] Screenshots em pelo menos telemóvel e tablet, ícone de alta resolução,
+      banner de destaque
+- [ ] Classificação de conteúdo (questionário da Play Console)
+- [ ] Política de privacidade (link obrigatório, produzido na Fase 4)
+
+### 3. Programa de pagamentos externos (Google Play / EEA)
+- [ ] Confirmar aprovação do pedido de inscrição no programa de pagamentos
+      externos submetido na Fase 2 — sem esta aprovação a app não pode ser
+      publicada a usar PayPal/MB WAY/Multibanco em vez de Google Play
+      Billing
+- [ ] Rever se os requisitos do programa continuam cumpridos (disclosure ao
+      utilizador, reporte de transações via `ExternalTransactionId`,
+      processo de disputa de pagamentos, suporte ao cliente)
+- [ ] Confirmar taxas atualizadas da Google para pagamentos externos na
+      Play Console antes do lançamento (sujeitas a alteração)
+
+### 4. Faixas de lançamento
+- [ ] Publicar primeiro em faixa de **testes internos** (equipa/licensed
+      testers)
+- [ ] Validar fluxo completo em dispositivo real: instalação, login,
+      subscrição real ou sandbox, uso das funcionalidades por tier
+- [ ] Só depois promover para faixa de produção (rollout percentual
+      recomendado, ex. 20% → 100%)
+
+### 5. Deploy web de produção
+- [ ] Escolher plataforma de hosting compatível com Nuxt SSR + Node
+      (documentar a escolha em `CONFIG-REFERENCE.md`)
+- [ ] Configurar domínio próprio + HTTPS (certificado válido)
+- [ ] Variáveis de ambiente de produção configuradas (ver
+      `CONFIG-REFERENCE.md`), incluindo `PAYPAL_ENV=live` e credenciais
+      **live** (não sandbox)
+- [ ] Confirmar que o webhook PayPal aponta para o endpoint de produção
+
+### 6. Verificação pós-lançamento
+- [ ] Monitorizar Sentry/logs nas primeiras 48h após publicação
+- [ ] Validar que uma subscrição real (ou de teste com cartão real de baixo
+      valor, se aplicável) reflete corretamente o tier no perfil do
+      utilizador
+- [ ] Confirmar que a versão Android e a versão web mostram o mesmo estado
+      de subscrição para o mesmo utilizador (conta partilhada entre
+      plataformas)
+
+## Critérios de aceitação
+- [ ] App publicada em faixa de teste interno da Play Store, instalável e
+      funcional em dispositivo real
+- [ ] Versão web em produção, acessível via HTTPS, sem erros de
+      configuração de ambiente
+- [ ] Subscrição feita numa plataforma reflete-se corretamente também na
+      outra, para o mesmo utilizador
+- [ ] Plano de rollout e contacto/processo de rollback documentado

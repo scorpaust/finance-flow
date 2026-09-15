@@ -82,6 +82,15 @@ export function useMLPrediction() {
       // Dynamic import — keeps TF.js out of SSR bundle
       const tf = await import('@tensorflow/tfjs')
       statusMsg.value = 'A inicializar backend...'
+
+      // O backend WebGL do TF.js pode não ser estável em todas as WebViews
+      // Android (crashes de contexto GL em dispositivos com pouca RAM). Em
+      // app nativa força-se o backend `cpu`, mais lento mas fiável — ver
+      // context/features/01-FASE-1-fundacao-multiplataforma.md, tarefa 7.
+      const { isNative } = usePlatform()
+      if (isNative.value) {
+        await tf.setBackend('cpu')
+      }
       await tf.ready()
       statusMsg.value = 'A treinar modelo...'
 

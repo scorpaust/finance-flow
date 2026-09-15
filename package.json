@@ -4,15 +4,24 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
+    "build:web": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "seed": "node scripts/seed.mjs",
-    "type-check": "nuxt typecheck"
+    "type-check": "nuxt typecheck",
+    "build:android:assets": "cross-env NITRO_PRESET=static nuxi generate",
+    "cap:sync": "cap sync android",
+    "build:android": "npm run build:android:assets && npm run cap:sync",
+    "cap:open:android": "cap open android"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.0.0",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@nuxt/image": "^1.7.0",
     "@nuxtjs/color-mode": "^3.4.2",
     "@pinia/nuxt": "^0.5.1",
@@ -30,10 +39,13 @@
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
     "@nuxtjs/tailwindcss": "^6.12.0",
     "@types/node": "^20.12.7",
     "@vite-pwa/nuxt": "^0.6.0",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^10.1.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5"

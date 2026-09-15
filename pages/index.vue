@@ -8,8 +8,8 @@
         </h2>
         <p class="text-white/40 mt-1 text-sm">Aqui está o resumo das tuas finanças</p>
       </div>
-      <div class="flex items-center gap-2">
-        <select v-model="selectedPeriod" class="form-select text-sm py-2" @change="loadStats">
+      <div class="flex items-center flex-wrap gap-2">
+        <select v-model="selectedPeriod" class="form-select text-sm py-2 w-auto" @change="loadStats">
           <option value="3">Últimos 3 meses</option>
           <option value="6">Últimos 6 meses</option>
           <option value="12">Último ano</option>

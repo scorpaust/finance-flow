@@ -9,7 +9,12 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const user     = ref<User | null>(null)
-  const loading  = ref(false)
+  // Starts true (not false) so SSR and the client hydrate on the same
+  // branch of app.vue's `v-if="auth.loading"` gate — otherwise SSR renders
+  // the actual (protected) page unconditionally, and a client-only auth
+  // redirect firing mid-hydration corrupts the DOM (old + new page content
+  // both left mounted). See context/current-feature.md history.
+  const loading  = ref(true)
   const _fetched = ref(false)   // reactive so middleware can watch it
 
   async function fetchSession() {

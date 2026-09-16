@@ -13,7 +13,7 @@
               {{ isEditing ? 'Actualiza os dados' : 'Regista receita ou despesa' }}
             </p>
           </div>
-          <button class="btn-icon" @click="$emit('close')">
+          <button class="btn-icon" aria-label="Fechar" @click="$emit('close')">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -124,6 +124,7 @@
                     type="button"
                     class="w-8 h-8 rounded-lg text-base hover:bg-white/10 transition-all"
                     :class="newCat.icon === ic ? 'bg-brand-600/40 ring-1 ring-brand-500' : ''"
+                    :aria-label="`Ícone ${ic}`"
                     @click="newCat.icon = ic"
                   >{{ ic }}</button>
                 </div>
@@ -135,6 +136,7 @@
                     class="w-6 h-6 rounded-lg transition-all hover:scale-110"
                     :class="newCat.color === c ? 'ring-2 ring-white scale-110' : ''"
                     :style="{ background: c }"
+                    :aria-label="`Cor ${c}`"
                     @click="newCat.color = c"
                   />
                 </div>

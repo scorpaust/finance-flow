@@ -15,7 +15,7 @@
         <p class="text-white/40 text-xs mt-0.5">{{ finance.total }} registos encontrados</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn-icon" title="Exportar CSV" @click="exportCSV">
+        <button class="btn-icon" title="Exportar CSV" aria-label="Exportar CSV" @click="exportCSV">
           <Download class="w-4 h-4" />
         </button>
         <button class="btn-primary text-sm py-2 flex items-center gap-2" @click="showModal = true">
@@ -90,6 +90,7 @@
           v-if="hasActiveFilters"
           class="btn-icon text-rose-400 border-rose-500/30 hover:border-rose-400"
           title="Limpar filtros"
+          aria-label="Limpar filtros"
           @click="clearFilters"
         >
           <X class="w-4 h-4" />
@@ -102,12 +103,12 @@
       <!-- Loading skeleton -->
       <div v-if="finance.loading" class="divide-y divide-white/5">
         <div v-for="i in 8" :key="i" class="flex items-center gap-4 px-6 py-4">
-          <div class="skeleton w-10 h-10 rounded-xl shrink-0" />
+          <SkeletonBlock rounded="xl" class="w-10 h-10 shrink-0" />
           <div class="flex-1 space-y-2">
-            <div class="skeleton h-4 w-48 rounded" />
-            <div class="skeleton h-3 w-32 rounded" />
+            <SkeletonBlock class="h-4 w-48" />
+            <SkeletonBlock class="h-3 w-32" />
           </div>
-          <div class="skeleton h-5 w-20 rounded" />
+          <SkeletonBlock class="h-5 w-20" />
         </div>
       </div>
 
@@ -156,6 +157,7 @@
           <button
             :disabled="finance.currentPage <= 1"
             class="btn-icon disabled:opacity-30"
+            aria-label="Página anterior"
             @click="changePage(finance.currentPage - 1)"
           >
             <ChevronLeft class="w-4 h-4" />
@@ -174,6 +176,7 @@
           <button
             :disabled="finance.currentPage >= finance.totalPages"
             class="btn-icon disabled:opacity-30"
+            aria-label="Página seguinte"
             @click="changePage(finance.currentPage + 1)"
           >
             <ChevronRight class="w-4 h-4" />

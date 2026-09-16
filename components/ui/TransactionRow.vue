@@ -53,12 +53,14 @@
       <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           class="w-7 h-7 rounded-lg hover:bg-brand-600/30 flex items-center justify-center transition-colors"
+          aria-label="Editar transação"
           @click.stop="$emit('edit')"
         >
           <Pencil class="w-3.5 h-3.5 text-brand-400" />
         </button>
         <button
           class="w-7 h-7 rounded-lg hover:bg-rose-600/30 flex items-center justify-center transition-colors"
+          aria-label="Eliminar transação"
           @click.stop="$emit('delete')"
         >
           <Trash2 class="w-3.5 h-3.5 text-rose-400" />
@@ -97,12 +99,14 @@
     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
       <button
         class="w-7 h-7 rounded-lg hover:bg-brand-600/30 flex items-center justify-center"
+        aria-label="Editar transação"
         @click.stop="$emit('edit')"
       >
         <Pencil class="w-3.5 h-3.5 text-brand-400" />
       </button>
       <button
         class="w-7 h-7 rounded-lg hover:bg-rose-600/30 flex items-center justify-center"
+        aria-label="Eliminar transação"
         @click.stop="$emit('delete')"
       >
         <Trash2 class="w-3.5 h-3.5 text-rose-400" />

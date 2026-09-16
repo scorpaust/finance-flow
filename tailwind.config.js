@@ -11,6 +11,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Breakpoints nomeados (Fase 4, tarefa 4) — alinhados com os defaults
+      // do Tailwind (sm/md/lg/xl/2xl), que continuam disponíveis; estes só
+      // dão nomes semânticos aos limites já usados em toda a app.
+      screens: {
+        tablet: '640px',
+        desktop: '1024px',
+        ultrawide: '1536px',
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'Inter', 'sans-serif'],
@@ -40,11 +48,14 @@ module.exports = {
           600: '#e11d48',
         },
         surface: {
+          950: '#0a0a1a',
           900: '#0f0f23',
           800: '#13132b',
           700: '#1a1a35',
           600: '#22224a',
           500: '#2d2d5e',
+          400: '#3d3d70',
+          300: '#57578a',
         },
       },
       backgroundImage: {

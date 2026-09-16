@@ -11,7 +11,7 @@
 
     <!-- Loading subscription status -->
     <div v-if="subLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="i in 3" :key="i" class="skeleton rounded-3xl h-36" />
+      <SkeletonBlock v-for="i in 3" :key="i" rounded="3xl" class="h-36" />
     </div>
 
     <!-- Locked (Free tier) -->
@@ -38,7 +38,7 @@
 
     <!-- Groups grid -->
     <div v-if="groupsStore.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="i in 6" :key="i" class="skeleton rounded-3xl h-36" />
+      <SkeletonBlock v-for="i in 6" :key="i" rounded="3xl" class="h-36" />
     </div>
 
     <div v-else-if="groupsStore.groups.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -72,10 +72,10 @@
               <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(g._id)">Confirmar</button>
             </template>
             <template v-else>
-              <button class="btn-icon w-7 h-7" @click="editGroup = g; showModal = true">
+              <button class="btn-icon w-7 h-7" aria-label="Editar grupo" @click="editGroup = g; showModal = true">
                 <Pencil class="w-3 h-3" />
               </button>
-              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" @click="confirmDeleteId = g._id">
+              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" aria-label="Eliminar grupo" @click="confirmDeleteId = g._id">
                 <Trash2 class="w-3 h-3 text-rose-400" />
               </button>
             </template>
@@ -134,14 +134,14 @@
               <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(selectedGroup._id)">Confirmar</button>
             </template>
             <template v-else>
-              <button class="btn-icon" @click="editGroup = selectedGroup; showModal = true; selectedGroup = null">
+              <button class="btn-icon" aria-label="Editar grupo" @click="editGroup = selectedGroup; showModal = true; selectedGroup = null">
                 <Pencil class="w-4 h-4" />
               </button>
-              <button class="btn-icon hover:border-rose-500/30" @click="confirmDeleteId = selectedGroup._id">
+              <button class="btn-icon hover:border-rose-500/30" aria-label="Eliminar grupo" @click="confirmDeleteId = selectedGroup._id">
                 <Trash2 class="w-4 h-4 text-rose-400" />
               </button>
             </template>
-            <button class="btn-icon" @click="selectedGroup = null; confirmDeleteId = null">
+            <button class="btn-icon" aria-label="Fechar" @click="selectedGroup = null; confirmDeleteId = null">
               <X class="w-5 h-5" />
             </button>
           </div>
@@ -199,7 +199,7 @@
         <div class="modal-content max-w-md">
           <div class="flex items-center justify-between mb-5">
             <h3 class="font-semibold text-white">{{ editGroup ? 'Editar' : 'Novo' }} Grupo</h3>
-            <button class="btn-icon" @click="closeModal"><X class="w-4 h-4" /></button>
+            <button class="btn-icon" aria-label="Fechar" @click="closeModal"><X class="w-4 h-4" /></button>
           </div>
           <form class="space-y-4" @submit.prevent="saveGroup">
             <div>

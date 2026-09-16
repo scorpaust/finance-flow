@@ -11,7 +11,7 @@
         >
           <span class="text-lg shrink-0">{{ toastIcon(toast.type) }}</span>
           <p class="text-sm font-medium text-white flex-1">{{ toast.message }}</p>
-          <button class="text-white/30 hover:text-white shrink-0 transition-colors">
+          <button class="text-white/30 hover:text-white shrink-0 transition-colors" aria-label="Fechar notificação">
             <X class="w-4 h-4" />
           </button>
         </div>

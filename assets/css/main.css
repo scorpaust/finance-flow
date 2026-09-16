@@ -32,6 +32,28 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-brand-500;
   }
+
+  /* Foco visível para navegação por teclado (Fase 4, tarefa 7) — só no
+     modo :focus-visible para não acender em cliques de rato. */
+  :focus-visible {
+    outline: 2px solid theme('colors.brand.400');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Respeitar prefers-reduced-motion (Fase 4, tarefa 5) — reduz praticamente
+   a zero a duração/iteração de todas as animações e transições CSS, sem
+   precisar de desativar cada uma individualmente. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer components {
@@ -225,6 +247,13 @@
     @apply fixed inset-0 z-50 flex items-center justify-center p-4;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
+    /* Nunca deixar o conteúdo do modal ficar atrás de um notch/status bar
+       (Fase 4, tarefa 2) — usa o maior valor entre o padding base e o
+       safe-area-inset do lado correspondente. */
+    padding-top: max(1rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 
   .modal-content {
@@ -302,6 +331,13 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Moldura do conteúdo principal (Fase 4, tarefa 3) — evita que a app
+     fique "esticada" em monitores ultra-wide, centrando com um teto de
+     largura; em mobile/tablet o max-width nunca chega a aplicar-se. */
+  .page-frame {
+    @apply w-full mx-auto max-w-[1680px];
+  }
 }
 
 /* Chart.js global overrides */
@@ -321,13 +357,13 @@ canvas {
 /* Transitions */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
 }
 
 .slide-enter-active,

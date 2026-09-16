@@ -36,7 +36,7 @@
       <p class="text-white/50 text-xs font-medium mb-1">{{ title }}</p>
 
       <!-- Loading skeleton -->
-      <div v-if="loading" class="skeleton h-8 w-36 rounded mb-1" />
+      <SkeletonBlock v-if="loading" class="h-8 w-36 mb-1" />
 
       <!-- Value -->
       <p v-else class="font-display font-bold text-2xl text-white">

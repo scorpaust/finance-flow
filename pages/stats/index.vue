@@ -32,7 +32,7 @@
       <div v-for="card in summaryCards" :key="card.label" class="stat-card">
         <p class="text-white/50 text-xs font-medium mb-2">{{ card.label }}</p>
         <div class="font-display font-bold text-xl" :class="card.colorClass">
-          <div v-if="loading" class="skeleton h-7 w-28 rounded" />
+          <SkeletonBlock v-if="loading" class="h-7 w-28" />
           <template v-else>{{ card.value }}</template>
         </div>
         <p v-if="card.sub" class="text-white/30 text-xs mt-1">{{ card.sub }}</p>
@@ -154,7 +154,7 @@
             </tr>
             <tr v-if="loading">
               <td v-for="i in 6" :key="i">
-                <div class="skeleton h-4 w-full rounded" />
+                <SkeletonBlock class="h-4 w-full" />
               </td>
             </tr>
           </tbody>

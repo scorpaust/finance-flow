@@ -38,6 +38,7 @@
           :to="item.path"
           :class="['nav-item group', { active: isActive(item.path) }]"
           :title="!sidebarOpen ? item.label : undefined"
+          :aria-label="item.label"
         >
           <component :is="item.icon" class="shrink-0 w-5 h-5" />
           <Transition name="fade">
@@ -48,7 +49,11 @@
 
       <!-- Collapse toggle (desktop only) -->
       <div class="px-3 py-2 border-t border-white/[0.08] hidden lg:block">
-        <button class="nav-item w-full justify-center" @click="sidebarOpen = !sidebarOpen">
+        <button
+          class="nav-item w-full justify-center"
+          :aria-label="sidebarOpen ? 'Recolher menu' : 'Expandir menu'"
+          @click="sidebarOpen = !sidebarOpen"
+        >
           <ChevronLeft :class="['w-4 h-4 transition-transform duration-300', !sidebarOpen && 'rotate-180']" />
           <Transition name="fade">
             <span v-if="sidebarOpen" class="text-xs ml-2">Recolher</span>
@@ -90,7 +95,7 @@
       <!-- Top bar -->
       <header class="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.08] glass-card shrink-0">
         <!-- Mobile hamburger -->
-        <button class="btn-icon lg:hidden" @click="sidebarOpen = !sidebarOpen">
+        <button class="btn-icon lg:hidden" aria-label="Abrir menu" @click="sidebarOpen = !sidebarOpen">
           <Menu class="w-5 h-5" />
         </button>
 
@@ -123,12 +128,14 @@
           to="/settings"
           class="btn-icon shrink-0"
           title="Configurações"
+          aria-label="Configurações"
         >
           <Settings class="w-5 h-5" />
         </NuxtLink>
         <button
           class="flex items-center gap-2 rounded-2xl border border-rose-500/30 px-3 sm:px-4 py-2 text-sm font-semibold text-rose-400 transition-all hover:border-rose-400 hover:bg-rose-500/10 shrink-0"
           title="Terminar sessão"
+          aria-label="Terminar sessão"
           @click="handleSignOut"
         >
           <LogOut class="w-4 h-4" />
@@ -136,9 +143,13 @@
         </button>
       </header>
 
-      <!-- Page content — extra bottom padding on mobile for nav bar -->
-      <main class="flex-1 overflow-y-auto p-4 lg:p-6 pb-24 lg:pb-6">
-        <NuxtPage />
+      <!-- Page content — bottom padding no mobile cobre a altura real da
+           MobileNav (~4.5rem) + a área de segurança do gesto Android,
+           nunca um valor mágico fixo -->
+      <main class="flex-1 overflow-y-auto p-4 lg:p-6 pb-[calc(4.5rem+1rem+env(safe-area-inset-bottom,0px))] lg:pb-6">
+        <div class="page-frame">
+          <slot />
+        </div>
       </main>
     </div>
 

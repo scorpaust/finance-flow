@@ -53,11 +53,14 @@ export default defineNuxtConfig({
         },
       ],
     },
+    // Desativado em dev — um service worker ativo contra um dev server que
+    // muda a cada gravação causa cache desatualizada persistente (formatação
+    // partida ao reabrir a app, cliques a não reagir por estarem a intercetar
+    // pedidos antigos). Confirmado em teste real na app Android via túnel USB
+    // nesta sessão. Produção continua com o SW normalmente ativo (controlado
+    // por `registerType`/`workbox` acima, não por `devOptions`).
     devOptions: {
-      enabled: true,
-      suppressWarnings: true,
-      navigateFallbackAllowlist: [/^\/$/],
-      type: 'module',
+      enabled: false,
     },
   },
 
@@ -124,13 +127,35 @@ export default defineNuxtConfig({
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap',
         },
+        // Mesmo logótipo do ícone Android/manifest PWA (Fase 4, tarefa 6) —
+        // sem isto o browser não tinha favicon explícito nenhum.
+        { rel: 'icon', type: 'image/svg+xml', href: '/icons/icon-192x192.svg' },
+        { rel: 'apple-touch-icon', href: '/icons/icon-192x192.svg' },
       ],
       meta: [
-        { name: 'viewport',                        content: 'width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no' },
+        // Sem maximum-scale/user-scalable=no: bloquear o pinch-zoom falha o
+        // critério WCAG 1.4.4/1.4.10 (Fase 4, tarefa 7 — acessibilidade).
+        { name: 'viewport',                        content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'theme-color',                     content: '#0f0f23' },
         { name: 'apple-mobile-web-app-capable',    content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
     },
+    // Transição de página global (Fase 4, tarefa 5) — classes .page-* já
+    // existentes em assets/css/main.css, só faltava ligar ao router.
+    // layoutTransition tem de estar sincronizada com pageTransition: sem
+    // isto, uma navegação que também troca de layout (ex. dashboard
+    // `layout: 'default'` → `login.vue` `layout: false`) pode renderizar a
+    // página nova por instantes dentro do layout antigo, em vez de
+    // substituir a página inteira — reproduzido em teste real (login a
+    // aparecer "no meio" do dashboard antigo).
+    // `mode: 'out-in'` é necessário: sem ele, a página que sai e a que
+    // entra ficam as duas no DOM ao mesmo tempo (Vue não remove a antiga só
+    // porque tem opacity/transform a animar) — testado e confirmado que
+    // isso bloqueia cliques nos itens de menu e pode esconder conteúdo de
+    // páginas novas por trás da antiga. Correto vale mais do que ligeiramente
+    // mais rápido.
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'page', mode: 'out-in' },
   },
 })

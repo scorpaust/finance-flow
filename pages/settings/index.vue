@@ -85,7 +85,7 @@
               <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="deleteCat(cat._id)">Confirmar</button>
             </template>
             <template v-else>
-              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" @click="confirmDeleteCatId = cat._id">
+              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" aria-label="Eliminar categoria" @click="confirmDeleteCatId = cat._id">
                 <Trash2 class="w-3.5 h-3.5 text-rose-400" />
               </button>
             </template>
@@ -103,7 +103,7 @@
         <div class="modal-content max-w-sm">
           <div class="flex items-center justify-between mb-5">
             <h3 class="font-semibold text-white">Nova Categoria</h3>
-            <button class="btn-icon" @click="showCatModal = false"><X class="w-4 h-4" /></button>
+            <button class="btn-icon" aria-label="Fechar" @click="showCatModal = false"><X class="w-4 h-4" /></button>
           </div>
           <div class="space-y-4">
             <div>

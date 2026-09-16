@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-surface-900 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+  <div class="min-h-screen bg-surface-900 pt-[env(safe-area-inset-top,_0px)] pb-[env(safe-area-inset-bottom,_0px)] pl-[env(safe-area-inset-left,_0px)] pr-[env(safe-area-inset-right,_0px)]">
     <!-- Global loading screen — v-show (not v-if/v-else) so this and
          NuxtPage are always both mounted as stable siblings; toggling a
          v-if/v-else branch right after hydration settles can corrupt the
          DOM (Vue nests the newly-revealed branch inside the old one). -->
     <div
       v-show="auth.loading"
-      class="fixed inset-0 z-[200] flex items-center justify-center auth-bg pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+      class="fixed inset-0 z-[200] flex items-center justify-center auth-bg pt-[env(safe-area-inset-top,_0px)] pb-[env(safe-area-inset-bottom,_0px)]"
     >
       <div class="flex flex-col items-center gap-4 animate-fade-in">
         <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center neon-brand animate-bounce-subtle">
@@ -22,7 +22,9 @@
       </div>
     </div>
 
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
     <ToastContainer />
   </div>
 </template>

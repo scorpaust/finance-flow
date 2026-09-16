@@ -33,6 +33,31 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
   { _id: false }
 )
 
+// Perfil de investidor (Fase 3 — Insights com IA). Sem default automático: só
+// existe depois do utilizador responder ao questionário. "Renovar anualmente"
+// é aplicado em runtime comparando updatedAt (ver server/api/insights/investment.post.ts),
+// não há job separado para isto.
+export interface IInvestorProfile {
+  riskTolerance: 'conservador' | 'moderado' | 'arrojado'
+  horizonYears: number
+  hasExistingInvestments: boolean
+  knowledgeLevel: 'iniciante' | 'intermedio' | 'avancado'
+  goals: string[]
+  updatedAt: Date
+}
+
+const InvestorProfileSchema = new Schema<IInvestorProfile>(
+  {
+    riskTolerance:          { type: String, enum: ['conservador', 'moderado', 'arrojado'], required: true },
+    horizonYears:           { type: Number, required: true, min: 0 },
+    hasExistingInvestments: { type: Boolean, required: true },
+    knowledgeLevel:         { type: String, enum: ['iniciante', 'intermedio', 'avancado'], required: true },
+    goals:                  [{ type: String, trim: true }],
+    updatedAt:              { type: Date, required: true },
+  },
+  { _id: false }
+)
+
 export interface IUser extends Document {
   name: string
   email: string
@@ -41,6 +66,7 @@ export interface IUser extends Document {
   emailVerified?: Date
   provider?: string
   subscription: IUserSubscription
+  investorProfile?: IInvestorProfile
   createdAt: Date
   updatedAt: Date
 }
@@ -54,6 +80,7 @@ const UserSchema = new Schema<IUser>(
     emailVerified: { type: Date },
     provider:      { type: String, default: 'password' },
     subscription:  { type: UserSubscriptionSchema, default: () => ({}) },
+    investorProfile: { type: InvestorProfileSchema },
   },
   { timestamps: true }
 )
@@ -191,3 +218,60 @@ TransactionSchema.index({ userId: 1, type: 1 })
 TransactionSchema.index({ userId: 1, categoryId: 1 })
 export const Transaction =
   mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema)
+
+// ─── MARKET SNAPSHOT ─────────────────────────────────────────────────────────
+// Cache diário do contexto de mercado (Twelve Data), partilhado por todos os
+// utilizadores Premium nesse dia — nunca chamar a Twelve Data por utilizador/
+// pedido. Ver context/features/03-FASE-3-insights-ia.md tarefa 2 e 5.
+export interface IMarketIndex {
+  symbol: string
+  name: string
+  price: number
+  changePercent: number
+}
+
+export interface IMarketSnapshot extends Document {
+  date: string // YYYY-MM-DD, chave única — 1 documento por dia
+  indices: IMarketIndex[]
+  fetchedAt: Date
+}
+
+const MarketSnapshotSchema = new Schema<IMarketSnapshot>({
+  date:      { type: String, required: true, unique: true },
+  indices: [
+    {
+      _id:           false,
+      symbol:        { type: String, required: true },
+      name:          { type: String, required: true },
+      price:         { type: Number, required: true },
+      changePercent: { type: Number, required: true },
+    },
+  ],
+  fetchedAt: { type: Date, required: true },
+})
+export const MarketSnapshot =
+  mongoose.models.MarketSnapshot ||
+  mongoose.model<IMarketSnapshot>('MarketSnapshot', MarketSnapshotSchema)
+
+// ─── AI INSIGHT CACHE ────────────────────────────────────────────────────────
+// Cache de 24h da interpretação de estatísticas por IA (Fase 3, tarefa 4) — um
+// documento por utilizador, sobrescrito a cada geração nova, para controlar o
+// custo de chamadas à Anthropic.
+export interface IAiInsightCache extends Document {
+  userId: mongoose.Types.ObjectId
+  months: number
+  insights: string[]
+  suggestions: string[]
+  generatedAt: Date
+}
+
+const AiInsightCacheSchema = new Schema<IAiInsightCache>({
+  userId:      { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  months:      { type: Number, required: true },
+  insights:    [{ type: String }],
+  suggestions: [{ type: String }],
+  generatedAt: { type: Date, required: true },
+})
+export const AiInsightCache =
+  mongoose.models.AiInsightCache ||
+  mongoose.model<IAiInsightCache>('AiInsightCache', AiInsightCacheSchema)

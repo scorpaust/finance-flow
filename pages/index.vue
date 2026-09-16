@@ -46,6 +46,12 @@
       <NuxtLink to="/stats" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
         <BarChart3 class="w-4 h-4" /> Estatísticas
       </NuxtLink>
+      <NuxtLink to="/predictions" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
+        <Brain class="w-4 h-4" /> Previsões IA
+      </NuxtLink>
+      <NuxtLink to="/investimento" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
+        <TrendingUp class="w-4 h-4" /> Investimento
+      </NuxtLink>
       <NuxtLink to="/settings" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
         <Settings class="w-4 h-4" /> Configurações
       </NuxtLink>
@@ -350,7 +356,7 @@
 </template>
 
 <script setup lang="ts">
-import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings } from 'lucide-vue-next'
+import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp } from 'lucide-vue-next'
 import type { Transaction } from '~/types'
 
 definePageMeta({ layout: 'default' })

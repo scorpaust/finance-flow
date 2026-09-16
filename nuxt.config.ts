@@ -72,6 +72,10 @@ export default defineNuxtConfig({
     paypalPlanIdPremium: process.env.PAYPAL_PLAN_ID_PREMIUM || '',
     subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '3',
     cronSecret: process.env.CRON_SECRET || '',
+    // Fase 3 — Insights com IA (Anthropic + Twelve Data). Nunca em `public`: a
+    // chave nunca pode chegar ao client. Ver context/features/03-FASE-3-insights-ia.md.
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    twelveDataApiKey: process.env.TWELVE_DATA_API_KEY || '',
     public: {
       appUrl: process.env.APP_URL || 'http://localhost:3000',
     },

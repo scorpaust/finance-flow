@@ -109,6 +109,9 @@
       </div>
     </div>
 
+    <!-- AI stats insights (Pro+) -->
+    <StatsInsightCard :months="parseInt(period)" />
+
     <!-- Monthly detail table -->
     <div class="glass-card rounded-3xl overflow-hidden">
       <div class="p-6 border-b border-white/[0.08]">

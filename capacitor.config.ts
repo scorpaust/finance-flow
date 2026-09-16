@@ -8,6 +8,11 @@ import type { CapacitorConfig } from '@capacitor/cli'
 // tratado como de terceiros. Ver decisão em context/features/01-FASE-1-fundacao-multiplataforma.md
 // e no README ("Arquitetura multiplataforma Android").
 const PROD_APP_URL = process.env.CAPACITOR_SERVER_URL || 'https://financeflow.example.com'
+// cleartext (HTTP simples) só é aceitável quando CAPACITOR_SERVER_URL foi
+// explicitamente definido para um servidor de dev local (ex. via `adb reverse`
+// + http://localhost:3000) — nunca para o URL de produção por default acima,
+// que é sempre https.
+const IS_DEV_OVERRIDE = !!process.env.CAPACITOR_SERVER_URL
 
 const config: CapacitorConfig = {
   appId: 'com.financeflow.app',
@@ -16,10 +21,10 @@ const config: CapacitorConfig = {
   webDir: '.output/public',
   server: {
     url: PROD_APP_URL,
-    cleartext: false,
+    cleartext: IS_DEV_OVERRIDE,
   },
   android: {
-    allowMixedContent: false,
+    allowMixedContent: IS_DEV_OVERRIDE,
   },
 }
 

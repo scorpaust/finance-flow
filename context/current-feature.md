@@ -1,87 +1,114 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/02-FASE-2-sistema-subscricoes.md -->
+<!-- Ver especificação completa em context/features/03-FASE-3-insights-ia.md -->
 
 ## Estado
 
-Concluída (mergeada em `main`; MB WAY implementado mas bloqueado por
-aprovação pendente da PayPal — ver histórico)
+Em progresso (branch `feature/fase-3-insights-ia`)
 
 ## Objetivos
 
-FASE 2 — Sistema de Subscrições (PayPal + MB WAY + Multibanco). Três planos
-— Gratuito, Pro (5,00 €/mês), Premium (12,99 €/mês) — pagáveis com
-cartão/PayPal (auto-renovável) ou MB WAY/Multibanco (pré-pago por período),
-disponíveis tanto na web como na app Android, com a mesma conta a refletir o
-estado da subscrição nas duas plataformas.
+FASE 3 — Insights com IA (Estatísticas Pro+ e Investimento Premium). Duas
+secções novas, geradas por IA a partir dos dados financeiros do utilizador:
+interpretação de estatísticas + sugestões de melhoria (Pro e Premium) em
+`/stats`, e dicas de investimento educativas por perfil de risco (exclusivo
+Premium), combinando as finanças do utilizador com contexto geral de
+mercado.
+
+Pré-requisito: Fase 2 concluída — o sistema de subscrições e
+`requireFeature`/`hasFeature` já existem, esta fase só acrescenta features
+gated aos planos já criados.
 
 Decisões de arquitetura já tomadas (não reabrir sem motivo forte — ver
 especificação secção correspondente):
-1. Processador único: PayPal, com três métodos de pagamento expostos ao
-   utilizador (cartão/saldo PayPal, MB WAY, Multibanco).
-2. Modelo híbrido: cartão/saldo PayPal → subscrição com auto-renovação real
-   (PayPal Subscriptions/Billing Agreements); MB WAY/Multibanco → pagamento
-   pré-pago por período (1/3/6/12 meses), sem cobrança automática, com
-   downgrade para `free` no fim do período se não houver renovação manual.
-3. Android usa pagamentos externos (programa da Google para a EEA) em vez de
-   Google Play Billing — implica inscrição prévia, disclosure obrigatório,
-   reporte via `ExternalTransactionId` API e taxa de serviço de 10% à
-   Google sobre subscrições recorrentes.
+1. LLM: Anthropic, modelo `claude-haiku-4-5` — mais barato, suficiente para
+   gerar JSON estruturado a partir de agregados já calculados. Chamado
+   sempre a partir do servidor (`server/utils/anthropic.ts`) — a chave da
+   API nunca chega ao client.
+2. Dados de mercado: Twelve Data, plano gratuito (800 pedidos/dia, atraso
+   de 4h) — irrelevante aqui porque não é preciso preço em tempo real.
+3. Split de acesso por tier (decisão explícita do dono do produto):
+   interpretação de estatísticas com IA → Pro e Premium; dicas de
+   investimento com IA (perfil de investidor + contexto de mercado) →
+   exclusivo Premium.
+4. Nunca recomendações de investimento específicas — risco regulatório real
+   (CMVM em Portugal). Secção de investimento estritamente educativa e
+   genérica por perfil de risco (nunca "compra X"), com disclaimer "não é
+   aconselhamento financeiro" sempre visível. Molda o prompt e não é
+   negociável sem validação legal.
+5. Sem proração/cobrança nova aqui — esta fase não toca no sistema de
+   subscrições da Fase 2, só consome `hasFeature()`/`requireFeature()` já
+   existentes.
 
 Tarefas principais (ver especificação para detalhe completo):
-1. Modelo de dados (`UserSubscription`: `periodType`, `paymentMethod`,
-   `provider`, `currentPeriodEnd`, `autoRenew`) + migração de utilizadores
-   existentes para `tier: 'free'`
-2. Fonte única da matriz de features (`shared/features.ts`,
-   `hasFeature(tier, feature)`)
-3. Integração PayPal base (conta Business, Multibanco/MB WAY aprovados,
-   credenciais sandbox/live, `server/utils/paypal.ts`)
-4. Fluxo de auto-renovação (planos PayPal Subscriptions, endpoint de
-   criação, webhook de ciclo de vida)
-5. Fluxo pré-pago (Orders API para MB WAY/Multibanco, tratamento do estado
-   "pendente" do Multibanco, job de aviso de expiração + downgrade
-   automático)
-6. Composable `useSubscription()` e componentes de paywall/checkout no
-   client
-7. Enforcement obrigatório no servidor (`requireFeature(featureKey)`,
-   resposta `403` consistente)
-8. Android — pagamentos externos (inscrição no programa Google, fluxo de
-   checkout fora do Google Play Billing, reporte `ExternalTransactionId`)
-9. Ambiente de testes (sandbox PayPal para os três métodos, job de
-   expiração, fluxo completo em Android)
+1. Configuração base — chaves Anthropic e Twelve Data,
+   `server/utils/anthropic.ts` (Messages API, JSON estruturado),
+   `server/utils/marketData.ts` (índices/mercados globais principais)
+2. Modelo de dados — `IInvestorProfile` em `User` (sem default automático,
+   só existe após o questionário) + collection `MarketSnapshot` (cache
+   diário partilhado, nunca chamar a Twelve Data por utilizador/pedido)
+3. Fonte única de features — `aiStatsInsights` (Pro) e `aiInvestmentTips`
+   (Premium) em `shared/features.ts`
+4. Interpretação de estatísticas — `server/api/insights/stats.post.ts`
+   (gated `requireFeature('aiStatsInsights')`), só agregados já existentes
+   ao LLM (nunca descrições de transações em bruto), prompt fixo PT-PT,
+   cache de 24h por utilizador, `StatsInsightCard.vue`, secção gated em
+   `pages/stats/index.vue`
+5. Dicas de investimento — questionário de perfil de investidor (renovado
+   anualmente, `pages/investimento/perfil.vue`), job diário de
+   `MarketSnapshot` (padrão do cron `check-expirations` da Fase 2),
+   `server/api/insights/investment.post.ts` (gated
+   `requireFeature('aiInvestmentTips')`, devolve `needsProfile` se perfil
+   ausente/expirado), prompt fixo proibido de nomear ativos/tickers
+   específicos com disclaimer hardcoded, `pages/investimento/index.vue`,
+   link "Investimento" na navegação com paywall Premium
 
-Fora de âmbito nesta fase: redesign visual do paywall/checkout (Fase 3),
-submissão final e aprovação do programa de pagamentos externos na Play
-Store em produção (Fase 5 — aqui só a integração técnica e o pedido de
-inscrição).
+Fora de âmbito nesta fase: redesign visual final destas secções (Fase 4 —
+design system), qualquer recomendação de compra/venda de ativos específicos
+(nunca, em nenhuma fase, sem validação legal explícita), testes
+automatizados com chamadas reais à Anthropic/Twelve Data (mocks
+obrigatórios — ver Fase 5).
 
 ## Notas
 
-- Fase de maior risco de negócio e de compliance — em caso de dúvida sobre
-  regras de preço/feature ou sobre requisitos da Google, assinalar
+- Privacidade: nunca enviar descrições de transações em bruto ao LLM (podem
+  conter texto sensível, ex. "consulta psiquiatra") — só números/nomes de
+  categoria já agregados. Confirmar nos payloads de request antes de dar a
+  tarefa 4/5 como concluída.
+- Risco regulatório (CMVM) na secção de investimento é o ponto mais
+  sensível da fase — em caso de dúvida sobre o teor do prompt, assinalar
   explicitamente no PR em vez de assumir.
-- Ler `00-CODE-SPEC.md` (secções 3 e 4, atualizadas para esta fase) antes de
-  implementar o modelo de dados e a matriz de features.
-- O pedido de inscrição no programa de pagamentos externos da Google tem
-  lead time próprio — iniciar cedo, não deixar para o fim da fase.
+- Ler `00-CODE-SPEC.md` (secções 3 e 4) antes de implementar o modelo de
+  dados e a matriz de features.
+- `MarketSnapshot` é singleton/diário e partilhado por todos os
+  utilizadores Premium — nunca por utilizador/pedido.
+- ⚠️ **BLOQUEADOR antes de produção**: `android/app/src/main/AndroidManifest.xml`
+  tem `android:usesCleartextTraffic="true"` (alterado nesta sessão para
+  testar a app Android via `adb reverse` + `http://localhost:3000` num
+  telemóvel físico por cabo USB — sem isto a WebView recusava carregar
+  tráfego HTTP simples). Isto **tem de voltar a `"false"`** antes de qualquer
+  build de produção/release — decisão explícita do utilizador de deixar
+  assim por agora e reverter só na fase de publicação (ver
+  `context/features/` fase de publicação/Play Store). `capacitor.config.ts`
+  já está seguro (cleartext só liga com `CAPACITOR_SERVER_URL` definido,
+  nunca no URL de produção por default), o risco está só no manifest.
 
 ## Critérios de aceitação
 
-- Utilizador consegue subscrever com cartão/PayPal (auto-renovável) em
-  sandbox, web e Android
-- Utilizador consegue pagar um período com MB WAY e com Multibanco em
-  sandbox, web e Android, e a subscrição fica com a data de expiração
-  correta
-- Mudar de plano/expirar reflete-se imediatamente na UI e nos endpoints
-  protegidos (403 quando aplicável)
-- Webhook PayPal testado com eventos simulados para os três métodos,
-  incluindo o estado "pendente" do Multibanco
-- Job de aviso de expiração testado (gera notificação, faz downgrade se não
-  houver renovação)
-- Nenhum endpoint sensível depende apenas de verificação no client
-- Pedido de inscrição no programa de pagamentos externos da Google
-  submetido (aprovação pode não estar concluída nesta fase, mas o pedido
-  tem de estar feito antes da Fase 5)
+- Free não vê nada destas secções (paywall visível); Pro/Premium veem
+  interpretação de estatísticas; só Premium vê dicas de investimento
+- `requireFeature('aiStatsInsights')` e `requireFeature('aiInvestmentTips')`
+  bloqueiam no servidor mesmo que o client seja adulterado (403)
+- Interpretação de estatísticas não repete chamada à Anthropic dentro de
+  24h para o mesmo utilizador (cache confirmado)
+- Questionário de perfil de investidor grava corretamente e é pedido de
+  novo passados 365 dias (testável adiantando `updatedAt` manualmente)
+- Dicas de investimento nunca mencionam um ativo/ticker específico (revisão
+  manual de amostras geradas) e mostram sempre o disclaimer
+- `MarketSnapshot` só é atualizado 1x/dia (confirmar não há chamadas
+  repetidas à Twelve Data por utilizador)
+- Nenhuma descrição de transação em bruto é enviada à Anthropic (confirmar
+  nos payloads de request)
 
 ## Histórico
 
@@ -192,3 +219,143 @@ inscrição).
   com IA, Pro+/Premium) e Fase 5 (Internacionalização) — com as fases de
   design system/segurança/publicação renumeradas em conformidade; ver
   `00-CODE-SPEC.md` e os respetivos ficheiros de fase para o detalhe.
+- 2026-09-16: Definida como funcionalidade atual — FASE 3 (Insights com IA:
+  interpretação de estatísticas Pro+Premium, dicas de investimento
+  educativas Premium), especificação em
+  `context/features/03-FASE-3-insights-ia.md`. Estado inicial: não
+  iniciada.
+- 2026-09-16: Branch `feature/fase-3-insights-ia` criado a partir de `main`.
+  Estado passa a "Em progresso". Implementado o código-base completo das
+  tarefas 1-5 da especificação:
+  - **`shared/features.ts`**: `aiStatsInsights` (Pro) e `aiInvestmentTips`
+    (Premium) adicionados à `FEATURE_MATRIX`.
+  - **Modelo de dados** (`server/models/index.ts`): `IInvestorProfile`
+    embutido em `User.investorProfile` (sem default — só existe após o
+    questionário); novas collections `MarketSnapshot` (singleton diário,
+    `date` único) e `AiInsightCache` (1 documento por utilizador,
+    sobrescrito a cada análise, cache de 24h).
+  - **`server/utils/anthropic.ts`**: wrapper fino sobre a Messages API
+    (fetch nativo, sem SDK — consistente com `paypal.ts`), modelo
+    `claude-haiku-4-5`, structured outputs via `output_config.format`
+    (`type: 'json_schema'`) e header `anthropic-beta:
+    structured-outputs-2025-12-15`; parâmetros confirmados via Context7
+    (`@anthropic-ai/sdk-typescript`, `helpers.md`) por não serem do
+    conhecimento de treino do modelo.
+  - **`server/utils/marketData.ts`**: wrapper sobre a Quote API da Twelve
+    Data, símbolos separados por vírgula num único pedido; parâmetros
+    confirmados via Context7 (OpenAPI spec da Twelve Data). Símbolos de
+    índice "puro" (SPX, IXIC, STOXX50E, PSI20) testados em sandbox real e
+    devolvem 403/404 no plano gratuito (exigem plano pago) — corrigido para
+    usar os ETFs mais líquidos que replicam cada índice (SPY, QQQ, DIA,
+    VGK; PSI-20 abandonado por não ter proxy líquido disponível no plano
+    gratuito), exibidos ao utilizador pelo nome do índice subjacente.
+  - **Endpoints**: `server/api/insights/stats.post.ts`
+    (`requireFeature('aiStatsInsights')`, agregados calculados no próprio
+    endpoint a partir de `Transaction` — nunca descrições em bruto — cache
+    de 24h em `AiInsightCache`); `server/api/insights/investment.post.ts`
+    (`requireFeature('aiInvestmentTips')`, devolve `{ needsProfile: true }`
+    se perfil ausente/>365 dias via `server/utils/investorProfile.ts`,
+    disclaimer hardcoded nunca gerado pelo LLM); `server/api/insights/
+    market-snapshot.post.ts` (cron `x-cron-secret`, mesmo padrão de
+    `check-expirations`, no-op se já existir snapshot do dia — protege o
+    limite de 800 pedidos/dia da Twelve Data); `server/api/investor-profile/
+    index.ts` (GET/POST, validação de enums no servidor).
+  - **Client**: `components/insights/StatsInsightCard.vue` (botão "Analisar
+    com IA", cache visível, gated Pro+) inserido em `pages/stats/index.vue`;
+    `pages/investimento/perfil.vue` (questionário curto) e `pages/
+    investimento/index.vue` (mostra questionário/dicas/disclaimer/data do
+    snapshot, `PaywallModal` Premium); link "Investimento" adicionado à nav
+    desktop (`layouts/default.vue`), sempre visível.
+  - **Config**: `ANTHROPIC_API_KEY`/`TWELVE_DATA_API_KEY` adicionados a
+    `nuxt.config.ts` (privados, nunca em `public`) e `.env.example`.
+  - `npm run build` validado sem erros (todas as rotas novas compilam).
+- 2026-09-16: Testado o backend de ponta a ponta em dev local, ligado ao
+  MongoDB Atlas real e às APIs reais da Anthropic e da Twelve Data (chaves já
+  estavam em `.env`), via curl com o header `x-user-id` (aceite por
+  `requireAuth`) sobre a conta `dinismiguelcosta@hotmail.com` (já `tier:
+  premium` de testes da Fase 2 — não foi necessário alterar nada):
+  - `POST /api/insights/stats` sem plano suficiente → `403 feature_locked`
+    confirmado (enforcement real no servidor, não só no client).
+  - `POST /api/insights/stats` com Premium → `200`, chamada real à Anthropic
+    com `output_config.format`/`anthropic-beta: structured-outputs-2025-12-15`
+    funcionou exatamente como documentado (JSON estruturado válido devolvido
+    e parseado); sem transações nos últimos 6 meses nesta conta, o modelo
+    devolveu sugestões genéricas em vez de alucinar dados — comportamento
+    correto. Segunda chamada imediata devolveu `cached: true` com o mesmo
+    `generatedAt` — cache de 24h confirmada.
+  - `POST /api/insights/market-snapshot` (cron, `x-cron-secret`): primeira
+    tentativa com os símbolos de índice originais (SPX/IXIC/STOXX50E/PSI20)
+    falhou com `CastError` (Twelve Data devolveu 403/404 para esses símbolos
+    no plano gratuito) — bug real apanhado em teste, corrigido trocando para
+    ETFs proxy (ver acima). Depois da correção: `200`, snapshot do dia
+    guardado corretamente; segunda chamada no mesmo dia devolveu
+    `skipped: true` sem voltar a chamar a Twelve Data — confirma o critério
+    de aceitação "só 1x/dia".
+  - Fluxo de investimento completo: `GET /api/investor-profile` sem perfil →
+    `{ profile: null, valid: false }`; `POST /api/insights/investment` sem
+    perfil → `{ needsProfile: true }`; `POST /api/investor-profile` grava o
+    questionário; `POST /api/insights/investment` com perfil válido → `200`
+    com disclaimer hardcoded, `marketSnapshotDate` correto e 5 dicas
+    educativas geradas pela IA, nenhuma a nomear ativo/ticker específico
+    (revisão manual desta amostra passou o critério de aceitação).
+  - **Nota**: este teste escreveu dados reais na conta
+    `dinismiguelcosta@hotmail.com` (perfil de investidor de teste, cache de
+    insights vazia, `MarketSnapshot` do dia) — o `MarketSnapshot` e a cache
+    são dados de produção legítimos, mas o `investorProfile` gravado é
+    fictício (dados de teste) e deve ser substituído ou limpo antes de o
+    utilizador real preencher o questionário a sério.
+  - **Por fazer / fora do alcance de código**: configurar o cron externo
+    real para `market-snapshot`; testar a renovação do perfil aos 365 dias
+    (não testado nesta sessão — precisa de adiantar `updatedAt`
+    manualmente).
+- 2026-09-16: Teste manual no browser pelo utilizador revelou um gap: o link
+  "Investimento" só tinha sido adicionado à sidebar (`layouts/default.vue`),
+  mas o dashboard (`pages/index.vue`) tem a sua própria fila de atalhos
+  rápidos ("Transações/Grupos/Estatísticas/Configurações"), independente da
+  sidebar — e é essa fila que o utilizador vê primeiro. Corrigido:
+  adicionados "Previsões IA" (também em falta, gap pré-existente à Fase 3) e
+  "Investimento" a essa fila. `npm run build` validado sem erros.
+  Confirmado pelo utilizador em browser: ambos os links aparecem agora no
+  dashboard. Também identificado durante o diagnóstico: o PWA
+  (`@vite-pwa/nuxt`) regista service worker mesmo em dev
+  (`devOptions.enabled: true` no `nuxt.config.ts`), o que pode mostrar UI em
+  cache mesmo depois de reiniciar o dev server — útil ter presente em testes
+  futuros de UI (precisa de "Unregister" do service worker + "Clear site
+  data" para garantir que se está a ver a versão atual).
+- 2026-09-16: Testada a app Android nativa (Capacitor, Fase 1) num telemóvel
+  físico real ligado por cabo USB, a apontar para o dev server local via
+  `adb reverse tcp:3000 tcp:3000` (`CAPACITOR_SERVER_URL=http://localhost:3000`
+  no sync/build). Confirmado pelo utilizador: app abre e funciona bem no
+  telemóvel. Vários problemas de ambiente encontrados e corrigidos pelo
+  caminho (nenhum é bug de código da Fase 3, mas ficam registados por serem
+  reutilizáveis em testes Android futuros):
+  - `npx cap run android` tem um bug/inconsistência a validar o target ID de
+    um dispositivo físico real (funciona em `--list`, falha em `run` com
+    "Invalid target ID") — contornado fazendo build manual
+    (`gradlew assembleDebug`) + `adb install` + `adb shell am start`
+    diretamente, em vez de depender do `cap run`.
+  - A partir do Git Bash, o `gradlew`/`gradlew.bat` não é resolvido pelo
+    Capacitor CLI nem pelo Node child_process no Windows ("gradlew is not
+    recognized") — resolvido correndo os comandos Gradle a partir do
+    PowerShell nativo em vez do Git Bash.
+  - `JAVA_HOME` do sistema apontava para JDK 17, mas
+    `capacitor-cordova-android-plugins` exige Java 21 (`invalid source
+    release: 21`) — resolvido definindo `JAVA_HOME` para o JDK 21 já
+    instalado (`C:\Program Files\Eclipse Adoptium\jdk-21...`) só para o
+    comando do Gradle.
+  - A ligação USB caiu várias vezes durante o processo ("unauthorized"/
+    "offline") — instabilidade de cabo/porta, não da app; resolvido com
+    `adb kill-server && adb start-server` + reautorização no telemóvel.
+  - A app ficava em branco / "Página web não disponível": duas causas
+    reais, ambas corrigidas:
+    1. `android:usesCleartextTraffic="false"` no `AndroidManifest.xml` +
+       `cleartext: false` no `capacitor.config.ts` bloqueavam o
+       `http://localhost:3000` (tráfego HTTP simples, sem TLS) — corrigido
+       tornando `cleartext`/`allowMixedContent` condicionais a
+       `CAPACITOR_SERVER_URL` estar definido em `capacitor.config.ts` (nunca
+       liga no URL de produção por default) e ativando manualmente
+       `usesCleartextTraffic="true"` no manifest **só para este teste** (ver
+       nota em "Notas" acima — bloqueador a reverter antes de produção).
+    2. O dev server só escutava em IPv6 (`::1`); o `adb reverse` no Windows
+       liga-se sempre a `127.0.0.1` (IPv4) — corrigido correndo
+       `nuxt dev --host 0.0.0.0` para escutar em todas as interfaces.

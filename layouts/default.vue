@@ -157,7 +157,7 @@
 <script setup lang="ts">
 import {
   Home, ArrowLeftRight, BarChart3, Settings,
-  LogOut, Menu, Plus, Brain, Layers, ChevronLeft,
+  LogOut, Menu, Plus, Brain, Layers, ChevronLeft, TrendingUp,
 } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import { pt }     from 'date-fns/locale'
@@ -185,6 +185,7 @@ const navItems = [
   { path: '/groups',       label: 'Grupos',       icon: Layers },
   { path: '/stats',        label: 'Estatísticas', icon: BarChart3 },
   { path: '/predictions',  label: 'Previsões IA', icon: Brain },
+  { path: '/investimento', label: 'Investimento', icon: TrendingUp },
   { path: '/settings',     label: 'Configurações', icon: Settings },
 ]
 

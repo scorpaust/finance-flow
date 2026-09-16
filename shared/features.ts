@@ -23,6 +23,8 @@ export type FeatureKey =
   | 'csvExport'
   | 'predictions'
   | 'prioritySupport'
+  | 'aiStatsInsights'
+  | 'aiInvestmentTips'
 
 // Tier mínimo que desbloqueia cada feature.
 const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
@@ -31,6 +33,10 @@ const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
   csvExport: 'pro',
   predictions: 'premium',
   prioritySupport: 'premium',
+  // Fase 3 — split explícito do dono do produto (ver context/features/03-FASE-3-insights-ia.md):
+  // interpretação de estatísticas é Pro+, dicas de investimento ficam exclusivas Premium.
+  aiStatsInsights: 'pro',
+  aiInvestmentTips: 'premium',
 }
 
 const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, premium: 2 }

@@ -160,5 +160,5 @@ duplicar a lógica em dois sítios.
 5. `05-FASE-5-internacionalizacao.md`
 6. `06-FASE-6-seguranca-qualidade.md`
 7. `07-FASE-7-publicacao.md`
-8. `AGENT-RULES.md`
+8. `.claude/agents/AGENT-RULES.md` (regras para agentes — fora de `context/`)
 9. `CONFIG-REFERENCE.md`

@@ -13,10 +13,13 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Categorias** | 14 categorias padrão + criação livre; todas editáveis e elimináveis |
 | **Grupos** | Agrupamento de transações com teto mensal/semanal, alertas de percentagem, stats e drawer de detalhe |
 | **Dashboard** | KPIs em tempo real, evolução do saldo, top categorias, transações recentes |
-| **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período |
-| **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança |
-| **Exportar CSV** | Download de transações filtradas |
+| **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período + distribuição/quartis (Pro+) |
+| **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
+| **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via PayPal — cartão/saldo (auto-renovável), MB WAY e Multibanco (pré-pago) — ver [Subscrições](#-subscrições-paypal--mb-way--multibanco) |
+| **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
+| **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **PWA** | Instalável, offline-ready, manifest completo |
+| **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
 | **Responsivo** | Mobile-first, sidebar colapsável desktop, bottom nav mobile |
 
 ---
@@ -35,6 +38,10 @@ date-fns v3     (formatação de datas)
 VueUse          (useWindowSize, useDebounceFn)
 lucide-vue-next (ícones)
 @vite-pwa/nuxt  (PWA + Workbox)
+Capacitor       (app Android nativa a partir do mesmo código-base)
+PayPal REST API (Orders + Subscriptions — subscrições, cartão/MB WAY/Multibanco)
+Anthropic API   (claude-haiku-4-5 — interpretação de estatísticas e dicas de investimento)
+Twelve Data API (snapshot diário de mercados globais para as dicas de investimento)
 ```
 
 ---
@@ -69,6 +76,24 @@ MONGODB_URI=mongodb://localhost:27017/financeflow node scripts/seed.mjs
 # Cria uma conta no ecra de login
 ```
 
+### Variáveis de ambiente
+
+`npm run dev` funciona sem mais nada além de `MONGODB_URI`. As funcionalidades
+pagas (subscrições, insights com IA) precisam de variáveis adicionais —
+ver `.env.example` e a descrição de cada uma em
+[`context/CONFIG-REFERENCE.md`](context/CONFIG-REFERENCE.md):
+
+| Grupo | Variáveis |
+|---|---|
+| Subscrições (PayPal) | `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_PLAN_ID_PRO`, `PAYPAL_PLAN_ID_PREMIUM`, `CRON_SECRET` |
+| Insights com IA | `ANTHROPIC_API_KEY`, `TWELVE_DATA_API_KEY` |
+
+Utilizadores existentes sem o campo `subscription` (pré-Fase-2) podem ser
+migrados para o plano `free` com:
+```bash
+npm run migrate:subscriptions
+```
+
 ---
 
 ## 🔐 Autenticação
@@ -84,37 +109,64 @@ financeflow/
 ├── assets/css/main.css         ← Glass morphism, animações, dark theme
 ├── components/
 │   ├── charts/                 ← BalanceChart, BarChart, AreaChart,
-│   │                              CategoryDonut, HorizontalBar, ForecastChart
+│   │                              CategoryDonut, HorizontalBar, ForecastChart,
+│   │                              DistributionHistogram, CategoryBoxplot
 │   │                              + ChartSkeleton, ChartEmpty
 │   ├── forms/TransactionModal  ← Criar / editar transação
+│   ├── insights/                ← StatsInsightCard (interpretação IA, Pro+)
 │   ├── layout/MobileNav        ← Bottom nav PWA mobile
+│   ├── subscription/           ← PaywallModal, UpsellBanner
 │   └── ui/                     ← KpiCard, TransactionRow, ToastContainer
 ├── composables/
 │   ├── useFormatters.ts        ← Moeda, datas, percentagens (PT-PT)
-│   └── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
+│   ├── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
+│   ├── usePlatform.ts          ← isNative/isAndroid/isWeb (Capacitor)
+│   └── useSubscription.ts      ← tier, hasFeature(key), paywall
 ├── layouts/default.vue         ← Sidebar + topbar + mobile nav
 ├── middleware/auth.global.ts   ← Proteção de rotas (client-only)
 ├── pages/
 │   ├── index.vue               ← Dashboard
 │   ├── login.vue               ← Email + password (login / registo)
-│   ├── transactions/           ← Lista, filtros, paginação, exportar CSV
-│   ├── groups/                 ← Gestão de grupos, orçamentos + drawer de detalhe
-│   ├── stats/                  ← Gráficos + tabela mensal
-│   ├── predictions.vue         ← UI de treino IA + forecast
+│   ├── transactions/           ← Lista, filtros, paginação, exportar CSV (Pro+)
+│   ├── groups/                 ← Gestão de grupos, orçamentos + drawer de detalhe (Pro+)
+│   ├── stats/                  ← Gráficos + tabela mensal + interpretação IA (Pro+)
+│   ├── predictions.vue         ← UI de treino IA + forecast (Premium)
+│   ├── subscription/           ← Planos, checkout PayPal, /return (polling pós-pagamento)
+│   ├── investimento/           ← Perfil de investidor + dicas educativas IA (Premium)
 │   └── settings/               ← Perfil + gestão de categorias
 ├── plugins/
-│   ├── chartjs.client.ts       ← Registo global Chart.js (dark theme)
-│   └── init.client.ts          ← Init auth store
+│   ├── chartjs.client.ts             ← Registo global Chart.js (dark theme)
+│   ├── init.client.ts                ← Init auth store
+│   └── capacitor-back-button.client.ts ← Botão "voltar" Android
 ├── server/
-│   ├── api/                    ← REST: auth, transactions, categories,
-│   │                              groups, stats (overview+categories), predictions
-│   ├── models/index.ts         ← Mongoose: User, Category, Transaction, Group
-│   ├── plugins/mongoose.ts     ← Ligação MongoDB via Nitro plugin
-│   └── utils/auth.ts           ← requireAuth, sanitizeId
-├── stores/                     ← Pinia: auth, finance, groups, toast
-├── types/index.ts              ← TypeScript types + constantes
+│   ├── api/
+│   │   ├── auth, transactions, categories, groups   ← CRUD base
+│   │   ├── stats/          ← overview, categories, advanced (Pro+)
+│   │   ├── predictions/    ← dados agregados para o modelo ML
+│   │   ├── subscription/   ← estado, checkout PayPal, webhook, cron de expiração
+│   │   ├── insights/       ← stats.post (Pro+), investment.post (Premium),
+│   │   │                      market-snapshot.post (cron diário)
+│   │   └── investor-profile/  ← questionário de perfil de investidor (GET/POST)
+│   ├── models/index.ts     ← Mongoose: User (+ subscription, investorProfile),
+│   │                          Category, TransactionGroup, Transaction,
+│   │                          PendingPayPalOrder, MarketSnapshot, AiInsightCache
+│   ├── plugins/mongoose.ts ← Ligação MongoDB via Nitro plugin
+│   └── utils/
+│       ├── auth.ts            ← requireAuth, sanitizeId
+│       ├── requireFeature.ts  ← enforcement server-side por tier (403 se bloqueado)
+│       ├── paypal.ts          ← wrapper Orders/Subscriptions API + webhook signature
+│       ├── anthropic.ts       ← wrapper Messages API (structured outputs)
+│       ├── marketData.ts      ← wrapper Twelve Data Quote API
+│       └── investorProfile.ts ← validade do perfil (renovação anual)
+├── shared/features.ts          ← Fonte única da matriz de features por tier
+├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
+├── types/index.ts               ← TypeScript types + constantes
 ├── scripts/
-│   └── seed.mjs                ← 12 meses de dados de teste
+│   ├── seed.mjs                    ← 12 meses de dados de teste
+│   ├── migrate-subscriptions.mjs   ← dá tier 'free' a utilizadores pré-Fase-2
+│   └── create-paypal-plans.mjs     ← cria os planos Pro/Premium na PayPal
+├── android/                     ← Projeto nativo gerado pelo Capacitor (ver secção própria)
+├── capacitor.config.ts
 ├── docker-compose.yml
 └── Dockerfile
 ```
@@ -140,6 +192,58 @@ Output: valor previsto (receita ou despesa)
 - **Multi-step rollout** com janela deslizante para 3 meses
 - **Intervalos de confiança** crescentes por horizonte
 - **Fallback linear** se dados < 3 meses
+
+---
+
+## 💳 Subscrições (PayPal + MB WAY + Multibanco)
+
+Três planos — **Gratuito**, **Pro** (5,00 €/mês) e **Premium** (12,99 €/mês)
+— com um único processador (PayPal), expondo três métodos de pagamento ao
+utilizador:
+
+- **Cartão / saldo PayPal** → subscrição com auto-renovação real (PayPal
+  Subscriptions API).
+- **MB WAY / Multibanco** → pagamento pré-pago por período (1/3/6/12 meses),
+  sem cobrança automática — a subscrição expira e faz downgrade para `free`
+  se não houver renovação manual antes do fim do período.
+
+A matriz de features por plano vive num único sítio,
+[`shared/features.ts`](shared/features.ts) (`FEATURE_MATRIX`, `hasFeature()`),
+partilhado entre client e servidor:
+
+- **Client**: `useSubscription()` expõe `tier`/`hasFeature(key)` para UI e
+  paywalls (`PaywallModal`, `UpsellBanner`).
+- **Servidor (obrigatório)**: `requireFeature(event, key)` em
+  `server/utils/requireFeature.ts` — devolve `403` se o tier não chegar,
+  independentemente do que o client mostra. Esconder no client é UX;
+  bloquear no server é a segurança real.
+
+Detalhe completo da arquitetura, decisões e fluxos em
+[`context/features/02-FASE-2-sistema-subscricoes.md`](context/features/02-FASE-2-sistema-subscricoes.md).
+
+---
+
+## 🧠 Insights com IA
+
+Duas secções geradas por Anthropic (`claude-haiku-4-5`, respostas JSON
+estruturadas via `output_config.format`) a partir dos dados financeiros do
+utilizador — nunca a partir de descrições de transações em bruto, só
+agregados já calculados no servidor:
+
+- **Interpretação de estatísticas** (`/stats`, Pro e Premium) — 2-3 insights
+  e 1-2 sugestões sobre os padrões de despesa, com cache de 24h por
+  utilizador (`AiInsightCache`) para controlar custo.
+- **Dicas de investimento educativas** (`/investimento`, exclusivo Premium)
+  — combina um questionário de perfil de investidor (renovado anualmente)
+  com um snapshot diário de mercados globais (Twelve Data,
+  `MarketSnapshot`, partilhado por todos os utilizadores Premium, nunca
+  pedido por utilizador). **Nunca recomenda ativos/tickers específicos** —
+  secção estritamente educativa por perfil de risco, com disclaimer fixo
+  ("não é aconselhamento financeiro") sempre visível, por decisão de
+  produto face ao risco regulatório (CMVM).
+
+Detalhe completo em
+[`context/features/03-FASE-3-insights-ia.md`](context/features/03-FASE-3-insights-ia.md).
 
 ---
 
@@ -180,9 +284,12 @@ backend e o cookie seria tratado como de terceiros — quebrando o login.
 **Decisão**: `capacitor.config.ts` usa `server.url` a apontar para o domínio
 de produção/staging já publicado da app web. A app Android é, na prática, um
 shell nativo que carrega a app web real (semelhante a uma PWA "instalada"),
-com `server.cleartext: false` e `android.allowMixedContent: false`. O
-`webDir` (`.output/public`, gerado por `nuxi generate`) fica apenas como
-fallback offline mínimo, não como fonte principal.
+com `server.cleartext`/`android.allowMixedContent` **sempre `false` por
+default** (URL de produção é HTTPS) — só ficam `true` quando
+`CAPACITOR_SERVER_URL` é explicitamente definido para testar contra um
+servidor de desenvolvimento local (ver "Testar num dispositivo físico via
+USB" abaixo). O `webDir` (`.output/public`, gerado por `nuxi generate`) fica
+apenas como fallback offline mínimo, não como fonte principal.
 
 Se no futuro se quiser um modo 100% offline nativo, isso implica migrar a
 autenticação de cookie `httpOnly` para token (ex.: JWT em storage seguro) —
@@ -212,6 +319,43 @@ npm run build:android      # gera .output/public + sincroniza com o projeto Andr
 npm run cap:open:android   # abre o Android Studio
 # Correr num emulador/dispositivo a partir do Android Studio (Run ▶)
 ```
+
+### Testar num dispositivo físico via USB
+
+Para ver a app Android nativa a carregar o dev server local (`npm run dev`)
+num telemóvel físico ligado por cabo, em vez do domínio de produção:
+
+```bash
+# 1. Dev server acessível por IPv4 (adb reverse liga-se a 127.0.0.1, não a ::1)
+npm run dev -- --host 0.0.0.0
+
+# 2. Telemóvel com Depuração USB ativa e autorizado (adb devices → "device")
+adb reverse tcp:3000 tcp:3000
+
+# 3. Sync (Bash/PowerShell, tanto faz)
+CAPACITOR_SERVER_URL=http://localhost:3000 npx cap sync android
+
+# 4. Build — no Windows, a partir do PowerShell nativo (gradlew.bat não
+#    resolve corretamente a partir do Git Bash)
+cd android
+.\gradlew.bat assembleDebug
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+adb shell am start -n com.financeflow.app/.MainActivity
+```
+
+Isto ativa automaticamente `cleartext`/`allowMixedContent` em
+`capacitor.config.ts` (condicional a `CAPACITOR_SERVER_URL` estar definido —
+nunca liga no URL de produção por default). **Falta ainda** ativar
+`android:usesCleartextTraffic="true"` manualmente em
+`android/app/src/main/AndroidManifest.xml` — não é gerado a partir do
+`capacitor.config.ts`, e **tem de voltar a `"false"` antes de qualquer build
+de release** (ver aviso em "Permissões" abaixo).
+
+Problemas comuns: ligação USB instável (`adb kill-server && adb start-server`
++ reautorizar no telemóvel), `npx cap run android` falha a validar
+dispositivos físicos reais mesmo aparecendo em `cap run android --list`
+(contornar com o fluxo manual acima), `JAVA_HOME` a apontar para um JDK mais
+antigo do que o exigido pelos plugins Capacitor.
 
 ### Deteção de plataforma
 
@@ -246,8 +390,14 @@ npx capacitor-assets generate --android
 ### Permissões
 
 `AndroidManifest.xml` gerado apenas com `INTERNET` (necessária para
-`server.url`) e `android:usesCleartextTraffic="false"` definido
-explicitamente.
+`server.url`) e `android:usesCleartextTraffic` que **deve estar `"false"`**
+em qualquer build de release (URL de produção é sempre HTTPS).
+
+> ⚠️ **Estado atual do repositório**: este valor está temporariamente
+> `"true"` — foi ligado para testar a app num dispositivo físico via USB
+> (ver secção acima) e ainda não foi revertido. Confirmar e repor `"false"`
+> antes de gerar qualquer build de release/Play Store (ver também
+> `context/current-feature.md`).
 
 ---
 

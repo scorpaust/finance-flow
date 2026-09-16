@@ -4,7 +4,8 @@
 
 ## Estado
 
-Em progresso (branch `feature/fase-3-insights-ia`)
+Concluída (mergeada em `main`; ver histórico para o bloqueador pendente do
+`usesCleartextTraffic` no Android antes de produção)
 
 ## Objetivos
 
@@ -359,3 +360,11 @@ obrigatórios — ver Fase 5).
     2. O dev server só escutava em IPv6 (`::1`); o `adb reverse` no Windows
        liga-se sempre a `127.0.0.1` (IPv4) — corrigido correndo
        `nuxt dev --host 0.0.0.0` para escutar em todas as interfaces.
+- 2026-09-16: Branch `feature/fase-3-insights-ia` mergeado em `main` (merge
+  commit) e removido. Estado passa a "Concluída". Bloqueador pendente antes
+  de produção (não esquecer, ver também "Notas" acima):
+  `android/app/src/main/AndroidManifest.xml` tem
+  `android:usesCleartextTraffic="true"`, ligado só para testar a app Android
+  via USB nesta sessão — reverter para `"false"` antes de qualquer build de
+  release/Play Store (decisão explícita do utilizador de deixar para a fase
+  de publicação em vez de reverter agora).

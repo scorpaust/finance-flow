@@ -4,7 +4,8 @@
 
 ## Estado
 
-Em progresso (branch `feature/fase-4-design-system-ui`)
+Concluída (mergeada em `main`; ver histórico para o bloqueador pendente do
+`usesCleartextTraffic` no Android antes de produção, herdado da Fase 3)
 
 ## Objetivos
 
@@ -464,3 +465,10 @@ internacionalização/idiomas (Fase 5), otimizações de performance profundas
   desinstalou-se sozinha várias vezes durante os testes — sugerido ao
   utilizador verificar se tem alguma app de limpeza/otimização de memória
   ativa no telemóvel.
+- 2026-09-16: Branch `feature/fase-4-design-system-ui` mergeado em `main`
+  (merge commit) e removido. Estado passa a "Concluída". Bloqueador
+  pendente antes de produção (herdado da Fase 3, ainda por resolver, ver
+  também "Notas" acima): `android/app/src/main/AndroidManifest.xml` tem
+  `android:usesCleartextTraffic="true"`, ligado só para testar a app
+  Android via USB — reverter para `"false"` antes de qualquer build de
+  release/Play Store.

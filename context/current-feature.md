@@ -4,12 +4,8 @@
 
 ## Estado
 
-Em progresso (branch `feature/fase-2-easypay-subscricoes`) — código-base das
-tarefas 1-9 implementado e testado de ponta a ponta em sandbox real (CC, DD,
-MB WAY, Multibanco). Por fazer: tarefa 10 (Android — inscrição no programa de
-pagamentos externos da Google, deixada para mais tarde por decisão do
-utilizador) e 11 (documentar o ambiente de testes formalmente, cron externo
-real). Ver histórico.
+Concluída (mergeada em `main`; tarefa 10 — Android/Google pagamentos
+externos — deixada para mais tarde por decisão do utilizador, ver histórico)
 
 ## Objetivos
 
@@ -664,3 +660,10 @@ a integração técnica e o pedido de inscrição).
     precisa de sair do WebView para pagar (Checkout é inline), o que
     simplifica essa tarefa quando for feita, mas o pedido de inscrição em
     si continua por submeter.
+- 2026-09-19: Branch `feature/fase-2-easypay-subscricoes` mergeado em `main`
+  (merge commit) e removido. Estado passa a "Concluída". Por fazer antes de
+  produção (não é bloqueador de código, ver "Notas"/critérios de aceitação
+  acima): tarefa 10 (inscrição no programa de pagamentos externos da Google
+  para a app Android) e configuração de um cron externo real para
+  `check-expirations`. Bloqueador herdado da Fase 3 sobre
+  `usesCleartextTraffic` continua pendente, sem relação com esta fase.

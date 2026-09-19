@@ -2,18 +2,31 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 // ─── USER ────────────────────────────────────────────────────────────────────
 // Ver context/00-CODE-SPEC.md secção 3 e context/features/02-FASE-2-sistema-subscricoes.md
+// (redefinida em 2026-09-18 — EasyPay substitui PayPal como processador).
 export interface IUserSubscription {
   tier: 'free' | 'pro' | 'premium'
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
-  provider: 'paypal' | 'none'
-  paymentMethod: 'card' | 'paypal_balance' | 'mbway' | 'multibanco' | 'none'
-  // 'recurring' = auto-renovação real (cartão/saldo PayPal, Subscriptions API)
-  // 'prepaid'   = período pago à cabeça (MB WAY/Multibanco), expira sem cobrança automática
-  periodType: 'recurring' | 'prepaid' | 'none'
+  provider: 'easypay' | 'none'
+  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'none'
+  // 'auto'             = CC/DD via Subscription nativa da EasyPay, cobrança 100% automática
+  // 'push_confirm'     = MB WAY — pagamento único de um período fixo, confirmado por push
+  // 'manual_reference' = Multibanco — pagamento único de um período fixo, via referência
+  // Nenhum dos dois últimos tem renovação automática (decisão de 2026-09-19,
+  // ver context/current-feature.md) — expiram no fim do período pago
+  // (server/api/subscription/check-expirations.post.ts), sem cron a gerar
+  // ciclos seguintes.
+  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'none'
   autoRenew: boolean
   currentPeriodEnd: Date | null
-  paypalSubscriptionId?: string
-  paypalOrderId?: string
+  // 'auto' (CC/DD): id da Subscription nativa EasyPay. 'push_confirm'/
+  // 'manual_reference': id do pagamento único do período em curso, usado por
+  // checkPendingPayment() para confirmar manualmente (ver
+  // server/utils/subscriptionSync.ts).
+  easypaySubscriptionId?: string
+  // Referência Multibanco do período em curso ('manual_reference'), por pagar.
+  multibancoEntity?: string
+  multibancoReference?: string
+  multibancoExpiresAt?: Date | null
   reminderSentAt?: Date | null
 }
 
@@ -21,14 +34,16 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
   {
     tier:             { type: String, enum: ['free', 'pro', 'premium'], default: 'free' },
     status:           { type: String, enum: ['active', 'pending', 'past_due', 'canceled', 'expired'], default: 'active' },
-    provider:         { type: String, enum: ['paypal', 'none'], default: 'none' },
-    paymentMethod:    { type: String, enum: ['card', 'paypal_balance', 'mbway', 'multibanco', 'none'], default: 'none' },
-    periodType:       { type: String, enum: ['recurring', 'prepaid', 'none'], default: 'none' },
+    provider:         { type: String, enum: ['easypay', 'none'], default: 'none' },
+    paymentMethod:    { type: String, enum: ['cc', 'dd', 'mbway', 'multibanco', 'none'], default: 'none' },
+    billingMode:      { type: String, enum: ['auto', 'push_confirm', 'manual_reference', 'none'], default: 'none' },
     autoRenew:        { type: Boolean, default: false },
     currentPeriodEnd: { type: Date, default: null },
-    paypalSubscriptionId: { type: String },
-    paypalOrderId:        { type: String },
-    reminderSentAt:       { type: Date, default: null },
+    easypaySubscriptionId:    { type: String },
+    multibancoEntity:         { type: String },
+    multibancoReference:      { type: String },
+    multibancoExpiresAt:      { type: Date, default: null },
+    reminderSentAt:           { type: Date, default: null },
   },
   { _id: false }
 )
@@ -85,36 +100,6 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 )
 export const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
-
-// ─── PENDING PAYPAL ORDER ────────────────────────────────────────────────────
-// Mapa temporário order PayPal -> (tier/período/método) para o webhook da Fase 2
-// conseguir reconstituir o que foi comprado (a Orders API não guarda isto por si
-// só). Criado em create-order.post.ts, consumido e apagado em webhook.post.ts.
-export interface IPendingPayPalOrder extends Document {
-  paypalOrderId: string
-  userId: mongoose.Types.ObjectId
-  tier: 'pro' | 'premium'
-  periodMonths: number
-  paymentMethod: 'mbway' | 'multibanco'
-  createdAt: Date
-}
-
-const PendingPayPalOrderSchema = new Schema<IPendingPayPalOrder>(
-  {
-    paypalOrderId: { type: String, required: true, unique: true },
-    userId:        { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    tier:          { type: String, enum: ['pro', 'premium'], required: true },
-    periodMonths:  { type: Number, required: true },
-    paymentMethod: { type: String, enum: ['mbway', 'multibanco'], required: true },
-  },
-  { timestamps: { createdAt: true, updatedAt: false } }
-)
-// TTL de segurança: Multibanco pode demorar até 7 dias a confirmar — expira só
-// depois disso para não perder a reconciliação de um pagamento lento.
-PendingPayPalOrderSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 14 })
-export const PendingPayPalOrder =
-  mongoose.models.PendingPayPalOrder ||
-  mongoose.model<IPendingPayPalOrder>('PendingPayPalOrder', PendingPayPalOrderSchema)
 
 // ─── CATEGORY ────────────────────────────────────────────────────────────────
 export interface ICategory extends Document {

@@ -8,12 +8,15 @@
     </div>
     <div class="flex-1 min-w-0">
       <p class="text-sm font-semibold text-white">O teu plano {{ TIER_LABEL[tier] }} expira em {{ daysUntilExpiry }} dia(s)</p>
-      <p class="text-white/40 text-xs mt-0.5">
-        Pago por período (MB WAY/Multibanco) — não há renovação automática. Renova manualmente para não perderes o acesso.
+      <p v-if="multibancoReference" class="text-white/40 text-xs mt-0.5">
+        Referência Multibanco por pagar — entidade {{ multibancoEntity }}, referência {{ multibancoReference }}.
+      </p>
+      <p v-else class="text-white/40 text-xs mt-0.5">
+        Pagamento por período (MB WAY/Multibanco) — não há renovação automática. Renova manualmente para não perderes o acesso.
       </p>
     </div>
     <button class="btn-primary text-sm py-2 shrink-0" type="button" @click="navigateTo('/subscription')">
-      Renovar agora
+      Ver subscrição
     </button>
   </div>
 </template>
@@ -27,4 +30,6 @@ const sub = useSubscription()
 const tier = sub.tier
 const daysUntilExpiry = sub.daysUntilExpiry
 const isExpiringSoon = sub.isExpiringSoon
+const multibancoEntity = sub.multibancoEntity
+const multibancoReference = sub.multibancoReference
 </script>

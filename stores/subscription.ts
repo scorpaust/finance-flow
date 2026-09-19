@@ -5,11 +5,14 @@ import { hasFeature as checkFeature } from '~/shared/features'
 interface SubscriptionState {
   tier: SubscriptionTier
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
-  provider: 'paypal' | 'none'
-  paymentMethod: 'card' | 'paypal_balance' | 'mbway' | 'multibanco' | 'none'
-  periodType: 'recurring' | 'prepaid' | 'none'
+  provider: 'easypay' | 'none'
+  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'none'
+  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'none'
   autoRenew: boolean
   currentPeriodEnd: string | null
+  multibancoEntity?: string
+  multibancoReference?: string
+  multibancoExpiresAt?: string | null
 }
 
 const DEFAULT_STATE: SubscriptionState = {
@@ -17,16 +20,9 @@ const DEFAULT_STATE: SubscriptionState = {
   status: 'active',
   provider: 'none',
   paymentMethod: 'none',
-  periodType: 'none',
+  billingMode: 'none',
   autoRenew: false,
   currentPeriodEnd: null,
-}
-
-interface PendingPurchase {
-  tier: SubscriptionTier
-  periodMonths: number
-  paymentMethod: 'mbway' | 'multibanco'
-  createdAt: string
 }
 
 // Estado Pinia (por-request no SSR, evitando fugas de dados entre utilizadores
@@ -35,7 +31,6 @@ interface PendingPurchase {
 export const useSubscriptionStore = defineStore('subscription', () => {
   const subscription = ref<SubscriptionState>({ ...DEFAULT_STATE })
   const daysUntilExpiry = ref<number | null>(null)
-  const pendingPurchase = ref<PendingPurchase | null>(null)
   const isLoading = ref(false)
   const _fetched = ref(false)
 
@@ -45,15 +40,12 @@ export const useSubscriptionStore = defineStore('subscription', () => {
       const data = await $fetch<{
         subscription: SubscriptionState
         daysUntilExpiry: number | null
-        pendingPurchase: PendingPurchase | null
       }>('/api/subscription')
       subscription.value = data.subscription
       daysUntilExpiry.value = data.daysUntilExpiry
-      pendingPurchase.value = data.pendingPurchase
     } catch {
       subscription.value = { ...DEFAULT_STATE }
       daysUntilExpiry.value = null
-      pendingPurchase.value = null
     } finally {
       isLoading.value = false
       _fetched.value = true
@@ -68,14 +60,19 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     return checkFeature(subscription.value.tier, feature)
   }
 
+  // MB WAY e Multibanco são pagamentos únicos por período fixo, sem
+  // renovação automática (decisão de 2026-09-19) — avisar antes do período
+  // expirar é o único caso em que faz sentido mostrar isto aqui.
   const isExpiringSoon = computed(
-    () => subscription.value.periodType === 'prepaid' && daysUntilExpiry.value !== null && daysUntilExpiry.value <= 7
+    () =>
+      (subscription.value.billingMode === 'manual_reference' || subscription.value.billingMode === 'push_confirm') &&
+      daysUntilExpiry.value !== null &&
+      daysUntilExpiry.value <= 7
   )
 
   return {
     subscription,
     daysUntilExpiry,
-    pendingPurchase,
     isLoading,
     isExpiringSoon,
     hasFeature,

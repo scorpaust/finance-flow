@@ -1,65 +1,84 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/04-FASE-4-design-system-ui.md -->
+<!-- Ver especificação completa em context/features/02-FASE-2-sistema-subscricoes.md -->
 
 ## Estado
 
-Concluída (mergeada em `main`; ver histórico para o bloqueador pendente do
-`usesCleartextTraffic` no Android antes de produção, herdado da Fase 3)
+Em progresso (branch `feature/fase-2-easypay-subscricoes`) — código-base das
+tarefas 1-9 implementado e testado de ponta a ponta em sandbox real (CC, DD,
+MB WAY, Multibanco). Por fazer: tarefa 10 (Android — inscrição no programa de
+pagamentos externos da Google, deixada para mais tarde por decisão do
+utilizador) e 11 (documentar o ambiente de testes formalmente, cron externo
+real). Ver histórico.
 
 ## Objetivos
 
-FASE 4 — Design System, Safe Areas e Responsividade. Modernizar o layout
-mantendo a identidade "glass morphism" dark já existente, sem tocar em
-regras de negócio (subscrições da Fase 2 e features de IA da Fase 3 já
-fechadas — esta fase é puramente visual/estrutural).
+FASE 2 (refeita) — Sistema de Subscrições com EasyPay (Cartão/Débito
+Direto, MB WAY, Multibanco). Substitui inteiramente a implementação
+anterior baseada em PayPal (ver histórico abaixo). Fase de maior risco de
+negócio e compliance do projeto — em caso de dúvida sobre regras de
+preço/feature ou requisitos da Google, assinalar explicitamente em vez de
+assumir.
 
-Pré-requisito: Fases 1, 2 e 3 concluídas (para poder aplicar o novo visual
-também ao paywall, secções gated e às secções de IA da Fase 3). Ler
-`00-CODE-SPEC.md` secção 5.
+Três planos — Gratuito, Pro (5,00 €/mês), Premium (12,99 €/mês) — pagáveis
+via EasyPay com Cartão/Débito Direto (auto-renovação real todos os meses,
+`billingMode: 'auto'`) ou MB WAY/Multibanco (pagamento único de um período
+fixo — 1, 3, 6 ou 12 meses — sem renovação automática, `'push_confirm'`/
+`'manual_reference'`; decisão do utilizador de 2026-09-19, ver histórico:
+nenhum dos dois métodos permite cobrança recorrente sem ação manual do
+cliente a cada ciclo). Disponível na web e na app Android, com a mesma conta
+a refletir o estado da subscrição nas duas plataformas.
+
+Ler `context/features/02-FASE-2-sistema-subscricoes.md` para a
+especificação completa (decisões de arquitetura, 11 tarefas, critérios de
+aceitação) e `00-CODE-SPEC.md` secções 3 e 4 (atualizadas nesta revisão).
 
 Tarefas principais (ver especificação para detalhe completo):
-1. Tokens de design centralizados — rever `tailwind.config`, consolidar
-   cores/tipografia/spacing como tokens nomeados (manter base: `surface-900
-   #0f0f23`, brand indigo `#6366f1`, income emerald `#34d399`, expense rose
-   `#fb7185`; expandir paleta com tons intermédios para hierarquia e
-   contraste AA); eliminar cores hardcoded fora do `tailwind.config`
-2. Safe areas (Android + iOS + web) — `viewport-fit=cover`, `env(safe-area-
-   inset-*)` em `MobileNav.vue`, topbar e overlays fullscreen; testar em
-   emulador Android com barra de gestos e dispositivo com notch
-3. Moldura/contentor visível — envolver conteúdo principal numa moldura
-   consistente em desktop/tablet/ultra-wide (`max-width` central + padding
-   lateral crescente); mobile pode ficar edge-to-edge, respeitando sempre
-   safe areas
-4. Breakpoints — rever grelha responsiva (mobile `<640px`, tablet
-   `640–1024px`, desktop `1024–1536px`, ultra-wide `>1536px`); testar
-   sidebar colapsável vs. bottom nav nestes pontos, incluindo o ecrã de
-   subscrição/paywall; zero overflow horizontal em qualquer breakpoint
-   (incluindo tabelas de transações e `/stats`)
-5. Animações — transições de navegação suaves (150–250ms), micro-interações
-   em botões/cards/itens de lista, skeleton loaders consistentes
-   (generalizar o padrão de `ChartSkeleton`), respeitar
-   `prefers-reduced-motion: reduce`
-6. Ícones e splash — confirmar consistência entre ícone adaptativo Android,
-   splash screen e favicon/manifest PWA web (alinhar com Fase 1)
-7. Acessibilidade básica — contraste AA em todos os estados, foco visível
-   em elementos interativos, `aria-label` em botões só com ícone
+1. Modelo de dados — `UserSubscription` com `billingMode`, `paymentMethod`,
+   `provider: 'easypay'`, `easypaySubscriptionId`/
+   `easypayFrequentPaymentId`, `currentPeriodEnd`, `autoRenew`; migração de
+   utilizadores existentes para `tier: 'free'`, `provider: 'none'`
+2. `shared/features.ts` — `SubscriptionTier`, `FEATURE_MATRIX`,
+   `hasFeature()` (reaproveitar/confirmar limites da implementação anterior)
+3. `server/utils/easypay.ts` — wrapper sobre a REST API EasyPay (Checkout,
+   Subscription, Payments), validação de autenticidade dos webhooks
+4. Onboarding via EasyPay Checkout (hospedado, PCI-compliant) para
+   `cc`/`dd`/`mbw`/`mb`
+5. Fluxo `auto` (CC/DD) — `POST /subscription` nativo, `sdd_mandate` para DD
+6. Fluxo `push_confirm` (MB WAY) — cron mensal via Frequent Payment, retries
+   e `status: 'past_due'` se esgotadas
+7. Fluxo `manual_reference` (Multibanco) — cron gera nova referência X dias
+   antes do fim do período, downgrade para `free` se expirar sem pagamento
+8. `useSubscription()`, `PaywallModal`/`UpsellBanner` com mensagens
+   diferenciadas por `billingMode`, checkout com escolha clara do método
+9. Enforcement no servidor — `requireFeature()` em previsões (Premium),
+   grupos e export CSV (Pro+), `403 feature_locked`
+10. Android — inscrição no programa de pagamentos externos da Google (EEA),
+    `@capacitor/browser` para o EasyPay Checkout, `ExternalTransactionId`
+11. Ambiente de testes — sandbox EasyPay para os quatro métodos, testar
+    crons de `push_confirm`/`manual_reference` incluindo falha/expiração
 
-Fora de âmbito nesta fase: alterações a regras de negócio de subscrição
-(Fase 2 já fechada), alterações às features de IA (Fase 3 já fechada),
-internacionalização/idiomas (Fase 5), otimizações de performance profundas
-(Fase 6).
+Fora de âmbito nesta fase: redesign visual do paywall/checkout (Fase 4 já
+cobriu o visual geral, aqui é só funcional), submissão final/aprovação do
+programa de pagamentos externos na Play Store em produção (Fase 5 — aqui só
+a integração técnica e o pedido de inscrição).
 
 ## Notas
 
-- Fase puramente visual/estrutural — qualquer necessidade de tocar em
-  lógica de negócio (gating, preços, prompts de IA) durante esta fase deve
-  ser assinalada, não assumida como âmbito extra.
+- Decisões de arquitetura da especificação (processador único EasyPay,
+  distinção `auto`/`push_confirm`/`manual_reference`, pagamentos externos
+  Android) não devem ser reabertas sem motivo forte — ver secção dedicada
+  no ficheiro da fase.
+- A implementação anterior desta fase (PayPal) foi removida/substituída
+  nesta redefinição — código, endpoints e variáveis de ambiente específicas
+  do PayPal (`server/utils/paypal.ts`, `PAYPAL_*`, `PendingPayPalOrder`,
+  etc.) devem ser identificados e removidos/substituídos ao longo da
+  implementação, não deixados a coexistir com o EasyPay.
 - Testar sempre em pelo menos mobile (emulador/dispositivo Android) e
-  desktop (janela larga); a partir desta fase, testar também tablet/
-  ultra-wide — ver `AGENT-RULES.md` ("Testes manuais mínimos").
-- ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por resolver)**:
-  `android/app/src/main/AndroidManifest.xml` tem
+  desktop (janela larga), incluindo tablet/ultra-wide — ver
+  `AGENT-RULES.md` ("Testes manuais mínimos").
+- ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por
+  resolver)**: `android/app/src/main/AndroidManifest.xml` tem
   `android:usesCleartextTraffic="true"`, ligado para testar a app Android
   via `adb reverse` num telemóvel físico por cabo USB. Tem de voltar a
   `"false"` antes de qualquer build de produção/release — decisão explícita
@@ -68,14 +87,22 @@ internacionalização/idiomas (Fase 5), otimizações de performance profundas
 
 ## Critérios de aceitação
 
-- Sem overflow horizontal em nenhum breakpoint testado
-- Bottom nav e overlays respeitam safe areas em emulador/dispositivo
-  Android real
-- Moldura visível e proporcional em desktop/ultra-wide sem quebrar em
-  janelas redimensionadas
-- Animações funcionam e desaparecem corretamente com
-  `prefers-reduced-motion`
-- Auditoria de contraste (ex. Lighthouse/axe) sem falhas críticas
+- Utilizador consegue subscrever com Cartão ou Débito Direto (auto-
+  renovação real, sem ação mensal) em sandbox, web e Android
+- Utilizador consegue subscrever com MB WAY em sandbox e o cron mensal
+  dispara corretamente a cobrança, com o ciclo a depender só da confirmação
+  push
+- Utilizador consegue pagar uma referência Multibanco em sandbox, e o cron
+  gera automaticamente a referência do ciclo seguinte com antecedência
+  suficiente
+- Mudar de plano/expirar reflete-se imediatamente na UI e nos endpoints
+  protegidos (403 quando aplicável)
+- Webhook EasyPay testado com eventos simulados para os três modos de
+  cobrança, incluindo falha de cobrança e expiração de referência
+- Nenhum endpoint sensível depende apenas de verificação no client
+- Pedido de inscrição no programa de pagamentos externos da Google
+  submetido (aprovação pode não estar concluída nesta fase, mas o pedido
+  tem de estar feito antes da Fase 5)
 
 ## Histórico
 
@@ -472,3 +499,168 @@ internacionalização/idiomas (Fase 5), otimizações de performance profundas
   `android:usesCleartextTraffic="true"`, ligado só para testar a app
   Android via USB — reverter para `"false"` antes de qualquer build de
   release/Play Store.
+- 2026-09-18: FASE 2 redefinida a pedido do utilizador — deixou o PayPal
+  como processador, passa a usar **EasyPay** (Cartão/Débito Direto, MB WAY,
+  Multibanco com um único contrato/API). Especificação em
+  `context/features/02-FASE-2-sistema-subscricoes.md` reescrita de raiz
+  (decisões de arquitetura, distinção `auto`/`push_confirm`/
+  `manual_reference` por método, 11 tarefas, critérios de aceitação);
+  `00-CODE-SPEC.md` e `CONFIG-REFERENCE.md` também atualizados nesta sessão
+  para refletir EasyPay em vez de PayPal. Definida novamente como
+  funcionalidade atual. Estado: não iniciada — a implementação anterior
+  (PayPal, concluída e mergeada em `accd41b`) fica como referência
+  histórica nas entradas acima, mas o código/endpoints/variáveis de
+  ambiente específicos do PayPal terão de ser removidos/substituídos ao
+  longo desta nova implementação.
+- 2026-09-18: Branch `feature/fase-2-easypay-subscricoes` criado a partir de
+  `main`. Estado passa a "Em progresso". Documentação EasyPay consultada via
+  Context7 (`/websites/easypay_pt`) para autenticação, Subscription API,
+  Checkout, Frequent Payments e o guia de Webhooks — confirmado que a EasyPay
+  **não assina** os webhooks (ao contrário da PayPal): a validação de
+  autenticidade é sempre um `GET` de volta à API pelo `id` do recurso antes de
+  confiar em qualquer campo do corpo recebido. A pedido explícito do
+  utilizador, todo o código PayPal foi **removido por completo** (não deixado
+  como código morto), não só substituído:
+  - Removidos: `server/utils/paypal.ts`, `server/api/subscription/paypal/**`
+    (6 ficheiros), `scripts/create-paypal-plans.mjs` (sem equivalente EasyPay
+    — não há conceito de "planos" pré-criados, o valor vai em cada pedido),
+    `PendingPayPalOrder` (`server/models/index.ts`).
+  - **Modelo de dados**: `IUserSubscription` reescrita —
+    `provider: 'easypay'|'none'`, `paymentMethod: 'cc'|'dd'|'mbway'|
+    'multibanco'|'none'`, `billingMode: 'auto'|'push_confirm'|
+    'manual_reference'|'none'` (substitui `periodType`), `easypaySubscriptionId`,
+    `easypayFrequentPaymentId`, `multibancoEntity`/`multibancoReference`/
+    `multibancoExpiresAt` (referência do ciclo em curso). Sem tabela de
+    "pending orders": a EasyPay devolve o `key` que enviámos em qualquer
+    consulta/webhook, por isso o próprio checkout é criado com
+    `key: "<userId>:<tier>:<paymentMethod>"` (`encodeMerchantKey` em
+    `server/utils/easypay.ts`) — simplifica bastante em relação ao mapa
+    temporário que a implementação PayPal precisava.
+  - **`server/utils/easypay.ts`**: wrapper fetch nativo (headers
+    `AccountId`/`ApiKey`), `createSubscriptionCheckout()` (CC/DD, tipo
+    `subscription`, `sdd_mandate` inline para DD), `createFrequentCheckout()`
+    (MB WAY/Multibanco, tipo `frequent`, só tokeniza), `captureFrequentPayment()`
+    (dispara um ciclo — MB WAY é assíncrono via push, Multibanco devolve
+    entidade/referência já na resposta), `getSubscriptionResource()`/
+    `getFrequentResource()`/`getSingle()` (verificação de webhook),
+    `cancelSubscription()`. Nome exato do campo do URL de redirecionamento do
+    Checkout (`checkout_url` vs `url`) não veio 100% consistente entre as
+    páginas de documentação indexadas — código aceita as duas variantes, por
+    confirmar contra a resposta real em sandbox (mesmo padrão de nota que a
+    implementação PayPal usava para payloads incertos).
+  - **Endpoints** `server/api/subscription/easypay/**`: `create-subscription`
+    (onboarding CC/DD), `create-frequent` (onboarding MB WAY/Multibanco,
+    sem cobrança imediata), `webhook` (eventos `subscription_create`,
+    `frequent_create`, `capture`/`subscription_capture` — dispara o primeiro
+    ciclo logo após `frequent_create` confirmado, em vez de esperar pelo cron
+    mensal seguinte), `cancel` (só `billingMode: 'auto'`), `cron/mbway.post.ts`
+    e `cron/multibanco.post.ts` (mesmo padrão `x-cron-secret` de
+    `check-expirations.post.ts`, sem scheduler no projeto). `check-expirations.post.ts`
+    e `server/api/subscription/index.ts` (GET) atualizados para o novo modelo.
+  - **Simplificação deliberada face à versão PayPal**: não recriado o
+    upgrade/downgrade in-place (`change-plan`) — não faz parte das 11 tarefas
+    da especificação reescrita (era um extra pedido à parte na versão
+    PayPal); a mudar de plano por agora é cancelar + subscrever de novo. Fica
+    assinalado caso o utilizador queira voltar a pedir isto.
+  - **Client**: `stores/subscription.ts`/`composables/useSubscription.ts`
+    atualizados para os novos campos (`billingMode`, `paymentMethod`,
+    campos Multibanco); `components/subscription/UpsellBanner.vue` passa a
+    mostrar a referência Multibanco pendente em vez do antigo aviso genérico
+    de "pré-pago"; `pages/subscription/index.vue` reescrita com seleção de
+    método (Cartão/DD/MB WAY/Multibanco), formulário IBAN+titular para DD, e
+    o mesmo padrão de disclosure + `@capacitor/browser` no Android antes de
+    sair para o checkout (agora `easypay.pt` em vez de `paypal.com`);
+    `pages/subscription/return.vue` ajustada ao novo `status`/`billingMode`.
+  - `nuxt.config.ts`, `.env.example` e `context/CONFIG-REFERENCE.md`
+    atualizados: `EASYPAY_ENV`/`EASYPAY_ACCOUNT_ID`/`EASYPAY_API_KEY`
+    substituem as variáveis `PAYPAL_*`; `CRON_SECRET` mantido (partilhado
+    pelos três crons desta fase + o de `market-snapshot` da Fase 3).
+    `scripts/migrate-subscriptions.mjs` atualizado para o novo esquema.
+  - `npm run build` validado sem erros (todas as rotas novas — incluindo os
+    dois crons e o webhook — compilam); confirmado por grep que não sobrou
+    nenhuma referência a PayPal fora de comentários explicativos de contexto
+    histórico.
+  - **Por fazer / fora do alcance de código**: criar conta EasyPay real
+    (sandbox `api.test.easypay.pt` e produção); testar os quatro métodos em
+    sandbox real (tarefa 11 — incluindo confirmar o campo exato do URL de
+    redirecionamento do Checkout, o formato da resposta de
+    `createFrequentCheckout` para MB WAY, e se `captureFrequentPayment`
+    funciona da mesma forma para Multibanco como está assumido no código);
+    configurar os crons externos reais para `easypay/cron/mbway`,
+    `easypay/cron/multibanco` e `check-expirations`; tarefa 10 (inscrição no
+    programa de pagamentos externos da Google, `ExternalTransactionId`,
+    teste do fluxo completo em Android) — nada disto foi feito nesta sessão.
+- 2026-09-19: Testado o fluxo completo em sandbox EasyPay real (conta de
+  teste já disponível), os quatro métodos (Cartão, Débito Direto, MB WAY,
+  Multibanco), com várias correções a bugs reais encontrados durante o
+  teste — a maioria por a documentação EasyPay indexada no Context7 ter
+  informação inconsistente entre si (páginas diferentes descreviam o mesmo
+  endpoint de formas diferentes), só resolvida por tentativa/erro direto
+  contra a sandbox:
+  - **Checkout não é redirecionamento por URL**: descoberta central desta
+    sessão — a EasyPay Checkout usa o pacote client-side
+    `@easypaypt/checkout-sdk` (instalado), que recebe o manifest devolvido
+    por `POST /checkout` (`{ id, session, config }`) e embebe o formulário
+    diretamente na página (`display: 'inline'`; `'popup'` só abre com um
+    clique no próprio elemento, não programaticamente — usado
+    incorretamente na 1ª tentativa). Sem redirecionamento nenhum, a app
+    Android deixa de precisar do `@capacitor/browser` que a versão PayPal
+    usava.
+  - **Verificação do pagamento**: nem `payment.id` (devolvido pelo SDK no
+    `onSuccess`) nem os endpoints específicos (`/subscriptions/{id}`,
+    `/frequent/{id}`) bateram certo de forma fiável em sandbox — a solução
+    que funcionou é verificar pelo `id` do **checkout** em si
+    (`GET /checkout/{id}`, devolvido pelo nosso próprio servidor ao criar o
+    checkout), com fallback para `/single/{id}` quando necessário.
+  - **Webhook não alcança `localhost`**: confirmado na prática — a EasyPay
+    real não consegue entregar nenhum webhook a um servidor de
+    desenvolvimento local. Criado `server/api/subscription/easypay/
+    confirm.post.ts`, chamado pelo client logo após o `onSuccess`, partilhando
+    a mesma lógica idempotente do webhook (extraída para
+    `server/utils/subscriptionSync.ts`) — necessário para conseguir testar
+    minimamente sem expor a máquina local publicamente (túnel), e mantém-se
+    útil como confirmação mais rápida mesmo depois de haver infraestrutura
+    pública.
+  - **Decisão de arquitetura importante (a pedido do utilizador, revê a
+    especificação original desta fase)**: MB WAY e Multibanco passam a
+    **pagamento único de um período fixo** (1/3/6/12 meses, sem renovação
+    automática) em vez do desenho original de "cron mensal a disparar cada
+    ciclo" — o utilizador identificou corretamente que nenhum dos dois
+    métodos permite cobrança recorrente sem ação manual do cliente a cada
+    ciclo, tornando o cron mensal desnecessariamente complexo. Removidos
+    `server/api/subscription/easypay/cron/mbway.post.ts` e
+    `.../cron/multibanco.post.ts` (sem deixar código morto), a função
+    `captureFrequentPayment`/`getFrequentResource`/`createFrequentCheckout`
+    (tokenização deixou de fazer sentido sem reutilização futura) e o campo
+    `easypayFrequentPaymentId` do modelo. Novo endpoint
+    `easypay/create-prepaid.post.ts` usa `type: ['single']` (não
+    `'frequent'`) — mais simples e melhor documentado que o fluxo anterior.
+  - **Botão "Verificar pagamento"** adicionado (`easypay/
+    check-payment.post.ts` + `checkPendingPayment()` em `subscriptionSync.ts`)
+    para o utilizador confirmar manualmente um MB WAY/Multibanco `pending` —
+    necessário para testar em dev local (sem webhook alcançável) e também
+    útil em produção como atalho ("já paguei, confirma agora") sem esperar
+    pelo webhook.
+  - Bugs concretos corrigidos ao longo dos testes: schema do `POST /checkout`
+    (faltava o `type` de nível superior como array — 412 "type: value is
+    required"; valor tem de ir em `order`, não solto); `payment.sdd_mandate.
+    phone` obrigatório para DD (não documentado inicialmente); formulário
+    próprio de DD (IBAN/titular/telefone) removido por duplicar o que o
+    próprio checkout hospedado da EasyPay já pede — causava o utilizador
+    preencher os dados duas vezes; `payment.status: 'pending'` é o resultado
+    normal (não uma falha) tanto para Multibanco (sempre assíncrono) como
+    para DD (mandato SEPA pode demorar dias) — a validação inicial rejeitava
+    isto incorretamente; painel do checkout fechava-se antes do utilizador
+    conseguir ler a entidade/referência Multibanco mostrada pela própria
+    EasyPay — corrigido para só fechar depois de a confirmação terminar.
+  - Números de teste da sandbox EasyPay (cartão, MB WAY, IBAN) documentados
+    em `context/CONFIG-REFERENCE.md`.
+  - Confirmado pelo utilizador: os quatro métodos testados e a funcionar
+    (Cartão, DD, MB WAY, Multibanco, incluindo o botão "Verificar
+    pagamento"). `npm run build` validado sem erros ao longo de toda a
+    sessão (uma dezena de builds incrementais). Tarefa 10 (Android —
+    inscrição no programa de pagamentos externos da Google) explicitamente
+    deixada para mais tarde, por decisão do utilizador — a app já não
+    precisa de sair do WebView para pagar (Checkout é inline), o que
+    simplifica essa tarefa quando for feita, mas o pedido de inscrição em
+    si continua por submeter.

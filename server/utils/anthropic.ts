@@ -4,7 +4,7 @@
 // de agregados já calculados. Ver context/features/03-FASE-3-insights-ia.md
 // tarefa 1. Requer ANTHROPIC_API_KEY em runtimeConfig.
 //
-// Usa fetch nativo em vez do SDK (consistente com server/utils/paypal.ts),
+// Usa fetch nativo em vez do SDK (consistente com server/utils/easypay.ts),
 // contra o endpoint beta de structured outputs — parâmetros confirmados via
 // Context7 (@anthropic-ai/sdk-typescript, helpers.md): `output_config.format`
 // do tipo `{ type: 'json_schema', schema }` e header

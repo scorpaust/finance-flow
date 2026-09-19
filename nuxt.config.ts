@@ -66,14 +66,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow',
-    // Fase 2 — Subscrições (PayPal + MB WAY + Multibanco). Ver context/CONFIG-REFERENCE.md.
-    paypalEnv: process.env.PAYPAL_ENV || 'sandbox',
-    paypalClientId: process.env.PAYPAL_CLIENT_ID || '',
-    paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
-    paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID || '',
-    paypalPlanIdPro: process.env.PAYPAL_PLAN_ID_PRO || '',
-    paypalPlanIdPremium: process.env.PAYPAL_PLAN_ID_PREMIUM || '',
-    subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '3',
+    // Fase 2 — Subscrições (EasyPay: CC/DD, MB WAY, Multibanco). Ver context/CONFIG-REFERENCE.md.
+    easypayEnv: process.env.EASYPAY_ENV || 'test',
+    easypayAccountId: process.env.EASYPAY_ACCOUNT_ID || '',
+    easypayApiKey: process.env.EASYPAY_API_KEY || '',
+    subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '5',
     cronSecret: process.env.CRON_SECRET || '',
     // Fase 3 — Insights com IA (Anthropic + Twelve Data). Nunca em `public`: a
     // chave nunca pode chegar ao client. Ver context/features/03-FASE-3-insights-ia.md.
@@ -81,6 +78,9 @@ export default defineNuxtConfig({
     twelveDataApiKey: process.env.TWELVE_DATA_API_KEY || '',
     public: {
       appUrl: process.env.APP_URL || 'http://localhost:3000',
+      // Passado ao @easypaypt/checkout-sdk (opção `testing`) — não é secreto,
+      // só diz ao SDK client-side qual API da EasyPay usar.
+      easypayTesting: process.env.EASYPAY_ENV !== 'production',
     },
   },
 

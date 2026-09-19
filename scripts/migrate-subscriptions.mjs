@@ -22,7 +22,7 @@ async function main() {
           status: 'active',
           provider: 'none',
           paymentMethod: 'none',
-          periodType: 'none',
+          billingMode: 'none',
           autoRenew: false,
           currentPeriodEnd: null,
         },

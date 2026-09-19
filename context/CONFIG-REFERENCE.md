@@ -17,58 +17,55 @@
 | `capacitor.config.ts` → `appId` | `com.financeflow.app` (ou definitivo escolhido) |
 | `capacitor.config.ts` → `server.url` | Domínio de staging/produção usado pelo shell Android (ver decisão da Fase 1) |
 
-## Fase 2 — Subscrições (PayPal + MB WAY + Multibanco)
+## Fase 2 — Subscrições (EasyPay: CC/DD, MB WAY, Multibanco)
 
 | Variável | Descrição |
 |---|---|
-| `PAYPAL_ENV` | `sandbox` / `live` |
-| `PAYPAL_CLIENT_ID` | Client ID da app PayPal (REST API) |
-| `PAYPAL_CLIENT_SECRET` | Client Secret da app PayPal (server-side apenas) |
-| `PAYPAL_WEBHOOK_ID` | ID do webhook PayPal, usado para validar a assinatura dos eventos recebidos |
-| `PAYPAL_PLAN_ID_PRO` | ID do plano PayPal Subscriptions do plano Pro (5,00 €/mês, auto-renovável) |
-| `PAYPAL_PLAN_ID_PREMIUM` | ID do plano PayPal Subscriptions do plano Premium (12,99 €/mês, auto-renovável) |
-| `SUBSCRIPTION_RENEWAL_REMINDER_DAYS` | Nº de dias antes de expirar um plano pré-pago (MB WAY/Multibanco) para disparar o aviso de renovação |
-| `CRON_SECRET` | Segredo partilhado com o cron externo que invoca `POST /api/subscription/check-expirations` (header `x-cron-secret`) — não há scheduler no projeto, este endpoint foi desenhado para ser chamado de fora |
+| `EASYPAY_ENV` | `test` / `production` (determina o host da API — sandbox `api.test.easypay.pt`) |
+| `EASYPAY_ACCOUNT_ID` | AccountId da conta EasyPay |
+| `EASYPAY_API_KEY` | ApiKey da conta EasyPay (server-side apenas) |
+| `CRON_SECRET` | Segredo partilhado com o cron externo que invoca `check-expirations` (header `x-cron-secret`) — mesma variável usada pelo cron de `market-snapshot` da Fase 3 |
+| `SUBSCRIPTION_RENEWAL_REMINDER_DAYS` | Nº de dias de antecedência para gerar a referência Multibanco / avisar de expiração |
+
+Confirmado via Context7 (`docs.easypay.pt`, guia de Webhooks): a EasyPay **não
+assina** os webhooks — a validação de autenticidade é feita consultando a API
+de volta pelo `id` do recurso (`GET /single/{id}` ou equivalente) antes de
+confiar em qualquer campo do corpo recebido, nunca processando o payload do
+webhook diretamente. Sem variável de segredo dedicada para isto (ver
+`server/utils/easypay.ts`).
+
+O checkout EasyPay **não é um redirecionamento por URL** — o pacote
+`@easypaypt/checkout-sdk` (client-side) recebe o manifest devolvido por
+`POST /checkout` (`{ id, session, config }`) e embebe o formulário na própria
+página via `startCheckout(manifest, { display: 'inline', ... })`. O modo
+`'popup'` do SDK **não abre sozinho**: fica à espera de um clique no elemento
+com o `id` passado nas opções (pensado para apontar a um botão "Pagar" já
+visível, não para abrir programaticamente) — usar sempre `'inline'` neste
+projeto (ver `pages/subscription/index.vue`).
+
+#### Dados de teste da sandbox (`docs.easypay.pt/docs/guides/payment-methods`)
+
+| Método | Valor de teste | Resultado |
+|---|---|---|
+| Cartão (CC) | `0000000000000000` | Autorizado em todas as operações |
+| Cartão (CC) | `2222222222222222` | Pede autenticação 3DS |
+| Cartão (CC) | `1111111111111111` | Falha em todas as operações |
+| Cartão (CC) | `1234123412341234` | Recusado em todas as operações |
+| MB WAY | `911234567` | Autorizado em todas as operações |
+| MB WAY | `917654321` | Falha em todas as operações |
+| MB WAY | `913456789` | Recusado em todas as operações |
+| MB WAY | `919876543` | Pendente em todas as operações |
+| Direct Debit (DD) | qualquer IBAN válido | Sucesso, **exceto** `PT50000201231234567890154` |
+| Multibanco | — | Não se simula preenchendo nada no formulário; a referência é gerada normalmente e confirma-se manualmente no BackOffice da EasyPay (Pontual → Listar → pagamento → "Testar pagamento") |
 
 ### Configuração externa (não é env var)
 
 | Item | Descrição |
 |---|---|
-| Conta PayPal Business | Com Multibanco aprovado (pedido via `bizsignup?product=multibanco`) e MB WAY ativo (beta — confirmar disponibilidade da conta) |
-| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar PayPal/MB WAY/Multibanco dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/7) |
+| Conta EasyPay | Sandbox (`api.test.easypay.pt`) e produção, com Checkout configurado para os métodos `cc`, `dd`, `mbw`, `mb` |
+| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar EasyPay dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/5) |
 
-## Fase 3 — Insights com IA (estatísticas Pro+ e investimento Premium)
-
-| Variável | Descrição |
-|---|---|
-| `ANTHROPIC_API_KEY` | Chave da API da Anthropic (Claude), usada só no servidor |
-| `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data para o snapshot diário de mercados globais |
-
-### Configuração externa (não é env var)
-
-| Item | Descrição |
-|---|---|
-| Conta Anthropic (API) | Faturação por consumo — modelo usado é `claude-haiku-4-5` (o mais barato disponível) |
-| Conta Twelve Data | Plano gratuito (800 pedidos/dia) — suficiente porque o snapshot é diário e partilhado, não por utilizador |
-
-## Fase 4 — Design system
-
-Sem variáveis de ambiente novas nesta fase.
-
-## Fase 5 — Internacionalização (idiomas + país por IP)
-
-| Variável | Descrição |
-|---|---|
-| `MAXMIND_LICENSE_KEY` | Chave gratuita da MaxMind para descarregar/atualizar a base de dados GeoLite2 (país por IP) |
-| `MAXMIND_ACCOUNT_ID` | ID da conta MaxMind associado à licença acima |
-
-### Configuração externa (não é env var)
-
-| Item | Descrição |
-|---|---|
-| Conta MaxMind (gratuita) | Registo necessário para gerar a licença GeoLite2; base de dados atualiza-se mensalmente, processo de atualização a documentar |
-
-## Fase 6 — Segurança e observabilidade
+## Fase 4 — Segurança e observabilidade
 
 | Variável | Descrição |
 |---|---|
@@ -76,14 +73,14 @@ Sem variáveis de ambiente novas nesta fase.
 | `NODE_ENV` | `development` / `production` — controla cookies `secure`, logging, etc. |
 | `CORS_ALLOWED_ORIGIN` | Domínio de produção permitido para CORS |
 
-## Fase 7 — Publicação / produção
+## Fase 5 — Publicação / produção
 
 | Item (não é env var, é configuração externa) | Descrição |
 |---|---|
 | Keystore Android de produção | Guardado fora do repositório, com backup seguro documentado |
 | Domínio de produção + certificado HTTPS | Confirmar renovação automática se aplicável |
-| Plano PayPal Subscriptions **live** (não sandbox) | Preços espelhados dos de sandbox, confirmados antes do lançamento |
-| Produtos de subscrição na Google Play Console | Mesmo preço/período que a PayPal, ajustado por região pela própria Play Store |
+| Produtos Stripe **live** (não teste) | Preços espelhados dos de teste, confirmados antes do lançamento |
+| Produtos de subscrição na Google Play Console | Mesmo preço/período que Stripe, ajustado por região pela própria Play Store |
 
 ## Checklist rápida antes de qualquer deploy
 

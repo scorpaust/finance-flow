@@ -25,6 +25,7 @@
     "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@easypaypt/checkout-sdk": "^2.9.1",
     "@nuxt/image": "^1.7.0",
     "@nuxtjs/color-mode": "^3.4.2",
     "@pinia/nuxt": "^0.5.1",

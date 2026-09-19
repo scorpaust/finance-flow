@@ -15,7 +15,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Dashboard** | KPIs em tempo real, evolução do saldo, top categorias, transações recentes |
 | **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período + distribuição/quartis (Pro+) |
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
-| **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via PayPal — cartão/saldo (auto-renovável), MB WAY e Multibanco (pré-pago) — ver [Subscrições](#-subscrições-paypal--mb-way--multibanco) |
+| **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses) — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **PWA** | Instalável, offline-ready, manifest completo |
@@ -39,7 +39,8 @@ VueUse          (useWindowSize, useDebounceFn)
 lucide-vue-next (ícones)
 @vite-pwa/nuxt  (PWA + Workbox)
 Capacitor       (app Android nativa a partir do mesmo código-base)
-PayPal REST API (Orders + Subscriptions — subscrições, cartão/MB WAY/Multibanco)
+EasyPay REST API (Checkout — subscrições, Cartão/Débito Direto/MB WAY/Multibanco)
+@easypaypt/checkout-sdk (formulário de pagamento embutido, client-side)
 Anthropic API   (claude-haiku-4-5 — interpretação de estatísticas e dicas de investimento)
 Twelve Data API (snapshot diário de mercados globais para as dicas de investimento)
 ```
@@ -85,7 +86,7 @@ ver `.env.example` e a descrição de cada uma em
 
 | Grupo | Variáveis |
 |---|---|
-| Subscrições (PayPal) | `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_PLAN_ID_PRO`, `PAYPAL_PLAN_ID_PREMIUM`, `CRON_SECRET` |
+| Subscrições (EasyPay) | `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID`, `EASYPAY_API_KEY`, `SUBSCRIPTION_RENEWAL_REMINDER_DAYS`, `CRON_SECRET` |
 | Insights com IA | `ANTHROPIC_API_KEY`, `TWELVE_DATA_API_KEY` |
 
 Utilizadores existentes sem o campo `subscription` (pré-Fase-2) podem ser
@@ -131,7 +132,7 @@ financeflow/
 │   ├── groups/                 ← Gestão de grupos, orçamentos + drawer de detalhe (Pro+)
 │   ├── stats/                  ← Gráficos + tabela mensal + interpretação IA (Pro+)
 │   ├── predictions.vue         ← UI de treino IA + forecast (Premium)
-│   ├── subscription/           ← Planos, checkout PayPal, /return (polling pós-pagamento)
+│   ├── subscription/           ← Planos, checkout EasyPay embutido, /return (polling pós-pagamento)
 │   ├── investimento/           ← Perfil de investidor + dicas educativas IA (Premium)
 │   └── settings/               ← Perfil + gestão de categorias
 ├── plugins/
@@ -143,28 +144,28 @@ financeflow/
 │   │   ├── auth, transactions, categories, groups   ← CRUD base
 │   │   ├── stats/          ← overview, categories, advanced (Pro+)
 │   │   ├── predictions/    ← dados agregados para o modelo ML
-│   │   ├── subscription/   ← estado, checkout PayPal, webhook, cron de expiração
+│   │   ├── subscription/   ← estado, checkout/webhook EasyPay, cron de expiração
 │   │   ├── insights/       ← stats.post (Pro+), investment.post (Premium),
 │   │   │                      market-snapshot.post (cron diário)
 │   │   └── investor-profile/  ← questionário de perfil de investidor (GET/POST)
 │   ├── models/index.ts     ← Mongoose: User (+ subscription, investorProfile),
 │   │                          Category, TransactionGroup, Transaction,
-│   │                          PendingPayPalOrder, MarketSnapshot, AiInsightCache
+│   │                          MarketSnapshot, AiInsightCache
 │   ├── plugins/mongoose.ts ← Ligação MongoDB via Nitro plugin
 │   └── utils/
-│       ├── auth.ts            ← requireAuth, sanitizeId
-│       ├── requireFeature.ts  ← enforcement server-side por tier (403 se bloqueado)
-│       ├── paypal.ts          ← wrapper Orders/Subscriptions API + webhook signature
-│       ├── anthropic.ts       ← wrapper Messages API (structured outputs)
-│       ├── marketData.ts      ← wrapper Twelve Data Quote API
-│       └── investorProfile.ts ← validade do perfil (renovação anual)
+│       ├── auth.ts              ← requireAuth, sanitizeId
+│       ├── requireFeature.ts    ← enforcement server-side por tier (403 se bloqueado)
+│       ├── easypay.ts           ← wrapper Checkout API (Cartão/DD/MB WAY/Multibanco)
+│       ├── subscriptionSync.ts  ← lógica partilhada webhook + confirmação client-side
+│       ├── anthropic.ts         ← wrapper Messages API (structured outputs)
+│       ├── marketData.ts        ← wrapper Twelve Data Quote API
+│       └── investorProfile.ts   ← validade do perfil (renovação anual)
 ├── shared/features.ts          ← Fonte única da matriz de features por tier
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
 ├── scripts/
 │   ├── seed.mjs                    ← 12 meses de dados de teste
-│   ├── migrate-subscriptions.mjs   ← dá tier 'free' a utilizadores pré-Fase-2
-│   └── create-paypal-plans.mjs     ← cria os planos Pro/Premium na PayPal
+│   └── migrate-subscriptions.mjs   ← dá tier 'free' a utilizadores pré-Fase-2
 ├── android/                     ← Projeto nativo gerado pelo Capacitor (ver secção própria)
 ├── capacitor.config.ts
 ├── docker-compose.yml
@@ -195,17 +196,33 @@ Output: valor previsto (receita ou despesa)
 
 ---
 
-## 💳 Subscrições (PayPal + MB WAY + Multibanco)
+## 💳 Subscrições (EasyPay: Cartão/DD + MB WAY + Multibanco)
 
 Três planos — **Gratuito**, **Pro** (5,00 €/mês) e **Premium** (12,99 €/mês)
-— com um único processador (PayPal), expondo três métodos de pagamento ao
-utilizador:
+— com um único processador (EasyPay), expondo quatro métodos de pagamento ao
+utilizador via um único fluxo de Checkout:
 
-- **Cartão / saldo PayPal** → subscrição com auto-renovação real (PayPal
-  Subscriptions API).
-- **MB WAY / Multibanco** → pagamento pré-pago por período (1/3/6/12 meses),
-  sem cobrança automática — a subscrição expira e faz downgrade para `free`
-  se não houver renovação manual antes do fim do período.
+- **Cartão / Débito Direto** → subscrição nativa EasyPay com auto-renovação
+  real todos os meses (`billingMode: 'auto'`).
+- **MB WAY / Multibanco** → pagamento único de um período fixo (1/3/6/12
+  meses), sem cobrança automática — nenhum dos dois métodos suporta
+  renovação recorrente sem ação manual do cliente a cada ciclo. A subscrição
+  expira e faz downgrade para `free` se não houver renovação manual antes do
+  fim do período.
+
+O Checkout da EasyPay **não redireciona para fora da app** — o pacote
+client-side [`@easypaypt/checkout-sdk`](https://github.com/Easypay/checkout-sdk)
+recebe o manifest devolvido por `POST /checkout` e embebe o formulário de
+pagamento diretamente na página (`pages/subscription/index.vue`). Como a
+EasyPay não consegue entregar webhooks a um servidor sem endereço público
+(ex. `localhost` em desenvolvimento), a confirmação do pagamento tem dois
+caminhos que partilham a mesma lógica idempotente
+(`server/utils/subscriptionSync.ts`): o webhook (`server/api/subscription/
+easypay/webhook.post.ts`, fonte de verdade em produção) e uma chamada direta
+do client logo após o `onSuccess` do SDK (`.../confirm.post.ts`). Existe
+ainda um botão "Verificar pagamento" (`.../check-payment.post.ts`) para o
+utilizador confirmar manualmente um MB WAY/Multibanco `pending`, sem esperar
+pelo webhook.
 
 A matriz de features por plano vive num único sítio,
 [`shared/features.ts`](shared/features.ts) (`FEATURE_MATRIX`, `hasFeature()`),

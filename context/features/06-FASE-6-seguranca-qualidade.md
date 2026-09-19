@@ -26,13 +26,17 @@ reais, em web e Android.
       definida
 - [ ] Rever CORS para o domínio de produção (bloquear origens não
       autorizadas)
-- [ ] Segredos (Mongo URI, PayPal keys, Anthropic API key, Twelve Data API
-      key, session secret) apenas via variáveis de ambiente — nunca no
-      repositório
+- [ ] Segredos (Mongo URI, EasyPay AccountId/ApiKey, Anthropic API key,
+      Twelve Data API key, session secret) apenas via variáveis de ambiente
+      — nunca no repositório
 
 ### 3. Webhooks
-- [ ] Verificação de assinatura obrigatória em todos os webhooks (PayPal) —
-      rejeitar pedidos não assinados
+- [ ] A EasyPay não assina os webhooks (confirmado na Fase 2, ver
+      `server/utils/easypay.ts`) — confirmar que **todos** os handlers
+      continuam a verificar a autenticidade consultando a API de volta pelo
+      `id` do recurso antes de processar qualquer evento, nunca confiando no
+      corpo recebido diretamente; considerar também IP allowlist se a
+      EasyPay vier a documentar um intervalo fixo
 - [ ] Idempotência: eventos repetidos não devem duplicar efeitos no estado
       da subscrição
 
@@ -40,7 +44,7 @@ reais, em web e Android.
 - [ ] Unit tests (Vitest) para: `useSubscription`, `useFormatters`,
       `hasFeature`/matriz de features, lógica de previsão (partes não-TF)
 - [ ] Testes de integração para endpoints críticos: auth, transactions CRUD,
-      subscription checkout/webhook (com mocks da PayPal), insights/IA
+      subscription checkout/webhook (com mocks da EasyPay), insights/IA
       (com mocks da Anthropic e da Twelve Data — nunca chamadas reais nos
       testes, custam dinheiro)
 - [ ] E2E (Playwright) do fluxo principal: registo → login → criar

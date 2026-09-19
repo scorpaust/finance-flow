@@ -4,6 +4,17 @@
 > System (Fase 4) — traduzir só depois de todo o UI estar estruturalmente
 > estável evita retrabalho (extrair strings de um template que a Fase 4
 > ainda vai reescrever é desperdício). Ler `00-CODE-SPEC.md` secções 3 e 4.
+>
+> **Atualização de 2026-09-19**: a Fase 2 foi refeita — o processador de
+> pagamentos passou de PayPal para **EasyPay** (ver
+> `context/features/02-FASE-2-sistema-subscricoes.md` e
+> `context/current-feature.md`). As referências a PayPal/`server/api/
+> subscription/paypal/**` abaixo (decisão 5, tarefa 4, critérios de
+> aceitação) descrevem o desenho antigo e têm de ser revistas quando esta
+> fase for retomada — o "fallback recorrente" universal passa a ser Cartão/
+> Débito Direto via EasyPay (`billingMode: 'auto'`), e o endpoint a validar
+> é `server/api/subscription/easypay/create-prepaid.post.ts`, não
+> `paypal/create-order.post.ts` (que já não existe).
 
 ## Decisões de arquitetura tomadas (não reabrir sem motivo forte)
 

@@ -1,78 +1,69 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/02-FASE-2-sistema-subscricoes.md -->
+<!-- Ver especificação completa em context/features/05-FASE-5-scan-documentos-ia.md -->
 
 ## Estado
 
-Concluída (mergeada em `main`; tarefa 10 — Android/Google pagamentos
-externos — deixada para mais tarde por decisão do utilizador, ver histórico)
+Em progresso — branch `feature/fase-5-scan-documentos-ia`, ver histórico.
 
 ## Objetivos
 
-FASE 2 (refeita) — Sistema de Subscrições com EasyPay (Cartão/Débito
-Direto, MB WAY, Multibanco). Substitui inteiramente a implementação
-anterior baseada em PayPal (ver histórico abaixo). Fase de maior risco de
-negócio e compliance do projeto — em caso de dúvida sobre regras de
-preço/feature ou requisitos da Google, assinalar explicitamente em vez de
-assumir.
+FASE 5 — Digitalização de Documentos com IA (Recibos/Faturas). O utilizador
+tira uma foto (Android) ou carrega uma imagem/PDF (Android ou web) de um
+recibo/fatura; a app envia-o à Anthropic (`claude-haiku-4-5`, vision + PDF
+nativos, sem OCR separado) e recebe comerciante, data, valor, moeda, tipo
+(receita/despesa) e uma categoria sugerida (restrita às categorias já
+existentes do utilizador). Esses dados **pré-preenchem** o `TransactionModal`
+já existente — a IA nunca grava a transação diretamente, o utilizador tem de
+rever e confirmar (decisão explícita do utilizador de 2026-09-19, apesar do
+pedido inicial ter sido "regista automaticamente": erros de IA em dados
+financeiros devem ter sempre confirmação humana). Disponível só para os
+planos **Pro e Premium**, não Gratuito.
 
-Três planos — Gratuito, Pro (5,00 €/mês), Premium (12,99 €/mês) — pagáveis
-via EasyPay com Cartão/Débito Direto (auto-renovação real todos os meses,
-`billingMode: 'auto'`) ou MB WAY/Multibanco (pagamento único de um período
-fixo — 1, 3, 6 ou 12 meses — sem renovação automática, `'push_confirm'`/
-`'manual_reference'`; decisão do utilizador de 2026-09-19, ver histórico:
-nenhum dos dois métodos permite cobrança recorrente sem ação manual do
-cliente a cada ciclo). Disponível na web e na app Android, com a mesma conta
-a refletir o estado da subscrição nas duas plataformas.
-
-Ler `context/features/02-FASE-2-sistema-subscricoes.md` para a
-especificação completa (decisões de arquitetura, 11 tarefas, critérios de
-aceitação) e `00-CODE-SPEC.md` secções 3 e 4 (atualizadas nesta revisão).
+Ler `context/features/05-FASE-5-scan-documentos-ia.md` para a especificação
+completa (decisões de arquitetura, 4 tarefas, critérios de aceitação) e
+`00-CODE-SPEC.md` secções 3 e 4 (arquitetura de feature gating,
+`requireFeature()`/`hasFeature()` — mesmo padrão das Fases 2 e 3).
 
 Tarefas principais (ver especificação para detalhe completo):
-1. Modelo de dados — `UserSubscription` com `billingMode`, `paymentMethod`,
-   `provider: 'easypay'`, `easypaySubscriptionId`/
-   `easypayFrequentPaymentId`, `currentPeriodEnd`, `autoRenew`; migração de
-   utilizadores existentes para `tier: 'free'`, `provider: 'none'`
-2. `shared/features.ts` — `SubscriptionTier`, `FEATURE_MATRIX`,
-   `hasFeature()` (reaproveitar/confirmar limites da implementação anterior)
-3. `server/utils/easypay.ts` — wrapper sobre a REST API EasyPay (Checkout,
-   Subscription, Payments), validação de autenticidade dos webhooks
-4. Onboarding via EasyPay Checkout (hospedado, PCI-compliant) para
-   `cc`/`dd`/`mbw`/`mb`
-5. Fluxo `auto` (CC/DD) — `POST /subscription` nativo, `sdd_mandate` para DD
-6. Fluxo `push_confirm` (MB WAY) — cron mensal via Frequent Payment, retries
-   e `status: 'past_due'` se esgotadas
-7. Fluxo `manual_reference` (Multibanco) — cron gera nova referência X dias
-   antes do fim do período, downgrade para `free` se expirar sem pagamento
-8. `useSubscription()`, `PaywallModal`/`UpsellBanner` com mensagens
-   diferenciadas por `billingMode`, checkout com escolha clara do método
-9. Enforcement no servidor — `requireFeature()` em previsões (Premium),
-   grupos e export CSV (Pro+), `403 feature_locked`
-10. Android — inscrição no programa de pagamentos externos da Google (EEA),
-    `@capacitor/browser` para o EasyPay Checkout, `ExternalTransactionId`
-11. Ambiente de testes — sandbox EasyPay para os quatro métodos, testar
-    crons de `push_confirm`/`manual_reference` incluindo falha/expiração
+1. `shared/features.ts` — nova chave `documentScan: 'pro'` em
+   `FEATURE_MATRIX`; `requireFeature()` no endpoint do servidor
+2. `server/utils/anthropic.ts` — nova função de extração (vision/PDF +
+   `output_config.format` com schema fixo, incluindo `confidence` por
+   campo e `isReceipt: boolean`); prompt fixo em PT-PT
+3. `server/api/transactions/scan.post.ts` — recebe o ficheiro
+   (`multipart/form-data`, limite de tamanho), devolve os campos extraídos
+   (nunca cria a transação); rate limiting por utilizador
+4. Client — `@capacitor/camera` (câmara nativa Android) + upload de
+   ficheiro (web), botão "Digitalizar documento", pré-preenche
+   `TransactionModal`, realça campos de baixa confiança, `PaywallModal`
+   para utilizadores Free
 
-Fora de âmbito nesta fase: redesign visual do paywall/checkout (Fase 4 já
-cobriu o visual geral, aqui é só funcional), submissão final/aprovação do
-programa de pagamentos externos na Play Store em produção (Fase 5 — aqui só
-a integração técnica e o pedido de inscrição).
+Fora de âmbito nesta fase: dividir um documento com vários itens em várias
+transações por categoria (fica sempre uma transação com o valor total),
+armazenar/anexar o documento original à transação (precisa de solução de
+armazenamento de ficheiros que o projeto ainda não tem), documentos
+multi-página complexos, tradução do prompt para outro idioma (Fase 6 trata
+i18n).
 
 ## Notas
 
-- Decisões de arquitetura da especificação (processador único EasyPay,
-  distinção `auto`/`push_confirm`/`manual_reference`, pagamentos externos
-  Android) não devem ser reabertas sem motivo forte — ver secção dedicada
-  no ficheiro da fase.
-- A implementação anterior desta fase (PayPal) foi removida/substituída
-  nesta redefinição — código, endpoints e variáveis de ambiente específicas
-  do PayPal (`server/utils/paypal.ts`, `PAYPAL_*`, `PendingPayPalOrder`,
-  etc.) devem ser identificados e removidos/substituídos ao longo da
-  implementação, não deixados a coexistir com o EasyPay.
+- Decisões de arquitetura da especificação (modelo Haiku 4.5 sem OCR
+  separado, confirmação manual obrigatória, gating Pro+Premium, um
+  documento = uma transação, sem armazenamento do original) não devem ser
+  reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
+- Viabilidade técnica (vision + PDF + structured outputs no modelo mais
+  barato, custo por documento) foi confirmada via a skill `claude-api`
+  contra a documentação atual da Anthropic antes de desenhar a
+  especificação — não foi uma suposição.
+- Esta fase foi inserida antes da Internacionalização a pedido do
+  utilizador em 2026-09-19 — Internacionalização, Segurança/Qualidade e
+  Publicação foram renumeradas de Fase 5/6/7 para Fase 6/7/8 em
+  conformidade (ver `00-CODE-SPEC.md` secção 6 e histórico abaixo).
 - Testar sempre em pelo menos mobile (emulador/dispositivo Android) e
   desktop (janela larga), incluindo tablet/ultra-wide — ver
-  `AGENT-RULES.md` ("Testes manuais mínimos").
+  `AGENT-RULES.md` ("Testes manuais mínimos"). Testar especificamente a
+  captura por câmara num dispositivo Android real, não só no emulador.
 - ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por
   resolver)**: `android/app/src/main/AndroidManifest.xml` tem
   `android:usesCleartextTraffic="true"`, ligado para testar a app Android
@@ -83,22 +74,21 @@ a integração técnica e o pedido de inscrição).
 
 ## Critérios de aceitação
 
-- Utilizador consegue subscrever com Cartão ou Débito Direto (auto-
-  renovação real, sem ação mensal) em sandbox, web e Android
-- Utilizador consegue subscrever com MB WAY em sandbox e o cron mensal
-  dispara corretamente a cobrança, com o ciclo a depender só da confirmação
-  push
-- Utilizador consegue pagar uma referência Multibanco em sandbox, e o cron
-  gera automaticamente a referência do ciclo seguinte com antecedência
-  suficiente
-- Mudar de plano/expirar reflete-se imediatamente na UI e nos endpoints
-  protegidos (403 quando aplicável)
-- Webhook EasyPay testado com eventos simulados para os três modos de
-  cobrança, incluindo falha de cobrança e expiração de referência
-- Nenhum endpoint sensível depende apenas de verificação no client
-- Pedido de inscrição no programa de pagamentos externos da Google
-  submetido (aprovação pode não estar concluída nesta fase, mas o pedido
-  tem de estar feito antes da Fase 5)
+- Utilizador Free não consegue usar a funcionalidade — nem no client
+  (paywall) nem no servidor (`403 feature_locked` mesmo chamando o endpoint
+  diretamente)
+- Utilizador Pro/Premium consegue fotografar (Android) ou carregar
+  (Android/web) um recibo/fatura real e ver o formulário de transação abrir
+  pré-preenchido com comerciante, data, valor, moeda, tipo e categoria
+  sugerida corretos (validado com uma amostra real de recibos/faturas
+  portugueses variados)
+- Nenhuma transação é criada sem confirmação explícita do utilizador
+- Um documento que não é um recibo/fatura reconhecível produz um erro
+  claro, não um formulário com dados inventados
+- Campos extraídos com baixa confiança ficam visualmente identificados no
+  formulário
+- Custo medido por documento confirma a ordem de grandeza esperada
+  (residual) — sem surpresas de custo em produção
 
 ## Histórico
 
@@ -110,35 +100,28 @@ a integração técnica e o pedido de inscrição).
   `feature/fase-1-fundacao-multiplataforma` ainda não commitada nesta data
   — decisão de commit pendente com o utilizador.
 - 2026-09-15: Definida como funcionalidade atual — FASE 2 (Sistema de
-  Subscrições: PayPal + MB WAY + Multibanco), especificação em
+  Subscrições: recorrente + MB WAY + Multibanco), especificação em
   `context/features/02-FASE-2-sistema-subscricoes.md`. Estado inicial: não
-  iniciada.
+  iniciada. (O processador de pagamentos foi redefinido em 2026-09-18 — ver
+  as entradas dessa data.)
 - 2026-09-15: Branch `feature/fase-2-sistema-subscricoes` criado a partir de
   `main` (nota: `git log` confirma que a Fase 1 já estava mergeada em `main`
   nesta altura, ao contrário do registado na entrada anterior). Estado passa
-  a "Em progresso". Implementado o código-base completo das tarefas 1-7 e
-  parte da 8-9 da especificação:
+  a "Em progresso". Primeira implementação das tarefas 1-7 e parte da 8-9 da
+  especificação — o código específico do processador de pagamentos foi
+  entretanto substituído (ver 2026-09-18); ficou o que é independente dele:
   - **Modelo de dados**: `User.subscription` (`server/models/index.ts`,
-    `IUserSubscription`) e `PendingPayPalOrder` (mapa temporário order→
-    tier/período/método para o webhook reconstituir compras pré-pagas).
-    Script `scripts/migrate-subscriptions.mjs` para utilizadores existentes.
+    `IUserSubscription`) e uma coleção temporária de compras pendentes para o
+    webhook reconstituir compras pré-pagas (removida na redefinição de
+    2026-09-18). Script `scripts/migrate-subscriptions.mjs` para utilizadores
+    existentes.
   - **`shared/features.ts`**: `SubscriptionTier`, `FEATURE_MATRIX`,
     `hasFeature()`, `TIER_LIMITS` (transações/mês e categorias custom Free).
-  - **`server/utils/paypal.ts`**: wrapper OAuth2 + Orders API (com
-    `payment_source.mb_way`/`multibanco` — payload a confirmar em sandbox,
-    ver nota no código) + Subscriptions API + verificação de assinatura de
-    webhook. Consultada documentação PayPal via Context7 para os payloads
-    confirmados (Orders v2, verify-webhook-signature); Subscriptions v1
-    (`application_context`) e local payment methods mb_way/multibanco
-    seguem o padrão documentado dos restantes métodos mas não têm exemplo
-    direto nas docs indexadas — por confirmar em sandbox real (tarefa 9).
-  - **Endpoints** `server/api/subscription/**`: estado atual (GET),
-    create-subscription (recorrente), create-order (pré-pago), webhook
-    (trata os eventos `BILLING.SUBSCRIPTION.*`, `PAYMENT.SALE.COMPLETED`,
-    `CHECKOUT.ORDER.APPROVED` com capture explícito, `PAYMENT.CAPTURE.*`),
-    cancel, check-expirations (sem scheduler no projeto — desenhado para
-    ser chamado por cron externo com header `x-cron-secret`; envio real de
-    email/push por implementar, não existe serviço de notificações ainda).
+  - **Endpoints** `server/api/subscription/**`: estado atual (GET), criação de
+    subscrição recorrente, criação de compra pré-paga, webhook, cancel,
+    check-expirations (sem scheduler no projeto — desenhado para ser chamado
+    por cron externo com header `x-cron-secret`; envio real de email/push por
+    implementar, não existe serviço de notificações ainda).
   - **Enforcement no servidor**: `requireFeature()` aplicado a
     `predictions/data`, `groups/**`; limite Free (50 transações/mês, 2
     categorias custom) em `transactions`/`categories` POST; novo endpoint
@@ -149,51 +132,40 @@ a integração técnica e o pedido de inscrição).
     utilizadores em SSR), `PaywallModal`/`UpsellBanner`, página
     `/subscription` (planos, escolha recorrente vs. pré-pago com seletor de
     período, disclosure obrigatório + `@capacitor/browser` no Android antes
-    de sair para o checkout PayPal), `/subscription/return` (polling curto
+    de sair para o checkout externo), `/subscription/return` (polling curto
     até o webhook confirmar). Gating aplicado em Previsões, Grupos e
     exportação CSV.
   - `npm run build` validado sem erros (todas as rotas novas compilam).
-  - **Por fazer / fora do alcance de código**: criar conta PayPal Business
-    real e pedir aprovação Multibanco/MB WAY; preencher credenciais
-    sandbox/live e `PAYPAL_PLAN_ID_*` (criar os planos na PayPal); registar
-    o webhook e obter `PAYPAL_WEBHOOK_ID`; testar os três métodos em
-    sandbox (tarefa 9, incluindo confirmar o payload exato de MB WAY/
-    Multibanco); inscrição no programa de pagamentos externos da Google
-    (tarefa 8) e reporte `ExternalTransactionId` (não implementado — API
-    ainda em evolução em 2026, por confirmar na Play Console); configurar
-    um cron externo real para `check-expirations`. `.env.example` tinha uma
-    connection string MongoDB Atlas real (ficheiro é gitignored, nunca
-    esteve no histórico do git, mas ainda assim redigida para placeholder
-    nesta sessão) — vars da Fase 2 adicionadas.
-- 2026-09-15: Testes de sandbox validados: corrigido o payload real da
-  Orders API (chave `mbway`, não `mb_way`; header `PayPal-Request-Id`
-  obrigatório quando a order já inclui `payment_source`; Multibanco é
-  redirect-based com capture automático via
-  `processing_instruction: ORDER_COMPLETE_ON_PAYMENT_APPROVAL`, ao contrário
-  do que a doc consultada sugeria). Fluxo recorrente (cartão/saldo PayPal) e
-  Multibanco confirmados de ponta a ponta em sandbox real (order criada,
-  redirect, referência gerada, webhook `PAYMENT.CAPTURE.COMPLETED`
-  processado, tier atualizado). MB WAY implementado e com payload correto,
-  mas bloqueado por `NOT_ENABLED_FOR_PAYMENT_SOURCE` — a conta sandbox
-  ainda não tem a capacidade beta aprovada pela PayPal (pedido feito via
-  `bizsignup`, aprovação pendente do lado da PayPal, fora do controlo do
-  código).
+  - **Por fazer / fora do alcance de código**: inscrição no programa de
+    pagamentos externos da Google (tarefa 8) e reporte `ExternalTransactionId`
+    (não implementado — API ainda em evolução em 2026, por confirmar na Play
+    Console); configurar um cron externo real para `check-expirations`.
+    `.env.example` tinha uma connection string MongoDB Atlas real (ficheiro é
+    gitignored, nunca esteve no histórico do git, mas ainda assim redigida
+    para placeholder nesta sessão) — vars da Fase 2 adicionadas.
+- 2026-09-15: Testes de sandbox da primeira implementação: fluxo recorrente
+  (cartão) e Multibanco confirmados de ponta a ponta (compra criada,
+  redirecionamento, referência gerada, webhook processado, tier atualizado);
+  vários payloads reais corrigidos face à documentação consultada. MB WAY
+  implementado mas bloqueado — a conta sandbox não tinha a capacidade
+  aprovada pelo processador (pedido pendente do lado dele, fora do controlo
+  do código).
   Corrigidos dois bugs de design encontrados nos testes: (1) uma referência
   Multibanco pendente deixava de refletir o plano real do utilizador
   (sobrescrevia `tier`/`status` para a compra em curso, mesmo sem
   pagamento confirmado) — agora só se escreve em `User.subscription` com o
-  pagamento confirmado; uma compra pendente vive só em `PendingPayPalOrder`,
-  exposta ao client como `pendingPurchase` à parte do plano atual, com
-  endpoint para o utilizador limpar uma referência abandonada; (2)
-  cancelamento de auto-renovação fazia downgrade imediato para `free` — API
-  ainda referida no plano — corrigido para manter o acesso até
-  `currentPeriodEnd` e só descer no job de expiração.
+  pagamento confirmado; uma compra pendente vive só na coleção temporária de
+  compras pendentes, exposta ao client como `pendingPurchase` à parte do
+  plano atual, com endpoint para o utilizador limpar uma referência
+  abandonada; (2) cancelamento de auto-renovação fazia downgrade imediato
+  para `free` — corrigido para manter o acesso até `currentPeriodEnd` e só
+  descer no job de expiração.
   Adicionado, a pedido do utilizador: upgrade/downgrade in-place de planos
-  recorrentes (`change-plan.post.ts`, via revise da Subscriptions API —
-  acesso imediato à nova tier, cobrança ao novo preço só no ciclo seguinte
-  porque a PayPal não proraciona automaticamente, decisão aceite
-  explicitamente); duas estatísticas avançadas novas (histograma de
-  distribuição de despesas, box-plot de quartis por categoria via
+  recorrentes (`change-plan.post.ts` — acesso imediato à nova tier, cobrança
+  ao novo preço só no ciclo seguinte porque o processador não proraciona
+  automaticamente, decisão aceite explicitamente; removido na redefinição de
+  2026-09-18); duas estatísticas avançadas novas (histograma de distribuição
+  de despesas, box-plot de quartis por categoria via
   `@sgratzl/chartjs-chart-boxplot`), gated Pro+ (`statsAdvanced`), a fechar
   o gap entre a matriz de features documentada e o que estava realmente
   implementado.
@@ -225,7 +197,7 @@ a integração técnica e o pedido de inscrição).
     `date` único) e `AiInsightCache` (1 documento por utilizador,
     sobrescrito a cada análise, cache de 24h).
   - **`server/utils/anthropic.ts`**: wrapper fino sobre a Messages API
-    (fetch nativo, sem SDK — consistente com `paypal.ts`), modelo
+    (fetch nativo, sem SDK — consistente com o wrapper de pagamentos da Fase 2), modelo
     `claude-haiku-4-5`, structured outputs via `output_config.format`
     (`type: 'json_schema'`) e header `anthropic-beta:
     structured-outputs-2025-12-15`; parâmetros confirmados via Context7
@@ -495,32 +467,32 @@ a integração técnica e o pedido de inscrição).
   `android:usesCleartextTraffic="true"`, ligado só para testar a app
   Android via USB — reverter para `"false"` antes de qualquer build de
   release/Play Store.
-- 2026-09-18: FASE 2 redefinida a pedido do utilizador — deixou o PayPal
-  como processador, passa a usar **EasyPay** (Cartão/Débito Direto, MB WAY,
+- 2026-09-18: FASE 2 redefinida a pedido do utilizador — o processador de
+  pagamentos passa a ser a **EasyPay** (Cartão/Débito Direto, MB WAY,
   Multibanco com um único contrato/API). Especificação em
   `context/features/02-FASE-2-sistema-subscricoes.md` reescrita de raiz
   (decisões de arquitetura, distinção `auto`/`push_confirm`/
   `manual_reference` por método, 11 tarefas, critérios de aceitação);
-  `00-CODE-SPEC.md` e `CONFIG-REFERENCE.md` também atualizados nesta sessão
-  para refletir EasyPay em vez de PayPal. Definida novamente como
-  funcionalidade atual. Estado: não iniciada — a implementação anterior
-  (PayPal, concluída e mergeada em `accd41b`) fica como referência
-  histórica nas entradas acima, mas o código/endpoints/variáveis de
-  ambiente específicos do PayPal terão de ser removidos/substituídos ao
-  longo desta nova implementação.
+  `00-CODE-SPEC.md` e `CONFIG-REFERENCE.md` também atualizados nesta sessão.
+  Definida novamente como funcionalidade atual. Estado: não iniciada — a
+  implementação anterior (concluída e mergeada em `accd41b`) fica como
+  referência histórica nas entradas acima, mas o código/endpoints/variáveis
+  de ambiente específicos do processador anterior terão de ser
+  removidos/substituídos ao longo desta nova implementação.
 - 2026-09-18: Branch `feature/fase-2-easypay-subscricoes` criado a partir de
   `main`. Estado passa a "Em progresso". Documentação EasyPay consultada via
   Context7 (`/websites/easypay_pt`) para autenticação, Subscription API,
   Checkout, Frequent Payments e o guia de Webhooks — confirmado que a EasyPay
-  **não assina** os webhooks (ao contrário da PayPal): a validação de
+  **não assina** os webhooks: a validação de
   autenticidade é sempre um `GET` de volta à API pelo `id` do recurso antes de
   confiar em qualquer campo do corpo recebido. A pedido explícito do
-  utilizador, todo o código PayPal foi **removido por completo** (não deixado
-  como código morto), não só substituído:
-  - Removidos: `server/utils/paypal.ts`, `server/api/subscription/paypal/**`
-    (6 ficheiros), `scripts/create-paypal-plans.mjs` (sem equivalente EasyPay
-    — não há conceito de "planos" pré-criados, o valor vai em cada pedido),
-    `PendingPayPalOrder` (`server/models/index.ts`).
+  utilizador, todo o código do processador anterior foi **removido por
+  completo** (não deixado como código morto), não só substituído:
+  - Removidos: o wrapper da API anterior (`server/utils`), os seus 6
+    endpoints em `server/api/subscription/`, o script de criação de planos
+    (sem equivalente EasyPay — não há conceito de "planos" pré-criados, o
+    valor vai em cada pedido) e a coleção temporária de compras pendentes
+    (`server/models/index.ts`).
   - **Modelo de dados**: `IUserSubscription` reescrita —
     `provider: 'easypay'|'none'`, `paymentMethod: 'cc'|'dd'|'mbway'|
     'multibanco'|'none'`, `billingMode: 'auto'|'push_confirm'|
@@ -531,7 +503,7 @@ a integração técnica e o pedido de inscrição).
     consulta/webhook, por isso o próprio checkout é criado com
     `key: "<userId>:<tier>:<paymentMethod>"` (`encodeMerchantKey` em
     `server/utils/easypay.ts`) — simplifica bastante em relação ao mapa
-    temporário que a implementação PayPal precisava.
+    temporário que a implementação anterior precisava.
   - **`server/utils/easypay.ts`**: wrapper fetch nativo (headers
     `AccountId`/`ApiKey`), `createSubscriptionCheckout()` (CC/DD, tipo
     `subscription`, `sdd_mandate` inline para DD), `createFrequentCheckout()`
@@ -542,8 +514,7 @@ a integração técnica e o pedido de inscrição).
     `cancelSubscription()`. Nome exato do campo do URL de redirecionamento do
     Checkout (`checkout_url` vs `url`) não veio 100% consistente entre as
     páginas de documentação indexadas — código aceita as duas variantes, por
-    confirmar contra a resposta real em sandbox (mesmo padrão de nota que a
-    implementação PayPal usava para payloads incertos).
+    confirmar contra a resposta real em sandbox.
   - **Endpoints** `server/api/subscription/easypay/**`: `create-subscription`
     (onboarding CC/DD), `create-frequent` (onboarding MB WAY/Multibanco,
     sem cobrança imediata), `webhook` (eventos `subscription_create`,
@@ -553,10 +524,10 @@ a integração técnica e o pedido de inscrição).
     e `cron/multibanco.post.ts` (mesmo padrão `x-cron-secret` de
     `check-expirations.post.ts`, sem scheduler no projeto). `check-expirations.post.ts`
     e `server/api/subscription/index.ts` (GET) atualizados para o novo modelo.
-  - **Simplificação deliberada face à versão PayPal**: não recriado o
+  - **Simplificação deliberada face à versão anterior**: não recriado o
     upgrade/downgrade in-place (`change-plan`) — não faz parte das 11 tarefas
     da especificação reescrita (era um extra pedido à parte na versão
-    PayPal); a mudar de plano por agora é cancelar + subscrever de novo. Fica
+    anterior); a mudar de plano por agora é cancelar + subscrever de novo. Fica
     assinalado caso o utilizador queira voltar a pedir isto.
   - **Client**: `stores/subscription.ts`/`composables/useSubscription.ts`
     atualizados para os novos campos (`billingMode`, `paymentMethod`,
@@ -565,17 +536,16 @@ a integração técnica e o pedido de inscrição).
     de "pré-pago"; `pages/subscription/index.vue` reescrita com seleção de
     método (Cartão/DD/MB WAY/Multibanco), formulário IBAN+titular para DD, e
     o mesmo padrão de disclosure + `@capacitor/browser` no Android antes de
-    sair para o checkout (agora `easypay.pt` em vez de `paypal.com`);
+    sair para o checkout (agora `easypay.pt`);
     `pages/subscription/return.vue` ajustada ao novo `status`/`billingMode`.
   - `nuxt.config.ts`, `.env.example` e `context/CONFIG-REFERENCE.md`
     atualizados: `EASYPAY_ENV`/`EASYPAY_ACCOUNT_ID`/`EASYPAY_API_KEY`
-    substituem as variáveis `PAYPAL_*`; `CRON_SECRET` mantido (partilhado
+    substituem as variáveis do processador anterior; `CRON_SECRET` mantido (partilhado
     pelos três crons desta fase + o de `market-snapshot` da Fase 3).
     `scripts/migrate-subscriptions.mjs` atualizado para o novo esquema.
   - `npm run build` validado sem erros (todas as rotas novas — incluindo os
     dois crons e o webhook — compilam); confirmado por grep que não sobrou
-    nenhuma referência a PayPal fora de comentários explicativos de contexto
-    histórico.
+    nenhuma referência ao processador anterior.
   - **Por fazer / fora do alcance de código**: criar conta EasyPay real
     (sandbox `api.test.easypay.pt` e produção); testar os quatro métodos em
     sandbox real (tarefa 11 — incluindo confirmar o campo exato do URL de
@@ -600,7 +570,7 @@ a integração técnica e o pedido de inscrição).
     diretamente na página (`display: 'inline'`; `'popup'` só abre com um
     clique no próprio elemento, não programaticamente — usado
     incorretamente na 1ª tentativa). Sem redirecionamento nenhum, a app
-    Android deixa de precisar do `@capacitor/browser` que a versão PayPal
+    Android deixa de precisar do `@capacitor/browser` que a versão anterior
     usava.
   - **Verificação do pagamento**: nem `payment.id` (devolvido pelo SDK no
     `onSuccess`) nem os endpoints específicos (`/subscriptions/{id}`,
@@ -667,3 +637,125 @@ a integração técnica e o pedido de inscrição).
   para a app Android) e configuração de um cron externo real para
   `check-expirations`. Bloqueador herdado da Fase 3 sobre
   `usesCleartextTraffic` continua pendente, sem relação com esta fase.
+- 2026-09-19: A pedido do utilizador, desenhada uma nova fase — FASE 5
+  (Digitalização de Documentos com IA: recibos/faturas via foto/PDF,
+  pré-preenchimento automático de transações). Pedido inicial era
+  "regista automaticamente"; após alertar para o risco de erros de IA em
+  dados financeiros sem revisão humana, o utilizador confirmou o modelo
+  pré-preencher + confirmar manualmente, e definiu a funcionalidade como
+  exclusiva dos planos Pro e Premium. Viabilidade técnica (Claude Haiku 4.5
+  com vision + PDF nativos + structured outputs, custo residual por
+  documento) confirmada via a skill `claude-api` contra a documentação
+  atual da Anthropic antes de escrever a especificação
+  (`context/features/05-FASE-5-scan-documentos-ia.md`).
+  Inserida antes da Internacionalização por pedido do utilizador — exigiu
+  renumerar as três fases seguintes: Internacionalização 5→6, Segurança/
+  Qualidade 6→7, Publicação 7→8 (ficheiros renomeados com `git mv`,
+  referências cruzadas corrigidas em `00-CODE-SPEC.md`, `CONFIG-REFERENCE.md`
+  e nos specs das Fases 1-4; aproveitado para corrigir também uma menção a
+  "Stripe" desatualizada em `CONFIG-REFERENCE.md`, resíduo de antes da
+  escolha do processador de pagamentos). Removidas as duas únicas menções a
+  iOS no repositório (`README.md`, spec da Fase 4) — a pedido do utilizador,
+  já que a app é só Android + Web. Definida como funcionalidade atual.
+  Estado: não iniciada — nada disto foi commitado ainda (a pedido do
+  utilizador, para commitar tudo junto no fim desta sessão).
+- 2026-09-19: Branch `feature/fase-5-scan-documentos-ia` criado a partir de
+  `main` (as alterações de documentação ainda por commitar da sessão anterior
+  viajam no working tree, tal como pedido — commitar tudo junto). Estado passa
+  a "Em progresso". Implementadas as tarefas 1-4 da especificação:
+  - **Tarefa 1**: `documentScan: 'pro'` em `shared/features.ts`;
+    `requireFeature(event, 'documentScan')` no endpoint. Novo limite
+    `TIER_LIMITS.documentScansPerMonth` (Free 0, **Pro 30, Premium 100**) — a
+    especificação pedia para confirmar o valor antes de implementar; usei
+    estes como default razoável, ficam num só sítio para ajustar.
+  - **Tarefa 2**: `server/utils/anthropic.ts` refatorado — o pedido HTTP
+    passou a aceitar content blocks (texto/`image`/`document`) e devolve
+    `usage`; `generateStructuredJson()` (Fase 3) mantém a mesma assinatura.
+    Nova `extractDocumentData()`: schema fixo com `isReceipt`, campos
+    nulláveis, `confidence` por campo e `suggestedCategory` como enum
+    fechado das categorias do utilizador; prompt fixo PT-PT que trata o
+    texto do documento como dados (não instruções). Schema usa só features
+    documentadas como suportadas (`anyOf`, `enum`, `null`,
+    `additionalProperties:false`).
+  - **Tarefa 3**: `server/api/transactions/scan.post.ts` +
+    `server/utils/documentScan.ts`. Multipart, tipo detetado por **magic
+    bytes** (nunca pelo `Content-Type` do client), limites 5 MB imagem /
+    8 MB PDF. **Desvio da especificação**: HEIC não é aceite — a API da
+    Anthropic só suporta JPEG/PNG/GIF/WebP/PDF; o endpoint rejeita HEIC com
+    mensagem clara (a câmara Android e o downscale do client já produzem
+    JPEG). Nunca cria a transação. Datas inválidas → `null`; categoria só
+    aceite se existir e for compatível com o tipo; moeda ≠ EUR sinalizada ao
+    client. Rate limiting: contador mensal atómico (`DocumentScanUsage`),
+    ficheiros inválidos não consomem quota, falha da Anthropic devolve-a.
+    Regista `usage` e custo estimado por documento no log do servidor
+    (`[scan] ... ≈ $`).
+  - **Tarefa 4**: `@capacitor/camera@8.2.4` instalado e sincronizado
+    (`cap sync android`); `composables/useDocumentScan.ts` (câmara nativa
+    via import dinâmico, downscale client-side a 2000px/JPEG para respeitar
+    o limite de 5 MB); `components/forms/DocumentScanButton.vue` (botão
+    "Digitalizar documento" sempre visível, escolha câmara/ficheiro no
+    Android, estado de carregamento, diálogo de erro com "Preencher
+    manualmente", `PaywallModal` para Free) inserido no dashboard e em
+    `/transactions`; `TransactionModal` ganhou a prop `prefill` — banner
+    "lido por IA, confirma antes de guardar", campos `low` a âmbar (o realce
+    some quando o utilizador edita o campo), aviso se a moeda não for EUR.
+  - **Validado** (dev server contra a BD e a API reais): Free → `403
+    feature_locked` no endpoint; ficheiro em falta 400; ficheiro de texto
+    disfarçado de `.jpg` 415; HEIC 415; imagem >5 MB 413; sem sessão 401;
+    teto mensal → `429 scan_limit_reached` sem ultrapassar o teto; falha
+    da Anthropic → 502 e quota reembolsada. `npm run build` sem erros;
+    `gradlew assembleDebug` Android com o plugin da câmara →
+    `BUILD SUCCESSFUL`; `/` e `/transactions` renderizam 200 sem erros no
+    log. Dados de teste na BD limpos no fim.
+  - **NÃO validado / bloqueado**: a conta Anthropic da chave em `.env`
+    respondeu `Your credit balance is too low` — **a extração real nunca
+    correu**. Ficam por verificar, depois de carregar créditos: o schema
+    aceite pela API ao vivo, a qualidade da extração, o caminho
+    `isReceipt:false` → 422, o mapeamento de categoria, e a medição do
+    custo real por documento (critério de aceitação). Também por fazer: teste
+    com recibos/faturas portugueses reais (só havia documentos sintéticos
+    gerados para testes — `receipt.png`/`invoice.pdf`/imagem não-recibo no
+    scratchpad da sessão, não versionados); teste da câmara num telemóvel
+    Android real; teste visual do fluxo completo num browser (não havia
+    ferramenta de browser nesta sessão — só smoke test de SSR).
+  - **Problema pré-existente descoberto** (não corrigido, fora de âmbito):
+    a criação automática de índices do Mongoose **não funciona** neste
+    projeto (`server/plugins/mongoose.ts` liga com `bufferCommands: false`
+    depois de os modelos estarem compilados). As coleções `marketsnapshots` e
+    `aiinsightcaches` da Fase 3 só têm o índice `_id` — os índices
+    `unique` declarados nos schemas (`MarketSnapshot.date`,
+    `AiInsightCache.userId`) não existem, logo a unicidade que o código
+    assume não é garantida (risco de duplicados em pedidos concorrentes).
+    Esta fase contornou-o com `_id` determinístico (`userId:YYYY-MM`) em
+    `DocumentScanUsage`. Recomendo tratar à parte (ex. `Model.syncIndexes()`
+    depois de ligar, ou um script de migração).
+  - Lembrete herdado (continua pendente): `usesCleartextTraffic="true"` no
+    `AndroidManifest.xml` tem de voltar a `"false"` antes de produção.
+- 2026-09-20: Relato do utilizador — "arranque da app muito lento" + avisos de
+  hidratação no browser. Diagnóstico e correções:
+  - **Causa da lentidão**: o watcher do Nuxt regenera a app a cada ficheiro
+    criado/apagado no projeto; `gradlew assembleDebug` e `cap sync` (corridos
+    para validar o plugin da câmara) mexem em milhares de ficheiros em
+    `android/` e deixaram o dev server em ciclo de recompilações. Corrigido
+    com `ignore: ['android/**']` em `nuxt.config.ts` — vale para qualquer
+    build Android futuro. (O arranque a frio do dev server continua a ser
+    lento por natureza: ~2 min no 1.º pedido após reiniciar, Vite a
+    transformar tfjs/chart.js — não é regressão desta fase.)
+  - **Regressão minha (hidratação)**: `DocumentScanButton` tinha um
+    `<Teleport to="body">` sempre presente; renderizado no SSR, o Vue tentava
+    hidratá-lo contra os filhos do `<body>` ("Hydration node mismatch").
+    Agora o Teleport só existe quando há modal a mostrar (`v-if`).
+  - **Erro de fornecedor exposto ao utilizador**: um 502 da Anthropic
+    (ex. saldo insuficiente) chegava ao diálogo do client com o JSON cru.
+    `scan.post.ts` regista o detalhe no log e devolve uma mensagem genérica
+    (`upstream_error`).
+  - **Avisos de hidratação anteriores a esta fase, não corrigidos**:
+    `ToastContainer` (também tem `<Teleport to="body">` sempre presente) e o
+    nome do utilizador/avatar ("Utilizador"/vazio no SSR vs. "Dinis"/"D" no
+    client — o middleware só verifica o cookie em SSR, a sessão só é lida no
+    client). Inofensivos mas geram ruído; candidatos a Fase 7 (Qualidade).
+  - **Teste no telemóvel Android real** (APK debug → dev server local via
+    `adb reverse tcp:3100`): o utilizador confirmou que funciona bem. Sem
+    créditos na conta Anthropic, o que ficou exercitado foi o fluxo até à
+    chamada à IA (botão, câmara/ficheiro, carregamento, mensagem de erro); a
+    extração real e o pré-preenchimento com dados lidos continuam por validar.

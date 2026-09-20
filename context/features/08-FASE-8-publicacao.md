@@ -1,7 +1,11 @@
-# FASE 5 — Publicação (Google Play + Deploy Web de Produção)
+# FASE 8 — Publicação (Google Play + Deploy Web de Produção)
 
-> Pré-requisito: Fases 1 a 4 concluídas e todos os critérios de aceitação
+> Pré-requisito: Fases 1 a 7 concluídas e todos os critérios de aceitação
 > cumpridos. Esta é a fase final antes de utilizadores reais.
+>
+> **Atualização de 2026-09-19**: renumerada de "Fase 5" para "Fase 8" —
+> Digitalização de Documentos com IA (Fase 5), Internacionalização (Fase 6)
+> e Segurança/Qualidade (Fase 7) passam a vir antes desta.
 
 ## Objetivo
 

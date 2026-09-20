@@ -30,12 +30,13 @@ qualquer alteração de código.
 
 ## Segurança (não negociável)
 
-- Nunca commitar segredos (`.env`, chaves PayPal/Anthropic/Twelve Data,
+- Nunca commitar segredos (`.env`, chaves EasyPay/Anthropic/Twelve Data,
   keystore Android). Confirmar `.gitignore` cobre estes ficheiros.
 - Qualquer controlo de acesso a uma funcionalidade paga tem de existir
   **também no servidor**, nunca só no client.
-- Webhooks (PayPal) têm de validar assinatura antes de processar qualquer
-  evento.
+- Webhooks (EasyPay) não vêm assinados — têm de ser validados antes de
+  processar qualquer evento, confirmando o recurso com um GET à API pelo
+  `id` (nunca confiar no corpo recebido).
 - Nunca enviar descrições de transações em bruto à API da Anthropic (Fase
   3) — só agregados/números já calculados no servidor.
 

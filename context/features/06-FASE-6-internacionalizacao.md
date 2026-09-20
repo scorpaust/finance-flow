@@ -1,20 +1,16 @@
-# FASE 5 — Internacionalização (Idiomas + Métodos de Pagamento por País)
+# FASE 6 — Internacionalização (Idiomas + Métodos de Pagamento por País)
 
-> Pré-requisito: Fases 1 a 4 concluídas. Deliberadamente depois do Design
-> System (Fase 4) — traduzir só depois de todo o UI estar estruturalmente
-> estável evita retrabalho (extrair strings de um template que a Fase 4
-> ainda vai reescrever é desperdício). Ler `00-CODE-SPEC.md` secções 3 e 4.
+> Pré-requisito: Fases 1 a 5 concluídas. Deliberadamente depois do Design
+> System (Fase 4) e da Digitalização de Documentos (Fase 5) — traduzir só
+> depois de todo o UI estar estruturalmente estável evita retrabalho
+> (extrair strings de um template que ainda vai ser reescrito é
+> desperdício). Ler `00-CODE-SPEC.md` secções 3 e 4.
 >
-> **Atualização de 2026-09-19**: a Fase 2 foi refeita — o processador de
-> pagamentos passou de PayPal para **EasyPay** (ver
-> `context/features/02-FASE-2-sistema-subscricoes.md` e
-> `context/current-feature.md`). As referências a PayPal/`server/api/
-> subscription/paypal/**` abaixo (decisão 5, tarefa 4, critérios de
-> aceitação) descrevem o desenho antigo e têm de ser revistas quando esta
-> fase for retomada — o "fallback recorrente" universal passa a ser Cartão/
-> Débito Direto via EasyPay (`billingMode: 'auto'`), e o endpoint a validar
-> é `server/api/subscription/easypay/create-prepaid.post.ts`, não
-> `paypal/create-order.post.ts` (que já não existe).
+> **Atualização de 2026-09-19**: renumerada de "Fase 5" para "Fase 6" para
+> abrir espaço à nova Fase 5 (Digitalização de Documentos com IA, ver
+> `context/features/05-FASE-5-scan-documentos-ia.md`), inserida antes desta
+> por pedido do utilizador. Segurança/Qualidade e Publicação também
+> renumeradas em conformidade (agora Fase 7 e Fase 8).
 
 ## Decisões de arquitetura tomadas (não reabrir sem motivo forte)
 
@@ -40,9 +36,11 @@
 5. **Métodos de pagamento por país — âmbito deliberadamente limitado**:
    construir a arquitetura como tabela `país → métodos disponíveis`, mas só
    **implementar a fundo Portugal** (MB WAY/Multibanco, já existente desde a
-   Fase 2). Todos os outros países caem no fallback universal (cartão/saldo
-   PayPal via Subscriptions API, que já funciona em qualquer lado — nenhuma
-   alteração necessária aí). Adicionar Bancontact (Bélgica), iDEAL
+   Fase 2). Todos os outros países caem no fallback universal (cartão com
+   auto-renovação via EasyPay, `billingMode: 'auto'`, já existente desde a
+   Fase 2). Confirmar a cobertura da EasyPay fora de Portugal (cartões
+   emitidos noutros países; o Débito Direto SEPA só faz sentido em países
+   SEPA) antes de a prometer. Adicionar Bancontact (Bélgica), iDEAL
    (Holanda), etc. fica fora desta fase — cada país é o mesmo esforço que
    MB WAY/Multibanco foram na Fase 2, não vale a pena fazer todos de vez.
 
@@ -52,7 +50,7 @@ A app abre automaticamente no idioma certo (por preferência de browser, com
 fallback EN) e, no checkout de subscrição, só mostra métodos de pagamento
 pré-pagos que realmente existem no país detetado do utilizador — hoje, isso
 significa MB WAY/Multibanco continuam exclusivos de Portugal, e o resto do
-mundo vê só a opção de auto-renovação por cartão/PayPal.
+mundo vê só as opções de auto-renovação (cartão; Débito Direto onde aplicável).
 
 ## Tarefas
 
@@ -95,7 +93,7 @@ mundo vê só a opção de auto-renovação por cartão/PayPal.
 - [ ] `shared/paymentMethods.ts` — tabela `país → métodos pré-pagos
       disponíveis` (hoje: só `PT: ['mbway', 'multibanco']`; qualquer outro
       país → `[]`, cai no fallback recorrente)
-- [ ] `server/api/subscription/paypal/create-order.post.ts` — validar que o
+- [ ] `server/api/subscription/easypay/create-prepaid.post.ts` — validar que o
       `paymentMethod` pedido está mesmo disponível para o país detetado do
       utilizador (nunca confiar só na UI a esconder as opções)
 - [ ] `pages/subscription/index.vue` — só mostrar o separador "Pagar um
@@ -107,6 +105,47 @@ mundo vê só a opção de auto-renovação por cartão/PayPal.
 - [ ] Confirmar que o idioma detetado/escolhido no `WebView` do Capacitor
       coincide com o da app web (mesma conta, mesmo idioma nas duas
       plataformas)
+
+### 6. Digitalização de documentos (Fase 5) em contexto internacional
+
+> Levantado em 2026-09-20 ao concluir a Fase 5 (ver
+> `05-FASE-5-scan-documentos-ia.md`, "Fora de âmbito"). O modelo já lê
+> documentos noutros idiomas, mas a Fase 5 assume Portugal e euros; ler
+> recibos/faturas estrangeiros e recibos de vencimento exige as decisões e
+> ajustes abaixo. **Confirmar cada decisão com o utilizador antes de
+> implementar.**
+
+- [ ] **Moeda** — hoje a app é só em € e a Fase 5 devolve o valor de um
+      documento noutra moeda *sem converter* (formulário com o montante
+      marcado para rever + aviso, moeda original nas notas). A tarefa 2 desta
+      fase só localiza o *formato* de moeda na interface; não trata de
+      guardar/converter valores estrangeiros. Decidir entre:
+      - **A) Converter para €** à taxa do dia do documento, mantendo o
+        ledger só em € (estatísticas e previsões ficam intactas). Precisa de
+        uma fonte de câmbios — a Twelve Data (Fase 3) pode servir, mas **não
+        está confirmado** que o plano gratuito cobre pares de moedas.
+      - **B) Guardar a moeda em cada transação** — mais fiel, mas mexe no
+        modelo `Transaction`, nas estatísticas e nas previsões.
+      Lean inicial: A, por ser bastante mais simples; a confirmar.
+- [ ] **Formato das datas** — o prompt da Fase 5
+      (`DOCUMENT_SYSTEM_PROMPT` em `server/utils/anthropic.ts`) diz que as
+      datas portuguesas são dia/mês/ano; um recibo americano `03/04` seria
+      lido ao contrário. Passar ao modelo o país/idioma do utilizador e/ou do
+      documento e, quando a data for ambígua (dia e mês ≤ 12) sem indicação
+      clara, devolver `confidence.date: 'low'` — reaproveita o realce âmbar
+      que já existe no `TransactionModal`.
+- [ ] **Idioma do prompt** — o prompt de extração está fixo em PT-PT (como as
+      restantes secções de IA); passa a seguir o idioma ativo, tal como o
+      resto do conteúdo gerado por IA.
+- [ ] **Recibos de vencimento** — não estão desenhados na Fase 5: o prompt
+      pede o "total a pagar com IVA", e num recibo de vencimento o valor
+      relevante é o **líquido** (não o bruto). Decidir se entram em âmbito;
+      se sim, prompt/schema próprios (bruto, líquido, descontos) e teste
+      com recibos reais de vários países antes de os prometer.
+- [ ] **Privacidade** — um recibo de vencimento envia NIF, morada e salário
+      à Anthropic. Decidir se pede aviso/consentimento explícito antes do
+      envio (RGPD) e se a política de privacidade da app (Fase 8) o deve
+      mencionar. Vale também para faturas com dados pessoais.
 
 ## Fora de âmbito nesta fase
 
@@ -128,8 +167,13 @@ mundo vê só a opção de auto-renovação por cartão/PayPal.
 - [ ] Checkout de subscrição só mostra MB WAY/Multibanco para utilizadores
       com país detetado = Portugal; todos os outros só veem a opção
       recorrente
-- [ ] `POST /api/subscription/paypal/create-order` rejeita (403/400) um
+- [ ] `POST /api/subscription/easypay/create-prepaid` rejeita (403/400) um
       pedido de `paymentMethod` não disponível no país do utilizador, mesmo
       que a UI tenha sido adulterada
 - [ ] Datas/moeda mostradas corretamente formatadas para cada um dos 6
       idiomas
+- [ ] Um recibo/fatura numa moeda diferente de € é tratado segundo a decisão
+      confirmada (convertido ou guardado com a moeda) — nunca gravado como €
+      sem aviso
+- [ ] Um recibo com data ambígua (ex. `03/04`) não é gravado com o mês
+      trocado em silêncio: fica com a data realçada como baixa confiança

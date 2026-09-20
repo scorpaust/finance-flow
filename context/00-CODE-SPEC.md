@@ -47,7 +47,7 @@ Billing, o que só passou a ser possível na EEA (inclui Portugal) a partir de
 Isto implica inscrição prévia, requisitos de disclosure ao utilizador,
 reporte de transações à Google (`ExternalTransactionId` API) e uma taxa de
 serviço à Google mesmo pagando por fora — confirmar valores e requisitos
-atualizados na Play Console antes do lançamento (Fase 5), pois esta é uma
+atualizados na Play Console antes do lançamento (Fase 8), pois esta é uma
 política recente e sujeita a evolução.
 
 ## 3. Modelo de subscrição (regra de negócio)
@@ -108,7 +108,7 @@ duplicar a lógica em dois sítios.
 - TypeScript estrito em todo o código novo.
 - Composables para lógica reutilizável (`use*.ts`), nunca duplicar lógica de
   negócio em componentes.
-- Nomes de ficheiros de fase (`01-...md` a `05-...md`) definem o âmbito de
+- Nomes de ficheiros de fase (`01-...md` a `08-...md`) definem o âmbito de
   cada PR/branch — não misturar tarefas de fases diferentes no mesmo commit.
 - Todas as strings visíveis ao utilizador em PT-PT (consistente com o resto
   da app).
@@ -119,8 +119,11 @@ duplicar a lógica em dois sítios.
 
 1. `01-FASE-1-fundacao-multiplataforma.md`
 2. `02-FASE-2-sistema-subscricoes.md`
-3. `03-FASE-3-design-system-ui.md`
-4. `04-FASE-4-seguranca-qualidade.md`
-5. `05-FASE-5-publicacao.md`
-6. `AGENT-RULES.md`
-7. `CONFIG-REFERENCE.md`
+3. `03-FASE-3-insights-ia.md`
+4. `04-FASE-4-design-system-ui.md`
+5. `05-FASE-5-scan-documentos-ia.md`
+6. `06-FASE-6-internacionalizacao.md`
+7. `07-FASE-7-seguranca-qualidade.md`
+8. `08-FASE-8-publicacao.md`
+9. `AGENT-RULES.md`
+10. `CONFIG-REFERENCE.md`

@@ -1,8 +1,8 @@
 # FASE 2 — Sistema de Subscrições (EasyPay: Cartão/DD, MB WAY, Multibanco)
 
 > Pré-requisito: Fase 1 concluída + ler `00-CODE-SPEC.md` (secções 3 e 4,
-> atualizadas nesta revisão). Substitui a versão anterior desta fase, que
-> usava PayPal. Esta continua a ser a fase de maior risco de negócio e de
+> atualizadas nesta revisão). Substitui a versão anterior desta fase.
+> Esta continua a ser a fase de maior risco de negócio e de
 > compliance — em caso de dúvida sobre regras de preço/feature ou sobre
 > requisitos da Google, assinalar explicitamente no PR em vez de assumir.
 >
@@ -11,8 +11,7 @@
 > mensal" a disparar cada ciclo. Foi revisto durante os testes: nenhum dos
 > dois métodos permite cobrança recorrente sem ação manual do cliente a cada
 > ciclo, por isso passaram a **pagamento único de um período fixo** (1/3/6/12
-> meses, sem renovação automática — mesmo modelo que a versão PayPal anterior
-> desta fase já usava para estes métodos). Ver `context/current-feature.md`
+> meses, sem renovação automática). Ver `context/current-feature.md`
 > para o detalhe completo desta decisão; código-fonte é a referência atual
 > (`server/api/subscription/easypay/create-prepaid.post.ts`), não as tarefas
 > 6/7 abaixo.
@@ -155,7 +154,7 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 ### 10. Android — pagamentos externos
 
 - [ ] Inscrever a app no programa de pagamentos externos da Google para a
-      EEA (Play Console) antes de submeter a build da Fase 5 — este passo
+      EEA (Play Console) antes de submeter a build da Fase 8 — este passo
       tem lead time próprio, iniciar cedo
 - [ ] No client Capacitor, o fluxo de checkout abre o EasyPay Checkout
       (browser in-app / `@capacitor/browser`) fora do fluxo de Google Play
@@ -184,7 +183,7 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 - Redesign visual do paywall/checkout (visual final vem na Fase 3, aqui é
   funcional)
 - Submissão final e aprovação do programa de pagamentos externos na Play
-  Store em produção (Fase 5 — aqui só a integração técnica e o pedido de
+  Store em produção (Fase 8 — aqui só a integração técnica e o pedido de
   inscrição)
 
 ## Critérios de aceitação
@@ -204,4 +203,4 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 - [ ] Nenhum endpoint sensível depende apenas de verificação no client
 - [ ] Pedido de inscrição no programa de pagamentos externos da Google
       submetido (aprovação pode não estar concluída nesta fase, mas o
-      pedido tem de estar feito antes da Fase 5)
+      pedido tem de estar feito antes da Fase 8)

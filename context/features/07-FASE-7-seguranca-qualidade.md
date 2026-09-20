@@ -1,8 +1,12 @@
-# FASE 6 — Segurança, Qualidade e Preparação para Produção
+# FASE 7 — Segurança, Qualidade e Preparação para Produção
 
-> Pré-requisito: Fases 1 a 5 concluídas. Esta fase não adiciona
-> funcionalidades novas — endurece o que já existe antes da Fase 7
+> Pré-requisito: Fases 1 a 6 concluídas. Esta fase não adiciona
+> funcionalidades novas — endurece o que já existe antes da Fase 8
 > (publicação).
+>
+> **Atualização de 2026-09-19**: renumerada de "Fase 6" para "Fase 7" —
+> inserida a nova Fase 5 (Digitalização de Documentos com IA) antes da
+> Internacionalização (agora Fase 6).
 
 ## Objetivo
 
@@ -50,7 +54,7 @@ reais, em web e Android.
 - [ ] E2E (Playwright) do fluxo principal: registo → login → criar
       transação → ver dashboard → tentar aceder a previsões sem Premium
       (deve mostrar paywall) → upgrade sandbox → aceder a previsões
-- [ ] E2E cobrindo a Fase 5 (internacionalização): app abre em EN para um IP
+- [ ] E2E cobrindo a Fase 6 (internacionalização): app abre em EN para um IP
       simulado fora dos 6 países suportados (fallback), muda de idioma
       manualmente nas Configurações, e o checkout de subscrição só mostra
       MB WAY/Multibanco para Portugal

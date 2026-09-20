@@ -17,6 +17,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
 | **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses) — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
+| **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **PWA** | Instalável, offline-ready, manifest completo |
 | **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
@@ -280,7 +281,7 @@ Detalhe completo em
 
 ## 📱 PWA
 
-- Instalável em Android/iOS/Desktop
+- Instalável em Android/Desktop
 - Service Worker com Workbox (cache-first para assets)
 - Funciona offline após primeiro carregamento
 - Bottom navigation bar no mobile

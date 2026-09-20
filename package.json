@@ -21,6 +21,7 @@
     "@auth/mongodb-adapter": "^3.0.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
+    "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/status-bar": "^8.0.3",
     "@easypaypt/checkout-sdk": "^2.9.1",

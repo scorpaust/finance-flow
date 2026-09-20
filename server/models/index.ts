@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 // ─── USER ────────────────────────────────────────────────────────────────────
 // Ver context/00-CODE-SPEC.md secção 3 e context/features/02-FASE-2-sistema-subscricoes.md
-// (redefinida em 2026-09-18 — EasyPay substitui PayPal como processador).
+// (processador de pagamentos: EasyPay).
 export interface IUserSubscription {
   tier: 'free' | 'pro' | 'premium'
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
@@ -237,6 +237,31 @@ const MarketSnapshotSchema = new Schema<IMarketSnapshot>({
 export const MarketSnapshot =
   mongoose.models.MarketSnapshot ||
   mongoose.model<IMarketSnapshot>('MarketSnapshot', MarketSnapshotSchema)
+
+// ─── DOCUMENT SCAN USAGE ─────────────────────────────────────────────────────
+// Contador mensal de documentos digitalizados por utilizador (Fase 5, tarefa 3)
+// — rate limiting persistente, atómico via $inc. Um documento por (utilizador,
+// mês 'YYYY-MM'); o teto vem de TIER_LIMITS.documentScansPerMonth.
+// O `_id` é a própria chave `${userId}:${month}` de propósito: a unicidade que
+// o rate limiting exige vem do índice `_id` (sempre presente), não de um
+// índice composto — a criação automática de índices não é fiável neste
+// projeto (ver server/plugins/mongoose.ts, `bufferCommands: false`).
+export interface IDocumentScanUsage extends Document {
+  _id: string
+  userId: mongoose.Types.ObjectId
+  month: string
+  count: number
+}
+
+const DocumentScanUsageSchema = new Schema<IDocumentScanUsage>({
+  _id:    { type: String },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  month:  { type: String, required: true },
+  count:  { type: Number, required: true, default: 0 },
+})
+export const DocumentScanUsage =
+  mongoose.models.DocumentScanUsage ||
+  mongoose.model<IDocumentScanUsage>('DocumentScanUsage', DocumentScanUsageSchema)
 
 // ─── AI INSIGHT CACHE ────────────────────────────────────────────────────────
 // Cache de 24h da interpretação de estatísticas por IA (Fase 3, tarefa 4) — um

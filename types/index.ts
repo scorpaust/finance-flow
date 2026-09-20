@@ -217,3 +217,18 @@ export const PERSONAL_FINANCE_CATEGORIES: CategoryTemplate[] = [
   { name: 'Edicao livros', type: 'expense', icon: '📚', color: '#2563eb', groupKey: 'criativo', monthlyLimit: 1185 },
   { name: 'Reserva de emergencia', type: 'expense', icon: '🔒', color: '#6366f1', groupKey: 'reserva', monthlyLimit: 600 },
 ]
+
+// Fase 5 — resultado da digitalização de um recibo/fatura (POST /api/transactions/scan).
+// Serve só para pré-preencher o TransactionModal; nunca é uma transação gravada.
+export type ScanConfidence = 'low' | 'medium' | 'high'
+
+export interface DocumentScanResult {
+  merchant: string | null
+  date: string | null // YYYY-MM-DD
+  amount: number
+  currency: string
+  type: TransactionType
+  categoryId: string | null
+  categoryName: string | null
+  confidence: { merchant: ScanConfidence; date: ScanConfidence; amount: ScanConfidence; type: ScanConfidence }
+}

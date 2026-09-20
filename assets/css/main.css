@@ -142,6 +142,13 @@
     @apply block text-sm font-medium text-white/70 mb-2;
   }
 
+  /* Campo extraído por IA com baixa confiança (Fase 5) — âmbar, para o
+     utilizador rever com mais atenção antes de confirmar. */
+  .scan-low {
+    border-color: rgba(251, 191, 36, 0.7) !important;
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.35);
+  }
+
   .form-select {
     @apply w-full px-4 py-3 rounded-xl bg-surface-700/50 border border-white/10 text-white;
     @apply placeholder-white/30 transition-all duration-300 appearance-none cursor-pointer;

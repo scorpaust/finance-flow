@@ -22,6 +22,7 @@
           <Plus class="w-4 h-4" />
           Nova Transação
         </button>
+        <DocumentScanButton @scanned="onScanned" @manual="openManual" />
       </div>
     </div>
 
@@ -194,7 +195,8 @@
     <TransactionModal
       v-if="showModal"
       :transaction="editTx"
-      @close="showModal = false; editTx = null"
+      :prefill="scanPrefill"
+      @close="showModal = false; editTx = null; scanPrefill = null"
       @saved="onSaved"
     />
 
@@ -209,7 +211,7 @@
 
 <script setup lang="ts">
 import { Plus, Search, X, Download, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-vue-next'
-import type { Transaction } from '~/types'
+import type { Transaction, DocumentScanResult } from '~/types'
 
 definePageMeta({ layout: 'default' })
 
@@ -220,6 +222,7 @@ const sub = useSubscription()
 const showModal = ref(false)
 const showExportPaywall = ref(false)
 const editTx = ref<Transaction | null>(null)
+const scanPrefill = ref<DocumentScanResult | null>(null)
 const pageSize = ref('20')
 const sortKey = ref('date:desc')
 
@@ -303,9 +306,24 @@ async function handleDelete(id: string) {
   }
 }
 
+// Fase 5 — o scan só abre o formulário pré-preenchido; a transação é criada
+// quando o utilizador confirma (onSaved).
+function onScanned(result: DocumentScanResult) {
+  editTx.value = null
+  scanPrefill.value = result
+  showModal.value = true
+}
+
+function openManual() {
+  editTx.value = null
+  scanPrefill.value = null
+  showModal.value = true
+}
+
 async function onSaved() {
   showModal.value = false
   editTx.value = null
+  scanPrefill.value = null
   toast.success('Guardado com sucesso! ✅')
   await fetchNow()
 }

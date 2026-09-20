@@ -1,6 +1,12 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  // O Nuxt regenera a app a cada ficheiro criado/apagado dentro do projeto. Um
+  // `gradlew assembleDebug` ou `cap sync` mexe em milhares de ficheiros em
+  // android/ e deixava o dev server em ciclo de recompilações (arranque de
+  // minutos, avisos de hidratação). Nada em android/ faz parte da app web.
+  ignore: ['android/**'],
+
   components: [
     { path: '~/components', pathPrefix: false },
   ],

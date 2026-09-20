@@ -4,7 +4,10 @@
 
 ## Estado
 
-Em progresso — branch `feature/fase-5-scan-documentos-ia`, ver histórico.
+Concluída — branch `feature/fase-5-scan-documentos-ia` mergeado em `main` e removido
+(2026-09-20). Validações que ficaram por fazer, sem bloquear o merge: extração real com
+créditos na conta Anthropic, amostra de recibos/faturas portugueses reais e custo medido por
+documento — ver histórico.
 
 ## Objetivos
 
@@ -759,3 +762,21 @@ i18n).
     créditos na conta Anthropic, o que ficou exercitado foi o fluxo até à
     chamada à IA (botão, câmara/ficheiro, carregamento, mensagem de erro); a
     extração real e o pré-preenchimento com dados lidos continuam por validar.
+- 2026-09-20: README atualizado com a funcionalidade (tabela de funcionalidades,
+  variáveis de ambiente, estrutura de pastas, secção "Digitalizar documentos
+  com IA" e nota sobre permissões Android — o manifesto final só pede
+  `INTERNET`, a câmara usa a app do sistema). Branch
+  `feature/fase-5-scan-documentos-ia` mergeado em `main` (merge commit) e
+  removido. Estado passa a "Concluída", a pedido do utilizador.
+  **Fechada com validações em aberto** (não foram feitas, não assumir que
+  estão): (1) a extração real nunca correu — a conta Anthropic não tinha
+  créditos; (2) nenhum recibo/fatura português real foi testado; (3) o custo
+  por documento não foi medido (o servidor regista-o em `[scan] ... ≈ $`);
+  (4) os tetos mensais Pro 30 / Premium 100 são um default meu, por
+  confirmar. Os critérios de aceitação correspondentes ficam por marcar em
+  `context/features/05-FASE-5-scan-documentos-ia.md`. Pendências
+  transversais: `usesCleartextTraffic="true"` no `AndroidManifest.xml` (voltar
+  a `"false"` antes de produção), índices `unique` do Mongoose que não são
+  criados (`marketsnapshots`, `aiinsightcaches`), e a Fase 6 tem uma secção
+  nova sobre documentos estrangeiros (moeda, formato de datas, recibos de
+  vencimento, privacidade). Próxima fase: 6 — Internacionalização.

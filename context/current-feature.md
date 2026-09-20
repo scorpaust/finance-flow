@@ -5,9 +5,10 @@
 ## Estado
 
 Concluída — branch `feature/fase-5-scan-documentos-ia` mergeado em `main` e removido
-(2026-09-20). Validações que ficaram por fazer, sem bloquear o merge: extração real com
-créditos na conta Anthropic, amostra de recibos/faturas portugueses reais e custo medido por
-documento — ver histórico.
+(2026-09-20). Extração real validada pelo utilizador em recibos reais (formulário
+pré-preenchido correto, sem gravar) e custo medido (~$0,0037/documento). Por validar: caminho
+"não é um recibo", realce âmbar de baixa confiança e uma amostra mais ampla (papel térmico,
+PDF, fatura eletrónica) — ver histórico.
 
 ## Objetivos
 
@@ -780,3 +781,16 @@ i18n).
   criados (`marketsnapshots`, `aiinsightcaches`), e a Fase 6 tem uma secção
   nova sobre documentos estrangeiros (moeda, formato de datas, recibos de
   vencimento, privacidade). Próxima fase: 6 — Internacionalização.
+- 2026-09-20: Validação com créditos Anthropic já carregados. O utilizador testou
+  recibos reais e validou o formulário pré-preenchido, **sem guardar** (é o
+  fluxo pretendido: a IA só pré-preenche). Evidência: contador mensal com 2
+  documentos processados e **0 transações criadas** na conta — confirma o
+  critério "nenhuma transação sem confirmação". Custo medido no log do
+  servidor: JPEG de 369 KB → 3311 tokens de entrada + 85 de saída ≈
+  $0,0037 (~0,35 € por 100 documentos), residual como previsto. Critérios
+  da especificação marcados: custo e não-gravação. **Continuam por marcar**:
+  correção dos campos com uma amostra variada (só 2 documentos, variedade
+  não registada — papel térmico, PDF, fatura eletrónica), documento que não é
+  recibo → erro claro sem formulário, e realce âmbar dos campos de baixa
+  confiança (o utilizador não reportou nenhum destes). O log de custo só tem
+  1 dos 2 documentos (o outro foi processado noutro servidor).

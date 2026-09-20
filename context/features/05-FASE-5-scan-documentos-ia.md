@@ -102,6 +102,7 @@ planos Pro e Premium.
 - [x] Prompt fixo em PT-PT (consistente com o resto da app — tradução fica
       para a Fase 6, tal como as restantes secções de IA)
 - [ ] Medir `response.usage` num punhado de documentos reais em sandbox
+      (feito para 1 documento — ver critérios de aceitação; falta um punhado)
       para confirmar o custo real por documento (ver decisão 2)
 
 ### 3. Endpoint
@@ -145,6 +146,15 @@ planos Pro e Premium.
   assume-se um documento simples de uma página/imagem
 - Tradução do prompt/respostas para outro idioma — prompt fixo em PT-PT
   nesta fase, tal como as restantes secções de IA (Fase 6 trata i18n)
+- Limite de páginas de PDF — **decidido deixar como está (2026-09-20)**: o
+  servidor aceita PDFs até 8 MB sem contar páginas, e um PDF longo pode custar
+  até ~$0,20 por scan (Haiku 4.5 tem 200K de contexto), contra ~$0,004 de uma
+  foto. No teto de 100 documentos/mês do Premium isso seria ~$20 no pior caso,
+  acima do preço do plano. Opção se vier a ser preciso: cortar o PDF no
+  servidor (ex. `pdf-lib`) para a 1.ª e a última página antes de enviar —
+  mantém a aceitação de documentos grandes e limita o custo; a API não tem
+  parâmetro de intervalo de páginas. Ao omitir páginas, marcar o valor como
+  baixa confiança e avisar o utilizador
 - Documentos estrangeiros e recibos de vencimento: esta fase assume Portugal
   e euros. Um documento noutra moeda é lido mas **não convertido** (montante
   marcado para rever + aviso); datas assumem dia/mês/ano; recibos de
@@ -163,11 +173,21 @@ planos Pro e Premium.
       categoria sugerida corretos (validado com uma amostra real de
       recibos/faturas portugueses variados — papel térmico, fatura
       eletrónica em PDF, etc.)
+      → 2026-09-20: o utilizador validou o formulário pré-preenchido em
+      recibos reais (o contador mensal regista 2 documentos processados);
+      **amostra ainda curta** — falta variedade (papel térmico, PDF,
+      fatura eletrónica). Por marcar até haver mais documentos.
 - [x] Nenhuma transação é criada sem confirmação explícita do utilizador
+      → confirmado em 2026-09-20: após validar o formulário sem guardar, a
+      conta tinha 0 transações criadas.
 - [ ] Um documento que não é um recibo/fatura reconhecível (ex. uma foto
       qualquer) produz um erro claro, não um formulário com dados
       inventados
 - [ ] Campos extraídos com baixa confiança ficam visualmente identificados
       no formulário
-- [ ] Custo medido por documento confirma a ordem de grandeza esperada
+- [x] Custo medido por documento confirma a ordem de grandeza esperada
       (residual, ver decisão 2) — sem surpresas de custo em produção
+      → medido em 2026-09-20 no log do servidor: JPEG de 369 KB = 3311
+      tokens de entrada + 85 de saída ≈ **$0,0037 por documento** (~0,35 €
+      por 100 documentos, o teto mensal do Premium). Amostra de 1 documento
+      — repetir com PDF e imagens maiores para confirmar a margem.

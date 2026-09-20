@@ -10,7 +10,7 @@
               {{ isEditing ? 'Editar Transação' : 'Nova Transação' }}
             </h2>
             <p class="text-white/40 text-xs mt-0.5">
-              {{ isEditing ? 'Actualiza os dados' : 'Regista receita ou despesa' }}
+              {{ isEditing ? 'Actualiza os dados' : prefill ? 'Extraída de um documento — revê antes de guardar' : 'Regista receita ou despesa' }}
             </p>
           </div>
           <button class="btn-icon" aria-label="Fechar" @click="$emit('close')">
@@ -19,13 +19,13 @@
         </div>
 
         <!-- Type toggle -->
-        <div class="flex gap-2 mb-5 bg-surface-700/50 rounded-2xl p-1">
+        <div class="flex gap-2 mb-5 bg-surface-700/50 rounded-2xl p-1" :class="flagged.type ? 'scan-low' : ''">
           <button
             class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2"
             :class="form.type === 'income'
               ? 'bg-emerald-600/80 text-white shadow-glow-emerald'
               : 'text-white/50 hover:text-white'"
-            @click="form.type = 'income'"
+            @click="form.type = 'income'; flagged.type = false"
           >
             <TrendingUp class="w-4 h-4" /> Receita
           </button>
@@ -34,10 +34,25 @@
             :class="form.type === 'expense'
               ? 'bg-rose-600/80 text-white shadow-glow-rose'
               : 'text-white/50 hover:text-white'"
-            @click="form.type = 'expense'"
+            @click="form.type = 'expense'; flagged.type = false"
           >
             <TrendingDown class="w-4 h-4" /> Despesa
           </button>
+        </div>
+
+        <!-- Aviso de dados extraídos por IA (Fase 5) -->
+        <div
+          v-if="prefill && !isEditing"
+          class="mb-4 flex items-start gap-2 bg-amber-500/[0.10] border border-amber-500/30 rounded-2xl px-4 py-3 text-amber-300 text-sm"
+        >
+          <Sparkles class="w-4 h-4 shrink-0 mt-0.5" />
+          <div>
+            <p>Dados lidos por IA a partir do documento. Confirma tudo antes de guardar — nada foi gravado ainda.</p>
+            <p v-if="hasFlagged" class="text-amber-300/80 text-xs mt-1">Os campos a âmbar têm baixa confiança — revê com atenção.</p>
+            <p v-if="foreignCurrency" class="text-amber-300/80 text-xs mt-1">
+              O documento está em {{ prefill.currency }} e o valor não foi convertido — indica o montante em €.
+            </p>
+          </div>
         </div>
 
         <!-- Error banner -->
@@ -58,6 +73,8 @@
               v-model="form.description"
               type="text"
               class="form-input"
+              :class="flagged.description ? 'scan-low' : ''"
+              @input="flagged.description = false"
               placeholder="Ex: Salário de Maio, Renda, Supermercado..."
               required
               autofocus
@@ -76,7 +93,9 @@
                   step="0.01"
                   min="0.01"
                   class="form-input pl-8"
+                  :class="flagged.amount ? 'scan-low' : ''"
                   placeholder="0,00"
+                  @input="flagged.amount = false"
                   required
                 />
               </div>
@@ -87,6 +106,8 @@
                 v-model="form.date"
                 type="date"
                 class="form-input"
+                :class="flagged.date ? 'scan-low' : ''"
+                @input="flagged.date = false"
                 required
               />
             </div>
@@ -255,10 +276,12 @@
 </template>
 
 <script setup lang="ts">
-import { TrendingUp, TrendingDown, X, Loader2, Check, AlertCircle } from 'lucide-vue-next'
-import type { Transaction } from '~/types'
+import { TrendingUp, TrendingDown, X, Loader2, Check, AlertCircle, Sparkles } from 'lucide-vue-next'
+import type { Transaction, DocumentScanResult } from '~/types'
 
-const props = defineProps<{ transaction?: Transaction | null }>()
+// `prefill` (Fase 5): campos extraídos de um recibo/fatura por IA. Só pré-preenche
+// o formulário — a transação só é criada quando o utilizador confirma.
+const props = defineProps<{ transaction?: Transaction | null; prefill?: DocumentScanResult | null }>()
 const emit  = defineEmits(['close', 'saved'])
 
 const finance = useFinanceStore()
@@ -278,22 +301,36 @@ const newCat = reactive({ name: '', icon: '💰', color: '#6366f1' })
 
 const today = new Date().toISOString().split('T')[0]
 
+// A app é toda em € — um documento noutra moeda vem sem conversão e o montante
+// fica marcado para revisão.
+const foreignCurrency = !props.transaction && !!props.prefill && props.prefill.currency !== 'EUR'
+
+// Campos a realçar a âmbar (confiança 'low'); o realce some assim que o
+// utilizador mexe no campo.
+const flagged = reactive({
+  description: !props.transaction && props.prefill?.confidence.merchant === 'low',
+  amount:      !props.transaction && (props.prefill?.confidence.amount === 'low' || foreignCurrency),
+  date:        !props.transaction && props.prefill?.confidence.date === 'low',
+  type:        !props.transaction && props.prefill?.confidence.type === 'low',
+})
+const hasFlagged = computed(() => Object.values(flagged).some(Boolean))
+
 const form = reactive({
-  type:        (props.transaction?.type || 'expense') as 'income' | 'expense',
-  amount:      props.transaction?.amount?.toString()  || '',
-  description: props.transaction?.description        || '',
+  type:        (props.transaction?.type || props.prefill?.type || 'expense') as 'income' | 'expense',
+  amount:      props.transaction?.amount?.toString()  || props.prefill?.amount?.toString() || '',
+  description: props.transaction?.description        || props.prefill?.merchant || '',
   categoryId:  (() => {
     const c = props.transaction?.categoryId
-    if (!c) return ''
+    if (!c) return props.prefill?.categoryId || ''
     if (typeof c === 'object' && '_id' in (c as any)) return (c as any)._id.toString()
     return c.toString()
   })(),
   date:        props.transaction?.date
     ? new Date(props.transaction.date).toISOString().split('T')[0]
-    : today,
+    : props.prefill?.date || today,
   tags:        [...(props.transaction?.tags || [])],
   recurrence:  props.transaction?.recurrence || 'none',
-  notes:       props.transaction?.notes      || '',
+  notes:       props.transaction?.notes      || (foreignCurrency ? `Valor original: ${props.prefill!.amount} ${props.prefill!.currency}` : ''),
   groupId:     (() => {
     const g = props.transaction?.groupId
     if (!g) return ''

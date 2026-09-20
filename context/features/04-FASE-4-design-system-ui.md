@@ -23,7 +23,7 @@ com:
       contraste AA)
 - [ ] Eliminar cores hardcoded fora do `tailwind.config` nos componentes
 
-### 2. Safe areas (Android + iOS + web)
+### 2. Safe areas (Android + web)
 - [ ] Garantir `viewport-fit=cover` no `<head>` (Nuxt config/`app.head`)
 - [ ] Usar `env(safe-area-inset-top/right/bottom/left)` em CSS para:
       `MobileNav.vue` (bottom nav — crítico para gesto de navegação Android),
@@ -71,8 +71,8 @@ com:
 ## Fora de âmbito nesta fase
 - Alterações a regras de negócio de subscrição (Fase 2 já fechada)
 - Alterações às features de IA (Fase 3 já fechada)
-- Internacionalização/idiomas (Fase 5)
-- Otimizações de performance profundas (Fase 6)
+- Internacionalização/idiomas (Fase 6)
+- Otimizações de performance profundas (Fase 7)
 
 ## Critérios de aceitação
 - [ ] Sem overflow horizontal em nenhum breakpoint testado

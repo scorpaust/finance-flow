@@ -25,6 +25,7 @@ export type FeatureKey =
   | 'prioritySupport'
   | 'aiStatsInsights'
   | 'aiInvestmentTips'
+  | 'documentScan'
 
 // Tier mínimo que desbloqueia cada feature.
 const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
@@ -37,6 +38,9 @@ const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
   // interpretação de estatísticas é Pro+, dicas de investimento ficam exclusivas Premium.
   aiStatsInsights: 'pro',
   aiInvestmentTips: 'premium',
+  // Fase 5 — digitalização de recibos/faturas com IA, Pro e Premium (decisão do
+  // utilizador de 2026-09-19, ver context/features/05-FASE-5-scan-documentos-ia.md).
+  documentScan: 'pro',
 }
 
 const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, premium: 2 }
@@ -54,10 +58,14 @@ export function requiredTierFor(feature: FeatureKey): SubscriptionTier {
 export interface TierLimits {
   transactionsPerMonth: number | null
   customCategories: number | null
+  // Teto mensal contra abuso do scan de documentos (Fase 5) — o custo por
+  // documento é residual, mas cada um é uma chamada paga à Anthropic. Free = 0
+  // porque a feature está bloqueada (documentScan é 'pro').
+  documentScansPerMonth: number
 }
 
 export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
-  free: { transactionsPerMonth: 50, customCategories: 2 },
-  pro: { transactionsPerMonth: null, customCategories: null },
-  premium: { transactionsPerMonth: null, customCategories: null },
+  free: { transactionsPerMonth: 50, customCategories: 2, documentScansPerMonth: 0 },
+  pro: { transactionsPerMonth: null, customCategories: null, documentScansPerMonth: 30 },
+  premium: { transactionsPerMonth: null, customCategories: null, documentScansPerMonth: 100 },
 }

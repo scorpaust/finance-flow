@@ -63,9 +63,9 @@ projeto (ver `pages/subscription/index.vue`).
 | Item | Descrição |
 |---|---|
 | Conta EasyPay | Sandbox (`api.test.easypay.pt`) e produção, com Checkout configurado para os métodos `cc`, `dd`, `mbw`, `mb` |
-| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar EasyPay dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/5) |
+| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar EasyPay dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/8) |
 
-## Fase 4 — Segurança e observabilidade
+## Fase 7 — Segurança e observabilidade
 
 | Variável | Descrição |
 |---|---|
@@ -73,14 +73,14 @@ projeto (ver `pages/subscription/index.vue`).
 | `NODE_ENV` | `development` / `production` — controla cookies `secure`, logging, etc. |
 | `CORS_ALLOWED_ORIGIN` | Domínio de produção permitido para CORS |
 
-## Fase 5 — Publicação / produção
+## Fase 8 — Publicação / produção
 
 | Item (não é env var, é configuração externa) | Descrição |
 |---|---|
 | Keystore Android de produção | Guardado fora do repositório, com backup seguro documentado |
 | Domínio de produção + certificado HTTPS | Confirmar renovação automática se aplicável |
-| Produtos Stripe **live** (não teste) | Preços espelhados dos de teste, confirmados antes do lançamento |
-| Produtos de subscrição na Google Play Console | Mesmo preço/período que Stripe, ajustado por região pela própria Play Store |
+| Conta EasyPay **live** (não sandbox) | `EASYPAY_ENV=production` + `EASYPAY_ACCOUNT_ID`/`EASYPAY_API_KEY` de produção, confirmados antes do lançamento (ver Fase 2) |
+| Inscrição aprovada no programa de pagamentos externos da Google | Pedido submetido na Fase 2, aprovação confirmada antes de publicar na Play Store |
 
 ## Checklist rápida antes de qualquer deploy
 

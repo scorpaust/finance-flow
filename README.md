@@ -17,6 +17,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
 | **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses) — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
+| **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **PWA** | Instalável, offline-ready, manifest completo |
 | **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
@@ -80,14 +81,14 @@ MONGODB_URI=mongodb://localhost:27017/financeflow node scripts/seed.mjs
 ### Variáveis de ambiente
 
 `npm run dev` funciona sem mais nada além de `MONGODB_URI`. As funcionalidades
-pagas (subscrições, insights com IA) precisam de variáveis adicionais —
+pagas (subscrições, insights com IA, digitalização de documentos) precisam de variáveis adicionais —
 ver `.env.example` e a descrição de cada uma em
 [`context/CONFIG-REFERENCE.md`](context/CONFIG-REFERENCE.md):
 
 | Grupo | Variáveis |
 |---|---|
 | Subscrições (EasyPay) | `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID`, `EASYPAY_API_KEY`, `SUBSCRIPTION_RENEWAL_REMINDER_DAYS`, `CRON_SECRET` |
-| Insights com IA | `ANTHROPIC_API_KEY`, `TWELVE_DATA_API_KEY` |
+| Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (só as dicas de investimento) |
 
 Utilizadores existentes sem o campo `subscription` (pré-Fase-2) podem ser
 migrados para o plano `free` com:
@@ -113,12 +114,14 @@ financeflow/
 │   │                              CategoryDonut, HorizontalBar, ForecastChart,
 │   │                              DistributionHistogram, CategoryBoxplot
 │   │                              + ChartSkeleton, ChartEmpty
-│   ├── forms/TransactionModal  ← Criar / editar transação
+│   ├── forms/                  ← TransactionModal (criar / editar / pré-preenchido por scan),
+│   │                              DocumentScanButton (câmara / ficheiro → IA)
 │   ├── insights/                ← StatsInsightCard (interpretação IA, Pro+)
 │   ├── layout/MobileNav        ← Bottom nav PWA mobile
 │   ├── subscription/           ← PaywallModal, UpsellBanner
 │   └── ui/                     ← KpiCard, TransactionRow, ToastContainer
 ├── composables/
+│   ├── useDocumentScan.ts      ← Captura (câmara nativa) + envio do documento para o scan
 │   ├── useFormatters.ts        ← Moeda, datas, percentagens (PT-PT)
 │   ├── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
 │   ├── usePlatform.ts          ← isNative/isAndroid/isWeb (Capacitor)
@@ -142,6 +145,7 @@ financeflow/
 ├── server/
 │   ├── api/
 │   │   ├── auth, transactions, categories, groups   ← CRUD base
+│   │   ├── transactions/scan.post  ← digitalização de recibo/fatura com IA (Pro+)
 │   │   ├── stats/          ← overview, categories, advanced (Pro+)
 │   │   ├── predictions/    ← dados agregados para o modelo ML
 │   │   ├── subscription/   ← estado, checkout/webhook EasyPay, cron de expiração
@@ -150,14 +154,15 @@ financeflow/
 │   │   └── investor-profile/  ← questionário de perfil de investidor (GET/POST)
 │   ├── models/index.ts     ← Mongoose: User (+ subscription, investorProfile),
 │   │                          Category, TransactionGroup, Transaction,
-│   │                          MarketSnapshot, AiInsightCache
+│   │                          MarketSnapshot, AiInsightCache, DocumentScanUsage
 │   ├── plugins/mongoose.ts ← Ligação MongoDB via Nitro plugin
 │   └── utils/
 │       ├── auth.ts              ← requireAuth, sanitizeId
 │       ├── requireFeature.ts    ← enforcement server-side por tier (403 se bloqueado)
 │       ├── easypay.ts           ← wrapper Checkout API (Cartão/DD/MB WAY/Multibanco)
 │       ├── subscriptionSync.ts  ← lógica partilhada webhook + confirmação client-side
-│       ├── anthropic.ts         ← wrapper Messages API (structured outputs)
+│       ├── anthropic.ts         ← wrapper Messages API (structured outputs, imagem/PDF)
+│       ├── documentScan.ts      ← tipo real do ficheiro (magic bytes) + teto mensal atómico
 │       ├── marketData.ts        ← wrapper Twelve Data Quote API
 │       └── investorProfile.ts   ← validade do perfil (renovação anual)
 ├── shared/features.ts          ← Fonte única da matriz de features por tier
@@ -264,6 +269,43 @@ Detalhe completo em
 
 ---
 
+## 📷 Digitalizar documentos com IA
+
+Fotografa (Android) ou carrega (Android/web) um recibo ou fatura e a app
+extrai **comerciante, data, valor, moeda, tipo (receita/despesa) e uma
+categoria sugerida**, abrindo o formulário de transação já preenchido.
+Botão "Digitalizar documento" no dashboard e em `/transactions`.
+
+- **Nunca grava sozinha.** A IA só pré-preenche o formulário; a transação
+  só é criada quando o utilizador a confirma. Os campos lidos com baixa
+  confiança aparecem realçados a âmbar para serem revistos com atenção.
+- **Como funciona**: a imagem ou o PDF vão diretamente ao
+  `claude-haiku-4-5` (visão e PDF nativos, sem OCR separado) e a resposta é
+  forçada a um JSON com schema fixo. A categoria sugerida só pode ser uma
+  das categorias que o utilizador já tem. Um documento que não é um recibo/
+  fatura reconhecível dá um erro claro, não um formulário com dados
+  inventados.
+- **Planos**: Pro e Premium (`documentScan`), com teto mensal de
+  documentos por plano (`documentScansPerMonth` em `shared/features.ts`).
+  Enforcement também no servidor — um utilizador Free recebe `403` mesmo
+  chamando o endpoint diretamente.
+- **Formatos**: JPEG, PNG, WebP e PDF (imagens até 5 MB, PDF até 8 MB). O
+  tipo é detetado pelo conteúdo do ficheiro, não pelo nome ou pelo
+  `Content-Type`. HEIC não é suportado pela API da Anthropic — a câmara
+  Android e a redução de tamanho no cliente já produzem JPEG.
+- **Privacidade**: o documento é processado em memória e descartado — não é
+  guardado nem anexado à transação. Requer `ANTHROPIC_API_KEY`.
+- **Limitações atuais**: assume Portugal e euros (um documento noutra moeda
+  é lido mas o valor não é convertido — fica marcado para rever), um
+  documento gera uma única transação com o valor total, e os recibos de
+  vencimento não têm tratamento próprio. O suporte internacional está
+  previsto na Fase 6.
+
+Detalhe completo em
+[`context/features/05-FASE-5-scan-documentos-ia.md`](context/features/05-FASE-5-scan-documentos-ia.md).
+
+---
+
 ## 🎨 Design System
 
 | Token | Valor |
@@ -280,7 +322,7 @@ Detalhe completo em
 
 ## 📱 PWA
 
-- Instalável em Android/iOS/Desktop
+- Instalável em Android/Desktop
 - Service Worker com Workbox (cache-first para assets)
 - Funciona offline após primeiro carregamento
 - Bottom navigation bar no mobile
@@ -409,6 +451,10 @@ npx capacitor-assets generate --android
 `AndroidManifest.xml` gerado apenas com `INTERNET` (necessária para
 `server.url`) e `android:usesCleartextTraffic` que **deve estar `"false"`**
 em qualquer build de release (URL de produção é sempre HTTPS).
+
+A digitalização de documentos usa `@capacitor/camera`, que abre a app de
+câmara do sistema — por isso o manifesto continua só com `INTERNET`, sem a
+permissão `CAMERA`.
 
 > ⚠️ **Estado atual do repositório**: este valor está temporariamente
 > `"true"` — foi ligado para testar a app num dispositivo físico via USB

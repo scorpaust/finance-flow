@@ -43,12 +43,12 @@ async function easypayFetch<T>(
 // A EasyPay deixa-nos encodar o nosso próprio identificador no pagamento
 // (`key`/`customer.key`) — o webhook devolve-o sem alterações, e a verificação
 // (GET ao recurso pelo `id`) também. Evita precisar de uma tabela de "pending
-// orders" só para correlacionar checkout -> (utilizador, plano, método), ao
-// contrário da implementação PayPal anterior desta fase. `periodMonths` só é
+// orders" só para correlacionar checkout -> (utilizador, plano, método).
+// `periodMonths` só é
 // usado por MB WAY/Multibanco (pagamento único por período fixo — decisão do
 // utilizador de 2026-09-19: nenhum dos dois permite renovação automática sem
 // ação manual a cada ciclo, por isso o modelo passou de "cron mensal" para
-// "período pré-pago", tal como a implementação PayPal anterior desta fase).
+// "período pré-pago").
 export function encodeMerchantKey(userId: string, tier: 'pro' | 'premium', paymentMethod: string, periodMonths?: number): string {
   return periodMonths ? `${userId}:${tier}:${paymentMethod}:${periodMonths}` : `${userId}:${tier}:${paymentMethod}`
 }
@@ -79,8 +79,7 @@ export function decodeMerchantKey(
 // (2026-09-18): sem o `type` de nível superior a API devolve 412 "type: value
 // is required".
 //
-// A EasyPay Checkout **não é um redirecionamento por URL** (ao contrário do
-// fluxo PayPal anterior) — a resposta deste POST é o "manifest" que o SDK
+// A EasyPay Checkout **não é um redirecionamento por URL** — a resposta deste POST é o "manifest" que o SDK
 // `@easypaypt/checkout-sdk` (client-side, ver pages/subscription/index.vue)
 // usa para renderizar o formulário inline/popup diretamente na página, sem
 // sair da app. Confirmado no `.d.ts` do pacote instalado
@@ -168,8 +167,6 @@ export async function createSinglePaymentCheckout(opts: {
 // A EasyPay não assina os webhooks (confirmado na doc de Webhooks consultada
 // via Context7) — a prática recomendada é nunca confiar no corpo recebido e
 // consultar sempre a API pelo `id` do recurso antes de processar o evento.
-// Isto substitui a verificação de assinatura que a implementação PayPal
-// anterior usava (verify-webhook-signature).
 
 export interface EasyPayResource {
   id?: string

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose'
+import { ASSET_CLASSES, type AssetClass } from '../../shared/portfolio'
 
 // ─── USER ────────────────────────────────────────────────────────────────────
 // Ver context/00-CODE-SPEC.md secção 3 e context/features/02-FASE-2-sistema-subscricoes.md
@@ -285,3 +286,68 @@ const AiInsightCacheSchema = new Schema<IAiInsightCache>({
 export const AiInsightCache =
   mongoose.models.AiInsightCache ||
   mongoose.model<IAiInsightCache>('AiInsightCache', AiInsightCacheSchema)
+
+// ─── INVESTMENT ──────────────────────────────────────────────────────────────
+// Registo de investimentos (Fase 6) — uma linha por posição, com os campos da
+// folha de Excel do utilizador. Ver context/features/06-FASE-6-registo-investimentos.md.
+// `invested`, `gain` e `returnPct` NUNCA são guardados: derivam de
+// initialAmount/reinforcement/currentValue em shared/portfolio.ts.
+// O índice é só para desempenho — a criação automática de índices não é fiável
+// neste projeto (server/plugins/mongoose.ts), por isso nada aqui depende de
+// unicidade. Nomes repetidos são permitidos.
+export interface IInvestment extends Document {
+  userId:         mongoose.Types.ObjectId
+  name:           string
+  assetClass?:    AssetClass
+  initialAmount:  number
+  initialDate:    Date
+  reinforcement:  number
+  currentValue:   number
+  valueUpdatedAt: Date
+  createdAt:      Date
+  updatedAt:      Date
+}
+
+const InvestmentSchema = new Schema<IInvestment>(
+  {
+    userId:         { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    name:           { type: String, required: true, trim: true, maxlength: 80 },
+    assetClass:     { type: String, enum: ASSET_CLASSES },
+    initialAmount:  { type: Number, required: true, min: 0 },
+    initialDate:    { type: Date, required: true },
+    reinforcement:  { type: Number, required: true, default: 0, min: 0 },
+    currentValue:   { type: Number, required: true, min: 0 },
+    valueUpdatedAt: { type: Date, required: true },
+  },
+  { timestamps: true }
+)
+InvestmentSchema.index({ userId: 1, initialDate: -1 })
+export const Investment =
+  mongoose.models.Investment || mongoose.model<IInvestment>('Investment', InvestmentSchema)
+
+// ─── INVESTMENT TIPS CACHE ───────────────────────────────────────────────────
+// Cache das dicas de investimento por IA (Fase 6, tarefa 6) — um documento por
+// utilizador, sobrescrito a cada geração. O `_id` é o próprio userId de
+// propósito (mesmo motivo de DocumentScanUsage: a unicidade vem do índice
+// `_id`, que existe sempre). `inputHash` cobre o perfil, os agregados do
+// portfolio e a data do snapshot de mercado — ver server/utils/investmentTips.ts.
+export interface IInvestmentTipsCache extends Document {
+  _id: string
+  tips: string[]
+  inputHash: string
+  marketSnapshotDate: string | null
+  portfolioIncluded: boolean
+  generatedAt: Date
+}
+
+const InvestmentTipsCacheSchema = new Schema<IInvestmentTipsCache>({
+  _id:                { type: String },
+  tips:               [{ type: String }],
+  inputHash:          { type: String, required: true },
+  marketSnapshotDate: { type: String, default: null },
+  portfolioIncluded:  { type: Boolean, required: true, default: false },
+  generatedAt:        { type: Date, required: true },
+})
+export const InvestmentTipsCache =
+  mongoose.models.InvestmentTipsCache ||
+  mongoose.model<IInvestmentTipsCache>('InvestmentTipsCache', InvestmentTipsCacheSchema)

@@ -17,6 +17,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
 | **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses) — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
+| **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **PWA** | Instalável, offline-ready, manifest completo |
@@ -89,6 +90,7 @@ ver `.env.example` e a descrição de cada uma em
 |---|---|
 | Subscrições (EasyPay) | `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID`, `EASYPAY_API_KEY`, `SUBSCRIPTION_RENEWAL_REMINDER_DAYS`, `CRON_SECRET` |
 | Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (só as dicas de investimento) |
+| Dicas de investimento com portfolio | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (opcional, `false` por omissão — ver [Registo de investimentos](#-registo-de-investimentos)) |
 
 Utilizadores existentes sem o campo `subscription` (pré-Fase-2) podem ser
 migrados para o plano `free` com:
@@ -115,14 +117,18 @@ financeflow/
 │   │                              DistributionHistogram, CategoryBoxplot
 │   │                              + ChartSkeleton, ChartEmpty
 │   ├── forms/                  ← TransactionModal (criar / editar / pré-preenchido por scan),
-│   │                              DocumentScanButton (câmara / ficheiro → IA)
-│   ├── insights/                ← StatsInsightCard (interpretação IA, Pro+)
+│   │                              DocumentScanButton (câmara / ficheiro → IA),
+│   │                              InvestmentModal (posição do portfolio)
+│   ├── insights/                ← StatsInsightCard (interpretação IA, Pro+),
+│   │                              InvestmentTipsCard (dicas IA, Premium)
+│   ├── investment/             ← PortfolioTable, InvestmentSummary, InvestmentQuickModal
 │   ├── layout/MobileNav        ← Bottom nav PWA mobile
 │   ├── subscription/           ← PaywallModal, UpsellBanner
 │   └── ui/                     ← KpiCard, TransactionRow, ToastContainer
 ├── composables/
 │   ├── useDocumentScan.ts      ← Captura (câmara nativa) + envio do documento para o scan
 │   ├── useFormatters.ts        ← Moeda, datas, percentagens (PT-PT)
+│   ├── useInvestments.ts       ← Registo de investimentos (/api/investments)
 │   ├── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
 │   ├── usePlatform.ts          ← isNative/isAndroid/isWeb (Capacitor)
 │   └── useSubscription.ts      ← tier, hasFeature(key), paywall
@@ -136,7 +142,7 @@ financeflow/
 │   ├── stats/                  ← Gráficos + tabela mensal + interpretação IA (Pro+)
 │   ├── predictions.vue         ← UI de treino IA + forecast (Premium)
 │   ├── subscription/           ← Planos, checkout EasyPay embutido, /return (polling pós-pagamento)
-│   ├── investimento/           ← Perfil de investidor + dicas educativas IA (Premium)
+│   ├── investimento/           ← Portfolio + perfil de investidor + dicas educativas IA (Premium)
 │   └── settings/               ← Perfil + gestão de categorias
 ├── plugins/
 │   ├── chartjs.client.ts             ← Registo global Chart.js (dark theme)
@@ -269,6 +275,40 @@ Detalhe completo em
 
 ---
 
+## 💼 Registo de investimentos
+
+Área dentro de `/investimento` (Premium) para registar os investimentos que o
+utilizador tem, com o modelo de uma folha de Excel: **Portfolio** (nome),
+**Inicial**, **Data**, **Reforço**, **Situação** (valor atual) e **%**. Abre
+depois de preencher o perfil de investidor (Fase 3).
+
+- **A rentabilidade nunca é guardada**: `(Situação − (Inicial + Reforço)) /
+  (Inicial + Reforço)`, calculada em `shared/portfolio.ts` (uma só função,
+  usada pelo servidor, pelo formulário e pela IA). É simples sobre o capital
+  investido, não anualizada. O total do portfolio usa os totais, não a média
+  das percentagens.
+- **Ações rápidas** por posição: "Reforçar" (escreve-se o valor a acrescentar,
+  não o novo total) e "Atualizar situação". A situação é manual — sem preços
+  de mercado automáticos — e uma posição com a situação por atualizar há mais
+  de 30 dias fica marcada como desatualizada.
+- **Separado das transações**: registar ou reforçar um investimento não cria
+  uma transação nem entra nas estatísticas, previsões ou taxa de poupança.
+- **Perfil de investidor**: é preciso para abrir a área pela primeira vez; um
+  perfil expirado (> 365 dias) só bloqueia as dicas, nunca o acesso aos dados.
+- **IA (opcional, desligada por omissão)**: com
+  `INVESTMENT_TIPS_INCLUDE_PORTFOLIO=true`, as dicas de investimento recebem um
+  resumo **agregado** da carteira (totais, peso por classe de ativo,
+  concentração) — nunca nomes nem valores por posição. Só ligar em produção
+  depois de validação jurídica (ver a especificação). As dicas passam a ter
+  cache e a página só as mostra/gera por botão, em vez de gerar uma a cada visita.
+- **API**: `GET/POST /api/investments`, `PUT/DELETE /api/investments/:id` (todas
+  com `requireFeature('investmentTracker')`; um id de outro utilizador dá 404).
+
+Detalhe completo em
+[`context/features/06-FASE-6-registo-investimentos.md`](context/features/06-FASE-6-registo-investimentos.md).
+
+---
+
 ## 📷 Digitalizar documentos com IA
 
 Fotografa (Android) ou carrega (Android/web) um recibo ou fatura e a app
@@ -299,7 +339,7 @@ Botão "Digitalizar documento" no dashboard e em `/transactions`.
   é lido mas o valor não é convertido — fica marcado para rever), um
   documento gera uma única transação com o valor total, e os recibos de
   vencimento não têm tratamento próprio. O suporte internacional está
-  previsto na Fase 6.
+  previsto na Fase 7.
 
 Detalhe completo em
 [`context/features/05-FASE-5-scan-documentos-ia.md`](context/features/05-FASE-5-scan-documentos-ia.md).

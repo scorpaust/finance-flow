@@ -63,9 +63,17 @@ projeto (ver `pages/subscription/index.vue`).
 | Item | Descrição |
 |---|---|
 | Conta EasyPay | Sandbox (`api.test.easypay.pt`) e produção, com Checkout configurado para os métodos `cc`, `dd`, `mbw`, `mb` |
-| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar EasyPay dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/8) |
+| Inscrição no programa de pagamentos externos da Google (EEA) | Necessária para usar EasyPay dentro da app Android sem Google Play Billing — iniciar o pedido com antecedência (Fase 2/9) |
 
-## Fase 7 — Segurança e observabilidade
+## Fases 3, 5 e 6 — IA (Anthropic + Twelve Data)
+
+| Variável | Descrição |
+|---|---|
+| `ANTHROPIC_API_KEY` | Chave da API Anthropic (`claude-haiku-4-5`) — interpretação de estatísticas e dicas de investimento (Fase 3), digitalização de documentos (Fase 5). Só no servidor, nunca em `public` |
+| `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data — snapshot diário de mercado para as dicas de investimento (Fase 3) |
+| `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` | `true` para as dicas de investimento receberem um resumo **agregado** do portfolio registado (Fase 6, tarefa 6 — nunca nomes nem valores por posição). Por omissão desligada (`false`); **só ligar em produção depois da validação jurídica** (ver `06-FASE-6-registo-investimentos.md`, decisão 8) |
+
+## Fase 8 — Segurança e observabilidade
 
 | Variável | Descrição |
 |---|---|
@@ -73,7 +81,7 @@ projeto (ver `pages/subscription/index.vue`).
 | `NODE_ENV` | `development` / `production` — controla cookies `secure`, logging, etc. |
 | `CORS_ALLOWED_ORIGIN` | Domínio de produção permitido para CORS |
 
-## Fase 8 — Publicação / produção
+## Fase 9 — Publicação / produção
 
 | Item (não é env var, é configuração externa) | Descrição |
 |---|---|

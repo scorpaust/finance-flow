@@ -44,6 +44,29 @@ export function useFormatters() {
     return `${v >= 0 ? '+' : ''}${v.toFixed(decimals)}%`
   }
 
+  // Rentabilidade como na folha de investimentos (Fase 6): "1,94%" / "-2,00%",
+  // 2 casas, vírgula decimal. `null` (sem capital investido) mostra "—".
+  function formatReturnPct(value: number | null | undefined, decimals = 2): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) return '—'
+    return new Intl.NumberFormat('pt-PT', {
+      style: 'percent',
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(value / 100)
+  }
+
+  // Ganho/perda em euros com sinal explícito ("+20,00 €" / "-1,00 €"). Onde o
+  // `signDisplay` não é suportado, cai para o formato normal (só o "-").
+  function formatSignedCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-PT', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      signDisplay: 'exceptZero',
+    }).format(value ?? 0)
+  }
+
   function getMonthRange(monthsBack = 0): { start: string; end: string } {
     const base = subMonths(new Date(), monthsBack)
     return {
@@ -75,6 +98,8 @@ export function useFormatters() {
     formatDate,
     formatMonthYear,
     formatPercentage,
+    formatReturnPct,
+    formatSignedCurrency,
     getMonthRange,
     relativeTime,
   }

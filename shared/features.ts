@@ -26,6 +26,7 @@ export type FeatureKey =
   | 'aiStatsInsights'
   | 'aiInvestmentTips'
   | 'documentScan'
+  | 'investmentTracker'
 
 // Tier mínimo que desbloqueia cada feature.
 const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
@@ -41,6 +42,12 @@ const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
   // Fase 5 — digitalização de recibos/faturas com IA, Pro e Premium (decisão do
   // utilizador de 2026-09-19, ver context/features/05-FASE-5-scan-documentos-ia.md).
   documentScan: 'pro',
+  // Fase 6 — registo de investimentos (portfolio pessoal), Premium por omissão
+  // (a confirmar, ver context/features/06-FASE-6-registo-investimentos.md): a
+  // zona de investimentos já é Premium, e baixar o plano mais tarde é gratuito
+  // enquanto subi-lo com utilizadores já a ter dados registados não é.
+  // Chave própria, separada de aiInvestmentTips, para os dois poderem divergir.
+  investmentTracker: 'premium',
 }
 
 const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, premium: 2 }

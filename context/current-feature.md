@@ -4,11 +4,15 @@
 
 ## Estado
 
-Em progresso — branch `feature/fase-6-registo-investimentos` (criado a partir de
-`main` em 2026-09-21). Implementada com os valores por omissão da secção "A
+Concluída — branch `feature/fase-6-registo-investimentos` mergeado em `main` e
+removido (2026-09-22). Implementada com os valores por omissão da secção "A
 confirmar com o utilizador" da especificação (Premium com chave própria
 `investmentTracker`, "Data" = data do investimento inicial, `assetClass`
-opcional, vender = eliminar, flag da IA desligada) — ver histórico.
+opcional, vender = eliminar, flag da IA desligada). **Fechada com validações em
+aberto** (não foram feitas, não assumir que estão): a geração real de dicas com
+portfolio nunca correu (conta Anthropic sem créditos), o custo por geração não
+foi medido, e a validação jurídica das dicas com portfolio está por fazer — por
+isso `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` fica desligada — ver histórico.
 A Fase 5 (digitalização de documentos) está concluída e mergeada.
 
 ## Objetivos
@@ -944,3 +948,39 @@ recomendação específica de compra/venda.
     para testar, mas tem de ser resolvido antes de produção (a tarefa 2 da Fase 8
     fala de cookies de sessão seguros; convém lá incluir explicitamente a
     assinatura da sessão e a remoção do header).
+- 2026-09-22: A pedido do utilizador, decidida a opção de deixar as dicas com
+  portfolio desligadas por agora (`INVESTMENT_TIPS_INCLUDE_PORTFOLIO=false`, o
+  valor por omissão) — o registo de investimentos e as dicas genéricas da Fase 3
+  ficam como estão; a leitura da carteira pela IA só se liga depois de validação
+  jurídica (explicada ao utilizador: é uma precaução herdada da decisão
+  regulatória 4 da Fase 3, não uma conclusão legal). App Android instalada e
+  aberta num telemóvel físico (USB + `adb reverse tcp:3100`, APK de debug
+  existente, sem recompilar) a apontar para o dev server local; carregou sem
+  erros de ligação. Nesse log apareceu um aviso de hidratação num `<span>` de
+  texto que não aparece no browser de desktop — origem por identificar
+  (suspeita: texto dependente da hora/fuso, como a data do topo), inofensivo e
+  fora desta feature. O utilizador não reportou problemas antes de pedir o merge.
+  Ficaram 3 commits no branch: renumeração das fases (`15622ca`), correções da
+  corrida de ligação ao MongoDB e da hidratação do `ToastContainer` (`e09bed4`) e
+  a feature (`21842bd`). Branch mergeado em `main` (merge commit) e removido.
+  Estado passa a "Concluída", a pedido do utilizador.
+  **Fechada com validações em aberto** (não foram feitas, não assumir que
+  estão): (1) a geração real de dicas com portfolio nunca correu — a conta
+  Anthropic estava sem créditos, a lógica de cache e os payloads só foram
+  testados com uma resposta simulada; (2) por isso, as dicas geradas com
+  portfolio nunca foram revistas quanto a nomear ativos ou dizer
+  comprar/vender/reequilibrar, e o custo por geração não foi medido; (3) o teste
+  num telemóvel Android foi só abrir e carregar — sem resultados detalhados do
+  fluxo (criar, reforçar, eliminar, teclado, toque nos botões pequenos); (4) os
+  pontos "A confirmar" da especificação seguem por confirmar (plano — Premium por
+  omissão, significado da coluna "Data", campo `assetClass`, vender/encerrar,
+  comportamento no downgrade); (5) validação jurídica antes de ligar a flag em
+  produção. Os critérios correspondentes ficam por marcar em
+  `context/features/06-FASE-6-registo-investimentos.md`. Pendências
+  transversais: `usesCleartextTraffic="true"` no `AndroidManifest.xml` (voltar a
+  `"false"` antes de produção); índices `unique` do Mongoose que não são
+  criados (`marketsnapshots`, `aiinsightcaches`); e `requireAuth` autentica pelo
+  cookie `userId` ou pelo header `x-user-id` em claro, sem assinatura (a resolver
+  na Fase 8). Próxima fase: 7 — Internacionalização (a secção 6 dessa fase trata
+  ainda os documentos estrangeiros da Fase 5; as strings novas de
+  `/investimento` entram na auditoria de extração).

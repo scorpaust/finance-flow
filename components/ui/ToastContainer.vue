@@ -1,23 +1,28 @@
 <template>
-  <Teleport to="body">
-    <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 items-end">
-      <TransitionGroup name="toast-anim">
-        <div
-          v-for="toast in toastStore.toasts"
-          :key="toast.id"
-          class="toast cursor-pointer"
-          :class="toastClasses(toast.type)"
-          @click="toastStore.remove(toast.id)"
-        >
-          <span class="text-lg shrink-0">{{ toastIcon(toast.type) }}</span>
-          <p class="text-sm font-medium text-white flex-1">{{ toast.message }}</p>
-          <button class="text-white/30 hover:text-white shrink-0 transition-colors" aria-label="Fechar notificação">
-            <X class="w-4 h-4" />
-          </button>
-        </div>
-      </TransitionGroup>
-    </div>
-  </Teleport>
+  <!-- ClientOnly: um <Teleport to="body"> renderizado no SSR era hidratado contra
+       os filhos do <body> ("Hydration node mismatch"). As notificações só existem
+       no cliente, por isso não há nada para renderizar no servidor. -->
+  <ClientOnly>
+    <Teleport to="body">
+      <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 items-end">
+        <TransitionGroup name="toast-anim">
+          <div
+            v-for="toast in toastStore.toasts"
+            :key="toast.id"
+            class="toast cursor-pointer"
+            :class="toastClasses(toast.type)"
+            @click="toastStore.remove(toast.id)"
+          >
+            <span class="text-lg shrink-0">{{ toastIcon(toast.type) }}</span>
+            <p class="text-sm font-medium text-white flex-1">{{ toast.message }}</p>
+            <button class="text-white/30 hover:text-white shrink-0 transition-colors" aria-label="Fechar notificação">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </TransitionGroup>
+      </div>
+    </Teleport>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">

@@ -154,7 +154,7 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 ### 10. Android — pagamentos externos
 
 - [ ] Inscrever a app no programa de pagamentos externos da Google para a
-      EEA (Play Console) antes de submeter a build da Fase 8 — este passo
+      EEA (Play Console) antes de submeter a build da Fase 9 — este passo
       tem lead time próprio, iniciar cedo
 - [ ] No client Capacitor, o fluxo de checkout abre o EasyPay Checkout
       (browser in-app / `@capacitor/browser`) fora do fluxo de Google Play
@@ -183,7 +183,7 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 - Redesign visual do paywall/checkout (visual final vem na Fase 3, aqui é
   funcional)
 - Submissão final e aprovação do programa de pagamentos externos na Play
-  Store em produção (Fase 8 — aqui só a integração técnica e o pedido de
+  Store em produção (Fase 9 — aqui só a integração técnica e o pedido de
   inscrição)
 
 ## Critérios de aceitação
@@ -203,4 +203,4 @@ a mesma conta a refletir o estado da subscrição nas duas plataformas.
 - [ ] Nenhum endpoint sensível depende apenas de verificação no client
 - [ ] Pedido de inscrição no programa de pagamentos externos da Google
       submetido (aprovação pode não estar concluída nesta fase, mas o
-      pedido tem de estar feito antes da Fase 8)
+      pedido tem de estar feito antes da Fase 9)

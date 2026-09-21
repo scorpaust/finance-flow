@@ -1,7 +1,8 @@
-# FASE 6 — Internacionalização (Idiomas + Métodos de Pagamento por País)
+# FASE 7 — Internacionalização (Idiomas + Métodos de Pagamento por País)
 
-> Pré-requisito: Fases 1 a 5 concluídas. Deliberadamente depois do Design
-> System (Fase 4) e da Digitalização de Documentos (Fase 5) — traduzir só
+> Pré-requisito: Fases 1 a 6 concluídas. Deliberadamente depois do Design
+> System (Fase 4), da Digitalização de Documentos (Fase 5) e do Registo de
+> Investimentos (Fase 6) — traduzir só
 > depois de todo o UI estar estruturalmente estável evita retrabalho
 > (extrair strings de um template que ainda vai ser reescrito é
 > desperdício). Ler `00-CODE-SPEC.md` secções 3 e 4.
@@ -10,7 +11,14 @@
 > abrir espaço à nova Fase 5 (Digitalização de Documentos com IA, ver
 > `context/features/05-FASE-5-scan-documentos-ia.md`), inserida antes desta
 > por pedido do utilizador. Segurança/Qualidade e Publicação também
-> renumeradas em conformidade (agora Fase 7 e Fase 8).
+> renumeradas em conformidade.
+>
+> **Atualização de 2026-09-21**: renumerada de "Fase 6" para "Fase 7" —
+> inserida a nova Fase 6 (Registo de Investimentos, ver
+> `context/features/06-FASE-6-registo-investimentos.md`) antes desta.
+> Segurança/Qualidade e Publicação passam a Fase 8 e Fase 9. As novas
+> strings da Fase 6 (área de investimentos) entram na auditoria de
+> extração da tarefa 2.
 
 ## Decisões de arquitetura tomadas (não reabrir sem motivo forte)
 
@@ -144,7 +152,7 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
       com recibos reais de vários países antes de os prometer.
 - [ ] **Privacidade** — um recibo de vencimento envia NIF, morada e salário
       à Anthropic. Decidir se pede aviso/consentimento explícito antes do
-      envio (RGPD) e se a política de privacidade da app (Fase 8) o deve
+      envio (RGPD) e se a política de privacidade da app (Fase 9) o deve
       mencionar. Vale também para faturas com dados pessoais.
 
 ## Fora de âmbito nesta fase

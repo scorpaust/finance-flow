@@ -1,6 +1,6 @@
 # AGENT-RULES.md — Regras para agentes (Claude Code) neste projeto
 
-Estas regras aplicam-se a **todas** as fases (`01` a `07`). Ler antes de
+Estas regras aplicam-se a **todas** as fases (`01` a `09`). Ler antes de
 qualquer alteração de código.
 
 ## Ordem de trabalho
@@ -23,8 +23,8 @@ qualquer alteração de código.
 - Estilos usam os tokens do `tailwind.config` (ver Fase 4) — não introduzir
   cores/espaçamentos "mágicos" inline.
 - Todas as strings visíveis ao utilizador em português europeu (PT-PT) até
-  à Fase 5; a partir daí, sempre por chave de tradução (`@nuxtjs/i18n`),
-  nunca texto fixo num só idioma — ver `05-FASE-5-internacionalizacao.md`.
+  à Fase 6; a partir daí, sempre por chave de tradução (`@nuxtjs/i18n`),
+  nunca texto fixo num só idioma — ver `07-FASE-7-internacionalizacao.md`.
 - Nomes de ficheiros e pastas seguem a estrutura já existente em
   `financeflow/` (ver README do repositório).
 
@@ -47,7 +47,7 @@ qualquer alteração de código.
 - Um PR por fase (ou por sub-tarefa significativa dentro de uma fase, se a
   fase for grande) — não juntar Fase 2 e Fase 3 no mesmo PR.
 - Antes de considerar uma tarefa concluída: correr build (`npm run build`) e,
-  a partir da Fase 6, a suite de testes.
+  a partir da Fase 8, a suite de testes.
 
 ## Testes manuais mínimos antes de marcar uma fase como concluída
 

@@ -71,8 +71,8 @@ com:
 ## Fora de âmbito nesta fase
 - Alterações a regras de negócio de subscrição (Fase 2 já fechada)
 - Alterações às features de IA (Fase 3 já fechada)
-- Internacionalização/idiomas (Fase 6)
-- Otimizações de performance profundas (Fase 7)
+- Internacionalização/idiomas (Fase 7)
+- Otimizações de performance profundas (Fase 8)
 
 ## Critérios de aceitação
 - [ ] Sem overflow horizontal em nenhum breakpoint testado

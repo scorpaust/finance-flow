@@ -6,7 +6,7 @@
 > padrão `requireFeature()`/`hasFeature()` já usado nas Fases 2 e 3).
 >
 > Inserida nesta posição por pedido do utilizador em 2026-09-19 (antes da
-> Internacionalização, que passa a Fase 6). Viabilidade técnica (modelo,
+> Internacionalização, hoje Fase 7 — ver nota de 2026-09-21 no ficheiro dessa fase). Viabilidade técnica (modelo,
 > custo, limitações) confirmada via a skill `claude-api` deste projeto
 > contra a documentação atual da Anthropic antes de escrever este documento
 > — não é uma suposição.
@@ -100,7 +100,7 @@ planos Pro e Premium.
       documento não ser reconhecível como recibo/fatura — nesse caso não
       preencher o resto, devolver erro amigável ao client (ver tarefa 4)
 - [x] Prompt fixo em PT-PT (consistente com o resto da app — tradução fica
-      para a Fase 6, tal como as restantes secções de IA)
+      para a Fase 7, tal como as restantes secções de IA)
 - [ ] Medir `response.usage` num punhado de documentos reais em sandbox
       (feito para 1 documento — ver critérios de aceitação; falta um punhado)
       para confirmar o custo real por documento (ver decisão 2)
@@ -145,7 +145,7 @@ planos Pro e Premium.
 - Documentos multi-página complexos (faturas com várias páginas/totais) —
   assume-se um documento simples de uma página/imagem
 - Tradução do prompt/respostas para outro idioma — prompt fixo em PT-PT
-  nesta fase, tal como as restantes secções de IA (Fase 6 trata i18n)
+  nesta fase, tal como as restantes secções de IA (Fase 7 trata i18n)
 - Limite de páginas de PDF — **decidido deixar como está (2026-09-20)**: o
   servidor aceita PDFs até 8 MB sem contar páginas, e um PDF longo pode custar
   até ~$0,20 por scan (Haiku 4.5 tem 200K de contexto), contra ~$0,004 de uma
@@ -159,7 +159,7 @@ planos Pro e Premium.
   e euros. Um documento noutra moeda é lido mas **não convertido** (montante
   marcado para rever + aviso); datas assumem dia/mês/ano; recibos de
   vencimento não têm prompt próprio (o prompt pede o total a pagar, não o
-  líquido). O tratamento fica definido na Fase 6, secção 6 — incluindo a
+  líquido). O tratamento fica definido na Fase 7, secção 6 — incluindo a
   questão de privacidade de enviar dados pessoais (NIF, salário) à Anthropic
 
 ## Critérios de aceitação

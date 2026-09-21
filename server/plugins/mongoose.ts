@@ -1,18 +1,10 @@
-import mongoose from 'mongoose'
+import { ensureDb } from '../utils/db'
 
-export default defineNitroPlugin(async () => {
-  const config = useRuntimeConfig()
-
-  try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(config.mongodbUri, {
-        dbName: 'financeflow',
-        bufferCommands: false,
-      })
-      console.log('✅ MongoDB connected successfully')
-    }
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error)
-    throw error
-  }
+// Começa a ligar ao arrancar (para o log e para o primeiro pedido já a encontrar a
+// ligação pronta). Não bloqueia pedidos — o Nitro não espera por plugins; quem
+// garante a ligação antes de cada rota /api é server/middleware/00-db.ts.
+export default defineNitroPlugin(() => {
+  ensureDb().catch(() => {
+    // já registado em ensureDb(); o middleware volta a tentar no próximo pedido
+  })
 })

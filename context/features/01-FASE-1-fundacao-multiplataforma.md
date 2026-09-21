@@ -81,7 +81,7 @@ fora de âmbito.
 ## Fora de âmbito nesta fase
 - Sistema de subscrições (Fase 2)
 - Redesign visual (Fase 3)
-- Publicação na Play Store (Fase 8)
+- Publicação na Play Store (Fase 9)
 
 ## Critérios de aceitação
 - [ ] Build web continua a funcionar sem regressões (`npm run dev`, `npm run build`)

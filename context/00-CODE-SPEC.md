@@ -1,7 +1,7 @@
 # CODE SPEC — FinanceFlow (Web + Android + Subscrições)
 
 > Documento de referência transversal. Todos os agentes (Claude Code) devem ler
-> este ficheiro antes de iniciar qualquer fase. As fases (01 a 05) implementam
+> este ficheiro antes de iniciar qualquer fase. As fases (01 a 09) implementam
 > este spec de forma incremental. Não avançar de fase sem os critérios de
 > aceitação da anterior cumpridos.
 
@@ -24,9 +24,9 @@
 | Billing (web + Android) | EasyPay — Checkout + Subscription API (CC/DD) + Frequent Payment (MB WAY/Multibanco) | Fase 2 |
 | Billing Android — enquadramento | Pagamentos externos (fora do Google Play Billing), via programa de pagamentos externos da Google na EEA | Fase 2 |
 | Reconciliação de subscrição | Webhook EasyPay → MongoDB | Fase 2 |
-| Validação de input server-side | Zod | Fase 4 |
-| Testes | Vitest (unit/integração) + Playwright (e2e) | Fase 4 |
-| Monitorização | Sentry (ou equivalente) | Fase 4 |
+| Validação de input server-side | Zod | Fase 8 |
+| Testes | Vitest (unit/integração) + Playwright (e2e) | Fase 8 |
+| Monitorização | Sentry (ou equivalente) | Fase 8 |
 
 **Porquê EasyPay como processador único**: cobre Cartão, Débito Direto,
 MB WAY e Multibanco com um único contrato/API — os métodos locais que o
@@ -47,7 +47,7 @@ Billing, o que só passou a ser possível na EEA (inclui Portugal) a partir de
 Isto implica inscrição prévia, requisitos de disclosure ao utilizador,
 reporte de transações à Google (`ExternalTransactionId` API) e uma taxa de
 serviço à Google mesmo pagando por fora — confirmar valores e requisitos
-atualizados na Play Console antes do lançamento (Fase 8), pois esta é uma
+atualizados na Play Console antes do lançamento (Fase 9), pois esta é uma
 política recente e sujeita a evolução.
 
 ## 3. Modelo de subscrição (regra de negócio)
@@ -108,7 +108,7 @@ duplicar a lógica em dois sítios.
 - TypeScript estrito em todo o código novo.
 - Composables para lógica reutilizável (`use*.ts`), nunca duplicar lógica de
   negócio em componentes.
-- Nomes de ficheiros de fase (`01-...md` a `08-...md`) definem o âmbito de
+- Nomes de ficheiros de fase (`01-...md` a `09-...md`) definem o âmbito de
   cada PR/branch — não misturar tarefas de fases diferentes no mesmo commit.
 - Todas as strings visíveis ao utilizador em PT-PT (consistente com o resto
   da app).
@@ -122,8 +122,9 @@ duplicar a lógica em dois sítios.
 3. `03-FASE-3-insights-ia.md`
 4. `04-FASE-4-design-system-ui.md`
 5. `05-FASE-5-scan-documentos-ia.md`
-6. `06-FASE-6-internacionalizacao.md`
-7. `07-FASE-7-seguranca-qualidade.md`
-8. `08-FASE-8-publicacao.md`
-9. `AGENT-RULES.md`
-10. `CONFIG-REFERENCE.md`
+6. `06-FASE-6-registo-investimentos.md`
+7. `07-FASE-7-internacionalizacao.md`
+8. `08-FASE-8-seguranca-qualidade.md`
+9. `09-FASE-9-publicacao.md`
+10. `AGENT-RULES.md`
+11. `CONFIG-REFERENCE.md`

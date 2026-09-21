@@ -138,7 +138,7 @@ utilizador:
 - Qualquer recomendação de compra/venda de ativos específicos (nunca, em
   nenhuma fase, sem validação legal explícita)
 - Testes automatizados destas features com chamadas reais à Anthropic/Twelve
-  Data (mocks obrigatórios — ver Fase 7)
+  Data (mocks obrigatórios — ver Fase 8)
 
 ## Critérios de aceitação
 

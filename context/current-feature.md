@@ -1,98 +1,121 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/05-FASE-5-scan-documentos-ia.md -->
+<!-- Ver especificação completa em context/features/06-FASE-6-registo-investimentos.md -->
 
 ## Estado
 
-Concluída — branch `feature/fase-5-scan-documentos-ia` mergeado em `main` e removido
-(2026-09-20). Extração real validada pelo utilizador em recibos reais (formulário
-pré-preenchido correto, sem gravar) e custo medido (~$0,0037/documento). Por validar: caminho
-"não é um recibo", realce âmbar de baixa confiança e uma amostra mais ampla (papel térmico,
-PDF, fatura eletrónica) — ver histórico.
+Concluída — branch `feature/fase-6-registo-investimentos` mergeado em `main` e
+removido (2026-09-22). Implementada com os valores por omissão da secção "A
+confirmar com o utilizador" da especificação (Premium com chave própria
+`investmentTracker`, "Data" = data do investimento inicial, `assetClass`
+opcional, vender = eliminar, flag da IA desligada). **Fechada com validações em
+aberto** (não foram feitas, não assumir que estão): a geração real de dicas com
+portfolio nunca correu (conta Anthropic sem créditos), o custo por geração não
+foi medido, e a validação jurídica das dicas com portfolio está por fazer — por
+isso `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` fica desligada — ver histórico.
+A Fase 5 (digitalização de documentos) está concluída e mergeada.
 
 ## Objetivos
 
-FASE 5 — Digitalização de Documentos com IA (Recibos/Faturas). O utilizador
-tira uma foto (Android) ou carrega uma imagem/PDF (Android ou web) de um
-recibo/fatura; a app envia-o à Anthropic (`claude-haiku-4-5`, vision + PDF
-nativos, sem OCR separado) e recebe comerciante, data, valor, moeda, tipo
-(receita/despesa) e uma categoria sugerida (restrita às categorias já
-existentes do utilizador). Esses dados **pré-preenchem** o `TransactionModal`
-já existente — a IA nunca grava a transação diretamente, o utilizador tem de
-rever e confirmar (decisão explícita do utilizador de 2026-09-19, apesar do
-pedido inicial ter sido "regista automaticamente": erros de IA em dados
-financeiros devem ter sempre confirmação humana). Disponível só para os
-planos **Pro e Premium**, não Gratuito.
+FASE 6 — Registo de Investimentos (Portfolio pessoal + integração com a IA). O
+utilizador regista os investimentos que tem, com o modelo da folha de Excel que
+já usa: **Portfolio** (nome), **Inicial**, **Data**, **Reforço**, **Situação**
+(valor atual) e **%** (calculada, nunca guardada:
+`(Situação − (Inicial + Reforço)) / (Inicial + Reforço)`). Vive dentro de
+`/investimento`, depois de o utilizador preencher o perfil de investidor da Fase
+3; a página passa a ser um hub com o portfolio primeiro e as dicas de IA por
+baixo. Duas ações rápidas por linha (Reforçar e Atualizar situação) cobrem o uso
+mensal real da folha. As dicas de IA passam a poder ter em conta a composição da
+carteira, mas só em agregado (nunca nomes nem valores por posição), atrás de uma
+flag desligada até haver validação jurídica.
 
-Ler `context/features/05-FASE-5-scan-documentos-ia.md` para a especificação
-completa (decisões de arquitetura, 4 tarefas, critérios de aceitação) e
-`00-CODE-SPEC.md` secções 3 e 4 (arquitetura de feature gating,
-`requireFeature()`/`hasFeature()` — mesmo padrão das Fases 2 e 3).
+Ler `context/features/06-FASE-6-registo-investimentos.md` para a especificação
+completa (9 decisões de arquitetura, modelo de dados, fluxo por estado do
+utilizador, 6 tarefas, critérios de aceitação), `03-FASE-3-insights-ia.md`
+(perfil de investidor, dicas e a decisão regulatória 4) e `00-CODE-SPEC.md`
+secções 3 e 4 (feature gating).
 
 Tarefas principais (ver especificação para detalhe completo):
-1. `shared/features.ts` — nova chave `documentScan: 'pro'` em
-   `FEATURE_MATRIX`; `requireFeature()` no endpoint do servidor
-2. `server/utils/anthropic.ts` — nova função de extração (vision/PDF +
-   `output_config.format` com schema fixo, incluindo `confidence` por
-   campo e `isReceipt: boolean`); prompt fixo em PT-PT
-3. `server/api/transactions/scan.post.ts` — recebe o ficheiro
-   (`multipart/form-data`, limite de tamanho), devolve os campos extraídos
-   (nunca cria a transação); rate limiting por utilizador
-4. Client — `@capacitor/camera` (câmara nativa Android) + upload de
-   ficheiro (web), botão "Digitalizar documento", pré-preenche
-   `TransactionModal`, realça campos de baixa confiança, `PaywallModal`
-   para utilizadores Free
+1. `shared/features.ts` — nova chave `investmentTracker` (Premium por omissão,
+   a confirmar); `requireFeature()` em todos os endpoints novos
+2. Modelo `Investment` (`server/models/index.ts`) e `shared/portfolio.ts` com o
+   cálculo (`returnPct`, resumo do portfolio sobre totais, não média das %)
+   partilhado por servidor, formulário e IA
+3. API `server/api/investments/` (`index.ts` GET/POST, `[id].ts` PUT parcial/
+   DELETE), sempre filtrada por `userId` (id alheio → 404)
+4. Client — `useInvestments`, `InvestmentModal` com pré-visualização da
+   rentabilidade, ações "Reforçar" e "Atualizar situação"
+5. `pages/investimento/index.vue` reestruturada como hub por estado (paywall /
+   sem perfil / perfil válido / perfil expirado), `PortfolioTable` (colunas da
+   folha em desktop, cartões em mobile), estado vazio; deixa de chamar a
+   Anthropic ao abrir a página
+6. Integração com a IA — resumo só com agregados, flag
+   `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (default `false`), regras novas no
+   prompt, cache `InvestmentTipsCache`, `InvestmentTipsCard`
 
-Fora de âmbito nesta fase: dividir um documento com vários itens em várias
-transações por categoria (fica sempre uma transação com o valor total),
-armazenar/anexar o documento original à transação (precisa de solução de
-armazenamento de ficheiros que o projeto ainda não tem), documentos
-multi-página complexos, tradução do prompt para outro idioma (Fase 6 trata
-i18n).
+Fora de âmbito nesta fase: preços de mercado automáticos por posição,
+histórico de valorizações/gráfico de evolução, reforços com data e
+rentabilidade anualizada (TWR/IRR), vendas/ganho realizado, várias moedas,
+ligar reforços a `Transaction`, importar a folha de Excel/CSV, digitalizar
+extratos de corretora, investimentos nas estatísticas/previsões e qualquer
+recomendação específica de compra/venda.
 
 ## Notas
 
-- Decisões de arquitetura da especificação (modelo Haiku 4.5 sem OCR
-  separado, confirmação manual obrigatória, gating Pro+Premium, um
-  documento = uma transação, sem armazenamento do original) não devem ser
-  reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
-- Viabilidade técnica (vision + PDF + structured outputs no modelo mais
-  barato, custo por documento) foi confirmada via a skill `claude-api`
-  contra a documentação atual da Anthropic antes de desenhar a
-  especificação — não foi uma suposição.
-- Esta fase foi inserida antes da Internacionalização a pedido do
-  utilizador em 2026-09-19 — Internacionalização, Segurança/Qualidade e
-  Publicação foram renumeradas de Fase 5/6/7 para Fase 6/7/8 em
-  conformidade (ver `00-CODE-SPEC.md` secção 6 e histórico abaixo).
-- Testar sempre em pelo menos mobile (emulador/dispositivo Android) e
-  desktop (janela larga), incluindo tablet/ultra-wide — ver
-  `AGENT-RULES.md` ("Testes manuais mínimos"). Testar especificamente a
-  captura por câmara num dispositivo Android real, não só no emulador.
-- ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por
-  resolver)**: `android/app/src/main/AndroidManifest.xml` tem
-  `android:usesCleartextTraffic="true"`, ligado para testar a app Android
-  via `adb reverse` num telemóvel físico por cabo USB. Tem de voltar a
-  `"false"` antes de qualquer build de produção/release — decisão explícita
-  do utilizador de deixar para a fase de publicação. Não é âmbito desta
-  fase, mas fica o lembrete enquanto não for revertido.
+- Decisões de arquitetura da especificação (modelo = a folha, `%` sempre
+  derivada, `Reforço` como total acumulado, `Situação` manual, registo separado
+  das transações, IA só com agregados, dicas com portfolio atrás de flag) não
+  devem ser reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
+- A fórmula da `%` foi verificada contra as duas linhas da folha do utilizador
+  (FTSE All-World ETF 1,94%; Innodata Ação −2,00%). Rentabilidade simples sobre
+  o capital investido, não anualizada.
+- A data da folha de exemplo (01/10/2026) é posterior à data em que a fase foi
+  desenhada (2026-09-21), por isso o formulário não deve rejeitar datas futuras.
+- Só a tarefa 6 depende de validação jurídica (dicas que leem a carteira real do
+  utilizador aproximam-se de aconselhamento personalizado, decisão regulatória 4
+  da Fase 3). As tarefas 1 a 5 entregam valor sozinhas.
+- Esta fase foi inserida antes da Internacionalização a pedido do utilizador em
+  2026-09-21 — Internacionalização, Segurança/Qualidade e Publicação foram
+  renumeradas de Fase 6/7/8 para Fase 7/8/9 (ver `00-CODE-SPEC.md` secção 6 e
+  histórico abaixo).
+- **Não depender de índices `unique` do Mongoose**: a criação automática de
+  índices não funciona neste projeto (`server/plugins/mongoose.ts` liga com
+  `bufferCommands: false`). Para o cache da tarefa 6 usar `_id` determinístico
+  (`userId`), como já se faz em `DocumentScanUsage`.
+- Testar sempre em pelo menos mobile (emulador/dispositivo Android) e desktop
+  (janela larga), incluindo tablet/ultra-wide — ver `AGENT-RULES.md` ("Testes
+  manuais mínimos"). A tabela de 6 colunas tem de degradar para cartões em
+  mobile. Confirmar que o gating das Fases 2 e 3 não regrediu.
+- ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por resolver)**:
+  `android/app/src/main/AndroidManifest.xml` tem
+  `android:usesCleartextTraffic="true"`, ligado para testar a app Android via
+  `adb reverse` num telemóvel físico por cabo USB. Tem de voltar a `"false"`
+  antes de qualquer build de produção/release — decisão explícita do utilizador
+  de deixar para a fase de publicação. Não é âmbito desta fase, mas fica o
+  lembrete enquanto não for revertido.
 
 ## Critérios de aceitação
 
-- Utilizador Free não consegue usar a funcionalidade — nem no client
-  (paywall) nem no servidor (`403 feature_locked` mesmo chamando o endpoint
-  diretamente)
-- Utilizador Pro/Premium consegue fotografar (Android) ou carregar
-  (Android/web) um recibo/fatura real e ver o formulário de transação abrir
-  pré-preenchido com comerciante, data, valor, moeda, tipo e categoria
-  sugerida corretos (validado com uma amostra real de recibos/faturas
-  portugueses variados)
-- Nenhuma transação é criada sem confirmação explícita do utilizador
-- Um documento que não é um recibo/fatura reconhecível produz um erro
-  claro, não um formulário com dados inventados
-- Campos extraídos com baixa confiança ficam visualmente identificados no
-  formulário
-- Custo medido por documento confirma a ordem de grandeza esperada
-  (residual) — sem surpresas de custo em produção
+- Reproduz a folha: FTSE All-World ETF (1 000 € + 30 € → 1 050 €) mostra 1,94%,
+  Innodata Ação (50 € + 0 € → 49 €) mostra −2,00%; resumo do portfolio 1 080 €
+  investidos, 1 099 € de valor atual, 19 € de ganho e 1,76% (sobre totais)
+- A `%` não existe na base de dados; alterar a `Situação` recalcula-a sem outra
+  escrita; "Reforçar" soma ao reforço existente
+- Free/Pro não usam a área — paywall no client e `403 feature_locked` em todos
+  os endpoints `/api/investments/**` mesmo chamados diretamente
+- Um utilizador nunca vê, edita nem elimina posições de outro (id alheio → 404)
+- Sem perfil de investidor, `/investimento` pede-o primeiro e volta ao hub ao
+  guardar; com perfil expirado o portfolio continua visível e editável
+- Abrir `/investimento` não faz pedidos à Anthropic; só "Gerar dicas" o faz, e
+  uma 2.ª geração em 24 h sem alterações devolve o cache
+- Com a flag desligada o payload da IA é igual ao da Fase 3; com a flag ligada
+  só leva agregados (sem nomes, valores por posição nem datas)
+- As dicas com portfolio nunca nomeiam um ativo, nunca dizem
+  comprar/vender/reequilibrar e mostram sempre o disclaimer
+- Layout correto em mobile (cartões), desktop (tabela) e ultra-wide, sem
+  regressões no gating das Fases 2 e 3
+- Validação jurídica das dicas com portfolio feita antes de ligar a flag em
+  produção (não bloqueia o resto da fase)
 
 ## Histórico
 
@@ -794,3 +817,170 @@ i18n).
   recibo → erro claro sem formulário, e realce âmbar dos campos de baixa
   confiança (o utilizador não reportou nenhum destes). O log de custo só tem
   1 dos 2 documentos (o outro foi processado noutro servidor).
+- 2026-09-21: A pedido do utilizador, desenhada uma nova fase — FASE 6
+  (Registo de Investimentos: portfolio pessoal dentro de `/investimento`, com o
+  modelo de uma folha de Excel que o utilizador já usa — Portfolio, Inicial,
+  Data, Reforço, Situação e % calculada), especificação em
+  `context/features/06-FASE-6-registo-investimentos.md`. O utilizador pediu que
+  ficasse na zona de investimentos, depois do preenchimento do perfil de
+  investidor, e organizada de forma a encaixar com a IA. A fórmula da `%` foi
+  deduzida e verificada contra as duas linhas da folha. Decisões de desenho: a
+  `%` é sempre derivada (nunca guardada), `Reforço` fica como total acumulado,
+  o registo é separado das transações, e a IA só recebe agregados (nunca nomes
+  de posições) — a parte da IA fica atrás de uma flag até haver validação
+  jurídica, por se aproximar de aconselhamento personalizado. Também se
+  observou que a página `/investimento` chama hoje a Anthropic em cada visita;
+  passa a ser só por botão, com cache. Ficaram pontos por confirmar com o
+  utilizador (plano — Premium por omissão com chave própria
+  `investmentTracker`, significado da coluna "Data", campo opcional de classe
+  de ativo, vender/encerrar, downgrade, validação jurídica).
+  Inserida antes da Internacionalização — exigiu renumerar as três fases
+  seguintes: Internacionalização 6→7, Segurança/Qualidade 7→8, Publicação 8→9
+  (ficheiros renomeados com `git mv`, referências cruzadas corrigidas em
+  `00-CODE-SPEC.md`, `CONFIG-REFERENCE.md`, `AGENT-RULES.md`, `README.md`, num
+  comentário de `server/utils/anthropic.ts` e nos specs das Fases 1 a 5;
+  aproveitado para corrigir números de fase que já estavam desatualizados de
+  renumerações anteriores no `AGENT-RULES.md` e na tabela de tecnologias do
+  `00-CODE-SPEC.md`). Definida como funcionalidade atual. Estado: não iniciada
+  — nada disto foi commitado ainda.
+- 2026-09-21: Branch `feature/fase-6-registo-investimentos` criado a partir de
+  `main` (as alterações de documentação da sessão anterior viajam no working
+  tree, por commitar). Estado passa a "Em progresso". Implementadas as 6
+  tarefas da especificação, com os valores por omissão da secção "A confirmar"
+  (o utilizador pediu para implementar sem essas confirmações):
+  - **Tarefa 1**: `investmentTracker: 'premium'` em `shared/features.ts` (chave
+    própria, separada de `aiInvestmentTips`); `requireFeature('investmentTracker')`
+    em todos os endpoints novos.
+  - **Tarefa 2**: modelo `Investment` e `InvestmentTipsCache`
+    (`server/models/index.ts`); `shared/portfolio.ts` com o cálculo puro
+    (`returnPct`, `summarizePortfolio` sobre totais). `valueUpdatedAt` só muda
+    quando a `Situação` muda de facto.
+  - **Tarefa 3**: `server/api/investments/index.ts` (GET lista+resumo, POST) e
+    `[id].ts` (PUT parcial, DELETE), com validação manual em
+    `server/utils/investments.ts`; teto fixo de 100 posições; id de outro
+    utilizador → 404.
+  - **Tarefa 4**: `useInvestments`, `InvestmentModal` (pré-visualização da
+    rentabilidade ao vivo, situação pré-preenchida com inicial+reforço) e
+    `InvestmentQuickModal` ("Reforçar" soma ao total, "Atualizar situação");
+    `formatReturnPct` e `formatSignedCurrency` em `useFormatters`.
+  - **Tarefa 5**: `pages/investimento/index.vue` reestruturada como hub por
+    estado (loading / paywall / sem perfil / hub, com aviso se o perfil expirou),
+    `PortfolioTable` (colunas da folha em ecrãs largos, cartões em mobile),
+    `InvestmentSummary`, estado vazio, indicador de situação desatualizada
+    (> 30 dias). A página deixou de chamar a Anthropic ao abrir.
+  - **Tarefa 6**: `server/utils/portfolio.ts` (`portfolioSummaryForAi`, só
+    agregados), `server/utils/investmentTips.ts` (contexto, cache por
+    `inputHash` + 24 h, prompt com adenda só quando o portfolio entra),
+    `investment.post.ts` reduzido a uma chamada, novo `investment.get.ts` (lê a
+    cache sem chamar a Anthropic), `InvestmentTipsCard`, flag
+    `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (desligada por omissão; documentada em
+    `CONFIG-REFERENCE.md`, `README.md` e `.env.example`).
+  - **Desvios da especificação** (registados na secção "Notas de implementação"
+    do ficheiro da fase): `KpiCard` não reutilizado (mostra valores compactos),
+    endpoint `GET /api/insights/investment` acrescentado, regra da cache
+    interpretada como hash igual **e** < 24 h, e as dicas da Fase 3 passam a ter
+    cache mesmo com a flag desligada.
+  - **Validado** (dev server contra a BD real, com 3 utilizadores temporários
+    criados e apagados no fim — nada foi escrito na conta real): 403 a Free em
+    todos os endpoints; 401 sem sessão; CRUD e validação (nome, valores,
+    datas, classe, arredondamento a 2 casas); reprodução exata da folha
+    (1,94% / −2,00%; resumo 1 080 € → 1 099 €, 1,76%); a BD crua só guarda
+    inicial/reforço/situação (sem `%`); isolamento entre utilizadores (404);
+    teto de 100 posições; regras de `valueUpdatedAt`. UI num Edge headless
+    (`puppeteer-core` fora do projeto) a 1440 px e 390 px: tabela vs. cartões,
+    sem scroll horizontal, modal com pré-visualização, criar/reforçar/atualizar
+    situação/editar/eliminar pela UI (com acentos), sem perfil → pede o perfil,
+    Free → paywall, perfil expirado → portfolio visível e dicas bloqueadas,
+    badge "Desatualizada". Payloads à Anthropic capturados: sem flag = Fase 3;
+    com flag só agregados (sem nomes, valores por posição nem datas).
+    `npm run build` sem erros.
+  - **NÃO validado / bloqueado**: a conta Anthropic voltou a estar **sem
+    créditos** (`credit balance is too low`), por isso a geração real nunca
+    correu — a lógica de cache e os payloads foram testados com uma resposta da
+    Anthropic **simulada** (hook de `fetch` só no scratchpad, fora do repo).
+    Ficam por verificar: a qualidade das dicas com portfolio (nunca nomear
+    ativos, nunca comprar/vender/reequilibrar — revisão manual de amostras
+    reais), a medição do custo por geração, o regresso ao hub depois de guardar
+    o questionário de perfil, tablet/ultra-wide e um dispositivo Android real.
+  - **Pendências de decisão** (secção "A confirmar" da especificação): plano
+    do registo (Premium por omissão), significado da coluna "Data", campo
+    `assetClass`, vender/encerrar, comportamento no downgrade, e validação
+    jurídica antes de ligar a flag em produção.
+  - **Achados pré-existentes** (ambos corrigidos na entrada seguinte): o aviso "Hydration
+    completed but contains mismatches" aparece igual em `/transactions` e
+    `/groups`; e, quando o Nitro recarrega a quente no dev server, os primeiros
+    pedidos podem dar 500 `Cannot call users.findOne() before initial connection
+    is complete if bufferCommands = false` (`server/plugins/mongoose.ts` liga
+    sem esperar). Candidatos a Fase 8 (Qualidade).
+- 2026-09-21: Correções e verificações pedidas a seguir à implementação
+  ("corrige o que for necessário"):
+  - **Corrigido — 500 a frio do MongoDB** (achado pré-existente, que rebentou
+    duas vezes durante os testes): o Nitro chama os plugins **sem `await`**
+    (`nitropack/.../app.mjs`), por isso o `await mongoose.connect()` de
+    `server/plugins/mongoose.ts` nunca bloqueou pedidos; com `bufferCommands:
+    false`, um pedido `/api` que chegasse antes da ligação dava 500 (`Cannot call
+    users.findOne() before initial connection is complete`) — também em produção,
+    logo após um deploy. Nova ligação partilhada e memorizada
+    `server/utils/db.ts` (`ensureDb()`, volta a ligar se a ligação caiu) e novo
+    `server/middleware/00-db.ts` que a espera antes de cada rota `/api`; o plugin
+    passou a só iniciar a ligação ao arrancar (e já não deixa uma rejeição por
+    tratar). Verificado: 45 pedidos durante um reload a quente do Nitro, todos
+    200, nenhum com erro de ligação.
+  - **Corrigido — aviso de hidratação** (`Hydration completed but contains
+    mismatches`, pré-existente, em todas as páginas): a causa era o
+    `<Teleport to="body">` do `ToastContainer` renderizado no SSR (o
+    "nome do utilizador" apontado antes como 2.ª causa não contribuía — o
+    `auth.user` é nulo nos dois lados à hidratação). Envolvido em `<ClientOnly>`.
+    Verificado: 0 avisos em `/transactions`, `/groups` e `/investimento` (antes
+    1 em cada).
+  - **Verificado, sem alterações de código**: guardar o questionário de perfil
+    volta ao hub; tablet (820 px) e ultra-wide (2560 px) sem scroll horizontal;
+    gating das Fases 2 e 3 sem regressões (Free 403, Premium 200). Critérios
+    correspondentes marcados em `06-FASE-6-registo-investimentos.md`.
+  - Continua por fazer, e não depende de código: créditos na conta Anthropic para
+    medir o custo e rever amostras reais de dicas com portfolio; confirmação dos
+    pontos "A confirmar"; validação jurídica antes de ligar
+    `INVESTMENT_TIPS_INCLUDE_PORTFOLIO`; teste num Android real.
+  - **Continua por corrigir, fora desta fase**: `requireAuth`
+    (`server/utils/auth.ts`) autentica pelo cookie `userId` **ou pelo header
+    `x-user-id`**, ambos com o `_id` em claro e sem assinatura — qualquer pessoa
+    que conheça (ou adivinhe) um `_id` pode agir como esse utilizador. Foi útil
+    para testar, mas tem de ser resolvido antes de produção (a tarefa 2 da Fase 8
+    fala de cookies de sessão seguros; convém lá incluir explicitamente a
+    assinatura da sessão e a remoção do header).
+- 2026-09-22: A pedido do utilizador, decidida a opção de deixar as dicas com
+  portfolio desligadas por agora (`INVESTMENT_TIPS_INCLUDE_PORTFOLIO=false`, o
+  valor por omissão) — o registo de investimentos e as dicas genéricas da Fase 3
+  ficam como estão; a leitura da carteira pela IA só se liga depois de validação
+  jurídica (explicada ao utilizador: é uma precaução herdada da decisão
+  regulatória 4 da Fase 3, não uma conclusão legal). App Android instalada e
+  aberta num telemóvel físico (USB + `adb reverse tcp:3100`, APK de debug
+  existente, sem recompilar) a apontar para o dev server local; carregou sem
+  erros de ligação. Nesse log apareceu um aviso de hidratação num `<span>` de
+  texto que não aparece no browser de desktop — origem por identificar
+  (suspeita: texto dependente da hora/fuso, como a data do topo), inofensivo e
+  fora desta feature. O utilizador não reportou problemas antes de pedir o merge.
+  Ficaram 3 commits no branch: renumeração das fases (`15622ca`), correções da
+  corrida de ligação ao MongoDB e da hidratação do `ToastContainer` (`e09bed4`) e
+  a feature (`21842bd`). Branch mergeado em `main` (merge commit) e removido.
+  Estado passa a "Concluída", a pedido do utilizador.
+  **Fechada com validações em aberto** (não foram feitas, não assumir que
+  estão): (1) a geração real de dicas com portfolio nunca correu — a conta
+  Anthropic estava sem créditos, a lógica de cache e os payloads só foram
+  testados com uma resposta simulada; (2) por isso, as dicas geradas com
+  portfolio nunca foram revistas quanto a nomear ativos ou dizer
+  comprar/vender/reequilibrar, e o custo por geração não foi medido; (3) o teste
+  num telemóvel Android foi só abrir e carregar — sem resultados detalhados do
+  fluxo (criar, reforçar, eliminar, teclado, toque nos botões pequenos); (4) os
+  pontos "A confirmar" da especificação seguem por confirmar (plano — Premium por
+  omissão, significado da coluna "Data", campo `assetClass`, vender/encerrar,
+  comportamento no downgrade); (5) validação jurídica antes de ligar a flag em
+  produção. Os critérios correspondentes ficam por marcar em
+  `context/features/06-FASE-6-registo-investimentos.md`. Pendências
+  transversais: `usesCleartextTraffic="true"` no `AndroidManifest.xml` (voltar a
+  `"false"` antes de produção); índices `unique` do Mongoose que não são
+  criados (`marketsnapshots`, `aiinsightcaches`); e `requireAuth` autentica pelo
+  cookie `userId` ou pelo header `x-user-id` em claro, sem assinatura (a resolver
+  na Fase 8). Próxima fase: 7 — Internacionalização (a secção 6 dessa fase trata
+  ainda os documentos estrangeiros da Fase 5; as strings novas de
+  `/investimento` entram na auditoria de extração).

@@ -82,6 +82,10 @@ export default defineNuxtConfig({
     // chave nunca pode chegar ao client. Ver context/features/03-FASE-3-insights-ia.md.
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
     twelveDataApiKey: process.env.TWELVE_DATA_API_KEY || '',
+    // Fase 6 — só com 'true' as dicas de investimento recebem um resumo agregado
+    // do portfolio. Desligada por omissão até haver validação jurídica (ver
+    // context/features/06-FASE-6-registo-investimentos.md, decisão 8).
+    investmentTipsIncludePortfolio: process.env.INVESTMENT_TIPS_INCLUDE_PORTFOLIO === 'true',
     public: {
       appUrl: process.env.APP_URL || 'http://localhost:3000',
       // Passado ao @easypaypt/checkout-sdk (opção `testing`) — não é secreto,

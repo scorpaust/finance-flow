@@ -125,7 +125,7 @@ export interface DocumentExtraction {
 }
 
 // Prompt fixo, versionado no código (não editável em runtime), em PT-PT — a
-// tradução fica para a Fase 6. O conteúdo do documento é sempre tratado como
+// tradução fica para a Fase 7. O conteúdo do documento é sempre tratado como
 // dados: texto impresso no recibo nunca é uma instrução para o modelo.
 const DOCUMENT_SYSTEM_PROMPT = `És um assistente que lê recibos, talões e faturas (papel térmico, fotografias ou PDF)
 de utilizadores portugueses e extrai os dados de UMA transação financeira, em JSON estruturado.

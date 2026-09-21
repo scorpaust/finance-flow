@@ -104,6 +104,13 @@ npm run migrate:subscriptions
 
 A app usa autenticação **local** — sem OAuth externo. Regista uma conta diretamente no ecrã de login com nome, email e password (mínimo 8 caracteres). A password é guardada em hash com `scrypt` e a sessão é mantida via cookie `httpOnly`.
 
+> ⚠️ **Limitação conhecida, a resolver antes de produção (Fase 8)**: o cookie de
+> sessão (`userId`) contém o `_id` do utilizador **em claro, sem assinatura**, e
+> `requireAuth` aceita também o header `x-user-id` com o mesmo valor. Quem
+> conhecer ou adivinhar um `_id` consegue agir como esse utilizador. Foi útil
+> para testar os endpoints à mão, mas não pode chegar a produção — ver
+> [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md).
+
 ---
 
 ## 📁 Estrutura
@@ -127,7 +134,7 @@ financeflow/
 │   └── ui/                     ← KpiCard, TransactionRow, ToastContainer
 ├── composables/
 │   ├── useDocumentScan.ts      ← Captura (câmara nativa) + envio do documento para o scan
-│   ├── useFormatters.ts        ← Moeda, datas, percentagens (PT-PT)
+│   ├── useFormatters.ts        ← Moeda, datas, percentagens e rentabilidade (PT-PT)
 │   ├── useInvestments.ts       ← Registo de investimentos (/api/investments)
 │   ├── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
 │   ├── usePlatform.ts          ← isNative/isAndroid/isWeb (Capacitor)
@@ -155,13 +162,19 @@ financeflow/
 │   │   ├── stats/          ← overview, categories, advanced (Pro+)
 │   │   ├── predictions/    ← dados agregados para o modelo ML
 │   │   ├── subscription/   ← estado, checkout/webhook EasyPay, cron de expiração
-│   │   ├── insights/       ← stats.post (Pro+), investment.post (Premium),
+│   │   ├── insights/       ← stats.post (Pro+), investment.post (Premium, gera dicas)
+│   │   │                      + investment.get (lê a cache, sem chamar a IA),
 │   │   │                      market-snapshot.post (cron diário)
+│   │   ├── investments/    ← registo de investimentos (Premium): index (GET lista +
+│   │   │                      resumo, POST), [id] (PUT parcial, DELETE)
 │   │   └── investor-profile/  ← questionário de perfil de investidor (GET/POST)
 │   ├── models/index.ts     ← Mongoose: User (+ subscription, investorProfile),
 │   │                          Category, TransactionGroup, Transaction,
-│   │                          MarketSnapshot, AiInsightCache, DocumentScanUsage
-│   ├── plugins/mongoose.ts ← Ligação MongoDB via Nitro plugin
+│   │                          MarketSnapshot, AiInsightCache, DocumentScanUsage,
+│   │                          Investment, InvestmentTipsCache
+│   ├── middleware/00-db.ts ← Espera a ligação MongoDB antes de cada rota /api
+│   ├── plugins/mongoose.ts ← Inicia a ligação MongoDB ao arrancar (o Nitro não
+│   │                          espera por plugins — ver utils/db.ts)
 │   └── utils/
 │       ├── auth.ts              ← requireAuth, sanitizeId
 │       ├── requireFeature.ts    ← enforcement server-side por tier (403 se bloqueado)
@@ -170,8 +183,13 @@ financeflow/
 │       ├── anthropic.ts         ← wrapper Messages API (structured outputs, imagem/PDF)
 │       ├── documentScan.ts      ← tipo real do ficheiro (magic bytes) + teto mensal atómico
 │       ├── marketData.ts        ← wrapper Twelve Data Quote API
-│       └── investorProfile.ts   ← validade do perfil (renovação anual)
+│       ├── investorProfile.ts   ← validade do perfil (renovação anual)
+│       ├── db.ts                ← ligação MongoDB partilhada e memorizada (ensureDb)
+│       ├── investments.ts       ← validação manual + serialização do registo de investimentos
+│       ├── portfolio.ts         ← resumo do portfolio para a IA (só agregados)
+│       └── investmentTips.ts    ← dicas de investimento: contexto, prompt, cache por hash
 ├── shared/features.ts          ← Fonte única da matriz de features por tier
+├── shared/portfolio.ts         ← Fonte única do cálculo de rentabilidade (servidor, UI e IA)
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
 ├── scripts/
@@ -268,10 +286,15 @@ agregados já calculados no servidor:
   pedido por utilizador). **Nunca recomenda ativos/tickers específicos** —
   secção estritamente educativa por perfil de risco, com disclaimer fixo
   ("não é aconselhamento financeiro") sempre visível, por decisão de
-  produto face ao risco regulatório (CMVM).
+  produto face ao risco regulatório (CMVM). Desde a Fase 6 as dicas são
+  geradas por botão (não a cada visita), com cache por utilizador
+  (`InvestmentTipsCache`, invalidada quando o perfil, o portfolio ou o mercado
+  mudam, ou passadas 24 h), e podem opcionalmente ter em conta um resumo
+  agregado do portfolio — ver [Registo de investimentos](#-registo-de-investimentos).
 
 Detalhe completo em
-[`context/features/03-FASE-3-insights-ia.md`](context/features/03-FASE-3-insights-ia.md).
+[`context/features/03-FASE-3-insights-ia.md`](context/features/03-FASE-3-insights-ia.md) e
+[`context/features/06-FASE-6-registo-investimentos.md`](context/features/06-FASE-6-registo-investimentos.md).
 
 ---
 
@@ -300,7 +323,8 @@ depois de preencher o perfil de investidor (Fase 3).
   resumo **agregado** da carteira (totais, peso por classe de ativo,
   concentração) — nunca nomes nem valores por posição. Só ligar em produção
   depois de validação jurídica (ver a especificação). As dicas passam a ter
-  cache e a página só as mostra/gera por botão, em vez de gerar uma a cada visita.
+  cache e a página só as mostra/gera por botão, em vez de gerar uma a cada visita
+  (`GET /api/insights/investment` lê a cache sem chamar a Anthropic; `POST` gera).
 - **API**: `GET/POST /api/investments`, `PUT/DELETE /api/investments/:id` (todas
   com `requireFeature('investmentTracker')`; um id de outro utilizador dá 404).
 
@@ -449,6 +473,19 @@ nunca liga no URL de produção por default). **Falta ainda** ativar
 `android/app/src/main/AndroidManifest.xml` — não é gerado a partir do
 `capacitor.config.ts`, e **tem de voltar a `"false"` antes de qualquer build
 de release** (ver aviso em "Permissões" abaixo).
+
+Notas práticas:
+
+- Com mais de um dispositivo em `adb devices` (ex. um emulador `offline`), o
+  `adb` recusa os comandos com "more than one device" — usar
+  `adb -s <serial> reverse ...`, `adb -s <serial> install ...`.
+- A porta do `adb reverse` e do `CAPACITOR_SERVER_URL` tem de ser a do dev
+  server (`3000` por omissão; com `--port 3100`, `tcp:3100` e
+  `http://localhost:3100`).
+- Se o APK de debug já está instalado e o `capacitor.config.json` já aponta para
+  o dev server, alterações de código **não** exigem recompilar: a app é só uma
+  casca sobre o dev server. Basta o dev server a correr e o `adb reverse` ativo
+  (que se perde quando o cabo desliga).
 
 Problemas comuns: ligação USB instável (`adb kill-server && adb start-server`
 + reautorizar no telemóvel), `npx cap run android` falha a validar

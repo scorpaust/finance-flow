@@ -87,11 +87,16 @@ uma cobrança MB WAY à espera da confirmação push do cliente.
 | Estatísticas avançadas (gráficos completos) | básico | ✅ | ✅ |
 | Exportar CSV | ❌ | ✅ | ✅ |
 | Previsões IA / ML (ConvNeXt-1D) | ❌ | ❌ | ✅ |
+| Interpretação de estatísticas com IA (Fase 3) | ❌ | ✅ | ✅ |
+| Digitalizar recibos/faturas com IA (Fase 5; teto mensal de documentos: Pro 30, Premium 100) | ❌ | ✅ | ✅ |
+| Registo de investimentos (Fase 6) | ❌ | ❌ | ✅ |
+| Dicas de investimento com IA (Fase 3) | ❌ | ❌ | ✅ |
 | Suporte prioritário / extras futuros | ❌ | ❌ | ✅ |
 
 Esta tabela é a **fonte de verdade** e deve existir no código como um objeto
 único partilhado entre client e server (ex. `shared/features.ts`) — nunca
-duplicar a lógica em dois sítios.
+duplicar a lógica em dois sítios. Em caso de divergência entre esta tabela e o
+código, prevalece `shared/features.ts` (`FEATURE_MATRIX` e `TIER_LIMITS`).
 
 ## 4. Arquitetura de feature gating
 

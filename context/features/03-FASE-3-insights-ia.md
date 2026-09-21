@@ -3,6 +3,16 @@
 > Pré-requisito: Fase 2 concluída (o sistema de subscrições e o
 > `requireFeature`/`hasFeature` já têm de existir — esta fase só acrescenta
 > features gated aos planos já criados). Ler `00-CODE-SPEC.md` secções 3 e 4.
+>
+> **Atualização de 2026-09-21**: a área `/investimento` foi estendida pela Fase 6
+> (`06-FASE-6-registo-investimentos.md`). O que a tarefa 5 descreve para
+> `pages/investimento/index.vue` mudou: a página é agora um hub com o registo de
+> investimentos primeiro e as dicas por baixo; as dicas **deixaram de ser geradas
+> ao abrir a página** (botão "Gerar dicas", com cache por utilizador invalidada
+> por `inputHash` ou passadas 24 h, e um `GET /api/insights/investment` que lê a
+> cache sem chamar a Anthropic); e a lógica de `investment.post.ts` passou para
+> `server/utils/investmentTips.ts`. Prompt, disclaimer hardcoded e a regra de
+> nunca recomendar ativos específicos mantêm-se.
 
 ## Decisões de arquitetura tomadas (não reabrir sem motivo forte)
 

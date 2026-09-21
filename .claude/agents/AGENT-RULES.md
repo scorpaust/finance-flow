@@ -38,7 +38,12 @@ qualquer alteração de código.
   processar qualquer evento, confirmando o recurso com um GET à API pelo
   `id` (nunca confiar no corpo recebido).
 - Nunca enviar descrições de transações em bruto à API da Anthropic (Fase
-  3) — só agregados/números já calculados no servidor.
+  3) — só agregados/números já calculados no servidor. O mesmo vale para o
+  portfolio de investimentos (Fase 6): nunca nomes de posições, valores por
+  posição nem datas — só o resumo agregado de `server/utils/portfolio.ts`.
+- Nunca devolver ao client o corpo de um erro de um fornecedor externo
+  (Anthropic, EasyPay, Twelve Data) — registar no log e devolver uma mensagem
+  genérica.
 
 ## Git e commits
 

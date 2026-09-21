@@ -21,6 +21,13 @@ produto).
 ## Tarefas
 
 ### 1. Assinatura e build Android
+- [ ] **Reverter `android:usesCleartextTraffic` para `"false"`** em
+      `android/app/src/main/AndroidManifest.xml` — está `"true"` desde a Fase 3,
+      ligado só para testar a app por USB contra o dev server local (decisão do
+      utilizador de deixar para esta fase). Confirmar também que o build de
+      release **não** usa `CAPACITOR_SERVER_URL` (que liga `cleartext` e
+      `allowMixedContent` em `capacitor.config.ts`) e que aponta para o URL
+      HTTPS de produção
 - [ ] Gerar keystore de produção e guardar em local seguro (nunca no
       repositório) — documentar processo de backup da chave (perda da chave
       impede atualizações futuras da app)
@@ -33,7 +40,7 @@ produto).
 - [ ] Screenshots em pelo menos telemóvel e tablet, ícone de alta resolução,
       banner de destaque
 - [ ] Classificação de conteúdo (questionário da Play Console)
-- [ ] Política de privacidade (link obrigatório, produzido na Fase 4)
+- [ ] Política de privacidade (link obrigatório, produzido na Fase 8)
 
 ### 3. Programa de pagamentos externos (Google Play / EEA)
 - [ ] Confirmar aprovação do pedido de inscrição no programa de pagamentos
@@ -63,7 +70,16 @@ produto).
       credenciais de produção (não sandbox)
 - [ ] Confirmar que o webhook EasyPay aponta para o endpoint de produção
 
-### 6. Verificação pós-lançamento
+### 6. Pré-condições de produto e legais
+- [ ] Dicas de investimento com portfolio: `INVESTMENT_TIPS_INCLUDE_PORTFOLIO`
+      fica `false` em produção **salvo** validação jurídica feita (ver Fase 6,
+      decisão 8). Se for ligada, a política de privacidade menciona que resumos
+      agregados da carteira (sem nomes de posições) são enviados à Anthropic
+- [ ] Conta Anthropic com créditos e um limite de gasto definido antes de expor
+      as funcionalidades de IA (Fases 3, 5 e 6) — sem créditos os pedidos falham
+      com 502
+
+### 7. Verificação pós-lançamento
 - [ ] Monitorizar Sentry/logs nas primeiras 48h após publicação
 - [ ] Validar que uma subscrição real (ou de teste com cartão real de baixo
       valor, se aplicável) reflete corretamente o tier no perfil do

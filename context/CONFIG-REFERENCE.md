@@ -95,3 +95,5 @@ projeto (ver `pages/subscription/index.vue`).
 - [ ] `.env.example` reflete todas as variáveis desta tabela
 - [ ] Nenhuma chave **live**/produção em ambiente de desenvolvimento
 - [ ] Nenhuma chave de teste em ambiente de produção
+- [ ] `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` está `false` (ou ausente) em produção, salvo validação jurídica feita
+- [ ] `android:usesCleartextTraffic="false"` e sem `CAPACITOR_SERVER_URL` no build de release Android

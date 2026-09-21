@@ -80,10 +80,18 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
       e emails/notificações (se existirem a essa altura)
 - [ ] Prioridade de extração: 1) autenticação/dashboard, 2) transações/
       categorias/grupos, 3) subscrição/checkout/paywall, 4) previsões/
-      insights de IA (Fase 3), 5) resto
+      insights de IA (Fase 3), 5) registo de investimentos (Fase 6), 6) resto
 - [ ] Datas, moeda e números formatados com `Intl`/`date-fns` já
       localizados por idioma ativo (`useFormatters` já existe — adaptar
-      para receber o locale em vez de assumir PT-PT fixo)
+      para receber o locale em vez de assumir PT-PT fixo; inclui os
+      `formatReturnPct` e `formatSignedCurrency` da Fase 6, que hoje fixam
+      `pt-PT`)
+- [ ] Texto do lado do servidor da Fase 6: mensagens de erro de
+      `/api/investments` (formato `Campo: motivo`), rótulos de classe de ativo
+      (`ASSET_CLASS_LABEL` em `shared/portfolio.ts`) e o prompt e o
+      **disclaimer** das dicas de investimento (`server/utils/investmentTips.ts`,
+      hardcoded em PT-PT). O disclaimer traduzido para cada língua deve ser
+      **revisto juridicamente**, não só traduzido
 - [ ] Tradução das 6 línguas — rever qualidade (não confiar só em tradução
       automática para o texto final, especialmente termos financeiros)
 

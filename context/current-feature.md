@@ -984,3 +984,36 @@ recomendação específica de compra/venda.
   na Fase 8). Próxima fase: 7 — Internacionalização (a secção 6 dessa fase trata
   ainda os documentos estrangeiros da Fase 5; as strings novas de
   `/investimento` entram na auditoria de extração).
+- 2026-09-22: Documentação atualizada a pedido do utilizador, depois do merge da
+  Fase 6 (sem alterações de código):
+  - `README.md`: estrutura de pastas (API `investments/`, `investment.get`, modelos
+    `Investment`/`InvestmentTipsCache`, `middleware/00-db.ts`, `utils/db.ts`,
+    `investments.ts`, `portfolio.ts`, `investmentTips.ts`, `shared/portfolio.ts`),
+    secção "Insights com IA" (dicas por botão, com cache), nota sobre o `GET` que
+    lê a cache, uma limitação conhecida de autenticação (cookie/header `x-user-id`
+    sem assinatura) e notas práticas do teste por USB (`adb -s` com vários
+    dispositivos, porta do `adb reverse`, quando não é preciso recompilar).
+  - `context/00-CODE-SPEC.md`: a matriz de features passa a incluir as
+    funcionalidades das Fases 3, 5 e 6 (que só existiam em `shared/features.ts`),
+    com a indicação de que o código prevalece em caso de divergência.
+  - `03-FASE-3-insights-ia.md`: nota a explicar o que a Fase 6 mudou na tarefa 5
+    (página como hub, dicas por botão, cache, lógica em `investmentTips.ts`).
+  - `07-FASE-7-internacionalizacao.md`: passam a estar na auditoria de extração o
+    registo de investimentos, os formatadores novos (`formatReturnPct`,
+    `formatSignedCurrency`, que fixam `pt-PT`) e o texto de servidor da Fase 6, com
+    o disclaimer legal a exigir revisão jurídica por idioma.
+  - `08-FASE-8-seguranca-qualidade.md`: acrescentados os achados desta fase que
+    ainda estavam só no histórico — sessão sem assinatura e autenticação por header
+    `x-user-id` (crítico), detalhe de erros da Anthropic exposto ao client, índices
+    do Mongoose nunca criados, aviso de hidratação no Android, e os testes
+    pedidos para `shared/portfolio.ts`, `/api/investments`, cache das dicas e o
+    middleware da BD; mais dois critérios de aceitação.
+  - `09-FASE-9-publicacao.md`: o bloqueador `usesCleartextTraffic="true"` (que só
+    estava no README e neste ficheiro) passa a ser uma tarefa da fase; corrigida a
+    referência à política de privacidade (é da Fase 8, não da 4); nova secção de
+    pré-condições (flag `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` desligada sem validação
+    jurídica, conta Anthropic com créditos e limite de gasto).
+  - `context/CONFIG-REFERENCE.md` e `.claude/agents/AGENT-RULES.md`: checklist de
+    deploy com a flag e o cleartext; regra de nunca enviar nomes/valores por
+    posição do portfolio à Anthropic e de nunca devolver ao client o corpo de
+    erros de fornecedores externos.

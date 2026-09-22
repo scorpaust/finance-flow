@@ -2,6 +2,7 @@ import { Investment } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 import { parseInvestmentCreate, toInvestmentDto } from '../../utils/investments'
 import { MAX_INVESTMENTS_PER_USER, summarizePortfolio } from '../../../shared/portfolio'
+import { getServerLocale, serverT } from '../../utils/i18n'
 
 // Registo de investimentos (Fase 6) — lista + resumo, e criação. Ver
 // context/features/06-FASE-6-registo-investimentos.md. Gated no servidor com
@@ -10,6 +11,7 @@ import { MAX_INVESTMENTS_PER_USER, summarizePortfolio } from '../../../shared/po
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'investmentTracker')
   const method = getMethod(event)
+  const locale = getServerLocale(event)
 
   if (method === 'GET') {
     const docs = await Investment.find({ userId }).sort({ initialDate: -1, _id: -1 }).lean()
@@ -18,14 +20,14 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'POST') {
-    const fields = parseInvestmentCreate(await readBody(event))
+    const fields = parseInvestmentCreate(locale, await readBody(event))
 
     // Teto fixo de segurança (não é um limite de plano).
     const count = await Investment.countDocuments({ userId })
     if (count >= MAX_INVESTMENTS_PER_USER) {
       throw createError({
         statusCode: 400,
-        message: `Chegaste ao limite de ${MAX_INVESTMENTS_PER_USER} investimentos registados`,
+        message: serverT(locale, 'investments.limitReached', { limit: MAX_INVESTMENTS_PER_USER }),
         data: { error: 'investment_limit' },
       })
     }

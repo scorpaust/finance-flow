@@ -6,18 +6,18 @@
       <Clock v-else class="w-6 h-6 text-amber-400" />
     </div>
     <h2 class="font-display font-bold text-xl text-white">
-      {{ confirming ? 'A confirmar pagamento...' : outcome === 'active' ? 'Pagamento confirmado!' : 'Pagamento pendente' }}
+      {{ confirming ? t('subscriptionReturn.confirmingTitle') : outcome === 'active' ? t('subscriptionReturn.confirmedTitle') : t('subscriptionReturn.pendingTitle') }}
     </h2>
     <p class="text-white/50 text-sm">
       {{
         confirming
-          ? 'A EasyPay está a notificar-nos da confirmação — pode demorar alguns segundos.'
+          ? t('subscriptionReturn.confirmingDesc')
           : outcome === 'active'
-            ? 'O teu plano já está ativo.'
-            : 'Ainda não recebemos a confirmação final. Se escolheste Multibanco, a referência para pagar aparece na página da subscrição assim que for gerada.'
+            ? t('subscriptionReturn.confirmedDesc')
+            : t('subscriptionReturn.pendingDesc')
       }}
     </p>
-    <button class="btn-primary" type="button" @click="navigateTo('/subscription')">Ver subscrição</button>
+    <button class="btn-primary" type="button" @click="navigateTo('/subscription')">{{ t('subscriptionReturn.viewSubscription') }}</button>
   </div>
 </template>
 
@@ -26,6 +26,7 @@ import { Loader2, Check, Clock } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default' })
 
+const { t } = useI18n()
 const sub = useSubscription()
 const confirming = ref(true)
 const outcome = ref<'active' | 'pending'>('pending')

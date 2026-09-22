@@ -14,6 +14,7 @@ const props = defineProps<{
   data: Array<{ month: string; income: number; expense: number }>
   loading?: boolean
 }>()
+const { t } = useI18n()
 const { formatCurrency, formatMonthYear } = useFormatters()
 const chartData = computed(() => {
   if (!props.data?.length) return null
@@ -21,14 +22,14 @@ const chartData = computed(() => {
     labels: props.data.map(m => formatMonthYear(m.month)),
     datasets: [
       {
-        label: 'Receitas',
+        label: t('charts.income'),
         data: props.data.map(m => m.income),
         backgroundColor: 'rgba(52,211,153,0.75)',
         borderRadius: 6,
         borderSkipped: false,
       },
       {
-        label: 'Despesas',
+        label: t('charts.expense'),
         data: props.data.map(m => m.expense),
         backgroundColor: 'rgba(251,113,133,0.75)',
         borderRadius: 6,

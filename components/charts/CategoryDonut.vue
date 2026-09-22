@@ -6,7 +6,7 @@
         <ChartEmpty v-else-if="!loading && !categories?.length" />
         <ChartSkeleton v-else-if="loading" />
         <div v-if="!loading && chartData" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <p class="text-white/40 text-xs">Total</p>
+          <p class="text-white/40 text-xs">{{ t('charts.total') }}</p>
           <p class="text-white font-bold text-sm">{{ formatCompact(total) }}</p>
         </div>
       </div>
@@ -32,6 +32,7 @@ const props = defineProps<{
   categories: Array<{ _id: string; name: string; icon: string; color: string; total: number }>
   loading?: boolean
 }>()
+const { t } = useI18n()
 const { formatCompact } = useFormatters()
 const total = computed(() => props.categories?.reduce((s, c) => s + c.total, 0) ?? 0)
 const chartData = computed(() => {

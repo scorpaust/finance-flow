@@ -37,7 +37,9 @@ export default defineEventHandler(async (event) => {
     type: t.type,
     description: t.description,
     category: t.categoryId?.name || '',
-    amount: t.amount,
+    amount: t.amount, // sempre em € (ver server/utils/transactionCurrency.ts)
+    currency: t.currency || 'EUR',
+    originalAmount: t.originalAmount ?? '',
     tags: t.tags || [],
   }))
 })

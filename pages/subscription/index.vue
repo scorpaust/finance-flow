@@ -2,33 +2,33 @@
   <div class="space-y-6 animate-fade-in max-w-3xl">
     <div>
       <button class="btn-secondary text-sm py-2 px-4 mb-4 flex items-center gap-2" type="button" @click="navigateTo('/')">
-        <ArrowLeft class="w-4 h-4" /> Voltar ao dashboard
+        <ArrowLeft class="w-4 h-4" /> {{ t('common.backToDashboard') }}
       </button>
-      <h2 class="font-display font-bold text-2xl text-white">Subscrição</h2>
-      <p class="text-white/40 text-xs mt-1">Escolhe um plano e a forma de pagamento (via EasyPay)</p>
+      <h2 class="font-display font-bold text-2xl text-white">{{ t('subscription.title') }}</h2>
+      <p class="text-white/40 text-xs mt-1">{{ t('subscription.subtitle') }}</p>
     </div>
 
     <!-- Current status -->
     <div class="glass-card rounded-3xl p-6">
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <p class="text-white/40 text-xs">Plano atual</p>
+          <p class="text-white/40 text-xs">{{ t('subscription.currentPlan') }}</p>
           <p class="text-white font-bold text-lg">{{ TIER_LABEL[currentTier] }}</p>
           <p v-if="currentBillingMode === 'auto' && currentStatus === 'active'" class="text-white/40 text-xs mt-1">
-            Auto-renovação ativa ({{ currentPaymentMethod === 'cc' ? 'Cartão' : 'Débito Direto' }}){{
-              currentPeriodEnd ? ` · próxima cobrança ${formatDate(currentPeriodEnd)}` : ''
+            {{ t('subscription.autoRenewActive', { method: currentPaymentMethod === 'cc' ? t('subscription.methodCard') : t('subscription.methodDirectDebit') }) }}{{
+              currentPeriodEnd ? t('subscription.nextCharge', { date: formatDate(currentPeriodEnd) }) : ''
             }}
           </p>
           <p v-else-if="currentBillingMode === 'auto' && currentStatus === 'canceled'" class="text-amber-400 text-xs mt-1">
-            Auto-renovação cancelada · acesso até {{ currentPeriodEnd ? formatDate(currentPeriodEnd) : '—' }}, depois passa a Gratuito
+            {{ t('subscription.autoRenewCanceled', { date: currentPeriodEnd ? formatDate(currentPeriodEnd) : t('subscription.noDate') }) }}
           </p>
           <p v-else-if="currentBillingMode === 'push_confirm'" class="text-white/40 text-xs mt-1">
-            MB WAY (pago por período){{ currentStatus === 'pending' ? ' · a aguardar confirmação na app MB WAY' : '' }}{{
-              currentPeriodEnd ? ` · expira ${formatDate(currentPeriodEnd)}` : ''
+            {{ t('subscription.mbwayPaidPeriod') }}{{ currentStatus === 'pending' ? t('subscription.mbwayPendingConfirm') : '' }}{{
+              currentPeriodEnd ? t('subscription.expiresOn', { date: formatDate(currentPeriodEnd) }) : ''
             }}
           </p>
           <p v-else-if="currentBillingMode === 'manual_reference'" class="text-white/40 text-xs mt-1">
-            Multibanco (pago por período) · {{ currentPeriodEnd ? `expira ${formatDate(currentPeriodEnd)}` : 'sem período ativo' }}
+            {{ t('subscription.multibancoPaidPeriod') }} · {{ currentPeriodEnd ? t('subscription.expiresOnPlain', { date: formatDate(currentPeriodEnd) }) : t('subscription.noActivePeriod') }}
           </p>
         </div>
         <button
@@ -38,7 +38,7 @@
           :disabled="canceling"
           @click="handleCancel"
         >
-          {{ canceling ? 'A cancelar...' : 'Cancelar auto-renovação' }}
+          {{ canceling ? t('subscription.cancelingAutoRenew') : t('subscription.cancelAutoRenew') }}
         </button>
         <button
           v-else-if="(currentBillingMode === 'push_confirm' || currentBillingMode === 'manual_reference') && currentStatus === 'pending'"
@@ -47,50 +47,49 @@
           :disabled="checkingPayment"
           @click="handleCheckPayment"
         >
-          {{ checkingPayment ? 'A verificar...' : 'Verificar pagamento' }}
+          {{ checkingPayment ? t('subscription.checkingPayment') : t('subscription.checkPayment') }}
         </button>
       </div>
     </div>
 
     <!-- Referência Multibanco por pagar -->
     <div v-if="multibancoReference" class="glass-card rounded-3xl p-6 border border-amber-500/30">
-      <p class="text-white font-semibold">Tens uma referência Multibanco por pagar</p>
+      <p class="text-white font-semibold">{{ t('subscription.pendingReferenceTitle') }}</p>
       <p class="text-white/50 text-sm mt-2">
-        Entidade <span class="font-mono text-brand-300">{{ multibancoEntity }}</span> · Referência
+        {{ t('subscription.entity') }} <span class="font-mono text-brand-300">{{ multibancoEntity }}</span> · {{ t('subscription.reference') }}
         <span class="font-mono text-brand-300">{{ multibancoReference }}</span>
       </p>
       <p class="text-white/40 text-xs mt-1">
-        {{ multibancoExpiresAt ? `Válida até ${formatDate(multibancoExpiresAt)}.` : '' }} Paga no ATM ou homebanking — o plano
-        atualiza automaticamente assim que confirmarmos o pagamento.
+        {{ multibancoExpiresAt ? t('subscription.validUntil', { date: formatDate(multibancoExpiresAt) }) : '' }} {{ t('subscription.payAtAtm') }}
       </p>
     </div>
 
     <!-- Plans -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div
-        v-for="t in SUBSCRIPTION_TIERS"
-        :key="t"
+        v-for="tierOption in SUBSCRIPTION_TIERS"
+        :key="tierOption"
         class="glass-card rounded-3xl p-5 border-2 transition-all cursor-pointer"
-        :class="selectedTier === t ? 'border-brand-500' : 'border-transparent hover:border-white/10'"
-        @click="selectedTier = t"
+        :class="selectedTier === tierOption ? 'border-brand-500' : 'border-transparent hover:border-white/10'"
+        @click="selectedTier = tierOption"
       >
-        <p class="font-semibold text-white">{{ TIER_LABEL[t] }}</p>
+        <p class="font-semibold text-white">{{ TIER_LABEL[tierOption] }}</p>
         <p class="text-2xl font-bold text-brand-300 mt-1">
-          {{ TIER_PRICE_EUR[t].toFixed(2).replace('.', ',') }} €<span class="text-xs text-white/40 font-normal">/mês</span>
+          {{ TIER_PRICE_EUR[tierOption].toFixed(2).replace('.', ',') }} €<span class="text-xs text-white/40 font-normal">{{ t('subscription.perMonth') }}</span>
         </p>
         <ul class="mt-3 space-y-1.5 text-xs text-white/50">
-          <li v-for="f in planFeatures[t]" :key="f" class="flex items-start gap-1.5">
+          <li v-for="f in planFeatures[tierOption]" :key="f" class="flex items-start gap-1.5">
             <Check class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" /> {{ f }}
           </li>
         </ul>
-        <p v-if="t === currentTier" class="text-emerald-400 text-xs font-semibold mt-3">Plano atual</p>
+        <p v-if="tierOption === currentTier" class="text-emerald-400 text-xs font-semibold mt-3">{{ t('subscription.currentPlanBadge') }}</p>
       </div>
     </div>
 
     <!-- Payment method -->
     <div v-if="selectedTier !== 'free' && selectedTier !== currentTier" class="glass-card rounded-3xl p-6 space-y-5">
       <div>
-        <label class="form-label">Método de pagamento</label>
+        <label class="form-label">{{ t('subscription.paymentMethodLabel') }}</label>
         <div class="grid grid-cols-2 gap-2 mt-1.5">
           <button
             v-for="m in METHODS"
@@ -110,7 +109,7 @@
            dois permite renovação automática sem ação manual a cada ciclo —
            decisão de 2026-09-19). -->
       <div v-if="selectedMethod === 'mbway' || selectedMethod === 'multibanco'">
-        <label class="form-label">Período</label>
+        <label class="form-label">{{ t('subscription.periodLabel') }}</label>
         <div class="flex gap-2 flex-wrap mt-1.5">
           <button
             v-for="p in PERIODS"
@@ -120,17 +119,17 @@
             type="button"
             @click="periodMonths = p"
           >
-            {{ p }} {{ p === 1 ? 'mês' : 'meses' }}
+            {{ p }} {{ p === 1 ? t('subscription.month') : t('subscription.months') }}
           </button>
         </div>
       </div>
 
       <p class="text-white/50 text-sm text-center">
         <template v-if="selectedMethod === 'mbway' || selectedMethod === 'multibanco'">
-          Total: <span class="text-brand-300 font-bold">{{ prepaidTotal }} €</span>
-          ({{ periodMonths }} × {{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €, sem renovação automática)
+          {{ t('subscription.totalLabel') }}: <span class="text-brand-300 font-bold">{{ prepaidTotal }} €</span>
+          ({{ periodMonths }} × {{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €, {{ t('subscription.totalSuffix') }}
         </template>
-        <template v-else>{{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €/mês</template>
+        <template v-else>{{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €{{ t('subscription.perMonth') }}</template>
       </p>
 
       <button
@@ -139,15 +138,15 @@
         :disabled="submitting"
         @click="beginCheckout"
       >
-        {{ submitting ? 'A abrir EasyPay...' : 'Continuar' }}
+        {{ submitting ? t('subscription.openingEasyPay') : t('subscription.continueButton') }}
       </button>
     </div>
 
     <!-- MB WAY: à espera de confirmação no telemóvel -->
     <div v-if="mbwayWaiting" class="glass-card rounded-3xl p-6 text-center border border-brand-500/30">
       <Loader2 class="w-6 h-6 text-brand-400 animate-spin mx-auto mb-3" />
-      <p class="text-white font-semibold">Confirma o pagamento na app MB WAY</p>
-      <p class="text-white/40 text-sm mt-1">Vais receber uma notificação no telemóvel associado à tua conta.</p>
+      <p class="text-white font-semibold">{{ t('subscription.mbwayWaitingTitle') }}</p>
+      <p class="text-white/40 text-sm mt-1">{{ t('subscription.mbwayWaitingHint') }}</p>
     </div>
 
     <!-- Elemento anfitrião do formulário EasyPay Checkout (modo inline — o
@@ -179,6 +178,7 @@ const toast = useToastStore()
 const sub = useSubscription()
 const platform = usePlatform()
 const route = useRoute()
+const { t, locale } = useI18n()
 
 const currentTier = sub.tier
 const currentStatus = sub.status
@@ -192,18 +192,39 @@ const multibancoExpiresAt = sub.multibancoExpiresAt
 const selectedTier = ref<SubscriptionTier>((route.query.tier as SubscriptionTier) || 'pro')
 
 type Method = 'cc' | 'dd' | 'mbway' | 'multibanco'
-const METHODS: { value: Method; label: string }[] = [
-  { value: 'cc', label: 'Cartão' },
-  { value: 'dd', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB WAY' },
-  { value: 'multibanco', label: 'Multibanco' },
-]
-const METHOD_DESCRIPTION: Record<Method, string> = {
-  cc: 'Renovação automática mensal — sem ação da tua parte a cada ciclo.',
-  dd: 'Renovação automática mensal via mandato de débito direto — IBAN e dados do mandato são pedidos no formulário seguinte, pela própria EasyPay.',
-  mbway: 'Pagamento único do período escolhido, confirmado com uma notificação push na app MB WAY. Sem renovação automática.',
-  multibanco: 'Pagamento único do período escolhido, através de uma referência para pagar no ATM ou homebanking. Sem renovação automática.',
-}
+const ALL_METHODS = computed<{ value: Method; label: string }[]>(() => [
+  { value: 'cc', label: t('subscription.methodCC') },
+  { value: 'dd', label: t('subscription.methodDD') },
+  { value: 'mbway', label: t('subscription.methodMBWAY') },
+  { value: 'multibanco', label: t('subscription.methodMultibanco') },
+])
+
+// Fase 7, tarefa 4 — só mostra MB WAY/Multibanco quando o país detetado do
+// utilizador (geolocalização de IP, nunca a preferência de idioma da UI) os
+// tem disponíveis; hoje só Portugal (ver shared/paymentMethods.ts). Esconder
+// aqui é só UX — o servidor (create-prepaid.post.ts) volta a validar sempre,
+// mesmo que este pedido falhe ou a lista chegue vazia.
+const availablePrepaidMethods = ref<string[]>([])
+const METHODS = computed(() =>
+  ALL_METHODS.value.filter((m) => m.value === 'cc' || m.value === 'dd' || availablePrepaidMethods.value.includes(m.value))
+)
+
+onMounted(async () => {
+  try {
+    const r = await $fetch<{ prepaidMethods: string[] }>('/api/subscription/payment-methods')
+    availablePrepaidMethods.value = r.prepaidMethods
+  } catch {
+    // País desconhecido/erro de geolocalização → trata como "sem métodos
+    // pré-pagos locais", igual a qualquer país fora de Portugal.
+    availablePrepaidMethods.value = []
+  }
+})
+const METHOD_DESCRIPTION = computed<Record<Method, string>>(() => ({
+  cc: t('subscription.descCC'),
+  dd: t('subscription.descDD'),
+  mbway: t('subscription.descMBWAY'),
+  multibanco: t('subscription.descMultibanco'),
+}))
 const selectedMethod = ref<Method>('cc')
 const PERIODS = [1, 3, 6, 12] as const
 const periodMonths = ref<(typeof PERIODS)[number]>(1)
@@ -216,14 +237,15 @@ const mbwayWaiting = ref(false)
 const checkoutOpen = ref(false)
 const confirming = ref(false)
 
-const planFeatures: Record<SubscriptionTier, string[]> = {
-  free: ['Dashboard e KPIs básicos', 'Até 50 transações/mês', '2 categorias personalizadas'],
-  pro: ['Transações e categorias ilimitadas', 'Grupos e orçamentos', 'Estatísticas avançadas', 'Exportar CSV'],
-  premium: ['Tudo do Pro', 'Previsões com IA (ConvNeXt-1D)', 'Suporte prioritário'],
-}
+const planFeatures = computed<Record<SubscriptionTier, string[]>>(() => ({
+  free: [t('subscription.planFreeF1'), t('subscription.planFreeF2'), t('subscription.planFreeF3')],
+  pro: [t('subscription.planProF1'), t('subscription.planProF2'), t('subscription.planProF3'), t('subscription.planProF4')],
+  premium: [t('subscription.planPremiumF1'), t('subscription.planPremiumF2'), t('subscription.planPremiumF3')],
+}))
 
+const { intlLocale } = useLocaleFormat()
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-PT')
+  return new Date(iso).toLocaleDateString(intlLocale.value)
 }
 
 // A EasyPay Checkout não redireciona para fora da app — o SDK
@@ -241,8 +263,15 @@ function formatDate(iso: string) {
 // fora do Google Play Billing (âmbito exato da tarefa 10, por confirmar).
 let checkoutInstance: { unmount: () => void } | null = null
 
+// Fase 7 — mapeia o locale ativo da app para um dos 3 idiomas que o SDK da
+// EasyPay aceita (ver comentário mais abaixo, em beginCheckout).
+const EASYPAY_LANGUAGE: Record<string, 'en' | 'pt_PT' | 'es_ES'> = {
+  'pt-PT': 'pt_PT',
+  es: 'es_ES',
+}
+
 async function beginCheckout() {
-  if (platform.isNative.value && !confirm('Vais completar o pagamento através da EasyPay. Continuar?')) {
+  if (platform.isNative.value && !confirm(t('subscription.confirmNativePayment'))) {
     return
   }
 
@@ -280,7 +309,9 @@ async function beginCheckout() {
       id: 'easypay-checkout',
       display: 'inline',
       testing: config.public.easypayTesting,
-      language: 'pt_PT',
+      // Fase 7 — o SDK da EasyPay só suporta "en", "pt_PT" e "es_ES"
+      // (confirmado via Context7, docs.easypay.pt); fr/de/it caem em inglês.
+      language: EASYPAY_LANGUAGE[locale.value] || 'en',
       onSuccess: async (checkoutInfo: unknown) => {
         console.log('[EasyPay] onSuccess checkoutInfo:', checkoutInfo)
         // Não fecha o painel já — o formulário da EasyPay às vezes mostra a
@@ -314,18 +345,18 @@ async function beginCheckout() {
         checkoutOpen.value = false
         checkoutInstance?.unmount()
         if (selectedMethod.value === 'mbway') mbwayWaiting.value = true
-        toast.success('Pagamento confirmado! Verifica o estado da subscrição abaixo.')
+        toast.success(t('subscription.toastPaymentConfirmedCheck'))
         pollUntilConfirmed()
       },
       onError: (error: { code: string }) => {
         submitting.value = false
         mbwayWaiting.value = false
         checkoutOpen.value = false
-        toast.error(`Erro no checkout EasyPay (${error.code})`)
+        toast.error(t('subscription.errorEasyPayCode', { code: error.code }))
         checkoutInstance?.unmount()
       },
       onPaymentError: () => {
-        toast.error('Pagamento falhou — podes tentar outro método no formulário.')
+        toast.error(t('subscription.toastPaymentFailed'))
       },
       onClose: () => {
         submitting.value = false
@@ -333,7 +364,7 @@ async function beginCheckout() {
       },
     })
   } catch (e: any) {
-    toast.error(e?.data?.message || e?.message || 'Erro ao iniciar pagamento EasyPay')
+    toast.error(e?.data?.message || e?.message || t('subscription.errorStartPayment'))
     submitting.value = false
     checkoutOpen.value = false
   }
@@ -343,7 +374,7 @@ async function pollUntilConfirmed() {
   for (let i = 0; i < 15; i++) {
     await sub.refresh()
     if (sub.tier.value === selectedTier.value) {
-      toast.success('Pagamento confirmado! 🎉')
+      toast.success(t('subscription.toastPaymentConfirmedCelebrate'))
       break
     }
     await new Promise((r) => setTimeout(r, 2000))
@@ -352,14 +383,14 @@ async function pollUntilConfirmed() {
 }
 
 async function handleCancel() {
-  if (!confirm('Cancelar a auto-renovação? Deixas de ser cobrado, mas o acesso ao plano mantém-se até ao fim do período já pago.')) return
+  if (!confirm(t('subscription.confirmCancelAutoRenew'))) return
   canceling.value = true
   try {
     await $fetch('/api/subscription/easypay/cancel', { method: 'POST' })
-    toast.success('Auto-renovação cancelada')
+    toast.success(t('subscription.toastAutoRenewCanceled'))
     await sub.refresh()
   } catch (e: any) {
-    toast.error(e?.data?.message || e?.message || 'Erro ao cancelar')
+    toast.error(e?.data?.message || e?.message || t('subscription.errorCancel'))
   } finally {
     canceling.value = false
   }
@@ -370,19 +401,19 @@ async function handleCheckPayment() {
   try {
     const r = await $fetch<{ status: string }>('/api/subscription/easypay/check-payment', { method: 'POST' })
     if (r.status === 'active') {
-      toast.success('Pagamento confirmado! 🎉')
+      toast.success(t('subscription.toastPaymentConfirmedCelebrate'))
     } else {
-      toast.info('Ainda não recebemos a confirmação do pagamento — tenta outra vez mais tarde.')
+      toast.info(t('subscription.toastPaymentNotYetConfirmed'))
     }
     await sub.refresh()
   } catch (e: any) {
-    toast.error(e?.data?.message || e?.message || 'Erro ao verificar o pagamento')
+    toast.error(e?.data?.message || e?.message || t('subscription.errorCheckPayment'))
   } finally {
     checkingPayment.value = false
   }
 }
 
 if (route.query.canceled) {
-  toast.info('Pagamento cancelado')
+  toast.info(t('subscription.toastPaymentCanceled'))
 }
 </script>

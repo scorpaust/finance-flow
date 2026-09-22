@@ -20,6 +20,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
+| **Internacionalização** | UI em 6 idiomas (PT-PT, EN, FR, DE, IT, ES), deteção automática por browser com override manual persistente; métodos de pagamento pré-pagos (MB WAY/Multibanco) só disponíveis para utilizadores geolocalizados em Portugal; recibos/faturas em moeda estrangeira convertidos para € à taxa do dia, com o valor e a moeda originais preservados — ver [Internacionalização](#-internacionalização) |
 | **PWA** | Instalável, offline-ready, manifest completo |
 | **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
 | **Responsivo** | Mobile-first, sidebar colapsável desktop, bottom nav mobile |
@@ -36,15 +37,17 @@ Chart.js        (via vue-chartjs, client-only)
 TensorFlow.js   (ConvNeXt-1D, browser-only)
 MongoDB         (Mongoose ODM)
 Pinia           (state management)
-date-fns v3     (formatação de datas)
+date-fns v3     (formatação de datas, localizada por idioma)
 VueUse          (useWindowSize, useDebounceFn)
 lucide-vue-next (ícones)
 @vite-pwa/nuxt  (PWA + Workbox)
 Capacitor       (app Android nativa a partir do mesmo código-base)
 EasyPay REST API (Checkout — subscrições, Cartão/Débito Direto/MB WAY/Multibanco)
 @easypaypt/checkout-sdk (formulário de pagamento embutido, client-side)
-Anthropic API   (claude-haiku-4-5 — interpretação de estatísticas e dicas de investimento)
-Twelve Data API (snapshot diário de mercados globais para as dicas de investimento)
+Anthropic API   (claude-haiku-4-5 — interpretação de estatísticas, dicas de investimento e digitalização de documentos)
+Twelve Data API (snapshot diário de mercados globais e câmbio para transações em moeda estrangeira)
+@nuxtjs/i18n    (traduções: pt-PT, en, fr, de, it, es)
+@maxmind/geoip2-node (GeoLite2-Country — geolocalização por IP para métodos de pagamento)
 ```
 
 ---
@@ -89,8 +92,9 @@ ver `.env.example` e a descrição de cada uma em
 | Grupo | Variáveis |
 |---|---|
 | Subscrições (EasyPay) | `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID`, `EASYPAY_API_KEY`, `SUBSCRIPTION_RENEWAL_REMINDER_DAYS`, `CRON_SECRET` |
-| Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (só as dicas de investimento) |
+| Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (dicas de investimento e câmbio de transações em moeda estrangeira) |
 | Dicas de investimento com portfolio | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (opcional, `false` por omissão — ver [Registo de investimentos](#-registo-de-investimentos)) |
+| Internacionalização | `GEOLITE2_DB_PATH` (opcional — sem ela, país fica sempre "desconhecido" e MB WAY/Multibanco ficam escondidos para todos; idioma da UI não depende de nenhuma variável) |
 
 Utilizadores existentes sem o campo `subscription` (pré-Fase-2) podem ser
 migrados para o plano `free` com:
@@ -118,6 +122,9 @@ A app usa autenticação **local** — sem OAuth externo. Regista uma conta dire
 ```
 financeflow/
 ├── assets/css/main.css         ← Glass morphism, animações, dark theme
+├── i18n/locales/                ← Traduções: pt-PT.json, en.json, fr.json, de.json,
+│                                    it.json, es.json (chaves organizadas por página/secção,
+│                                    paridade exata garantida entre as 6)
 ├── components/
 │   ├── charts/                 ← BalanceChart, BarChart, AreaChart,
 │   │                              CategoryDonut, HorizontalBar, ForecastChart,
@@ -134,7 +141,9 @@ financeflow/
 │   └── ui/                     ← KpiCard, TransactionRow, ToastContainer
 ├── composables/
 │   ├── useDocumentScan.ts      ← Captura (câmara nativa) + envio do documento para o scan
-│   ├── useFormatters.ts        ← Moeda, datas, percentagens e rentabilidade (PT-PT)
+│   ├── useFormatters.ts        ← Moeda, datas, percentagens e rentabilidade, localizados
+│   ├── useLocaleFormat.ts      ← Mapeia o locale ativo (@nuxtjs/i18n) para o locale do
+│   │                              date-fns e para a string Intl (moeda/números)
 │   ├── useInvestments.ts       ← Registo de investimentos (/api/investments)
 │   ├── useMLPrediction.ts      ← ConvNeXt-1D TF.js (client-only)
 │   ├── usePlatform.ts          ← isNative/isAndroid/isWeb (Capacitor)
@@ -150,10 +159,12 @@ financeflow/
 │   ├── predictions.vue         ← UI de treino IA + forecast (Premium)
 │   ├── subscription/           ← Planos, checkout EasyPay embutido, /return (polling pós-pagamento)
 │   ├── investimento/           ← Portfolio + perfil de investidor + dicas educativas IA (Premium)
-│   └── settings/               ← Perfil + gestão de categorias
+│   └── settings/               ← Perfil + gestão de categorias (inclui seletor de idioma)
 ├── plugins/
 │   ├── chartjs.client.ts             ← Registo global Chart.js (dark theme)
 │   ├── init.client.ts                ← Init auth store
+│   ├── locale.ts                     ← Deteção/persistência manual do idioma (cookie
+│   │                                    `financeflow_locale`) — ver nota em Internacionalização
 │   └── capacitor-back-button.client.ts ← Botão "voltar" Android
 ├── server/
 │   ├── api/
@@ -161,7 +172,8 @@ financeflow/
 │   │   ├── transactions/scan.post  ← digitalização de recibo/fatura com IA (Pro+)
 │   │   ├── stats/          ← overview, categories, advanced (Pro+)
 │   │   ├── predictions/    ← dados agregados para o modelo ML
-│   │   ├── subscription/   ← estado, checkout/webhook EasyPay, cron de expiração
+│   │   ├── subscription/   ← estado, checkout/webhook EasyPay, cron de expiração,
+│   │   │                      payment-methods.get (métodos pré-pagos por país detetado)
 │   │   ├── insights/       ← stats.post (Pro+), investment.post (Premium, gera dicas)
 │   │   │                      + investment.get (lê a cache, sem chamar a IA),
 │   │   │                      market-snapshot.post (cron diário)
@@ -169,8 +181,9 @@ financeflow/
 │   │   │                      resumo, POST), [id] (PUT parcial, DELETE)
 │   │   └── investor-profile/  ← questionário de perfil de investidor (GET/POST)
 │   ├── models/index.ts     ← Mongoose: User (+ subscription, investorProfile),
-│   │                          Category, TransactionGroup, Transaction,
-│   │                          MarketSnapshot, AiInsightCache, DocumentScanUsage,
+│   │                          Category, TransactionGroup, Transaction (+ currency/
+│   │                          originalAmount/exchangeRate), MarketSnapshot,
+│   │                          AiInsightCache (+ locale), DocumentScanUsage,
 │   │                          Investment, InvestmentTipsCache
 │   ├── middleware/00-db.ts ← Espera a ligação MongoDB antes de cada rota /api
 │   ├── plugins/mongoose.ts ← Inicia a ligação MongoDB ao arrancar (o Nitro não
@@ -187,9 +200,16 @@ financeflow/
 │       ├── db.ts                ← ligação MongoDB partilhada e memorizada (ensureDb)
 │       ├── investments.ts       ← validação manual + serialização do registo de investimentos
 │       ├── portfolio.ts         ← resumo do portfolio para a IA (só agregados)
-│       └── investmentTips.ts    ← dicas de investimento: contexto, prompt, cache por hash
+│       ├── investmentTips.ts    ← dicas de investimento: contexto, prompt, cache por hash+idioma
+│       ├── i18n.ts              ← getServerLocale/serverT — dicionário mínimo para
+│       │                           mensagens de erro do servidor (nunca todas as strings)
+│       ├── geo.ts               ← lookupCountry via MaxMind GeoLite2 (ver Internacionalização)
+│       ├── exchangeRates.ts     ← taxa de câmbio FROM→EUR via Twelve Data
+│       └── transactionCurrency.ts ← resolve o equivalente em € de uma transação
+│                                     em moeda estrangeira (nunca assume 1:1)
 ├── shared/features.ts          ← Fonte única da matriz de features por tier
 ├── shared/portfolio.ts         ← Fonte única do cálculo de rentabilidade (servidor, UI e IA)
+├── shared/paymentMethods.ts    ← Tabela país → métodos de pagamento pré-pagos disponíveis
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
 ├── scripts/
@@ -237,7 +257,11 @@ utilizador via um único fluxo de Checkout:
   meses), sem cobrança automática — nenhum dos dois métodos suporta
   renovação recorrente sem ação manual do cliente a cada ciclo. A subscrição
   expira e faz downgrade para `free` se não houver renovação manual antes do
-  fim do período.
+  fim do período. **Só disponíveis para utilizadores com país detetado =
+  Portugal** (geolocalização por IP, ver [Internacionalização](#-internacionalização))
+  — outros países veem só a opção recorrente, e o servidor rejeita
+  (`403`) um pedido destes métodos vindo de fora de Portugal mesmo que a UI
+  tenha sido adulterada.
 
 O Checkout da EasyPay **não redireciona para fora da app** — o pacote
 client-side [`@easypaypt/checkout-sdk`](https://github.com/Easypay/checkout-sdk)
@@ -359,14 +383,68 @@ Botão "Digitalizar documento" no dashboard e em `/transactions`.
   Android e a redução de tamanho no cliente já produzem JPEG.
 - **Privacidade**: o documento é processado em memória e descartado — não é
   guardado nem anexado à transação. Requer `ANTHROPIC_API_KEY`.
-- **Limitações atuais**: assume Portugal e euros (um documento noutra moeda
-  é lido mas o valor não é convertido — fica marcado para rever), um
-  documento gera uma única transação com o valor total, e os recibos de
-  vencimento não têm tratamento próprio. O suporte internacional está
-  previsto na Fase 7.
+- **Moeda estrangeira**: um documento numa moeda diferente de € é convertido
+  para € à taxa de câmbio do dia (Twelve Data), com o valor e a moeda
+  originais preservados na transação (`originalAmount`/`exchangeRate`) —
+  nunca gravado como € sem aviso. Se a taxa não estiver disponível, a
+  transação falha em vez de gravar um valor não convertido.
+- **Recibos de vencimento** têm schema próprio (`payslip`, valor líquido).
+  Datas ambíguas (dia/mês ambos ≤ 12) ficam marcadas como baixa confiança em
+  vez de assumir um formato. Um documento continua a gerar uma única
+  transação com o valor total. Detalhe completo em
+  [Internacionalização](#-internacionalização).
 
 Detalhe completo em
 [`context/features/05-FASE-5-scan-documentos-ia.md`](context/features/05-FASE-5-scan-documentos-ia.md).
+
+---
+
+## 🌍 Internacionalização
+
+Dois sinais independentes, nunca confundidos: o **idioma da UI** segue a
+preferência do browser (`Accept-Language`), com override manual persistente;
+os **métodos de pagamento pré-pagos disponíveis** seguem o país detetado por
+geolocalização de IP — são rails bancários por país, não preferência do
+utilizador.
+
+- **Idioma** — 6 línguas no lançamento (PT-PT, EN, FR, DE, IT, ES), com
+  **EN como fallback universal**. Via `@nuxtjs/i18n` (`strategy: 'no_prefix'`
+  — sem rotas prefixadas por idioma). A deteção é feita manualmente em
+  [`plugins/locale.ts`](plugins/locale.ts) em vez do
+  `detectBrowserLanguage` nativo do módulo: com `strategy: 'no_prefix'`, um
+  utilizador não autenticado nunca renderiza `/` no servidor (o middleware
+  de auth redireciona primeiro para `/login`), pelo que a primeira visita
+  real a `/` acontece no client logo após o login — e o redirecionamento
+  interno do módulo colidia com a navegação da própria app. A escolha fica
+  no cookie `financeflow_locale`, nunca mais é sobreposta por deteção
+  automática depois de escolhida manualmente nas Configurações.
+  Conteúdo gerado por IA (interpretação de estatísticas, dicas de
+  investimento) segue o idioma ativo no momento do pedido, com a cache a
+  invalidar quando o idioma muda. Datas/moeda/números seguem o idioma via
+  [`useLocaleFormat()`](composables/useLocaleFormat.ts). Mensagens de erro
+  do servidor usam um dicionário próprio e leve
+  ([`server/utils/i18n.ts`](server/utils/i18n.ts), lido do mesmo cookie) em
+  vez de dependerem do `vue-i18n`, que só existe no client.
+- **Métodos de pagamento por país** — [`server/utils/geo.ts`](server/utils/geo.ts)
+  faz o lookup do IP do pedido contra a base de dados local MaxMind
+  GeoLite2-Country (sem chamadas externas por pedido; ver o comentário no
+  topo do ficheiro para o processo de download/atualização). Âmbito
+  deliberadamente limitado a Portugal
+  ([`shared/paymentMethods.ts`](shared/paymentMethods.ts): tabela
+  país → métodos, hoje só `PT: ['mbway', 'multibanco']`) — qualquer outro
+  país, ou um país desconhecido (sem `GEOLITE2_DB_PATH`, ou em `localhost`
+  onde o IP do pedido é sempre loopback/privado e não geolocalizável), cai
+  no fallback universal de cartão com auto-renovação. **Nunca assumido como
+  Portugal por omissão.** A validação real está sempre no servidor
+  (`create-prepaid.post.ts` rejeita com `403` um pedido de MB WAY/Multibanco
+  vindo de fora de Portugal, mesmo que a UI tenha sido adulterada) — o
+  endpoint `payment-methods.get.ts` que o client usa para decidir que
+  separador mostrar não é uma fonte de confiança para isso.
+- **Moeda estrangeira em documentos digitalizados** — ver
+  [Digitalizar documentos](#-digitalizar-documentos-com-ia) acima.
+
+Detalhe completo em
+[`context/features/07-FASE-7-internacionalizacao.md`](context/features/07-FASE-7-internacionalizacao.md).
 
 ---
 

@@ -18,7 +18,42 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@nuxt/image',
     '@nuxtjs/color-mode',
+    '@nuxtjs/i18n',
   ],
+
+  // Fase 7 — Internacionalização. `strategy: 'no_prefix'` porque a app não
+  // tem (nem precisa de) rotas prefixadas por idioma (`/en/transacoes`) — o
+  // idioma é só uma preferência de interface, não faz parte do endereço da
+  // página (bookmarks, deep links do WebView Android continuam a funcionar
+  // sem alteração).
+  //
+  // `detectBrowserLanguage` está DESLIGADO de propósito (não é o default do
+  // módulo — decisão explícita): o mecanismo de redireciono embutido
+  // (`redirectOn: 'root'`) só faz sentido em estratégias com prefixo, onde
+  // existe um URL localizado para onde redirecionar. Em `no_prefix` não há
+  // nenhum URL para onde ir, mas o módulo ainda assim tentava navegar sempre
+  // que a app chegava a `/` — e como um utilizador não autenticado nunca
+  // chega a renderizar `/` (o `middleware/auth.global.ts` intercepta e manda
+  // logo para `/login`), a 1.ª vez que `/` era mesmo visitado era já a
+  // seguir ao login, do lado do client (`navigateTo('/')` em
+  // `pages/login.vue`) — nessa altura o redireciono do módulo entrava em
+  // conflito com a navegação da própria app e a app ficava presa no login
+  // (bug real, reproduzido e corrigido nesta sessão). Deteção e persistência
+  // feitas à mão em vez disso — ver `plugins/locale.ts`.
+  i18n: {
+    locales: [
+      { code: 'pt-PT', name: 'Português', file: 'pt-PT.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+      { code: 'fr', name: 'Français', file: 'fr.json' },
+      { code: 'de', name: 'Deutsch', file: 'de.json' },
+      { code: 'it', name: 'Italiano', file: 'it.json' },
+      { code: 'es', name: 'Español', file: 'es.json' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix',
+    langDir: 'locales/',
+    detectBrowserLanguage: false,
+  },
 
   colorMode: {
     classSuffix: '',
@@ -86,6 +121,11 @@ export default defineNuxtConfig({
     // do portfolio. Desligada por omissão até haver validação jurídica (ver
     // context/features/06-FASE-6-registo-investimentos.md, decisão 8).
     investmentTipsIncludePortfolio: process.env.INVESTMENT_TIPS_INCLUDE_PORTFOLIO === 'true',
+    // Fase 7 — caminho local do ficheiro GeoLite2-Country.mmdb (licenciado,
+    // não fica no repositório — ver context/CONFIG-REFERENCE.md para o
+    // processo de download/atualização). Sem o ficheiro, `server/utils/geo.ts`
+    // devolve sempre `null` (país desconhecido) em vez de rebentar.
+    geoliteDbPath: process.env.GEOLITE2_DB_PATH || '',
     public: {
       appUrl: process.env.APP_URL || 'http://localhost:3000',
       // Passado ao @easypaypt/checkout-sdk (opção `testing`) — não é secreto,

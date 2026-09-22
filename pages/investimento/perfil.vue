@@ -3,18 +3,18 @@
     <div>
       <button class="btn-secondary text-sm py-2 px-4 mb-4 flex items-center gap-2" type="button" @click="navigateTo('/investimento')">
         <ArrowLeft class="w-4 h-4" />
-        Voltar
+        {{ t('common.back') }}
       </button>
-      <h2 class="font-display font-bold text-2xl text-white">Perfil de Investidor</h2>
+      <h2 class="font-display font-bold text-2xl text-white">{{ t('investment.profile.title') }}</h2>
       <p class="text-white/40 text-xs mt-1">
-        Usado só para adaptar as dicas educativas ao teu perfil — renovado anualmente.
+        {{ t('investment.profile.subtitle') }}
       </p>
     </div>
 
     <form class="glass-card rounded-3xl p-6 space-y-6" @submit.prevent="submit">
       <!-- Risk tolerance -->
       <div>
-        <label class="text-sm font-semibold text-white mb-3 block">Tolerância ao risco</label>
+        <label class="text-sm font-semibold text-white mb-3 block">{{ t('investment.profile.riskLabel') }}</label>
         <div class="grid grid-cols-3 gap-2">
           <button
             v-for="opt in riskOptions"
@@ -34,14 +34,14 @@
       <!-- Horizon -->
       <div>
         <label class="text-sm font-semibold text-white mb-3 block">
-          Horizonte temporal (anos até precisares do dinheiro)
+          {{ t('investment.profile.horizonLabel') }}
         </label>
         <input v-model.number="form.horizonYears" type="number" min="0" max="60" class="form-input" required />
       </div>
 
       <!-- Knowledge level -->
       <div>
-        <label class="text-sm font-semibold text-white mb-3 block">Nível de conhecimento sobre investimento</label>
+        <label class="text-sm font-semibold text-white mb-3 block">{{ t('investment.profile.knowledgeLabel') }}</label>
         <div class="grid grid-cols-3 gap-2">
           <button
             v-for="opt in knowledgeOptions"
@@ -60,7 +60,7 @@
 
       <!-- Existing investments -->
       <div>
-        <label class="text-sm font-semibold text-white mb-3 block">Já tens investimentos atualmente?</label>
+        <label class="text-sm font-semibold text-white mb-3 block">{{ t('investment.profile.existingLabel') }}</label>
         <div class="grid grid-cols-2 gap-2">
           <button
             type="button"
@@ -70,7 +70,7 @@
               : 'glass-card border-white/10 text-white/60 hover:text-white'"
             @click="form.hasExistingInvestments = true"
           >
-            Sim
+            {{ t('investment.profile.yes') }}
           </button>
           <button
             type="button"
@@ -80,26 +80,26 @@
               : 'glass-card border-white/10 text-white/60 hover:text-white'"
             @click="form.hasExistingInvestments = false"
           >
-            Não
+            {{ t('investment.profile.no') }}
           </button>
         </div>
       </div>
 
       <!-- Goals -->
       <div>
-        <label class="text-sm font-semibold text-white mb-3 block">Objetivos (podes escolher vários)</label>
+        <label class="text-sm font-semibold text-white mb-3 block">{{ t('investment.profile.goalsLabel') }}</label>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <button
             v-for="opt in goalOptions"
-            :key="opt"
+            :key="opt.value"
             type="button"
             class="rounded-2xl p-3 text-sm font-semibold border transition-all text-left"
-            :class="form.goals.includes(opt)
+            :class="form.goals.includes(opt.value)
               ? 'bg-brand-600/30 border-brand-500/50 text-brand-300'
               : 'glass-card border-white/10 text-white/60 hover:text-white'"
-            @click="toggleGoal(opt)"
+            @click="toggleGoal(opt.value)"
           >
-            {{ opt }}
+            {{ opt.label }}
           </button>
         </div>
       </div>
@@ -110,7 +110,7 @@
         :disabled="!isValid || saving"
       >
         <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-        Guardar perfil
+        {{ t('investment.profile.save') }}
       </button>
     </form>
   </div>
@@ -122,19 +122,33 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 definePageMeta({ layout: 'default' })
 
 const toast = useToastStore()
+const { t } = useI18n()
 const saving = ref(false)
 
-const riskOptions = [
-  { value: 'conservador', label: 'Conservador' },
-  { value: 'moderado', label: 'Moderado' },
-  { value: 'arrojado', label: 'Arrojado' },
-]
-const knowledgeOptions = [
-  { value: 'iniciante', label: 'Iniciante' },
-  { value: 'intermedio', label: 'Intermédio' },
-  { value: 'avancado', label: 'Avançado' },
-]
-const goalOptions = ['Reforma', 'Compra de casa', 'Fundo de emergência', 'Educação', 'Rendimento passivo', 'Outro']
+const riskOptions = computed(() => [
+  { value: 'conservador', label: t('investment.profile.riskConservative') },
+  { value: 'moderado', label: t('investment.profile.riskModerate') },
+  { value: 'arrojado', label: t('investment.profile.riskBold') },
+])
+const knowledgeOptions = computed(() => [
+  { value: 'iniciante', label: t('investment.profile.knowledgeBeginner') },
+  { value: 'intermedio', label: t('investment.profile.knowledgeIntermediate') },
+  { value: 'avancado', label: t('investment.profile.knowledgeAdvanced') },
+])
+// Fase 7, tarefa 2 — `value` passa a ser um identificador estável (era o
+// próprio texto em PT-PT, gravado tal qual no perfil); perfis já guardados
+// com o texto antigo deixam de aparecer pré-selecionados aqui (não é
+// validado por enum no servidor — ver server/api/investor-profile/index.ts —
+// por isso não parte nada, só deixa de destacar a opção até o utilizador
+// voltar a guardar o perfil).
+const goalOptions = computed(() => [
+  { value: 'retirement', label: t('investment.profile.goalRetirement') },
+  { value: 'home', label: t('investment.profile.goalHome') },
+  { value: 'emergencyFund', label: t('investment.profile.goalEmergencyFund') },
+  { value: 'education', label: t('investment.profile.goalEducation') },
+  { value: 'passiveIncome', label: t('investment.profile.goalPassiveIncome') },
+  { value: 'other', label: t('investment.profile.goalOther') },
+])
 
 const form = reactive<{
   riskTolerance: string
@@ -169,10 +183,10 @@ async function submit() {
   saving.value = true
   try {
     await $fetch('/api/investor-profile', { method: 'POST', body: form })
-    toast.success('Perfil de investidor guardado! 📈')
+    toast.success(t('investment.profile.toastSaved'))
     navigateTo('/investimento')
   } catch (e: any) {
-    toast.error(e?.data?.message || 'Erro ao guardar o perfil')
+    toast.error(e?.data?.message || t('investment.profile.toastError'))
   } finally {
     saving.value = false
   }

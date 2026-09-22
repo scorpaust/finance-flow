@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { Transaction, AiInsightCache } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 import { generateStructuredJson } from '../../utils/anthropic'
+import { getServerLocale, type ServerLocale } from '../../utils/i18n'
 
 // Interpretação de estatísticas com IA (Pro + Premium) — Fase 3, tarefa 4.
 // Só agregados já calculados vão para o LLM (nunca descrições de transações
@@ -9,15 +10,27 @@ import { generateStructuredJson } from '../../utils/anthropic'
 // AiInsightCache para controlar o custo de chamadas à Anthropic.
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
+const RESPONSE_LANGUAGE_NAME: Record<ServerLocale, string> = {
+  'pt-PT': 'português europeu (PT-PT)',
+  en: 'English',
+  fr: 'français',
+  de: 'Deutsch',
+  it: 'italiano',
+  es: 'español',
+}
+
 // Prompt fixo, versionado no código (não editável em runtime) — ver
-// context/features/03-FASE-3-insights-ia.md tarefa 4.
-const SYSTEM_PROMPT = `És um assistente financeiro que interpreta agregados financeiros já
-calculados de um utilizador português e devolve JSON estruturado em PT-PT.
+// context/features/03-FASE-3-insights-ia.md tarefa 4. Fase 7 — segue o
+// idioma ativo da UI.
+function buildSystemPrompt(locale: ServerLocale): string {
+  return `És um assistente financeiro que interpreta agregados financeiros já
+calculados de um utilizador e devolve JSON estruturado em ${RESPONSE_LANGUAGE_NAME[locale]}.
 Recebes apenas números e nomes de categoria — nunca descrições de transações
 individuais. Gera entre 2 e 3 insights (observações concretas sobre padrões
 nos dados, ex. tendências de poupança, categorias com maior peso) e entre 1 e
 2 sugestões de melhoria (ações práticas e específicas aos dados recebidos).
 Não inventes números que não estejam nos dados. Tom direto e não genérico.`
+}
 
 interface StatsInsightResult {
   insights: string[]
@@ -28,9 +41,14 @@ export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'aiStatsInsights')
   const body = await readBody<{ months?: number }>(event).catch(() => ({}))
   const months = Math.max(1, Math.min(24, body?.months || 6))
+  const locale = getServerLocale(event)
 
   const cached = await AiInsightCache.findOne({ userId }).lean()
-  if (cached && Date.now() - new Date(cached.generatedAt).getTime() < CACHE_TTL_MS) {
+  if (
+    cached &&
+    (cached.locale || 'pt-PT') === locale &&
+    Date.now() - new Date(cached.generatedAt).getTime() < CACHE_TTL_MS
+  ) {
     return { insights: cached.insights, suggestions: cached.suggestions, generatedAt: cached.generatedAt, cached: true }
   }
 
@@ -85,7 +103,7 @@ export default defineEventHandler(async (event) => {
   const aggregates = { months, totalIncome, totalExpense, savingsRate, monthly, topExpenseCategories }
 
   const result = await generateStructuredJson<StatsInsightResult>({
-    system: SYSTEM_PROMPT,
+    system: buildSystemPrompt(locale),
     prompt: `Agregados financeiros do utilizador (JSON):\n${JSON.stringify(aggregates)}`,
     schema: {
       type: 'object',
@@ -101,7 +119,7 @@ export default defineEventHandler(async (event) => {
   const generatedAt = new Date()
   await AiInsightCache.findOneAndUpdate(
     { userId },
-    { userId, months, insights: result.insights, suggestions: result.suggestions, generatedAt },
+    { userId, months, insights: result.insights, suggestions: result.suggestions, generatedAt, locale },
     { upsert: true }
   )
 

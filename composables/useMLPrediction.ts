@@ -4,6 +4,7 @@
  * Architecture: depthwise-separable Conv1D + LayerNorm + Residual (ConvNeXt-style)
  */
 export function useMLPrediction() {
+  const { t } = useI18n()
   const isTraining  = ref(false)
   const progress    = ref(0)
   const ready       = ref(false)
@@ -237,7 +238,7 @@ export function useMLPrediction() {
         }
       }),
       trend:      { income: 'stable' as const, expense: 'stable' as const },
-      insights:   ['Dados insuficientes para o modelo ConvNeXt. A usar média dos últimos meses.'],
+      insights:   [t('predictions.insights.insufficientData')],
       confidence: 0.58,
       modelType:  'LinearAverage (fallback)',
     }
@@ -267,26 +268,26 @@ export function useMLPrediction() {
     const savRate   = avgInc > 0 ? avgBal / avgInc : 0
 
     if (nextBal < 0)
-      insights.push('⚠️ Défice previsto no próximo mês. Considera reduzir despesas.')
+      insights.push(t('predictions.insights.deficit'))
     else if (nextBal > avgBal * 1.2)
-      insights.push('📈 O modelo prevê melhoria significativa no saldo.')
+      insights.push(t('predictions.insights.balanceImprove'))
 
     if (expSlope > 0.05)
-      insights.push('📊 Despesas em tendência crescente nos últimos meses.')
+      insights.push(t('predictions.insights.expenseRising'))
     if (expSlope < -0.04)
-      insights.push('✅ Despesas em queda — bom controlo financeiro!')
+      insights.push(t('predictions.insights.expenseFalling'))
     if (incSlope > 0.05)
-      insights.push('💹 Rendimentos com tendência positiva.')
+      insights.push(t('predictions.insights.incomePositive'))
     if (incSlope < -0.05)
-      insights.push('⚠️ Rendimentos em queda. Verifica fontes de receita.')
+      insights.push(t('predictions.insights.incomeFalling'))
 
     if (savRate < 0.1)
-      insights.push('💡 Taxa de poupança abaixo dos 10%. Otimiza despesas fixas.')
+      insights.push(t('predictions.insights.savingsLow'))
     else if (savRate > 0.3)
-      insights.push('🌟 Taxa de poupança excelente! Padrão financeiro muito saudável.')
+      insights.push(t('predictions.insights.savingsExcellent'))
 
     if (insights.length === 0)
-      insights.push('✅ Padrão financeiro estável. Continua com o bom trabalho!')
+      insights.push(t('predictions.insights.stable'))
 
     return insights
   }

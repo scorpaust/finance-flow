@@ -13,6 +13,7 @@ const props = defineProps<{
   historical: Array<{ month: string; income: number; expense: number }>
   forecasts:  Array<{ month: string; income: { value: number }; expense: { value: number } }>
 }>()
+const { t } = useI18n()
 const { formatCurrency, formatMonthYear } = useFormatters()
 
 const chartData = computed(() => {
@@ -35,10 +36,10 @@ const chartData = computed(() => {
   return {
     labels: allLabels,
     datasets: [
-      { label: 'Receitas (real)',     data: histInc, borderColor: '#34d399', fill: false, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#34d399', borderWidth: 2.5 },
-      { label: 'Despesas (real)',     data: histExp, borderColor: '#fb7185', fill: false, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fb7185', borderWidth: 2.5 },
-      { label: 'Receitas (prev.)',    data: [...nulls(hl - 1), ...bridgeInc], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.08)', fill: false, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#34d399', borderWidth: 2, borderDash: [6, 3] },
-      { label: 'Despesas (prev.)',    data: [...nulls(hl - 1), ...bridgeExp], borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,0.08)', fill: false, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#fb7185', borderWidth: 2, borderDash: [6, 3] },
+      { label: t('charts.incomeReal'),     data: histInc, borderColor: '#34d399', fill: false, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#34d399', borderWidth: 2.5 },
+      { label: t('charts.expenseReal'),    data: histExp, borderColor: '#fb7185', fill: false, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fb7185', borderWidth: 2.5 },
+      { label: t('charts.incomeForecast'), data: [...nulls(hl - 1), ...bridgeInc], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.08)', fill: false, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#34d399', borderWidth: 2, borderDash: [6, 3] },
+      { label: t('charts.expenseForecast'), data: [...nulls(hl - 1), ...bridgeExp], borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,0.08)', fill: false, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#fb7185', borderWidth: 2, borderDash: [6, 3] },
     ],
   }
 })

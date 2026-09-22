@@ -37,6 +37,9 @@
       >
         {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
       </span>
+      <p v-if="isForeignCurrency" class="text-white/30 text-xs tabular-nums">
+        {{ formatCurrency(transaction.originalAmount!, transaction.currency) }}
+      </p>
     </td>
 
     <td class="hidden md:table-cell">
@@ -53,14 +56,14 @@
       <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           class="w-7 h-7 rounded-lg hover:bg-brand-600/30 flex items-center justify-center transition-colors"
-          aria-label="Editar transação"
+          :aria-label="t('transactions.editAria')"
           @click.stop="$emit('edit')"
         >
           <Pencil class="w-3.5 h-3.5 text-brand-400" />
         </button>
         <button
           class="w-7 h-7 rounded-lg hover:bg-rose-600/30 flex items-center justify-center transition-colors"
-          aria-label="Eliminar transação"
+          :aria-label="t('transactions.deleteAria')"
           @click.stop="$emit('delete')"
         >
           <Trash2 class="w-3.5 h-3.5 text-rose-400" />
@@ -89,24 +92,29 @@
       </p>
     </div>
 
-    <span
-      class="font-bold tabular-nums shrink-0"
-      :class="transaction.type === 'income' ? 'amount-positive' : 'amount-negative'"
-    >
-      {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
-    </span>
+    <div class="text-right shrink-0">
+      <span
+        class="font-bold tabular-nums"
+        :class="transaction.type === 'income' ? 'amount-positive' : 'amount-negative'"
+      >
+        {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+      </span>
+      <p v-if="isForeignCurrency" class="text-white/30 text-xs tabular-nums">
+        {{ formatCurrency(transaction.originalAmount!, transaction.currency) }}
+      </p>
+    </div>
 
     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
       <button
         class="w-7 h-7 rounded-lg hover:bg-brand-600/30 flex items-center justify-center"
-        aria-label="Editar transação"
+        :aria-label="t('transactions.editAria')"
         @click.stop="$emit('edit')"
       >
         <Pencil class="w-3.5 h-3.5 text-brand-400" />
       </button>
       <button
         class="w-7 h-7 rounded-lg hover:bg-rose-600/30 flex items-center justify-center"
-        aria-label="Eliminar transação"
+        :aria-label="t('transactions.deleteAria')"
         @click.stop="$emit('delete')"
       >
         <Trash2 class="w-3.5 h-3.5 text-rose-400" />
@@ -126,6 +134,11 @@ const props = defineProps<{
 defineEmits(['edit', 'delete'])
 
 const { formatCurrency, relativeTime } = useFormatters()
+const { t } = useI18n()
+
+// Fase 7, tarefa 6 — mostra o valor original só quando a transação nasceu
+// numa moeda estrangeira (amount continua sempre em €, ver types/index.ts).
+const isForeignCurrency = computed(() => props.transaction.currency && props.transaction.currency !== 'EUR' && props.transaction.originalAmount != null)
 
 // Mongoose populates categoryId in-place — support both populated and raw
 const cat = computed(() => {
@@ -151,10 +164,10 @@ const catPillStyle = computed(() => {
 
 function recurrenceLabel(r: string) {
   const map: Record<string, string> = {
-    daily: 'Diária',
-    weekly: 'Semanal',
-    monthly: 'Mensal',
-    yearly: 'Anual',
+    daily: t('transactions.recurrenceDaily'),
+    weekly: t('transactions.recurrenceWeekly'),
+    monthly: t('transactions.recurrenceMonthly'),
+    yearly: t('transactions.recurrenceYearly'),
   }
   return map[r] || r
 }

@@ -14,6 +14,7 @@ const props = defineProps<{
   data: Array<{ month: string; income: number; expense: number; balance: number }>
   loading?: boolean
 }>()
+const { t } = useI18n()
 const { formatCurrency, formatMonthYear } = useFormatters()
 const chartData = computed(() => {
   if (!props.data?.length) return null
@@ -22,7 +23,7 @@ const chartData = computed(() => {
   return {
     labels: props.data.map(m => formatMonthYear(m.month)),
     datasets: [{
-      label: 'Saldo Acumulado',
+      label: t('charts.balanceAccumulated'),
       data: cumulative,
       borderColor: '#818cf8',
       backgroundColor: 'rgba(99,102,241,0.12)',
@@ -36,7 +37,7 @@ const opts = computed(() => ({
   responsive: true, maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    tooltip: { callbacks: { label: (ctx: any) => ` Saldo: ${formatCurrency(ctx.raw)}` } },
+    tooltip: { callbacks: { label: (ctx: any) => ` ${t('charts.balance')}: ${formatCurrency(ctx.raw)}` } },
   },
   scales: {
     x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 11 } } },

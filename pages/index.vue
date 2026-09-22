@@ -6,13 +6,13 @@
         <h2 class="font-display font-bold text-2xl sm:text-3xl text-white">
           {{ greeting }}, <span class="gradient-text">{{ firstName }}</span> 👋
         </h2>
-        <p class="text-white/40 mt-1 text-sm">Aqui está o resumo das tuas finanças</p>
+        <p class="text-white/40 mt-1 text-sm">{{ t('dashboard.subtitle') }}</p>
       </div>
       <div class="flex items-center flex-wrap gap-2">
         <select v-model="selectedPeriod" class="form-select text-sm py-2 w-auto" @change="loadStats">
-          <option value="3">Últimos 3 meses</option>
-          <option value="6">Últimos 6 meses</option>
-          <option value="12">Último ano</option>
+          <option value="3">{{ t('dashboard.period3') }}</option>
+          <option value="6">{{ t('dashboard.period6') }}</option>
+          <option value="12">{{ t('dashboard.period12') }}</option>
         </select>
         <button
           class="btn-primary text-sm py-2 px-4 flex items-center gap-2"
@@ -20,7 +20,7 @@
           @click="showModal = true"
         >
           <Plus class="w-4 h-4" />
-          Nova transação
+          {{ t('dashboard.newTransaction') }}
         </button>
         <DocumentScanButton @scanned="onScanned" @manual="openManual" />
         <button
@@ -29,7 +29,7 @@
           @click="auth.signOut()"
         >
           <LogOut class="w-4 h-4" />
-          Sair
+          {{ t('dashboard.signOut') }}
         </button>
       </div>
     </div>
@@ -39,29 +39,29 @@
     <!-- Quick navigation -->
     <div class="flex flex-wrap gap-2">
       <NuxtLink to="/transactions" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <ArrowLeftRight class="w-4 h-4" /> Transações
+        <ArrowLeftRight class="w-4 h-4" /> {{ t('dashboard.navTransactions') }}
       </NuxtLink>
       <NuxtLink to="/groups" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <Layers class="w-4 h-4" /> Grupos
+        <Layers class="w-4 h-4" /> {{ t('dashboard.navGroups') }}
       </NuxtLink>
       <NuxtLink to="/stats" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <BarChart3 class="w-4 h-4" /> Estatísticas
+        <BarChart3 class="w-4 h-4" /> {{ t('dashboard.navStats') }}
       </NuxtLink>
       <NuxtLink to="/predictions" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <Brain class="w-4 h-4" /> Previsões IA
+        <Brain class="w-4 h-4" /> {{ t('dashboard.navPredictions') }}
       </NuxtLink>
       <NuxtLink to="/investimento" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <TrendingUp class="w-4 h-4" /> Investimento
+        <TrendingUp class="w-4 h-4" /> {{ t('dashboard.navInvestments') }}
       </NuxtLink>
       <NuxtLink to="/settings" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
-        <Settings class="w-4 h-4" /> Configurações
+        <Settings class="w-4 h-4" /> {{ t('dashboard.navSettings') }}
       </NuxtLink>
     </div>
 
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <KpiCard
-        title="Saldo Total"
+        :title="t('dashboard.kpiBalance')"
         :value="stats?.overview.currentBalance || 0"
         :change="stats?.overview.incomeChange"
         icon="💰"
@@ -69,7 +69,7 @@
         :loading="loading"
       />
       <KpiCard
-        title="Rendimentos (mês)"
+        :title="t('dashboard.kpiIncome')"
         :value="stats?.overview.currentMonthIncome || 0"
         :change="stats?.overview.incomeChange"
         icon="📈"
@@ -77,7 +77,7 @@
         :loading="loading"
       />
       <KpiCard
-        title="Despesas (mês)"
+        :title="t('dashboard.kpiExpense')"
         :value="stats?.overview.currentMonthExpense || 0"
         :change="stats?.overview.expenseChange"
         icon="📉"
@@ -86,7 +86,7 @@
         :loading="loading"
       />
       <KpiCard
-        title="Taxa de Poupança"
+        :title="t('dashboard.kpiSavingsRate')"
         :value="stats?.overview.savingsRate || 0"
         icon="🎯"
         color="purple"
@@ -102,9 +102,9 @@
           <Brain class="w-6 h-6 text-brand-400" />
         </div>
         <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-white">Previsões com deep learning</h3>
+          <h3 class="font-semibold text-white">{{ t('dashboard.forecastTitle') }}</h3>
           <p class="text-white/45 text-sm mt-1">
-            ConvNeXt-1D com TensorFlow.js para prever receitas, despesas e saldo dos próximos 3 meses.
+            {{ t('dashboard.forecastDescription') }}
           </p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -115,10 +115,10 @@
           >
             <Loader2 v-if="isTraining" class="w-4 h-4 animate-spin" />
             <Brain v-else class="w-4 h-4" />
-            {{ isTraining ? 'A treinar...' : 'Executar previsão' }}
+            {{ isTraining ? t('dashboard.forecastTraining') : t('dashboard.forecastRun') }}
           </button>
           <NuxtLink to="/predictions" class="btn-secondary text-sm py-2 px-4">
-            Ver detalhe
+            {{ t('dashboard.forecastDetail') }}
           </NuxtLink>
         </div>
       </div>
@@ -132,15 +132,15 @@
           <p class="text-white/50 text-xs font-medium capitalize mb-3">{{ formatMonthYear(forecast.month) }}</p>
           <div class="space-y-1.5 text-sm">
             <div class="flex justify-between gap-3">
-              <span class="text-white/40">Receitas</span>
+              <span class="text-white/40">{{ t('dashboard.forecastIncome') }}</span>
               <span class="text-emerald-400 font-semibold">{{ formatCompact(forecast.income.value) }}</span>
             </div>
             <div class="flex justify-between gap-3">
-              <span class="text-white/40">Despesas</span>
+              <span class="text-white/40">{{ t('dashboard.forecastExpense') }}</span>
               <span class="text-rose-400 font-semibold">{{ formatCompact(forecast.expense.value) }}</span>
             </div>
             <div class="flex justify-between gap-3 border-t border-white/10 pt-1.5 mt-1.5">
-              <span class="text-white/40">Saldo</span>
+              <span class="text-white/40">{{ t('dashboard.forecastBalance') }}</span>
               <span class="font-semibold" :class="forecast.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'">
                 {{ formatCompact(forecast.balance) }}
               </span>
@@ -156,12 +156,12 @@
       <div class="lg:col-span-2 chart-wrapper">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h3 class="font-semibold text-white">Evolução do Saldo</h3>
-            <p class="text-white/40 text-xs mt-0.5">Rendimentos vs Despesas</p>
+            <h3 class="font-semibold text-white">{{ t('dashboard.chartBalanceTitle') }}</h3>
+            <p class="text-white/40 text-xs mt-0.5">{{ t('dashboard.chartBalanceSubtitle') }}</p>
           </div>
           <div class="flex items-center gap-3 text-xs text-white/50">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />Receitas</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />Despesas</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />{{ t('dashboard.chartIncomeLegend') }}</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />{{ t('dashboard.chartExpenseLegend') }}</span>
           </div>
         </div>
         <BalanceChart :data="stats?.monthly || []" :loading="loading" />
@@ -171,12 +171,12 @@
       <div class="chart-wrapper">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h3 class="font-semibold text-white">Por Categoria</h3>
-            <p class="text-white/40 text-xs mt-0.5">Distribuição de despesas</p>
+            <h3 class="font-semibold text-white">{{ t('dashboard.chartCategoryTitle') }}</h3>
+            <p class="text-white/40 text-xs mt-0.5">{{ t('dashboard.chartCategorySubtitle') }}</p>
           </div>
           <select v-model="donutType" class="form-select text-xs py-1.5 w-28">
-            <option value="expense">Despesas</option>
-            <option value="income">Receitas</option>
+            <option value="expense">{{ t('dashboard.donutExpense') }}</option>
+            <option value="income">{{ t('dashboard.donutIncome') }}</option>
           </select>
         </div>
         <CategoryDonut
@@ -191,10 +191,10 @@
       <div class="lg:col-span-2 glass-card rounded-3xl p-5">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="font-semibold text-white">Tetos de despesa</h3>
-            <p class="text-white/40 text-xs mt-0.5">Consumo do mes atual por grupo</p>
+            <h3 class="font-semibold text-white">{{ t('dashboard.budgetTitle') }}</h3>
+            <p class="text-white/40 text-xs mt-0.5">{{ t('dashboard.budgetSubtitle') }}</p>
           </div>
-          <span class="text-xs text-white/40">Alerta aos 80%</span>
+          <span class="text-xs text-white/40">{{ t('dashboard.budgetAlertThreshold') }}</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div
@@ -221,15 +221,15 @@
               />
             </div>
             <p class="text-xs text-white/35 mt-2">
-              Restante: {{ formatCurrency(group.remaining) }}
-              <span v-if="group.weeklyLimit"> · semana: {{ formatCurrency(group.weeklyLimit) }}</span>
+              {{ t('dashboard.budgetRemaining') }}: {{ formatCurrency(group.remaining) }}
+              <span v-if="group.weeklyLimit"> · {{ t('dashboard.budgetWeek') }}: {{ formatCurrency(group.weeklyLimit) }}</span>
             </p>
           </div>
         </div>
       </div>
 
       <div class="glass-card rounded-3xl p-5">
-        <h3 class="font-semibold text-white mb-4">Alertas</h3>
+        <h3 class="font-semibold text-white mb-4">{{ t('dashboard.alertsTitle') }}</h3>
         <div v-if="stats.budgetAlerts?.length" class="space-y-3">
           <div
             v-for="alert in stats.budgetAlerts.slice(0, 5)"
@@ -239,13 +239,13 @@
           >
             <p class="text-sm font-semibold" :class="budgetTextClass(alert.status)">{{ alert.name }}</p>
             <p class="text-xs text-white/55 mt-1">
-              {{ alert.status === 'danger' ? 'Teto ultrapassado' : 'Aproximacao ao teto' }}:
-              {{ formatCurrency(alert.spent) }} de {{ formatCurrency(alert.monthlyLimit) }}.
+              {{ alert.status === 'danger' ? t('dashboard.alertOver') : t('dashboard.alertNear') }}:
+              {{ t('dashboard.alertDetail', { spent: formatCurrency(alert.spent), limit: formatCurrency(alert.monthlyLimit) }) }}
             </p>
           </div>
         </div>
         <div v-else class="text-sm text-white/40">
-          Sem alertas neste mes.
+          {{ t('dashboard.alertsEmpty') }}
         </div>
       </div>
     </div>
@@ -256,11 +256,11 @@
       <div class="lg:col-span-2 glass-card rounded-3xl overflow-hidden">
         <div class="flex items-center justify-between p-6 border-b border-white/[0.08]">
           <div>
-            <h3 class="font-semibold text-white">Transações Recentes</h3>
-            <p class="text-white/40 text-xs mt-0.5">{{ finance.total }} transações no total</p>
+            <h3 class="font-semibold text-white">{{ t('dashboard.recentTitle') }}</h3>
+            <p class="text-white/40 text-xs mt-0.5">{{ t('dashboard.recentTotal', { count: finance.total }) }}</p>
           </div>
           <NuxtLink to="/transactions" class="text-brand-400 text-sm hover:text-brand-300 transition-colors font-medium">
-            Ver todas →
+            {{ t('dashboard.recentViewAll') }}
           </NuxtLink>
         </div>
         <div class="divide-y divide-white/5">
@@ -273,8 +273,8 @@
           />
           <div v-if="!recentTransactions.length && !finance.loading" class="py-12 text-center text-white/30">
             <p class="text-4xl mb-3">📭</p>
-            <p class="text-sm">Nenhuma transação ainda</p>
-            <button class="btn-primary text-sm mt-4 py-2" @click="showModal = true">Adicionar primeira</button>
+            <p class="text-sm">{{ t('dashboard.recentEmpty') }}</p>
+            <button class="btn-primary text-sm mt-4 py-2" @click="showModal = true">{{ t('dashboard.recentAddFirst') }}</button>
           </div>
         </div>
       </div>
@@ -284,12 +284,12 @@
         <!-- Monthly balance card -->
         <div class="glass-card rounded-3xl p-5">
           <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
-            <span>📊</span> Mês Atual
+            <span>📊</span> {{ t('dashboard.monthCardTitle') }}
           </h3>
           <div class="space-y-3">
             <div>
               <div class="flex justify-between text-xs text-white/50 mb-1">
-                <span>Poupança</span>
+                <span>{{ t('dashboard.monthSavings') }}</span>
                 <span>{{ formatCurrency(monthBalance) }}</span>
               </div>
               <div class="progress-bar">
@@ -302,11 +302,11 @@
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
               <div class="bg-emerald-500/10 rounded-2xl p-3 border border-emerald-500/20">
-                <p class="text-emerald-400 text-xs font-medium mb-1">Receitas</p>
+                <p class="text-emerald-400 text-xs font-medium mb-1">{{ t('dashboard.monthIncome') }}</p>
                 <p class="text-white font-bold text-sm">{{ formatCompact(stats?.overview.currentMonthIncome || 0) }}</p>
               </div>
               <div class="bg-rose-500/10 rounded-2xl p-3 border border-rose-500/20">
-                <p class="text-rose-400 text-xs font-medium mb-1">Despesas</p>
+                <p class="text-rose-400 text-xs font-medium mb-1">{{ t('dashboard.monthExpense') }}</p>
                 <p class="text-white font-bold text-sm">{{ formatCompact(stats?.overview.currentMonthExpense || 0) }}</p>
               </div>
             </div>
@@ -316,7 +316,7 @@
         <!-- Top categories -->
         <div class="glass-card rounded-3xl p-5">
           <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
-            <span>🏆</span> Top Categorias
+            <span>🏆</span> {{ t('dashboard.topCategoriesTitle') }}
           </h3>
           <div class="space-y-2">
             <div
@@ -339,7 +339,7 @@
               </div>
             </div>
             <div v-if="!topExpenseCategories.length && !loading" class="text-center text-white/30 py-4 text-sm">
-              Sem dados
+              {{ t('dashboard.topCategoriesEmpty') }}
             </div>
           </div>
         </div>
@@ -367,6 +367,7 @@ const auth = useAuthStore()
 const finance = useFinanceStore()
 const toast = useToastStore()
 const { formatCurrency, formatCompact, formatMonthYear } = useFormatters()
+const { t } = useI18n()
 const ml = useMLPrediction()
 const isTraining = ml.isTraining
 
@@ -382,9 +383,9 @@ const scanPrefill = ref<DocumentScanResult | null>(null)
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Utilizador')
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'Bom dia'
-  if (h < 18) return 'Boa tarde'
-  return 'Boa noite'
+  if (h < 12) return t('dashboard.greetingMorning')
+  if (h < 18) return t('dashboard.greetingAfternoon')
+  return t('dashboard.greetingEvening')
 })
 
 async function loadStats() {
@@ -442,25 +443,25 @@ async function runDashboardPrediction() {
     const monthlySeries = data.monthlySeries || []
 
     if (monthlySeries.length < 2) {
-      toast.error('Precisas de pelo menos 2 meses de dados para fazer previsões')
+      toast.error(t('dashboard.toastPredictionErrorMinData'))
       return
     }
 
     predictionResult.value = await ml.predictNextMonths(monthlySeries, 3)
-    toast.success('Previsão concluída')
+    toast.success(t('dashboard.toastPredictionSuccess'))
   } catch (error: any) {
-    toast.error(error?.data?.message || error?.message || 'Erro na previsão')
+    toast.error(error?.data?.message || error?.message || t('dashboard.toastPredictionError'))
   }
 }
 
 async function handleDelete(id: string) {
-  if (!confirm('Eliminar esta transação?')) return
+  if (!confirm(t('dashboard.confirmDeleteTransaction'))) return
   try {
     await finance.deleteTransaction(id)
-    toast.success('Transação eliminada')
+    toast.success(t('dashboard.toastTransactionDeleted'))
     await loadStats()
   } catch {
-    toast.error('Erro ao eliminar transação')
+    toast.error(t('dashboard.toastDeleteError'))
   }
 }
 
@@ -482,7 +483,7 @@ async function onSaved() {
   showModal.value = false
   editTx.value = null
   scanPrefill.value = null
-  toast.success('Transação guardada! ✅')
+  toast.success(t('dashboard.toastTransactionSaved'))
   await finance.fetchTransactions({ page: 1 })
   await loadStats()
 }

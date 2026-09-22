@@ -3,14 +3,14 @@
     <div>
       <button class="btn-secondary text-sm py-2 px-4 mb-4 flex items-center gap-2" type="button" @click="navigateTo('/')">
         <ArrowLeft class="w-4 h-4" />
-        Voltar ao dashboard
+        {{ t('common.backToDashboard') }}
       </button>
       <div class="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h2 class="font-display font-bold text-2xl text-white flex items-center gap-2">
-            <span>📈</span> Investimento
+            <span>📈</span> {{ t('investment.hub.title') }}
           </h2>
-          <p class="text-white/40 text-xs mt-1">O teu portfolio e dicas educativas por perfil de risco</p>
+          <p class="text-white/40 text-xs mt-1">{{ t('investment.hub.subtitle') }}</p>
         </div>
         <button
           v-if="state === 'hub'"
@@ -18,7 +18,7 @@
           type="button"
           @click="openForm(null)"
         >
-          <Plus class="w-4 h-4" /> Novo investimento
+          <Plus class="w-4 h-4" /> {{ t('investment.hub.newInvestment') }}
         </button>
       </div>
     </div>
@@ -34,12 +34,11 @@
     <!-- Sem perfil de investidor: o registo só abre depois de o preencher -->
     <div v-else-if="state === 'needsProfile'" class="glass-card rounded-3xl p-10 text-center">
       <div class="text-4xl mb-3">📝</div>
-      <h4 class="font-semibold text-white mb-2">Primeiro, o teu perfil de investidor</h4>
+      <h4 class="font-semibold text-white mb-2">{{ t('investment.hub.needsProfileTitle') }}</h4>
       <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
-        Precisamos de saber a tua tolerância ao risco, horizonte temporal e objetivos para adaptar as dicas.
-        Depois disto, podes registar e acompanhar os teus investimentos aqui — o perfil é renovado anualmente.
+        {{ t('investment.hub.needsProfileDescription') }}
       </p>
-      <button class="btn-primary" type="button" @click="navigateTo('/investimento/perfil')">Preencher perfil</button>
+      <button class="btn-primary" type="button" @click="navigateTo('/investimento/perfil')">{{ t('investment.hub.fillProfile') }}</button>
     </div>
 
     <template v-else-if="state === 'hub'">
@@ -50,25 +49,25 @@
       >
         <AlertTriangle class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
         <div class="flex-1 text-sm text-white/70">
-          O teu perfil de investidor tem mais de um ano. Renova-o para voltares a receber dicas.
+          {{ t('investment.hub.profileExpiredNotice') }}
         </div>
         <button class="btn-secondary text-xs py-1.5 px-3 shrink-0" type="button" @click="navigateTo('/investimento/perfil')">
-          Renovar
+          {{ t('investment.hub.renew') }}
         </button>
       </div>
 
       <InvestmentSummary :summary="summary" :loading="investmentsLoading && !items.length" />
 
       <section class="space-y-3" aria-labelledby="portfolio-title">
-        <h3 id="portfolio-title" class="font-display font-bold text-lg text-white">O meu portfolio</h3>
+        <h3 id="portfolio-title" class="font-display font-bold text-lg text-white">{{ t('investment.hub.portfolioTitle') }}</h3>
 
         <div v-if="!items.length && !investmentsLoading" class="glass-card rounded-3xl p-10 text-center">
           <div class="text-4xl mb-3">💼</div>
-          <h4 class="font-semibold text-white mb-2">Ainda não registaste nenhum investimento</h4>
+          <h4 class="font-semibold text-white mb-2">{{ t('investment.hub.emptyTitle') }}</h4>
           <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
-            Regista o valor inicial, os reforços e a situação atual de cada posição para acompanhares a rentabilidade.
+            {{ t('investment.hub.emptyDescription') }}
           </p>
-          <button class="btn-primary" type="button" @click="openForm(null)">Regista o teu primeiro investimento</button>
+          <button class="btn-primary" type="button" @click="openForm(null)">{{ t('investment.hub.emptyCta') }}</button>
         </div>
 
         <PortfolioTable
@@ -88,7 +87,7 @@
       v-if="showForm"
       :investment="editing"
       @close="showForm = false"
-      @saved="onSaved(editing ? 'Investimento atualizado!' : 'Investimento registado! 📈')"
+      @saved="onSaved(editing ? t('investment.hub.toastUpdated') : t('investment.hub.toastCreated'))"
     />
 
     <InvestmentQuickModal
@@ -96,13 +95,13 @@
       :investment="quick.item"
       :mode="quick.mode"
       @close="quick = null"
-      @saved="onSaved(quick?.mode === 'reinforce' ? 'Reforço registado!' : 'Situação atualizada!')"
+      @saved="onSaved(quick?.mode === 'reinforce' ? t('investment.hub.toastReinforced') : t('investment.hub.toastValueUpdated'))"
     />
 
     <PaywallModal
       v-if="state === 'paywall'"
       required-tier="premium"
-      feature-label="O registo de investimentos"
+      :feature-label="t('investment.hub.paywallFeatureLabel')"
       @close="navigateTo('/')"
     />
   </div>
@@ -120,6 +119,7 @@ definePageMeta({ layout: 'default' })
 // o plano — e um perfil expirado nunca esconde os dados do utilizador.
 const sub = useSubscription()
 const toast = useToastStore()
+const { t } = useI18n()
 const { items, summary, loading: investmentsLoading, fetchAll, remove } = useInvestments()
 
 const canUse = computed(() => sub.hasFeature('investmentTracker'))
@@ -154,7 +154,7 @@ async function load() {
     // Sem perfil não há hub, por isso não vale a pena pedir os investimentos.
     if (p.profile) await fetchAll()
   } catch {
-    toast.error('Não foi possível carregar os teus investimentos.')
+    toast.error(t('investment.hub.loadErrorToast'))
   } finally {
     loadingData.value = false
   }
@@ -183,13 +183,13 @@ async function onSaved(message: string) {
 }
 
 async function handleRemove(item: InvestmentDto) {
-  if (!confirm(`Eliminar "${item.name}"? Não se pode desfazer.`)) return
+  if (!confirm(t('investment.hub.confirmRemove', { name: item.name }))) return
   try {
     await remove(item._id)
-    toast.success('Investimento eliminado')
+    toast.success(t('investment.hub.toastRemoved'))
     await fetchAll()
   } catch (e: any) {
-    toast.error(e?.data?.message || 'Erro ao eliminar')
+    toast.error(e?.data?.message || t('investment.hub.toastRemoveError'))
   }
 }
 </script>

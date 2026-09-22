@@ -6,7 +6,7 @@
       @click="navigateTo('/')"
     >
       <ArrowLeft class="w-4 h-4" />
-      Voltar ao dashboard
+      {{ t('common.backToDashboard') }}
     </button>
 
     <!-- Loading subscription status -->
@@ -17,22 +17,22 @@
     <!-- Locked (Free tier) -->
     <div v-else-if="!canUseGroups" class="glass-card rounded-3xl p-12 text-center">
       <div class="text-5xl mb-4">🔒</div>
-      <h3 class="font-semibold text-white mb-2">Grupos é uma funcionalidade Pro</h3>
+      <h3 class="font-semibold text-white mb-2">{{ t('groups.lockedTitle') }}</h3>
       <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
-        Agrupa transações por projetos, viagens ou orçamentos com tetos e alertas — disponível a partir do plano Pro.
+        {{ t('groups.lockedDescription') }}
       </p>
-      <button class="btn-primary" @click="navigateTo('/subscription')">Ver planos</button>
+      <button class="btn-primary" @click="navigateTo('/subscription')">{{ t('common.viewPlans') }}</button>
     </div>
 
     <template v-else>
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
-        <h2 class="font-display font-bold text-2xl text-white">Grupos</h2>
-        <p class="text-white/40 text-xs mt-0.5">Agrupa transações relacionadas</p>
+        <h2 class="font-display font-bold text-2xl text-white">{{ t('groups.title') }}</h2>
+        <p class="text-white/40 text-xs mt-0.5">{{ t('groups.subtitle') }}</p>
       </div>
       <button class="btn-primary text-sm flex items-center gap-2" @click="showModal = true">
-        <Plus class="w-4 h-4" /> Novo Grupo
+        <Plus class="w-4 h-4" /> {{ t('groups.newGroup') }}
       </button>
     </div>
 
@@ -68,14 +68,14 @@
           </div>
           <div class="flex gap-1 items-center" @click.stop>
             <template v-if="confirmDeleteId === g._id">
-              <button class="text-xs px-2 py-1 rounded-lg text-white/50 hover:text-white transition-colors" @click="confirmDeleteId = null">Cancelar</button>
-              <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(g._id)">Confirmar</button>
+              <button class="text-xs px-2 py-1 rounded-lg text-white/50 hover:text-white transition-colors" @click="confirmDeleteId = null">{{ t('common.cancel') }}</button>
+              <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(g._id)">{{ t('common.confirm') }}</button>
             </template>
             <template v-else>
-              <button class="btn-icon w-7 h-7" aria-label="Editar grupo" @click="editGroup = g; showModal = true">
+              <button class="btn-icon w-7 h-7" :aria-label="t('groups.editAria')" @click="editGroup = g; showModal = true">
                 <Pencil class="w-3 h-3" />
               </button>
-              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" aria-label="Eliminar grupo" @click="confirmDeleteId = g._id">
+              <button class="btn-icon w-7 h-7 hover:border-rose-500/30" :aria-label="t('groups.deleteAria')" @click="confirmDeleteId = g._id">
                 <Trash2 class="w-3 h-3 text-rose-400" />
               </button>
             </template>
@@ -85,12 +85,12 @@
         <div class="flex items-center gap-4 mt-4 pt-4 border-t border-white/[0.08]">
           <div class="text-center">
             <p class="text-white font-bold text-lg">{{ Math.round(groupPercent(g)) }}%</p>
-            <p class="text-white/30 text-xs">transações</p>
+            <p class="text-white/30 text-xs">{{ t('groups.transactionsLabel') }}</p>
           </div>
           <div class="w-px h-8 bg-white/10" />
           <div class="text-center">
             <p class="font-bold text-sm" :style="{ color: g.color }">{{ formatCompact(g.monthlySpent || 0) }}</p>
-            <p class="text-white/30 text-xs">total</p>
+            <p class="text-white/30 text-xs">{{ t('groups.totalLabel') }}</p>
           </div>
         </div>
         <div v-if="g.monthlyLimit" class="progress-bar h-1.5 mt-3">
@@ -105,10 +105,10 @@
     <!-- Empty state -->
     <div v-else class="glass-card rounded-3xl p-12 text-center">
       <div class="text-5xl mb-4">📁</div>
-      <h3 class="font-semibold text-white mb-2">Sem grupos criados</h3>
-      <p class="text-white/40 text-sm mb-6">Agrupa transações por projetos, viagens ou qualquer critério</p>
+      <h3 class="font-semibold text-white mb-2">{{ t('groups.emptyTitle') }}</h3>
+      <p class="text-white/40 text-sm mb-6">{{ t('groups.emptyDescription') }}</p>
       <button class="btn-primary" @click="showModal = true">
-        <Plus class="w-4 h-4 inline mr-1" /> Criar Primeiro Grupo
+        <Plus class="w-4 h-4 inline mr-1" /> {{ t('groups.createFirst') }}
       </button>
     </div>
 
@@ -127,21 +127,21 @@
             </div>
             <div class="flex-1">
               <h3 class="font-semibold text-white">{{ selectedGroup.name }}</h3>
-              <p class="text-white/40 text-xs">{{ groupDetail?.stats?.count || 0 }} transações</p>
+              <p class="text-white/40 text-xs">{{ t('groups.transactionsLabel') }}: {{ groupDetail?.stats?.count || 0 }}</p>
             </div>
             <template v-if="confirmDeleteId === selectedGroup._id">
-              <button class="text-xs px-2 py-1 rounded-lg text-white/50 hover:text-white transition-colors" @click="confirmDeleteId = null">Cancelar</button>
-              <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(selectedGroup._id)">Confirmar</button>
+              <button class="text-xs px-2 py-1 rounded-lg text-white/50 hover:text-white transition-colors" @click="confirmDeleteId = null">{{ t('common.cancel') }}</button>
+              <button class="text-xs px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" @click="doDeleteGroup(selectedGroup._id)">{{ t('common.confirm') }}</button>
             </template>
             <template v-else>
-              <button class="btn-icon" aria-label="Editar grupo" @click="editGroup = selectedGroup; showModal = true; selectedGroup = null">
+              <button class="btn-icon" :aria-label="t('groups.editAria')" @click="editGroup = selectedGroup; showModal = true; selectedGroup = null">
                 <Pencil class="w-4 h-4" />
               </button>
-              <button class="btn-icon hover:border-rose-500/30" aria-label="Eliminar grupo" @click="confirmDeleteId = selectedGroup._id">
+              <button class="btn-icon hover:border-rose-500/30" :aria-label="t('groups.deleteAria')" @click="confirmDeleteId = selectedGroup._id">
                 <Trash2 class="w-4 h-4 text-rose-400" />
               </button>
             </template>
-            <button class="btn-icon" aria-label="Fechar" @click="selectedGroup = null; confirmDeleteId = null">
+            <button class="btn-icon" :aria-label="t('groups.closeAria')" @click="selectedGroup = null; confirmDeleteId = null">
               <X class="w-5 h-5" />
             </button>
           </div>
@@ -150,17 +150,17 @@
           <div class="grid grid-cols-3 gap-3 p-6 border-b border-white/[0.08] shrink-0">
             <div class="glass-card rounded-2xl p-3 text-center">
               <p class="text-emerald-400 font-bold">{{ formatCompact(groupDetail?.stats?.income || 0) }}</p>
-              <p class="text-white/30 text-xs mt-0.5">Receitas</p>
+              <p class="text-white/30 text-xs mt-0.5">{{ t('groups.income') }}</p>
             </div>
             <div class="glass-card rounded-2xl p-3 text-center">
               <p class="text-rose-400 font-bold">{{ formatCompact(groupDetail?.stats?.expense || 0) }}</p>
-              <p class="text-white/30 text-xs mt-0.5">Despesas</p>
+              <p class="text-white/30 text-xs mt-0.5">{{ t('groups.expense') }}</p>
             </div>
             <div class="glass-card rounded-2xl p-3 text-center">
               <p class="font-bold" :class="(groupDetail?.stats?.balance || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'">
                 {{ formatCompact(groupDetail?.stats?.balance || 0) }}
               </p>
-              <p class="text-white/30 text-xs mt-0.5">Saldo</p>
+              <p class="text-white/30 text-xs mt-0.5">{{ t('groups.balance') }}</p>
             </div>
           </div>
 
@@ -198,20 +198,20 @@
       <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
         <div class="modal-content max-w-md">
           <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-white">{{ editGroup ? 'Editar' : 'Novo' }} Grupo</h3>
-            <button class="btn-icon" aria-label="Fechar" @click="closeModal"><X class="w-4 h-4" /></button>
+            <h3 class="font-semibold text-white">{{ editGroup ? t('groups.editTitle') : t('groups.newTitle') }}</h3>
+            <button class="btn-icon" :aria-label="t('groups.closeAria')" @click="closeModal"><X class="w-4 h-4" /></button>
           </div>
           <form class="space-y-4" @submit.prevent="saveGroup">
             <div>
-              <label class="form-label">Nome *</label>
-              <input v-model="form.name" type="text" class="form-input" placeholder="Ex: Férias 2024, Casa..." required />
+              <label class="form-label">{{ t('groups.nameLabel') }}</label>
+              <input v-model="form.name" type="text" class="form-input" :placeholder="t('groups.namePlaceholder')" required />
             </div>
             <div>
-              <label class="form-label">Descrição</label>
-              <input v-model="form.description" type="text" class="form-input" placeholder="Descrição opcional..." />
+              <label class="form-label">{{ t('groups.descriptionLabel') }}</label>
+              <input v-model="form.description" type="text" class="form-input" :placeholder="t('groups.descriptionPlaceholder')" />
             </div>
             <div>
-              <label class="form-label">Cor</label>
+              <label class="form-label">{{ t('groups.colorLabel') }}</label>
               <div class="flex flex-wrap gap-2">
                 <button
                   v-for="c in CATEGORY_COLORS"
@@ -227,30 +227,30 @@
             <!-- Budget limits -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="form-label">Teto mensal (€)</label>
+                <label class="form-label">{{ t('groups.monthlyLimitLabel') }}</label>
                 <input
                   v-model.number="form.monthlyLimit"
                   type="number"
                   min="0"
                   step="0.01"
                   class="form-input"
-                  placeholder="Sem limite"
+                  :placeholder="t('groups.noLimitPlaceholder')"
                 />
               </div>
               <div>
-                <label class="form-label">Teto semanal (€)</label>
+                <label class="form-label">{{ t('groups.weeklyLimitLabel') }}</label>
                 <input
                   v-model.number="form.weeklyLimit"
                   type="number"
                   min="0"
                   step="0.01"
                   class="form-input"
-                  placeholder="Sem limite"
+                  :placeholder="t('groups.noLimitPlaceholder')"
                 />
               </div>
             </div>
             <div>
-              <label class="form-label">Alerta aos <span class="text-brand-400">{{ form.alertThreshold }}%</span></label>
+              <label class="form-label">{{ t('groups.alertLabel') }} <span class="text-brand-400">{{ form.alertThreshold }}%</span></label>
               <input
                 v-model.number="form.alertThreshold"
                 type="range"
@@ -273,17 +273,17 @@
                 {{ (form.name || 'AB').slice(0, 2).toUpperCase() }}
               </div>
               <div class="flex-1">
-                <p class="text-white text-sm font-medium">{{ form.name || 'Nome do grupo' }}</p>
+                <p class="text-white text-sm font-medium">{{ form.name || t('groups.previewNamePlaceholder') }}</p>
                 <p class="text-white/30 text-xs">
-                  {{ form.monthlyLimit ? `Teto: ${formatCurrency(form.monthlyLimit)}/mês` : 'Sem teto definido' }}
+                  {{ form.monthlyLimit ? t('groups.previewLimit', { amount: formatCurrency(form.monthlyLimit) }) : t('groups.previewNoLimit') }}
                 </p>
               </div>
             </div>
             <div class="flex gap-3 pt-1">
-              <button type="button" class="btn-secondary flex-1" @click="closeModal">Cancelar</button>
+              <button type="button" class="btn-secondary flex-1" @click="closeModal">{{ t('common.cancel') }}</button>
               <button type="submit" class="btn-primary flex-1" :disabled="saving">
                 <Loader2 v-if="saving" class="w-4 h-4 inline animate-spin mr-1" />
-                {{ editGroup ? 'Atualizar' : 'Criar' }}
+                {{ editGroup ? t('common.update') : t('common.create') }}
               </button>
             </div>
           </form>
@@ -304,6 +304,7 @@ definePageMeta({ layout: 'default' })
 const groupsStore = useGroupsStore()
 const toast = useToastStore()
 const { formatCurrency, formatCompact, formatDate } = useFormatters()
+const { t } = useI18n()
 const sub = useSubscription()
 const subLoading = sub.isLoading   // top-level ref so Vue auto-unwraps in template
 const canUseGroups = computed(() => sub.hasFeature('groups'))
@@ -367,14 +368,14 @@ async function saveGroup() {
   try {
     if (editGroup.value) {
       await groupsStore.updateGroup(editGroup.value._id, { ...form })
-      toast.success('Grupo atualizado!')
+      toast.success(t('groups.toastUpdated'))
     } else {
       await groupsStore.createGroup({ ...form })
-      toast.success('Grupo criado!')
+      toast.success(t('groups.toastCreated'))
     }
     closeModal()
   } catch (e: any) {
-    toast.error(e?.data?.message || 'Erro ao guardar grupo')
+    toast.error(e?.data?.message || t('groups.toastSaveError'))
   } finally {
     saving.value = false
   }
@@ -385,9 +386,9 @@ async function doDeleteGroup(id: string) {
   try {
     await groupsStore.deleteGroup(id)
     if (selectedGroup.value?._id === id) selectedGroup.value = null
-    toast.success('Grupo eliminado')
+    toast.success(t('groups.toastDeleted'))
   } catch {
-    toast.error('Erro ao eliminar')
+    toast.error(t('groups.toastDeleteError'))
   }
 }
 

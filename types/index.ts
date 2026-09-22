@@ -27,6 +27,12 @@ export interface Transaction {
   userId: string
   type: TransactionType
   amount: number
+  // Fase 7, tarefa 6 — `amount` é sempre o equivalente em €; quando a
+  // transação nasce numa moeda estrangeira, estes três campos preservam o
+  // valor e a taxa originais (null/'EUR' numa transação normal em €).
+  currency: string
+  originalAmount: number | null
+  exchangeRate: number | null
   description: string
   categoryId: string
   category?: Category
@@ -230,5 +236,9 @@ export interface DocumentScanResult {
   type: TransactionType
   categoryId: string | null
   categoryName: string | null
+  // Fase 7, tarefa 6 — só relevantes quando documentType='payslip'.
+  documentType: 'receipt' | 'payslip'
+  grossAmount: number | null
+  deductions: number | null
   confidence: { merchant: ScanConfidence; date: ScanConfidence; amount: ScanConfidence; type: ScanConfidence }
 }

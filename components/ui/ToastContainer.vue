@@ -15,7 +15,7 @@
           >
             <span class="text-lg shrink-0">{{ toastIcon(toast.type) }}</span>
             <p class="text-sm font-medium text-white flex-1">{{ toast.message }}</p>
-            <button class="text-white/30 hover:text-white shrink-0 transition-colors" aria-label="Fechar notificação">
+            <button class="text-white/30 hover:text-white shrink-0 transition-colors" :aria-label="t('common.closeNotification')">
               <X class="w-4 h-4" />
             </button>
           </div>
@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const toastStore = useToastStore()
 
 function toastIcon(type: string) {

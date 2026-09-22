@@ -1,11 +1,14 @@
 import { Transaction, Category } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import { getUserTier } from '../../utils/requireFeature'
+import { resolveTransactionAmount } from '../../utils/transactionCurrency'
 import { TIER_LIMITS } from '../../../shared/features'
+import { getServerLocale, serverT } from '../../utils/i18n'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   const method = getMethod(event)
+  const locale = getServerLocale(event)
 
   // ──────────── GET: list transactions ────────────
   if (method === 'GET') {
@@ -71,7 +74,7 @@ export default defineEventHandler(async (event) => {
   // ──────────── POST: create transaction ────────────
   if (method === 'POST') {
     const body = await readBody(event)
-    const { type, amount, description, categoryId, date, tags, recurrence, notes, groupId } = body
+    const { type, amount, currency, description, categoryId, date, tags, recurrence, notes, groupId } = body
 
     if (!type || !amount || !description || !categoryId || !date) {
       throw createError({ statusCode: 400, message: 'Missing required fields' })
@@ -85,7 +88,7 @@ export default defineEventHandler(async (event) => {
       if (countThisMonth >= monthlyLimit) {
         throw createError({
           statusCode: 403,
-          message: `Limite de ${monthlyLimit} transações/mês do plano Gratuito atingido`,
+          message: serverT(locale, 'transactions.monthlyLimitReached', { limit: monthlyLimit }),
           data: { error: 'feature_locked', requiredTier: 'pro' },
         })
       }
@@ -94,10 +97,15 @@ export default defineEventHandler(async (event) => {
     const category = await Category.findOne({ _id: categoryId, userId }).lean()
     if (!category) throw createError({ statusCode: 400, message: 'Invalid category' })
 
+    const resolved = await resolveTransactionAmount(locale, parseFloat(amount), currency, date)
+
     const tx = await Transaction.create({
       userId,
       type,
-      amount: parseFloat(amount),
+      amount: resolved.amount,
+      currency: resolved.currency,
+      originalAmount: resolved.originalAmount,
+      exchangeRate: resolved.exchangeRate,
       description: description.trim(),
       categoryId,
       date: new Date(date),

@@ -47,7 +47,7 @@
       </p>
 
       <p v-if="change !== undefined && !loading" class="text-white/30 text-xs mt-1">
-        vs mês anterior
+        {{ t('common.vsLastMonth') }}
       </p>
     </div>
   </div>
@@ -67,6 +67,7 @@ const props = defineProps<{
   invert?: boolean
 }>()
 
+const { t } = useI18n()
 const { formatCompact } = useFormatters()
 
 // Map color prop to actual hex — avoids dynamic Tailwind class purging

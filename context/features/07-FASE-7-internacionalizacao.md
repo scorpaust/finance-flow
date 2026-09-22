@@ -64,55 +64,121 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
 
 ### 1. Infraestrutura de i18n
 
-- [ ] Instalar e configurar `@nuxtjs/i18n`
-- [ ] Estrutura de ficheiros de tradução por idioma (`i18n/locales/pt-PT.json`,
+- [x] Instalar e configurar `@nuxtjs/i18n`
+- [x] Estrutura de ficheiros de tradução por idioma (`i18n/locales/pt-PT.json`,
       `en.json`, `fr.json`, `de.json`, `it.json`, `es.json`) — chaves
       organizadas por página/secção, não uma lista plana
-- [ ] Estratégia de deteção: `Accept-Language` do browser no primeiro
+- [x] Estratégia de deteção: `Accept-Language` do browser no primeiro
       acesso → guardar escolha (cookie/preferência do `User`) → nunca voltar
       a detetar automaticamente depois de o utilizador escolher manualmente
-- [ ] Seletor de idioma nas Configurações (`pages/settings/index.vue`)
+      (implementado só com cookie — `detectBrowserLanguage` do
+      `@nuxtjs/i18n`, `strategy: 'no_prefix'` porque a app não tem nem
+      precisa de rotas prefixadas por idioma; sem sincronizar com o `User`)
+- [x] Seletor de idioma nas Configurações (`pages/settings/index.vue`)
 
 ### 2. Extração de strings (o trabalho mecanicamente maior)
 
-- [ ] Auditoria de todas as strings PT-PT hardcoded em `pages/`,
-      `components/`, mensagens de erro do servidor (`createError({message})`)
-      e emails/notificações (se existirem a essa altura)
-- [ ] Prioridade de extração: 1) autenticação/dashboard, 2) transações/
-      categorias/grupos, 3) subscrição/checkout/paywall, 4) previsões/
-      insights de IA (Fase 3), 5) registo de investimentos (Fase 6), 6) resto
-- [ ] Datas, moeda e números formatados com `Intl`/`date-fns` já
-      localizados por idioma ativo (`useFormatters` já existe — adaptar
-      para receber o locale em vez de assumir PT-PT fixo; inclui os
-      `formatReturnPct` e `formatSignedCurrency` da Fase 6, que hoje fixam
-      `pt-PT`)
-- [ ] Texto do lado do servidor da Fase 6: mensagens de erro de
+- [x] Auditoria de todas as strings PT-PT hardcoded em `pages/`,
+      `components/` e mensagens de erro do servidor (`createError({message})`)
+      — as 6 prioridades abaixo estão extraídas, incluindo a varredura final
+      (gráficos, `KpiCard`/`ToastContainer`, endpoints de servidor fora dos
+      já cobertos por scan/investment-tips/stats); nenhuma string PT-PT
+      hardcoded conhecida por traduzir a esta data. Não existem emails/
+      notificações no projeto
+- [x] Prioridade de extração: 1) **autenticação/dashboard — feito**
+      (`pages/login.vue`, `pages/index.vue`, `layouts/default.vue`,
+      `components/layout/MobileNav.vue`), 2) **transações/categorias/grupos —
+      feito** (`pages/transactions/index.vue`, `pages/groups/index.vue`,
+      `pages/settings/index.vue` inteira — Perfil, Idioma, Subscrição,
+      Categorias —, `components/forms/TransactionModal.vue`,
+      `components/ui/TransactionRow.vue`), 3) **subscrição/checkout/paywall —
+      feito** (`pages/subscription/index.vue`, `pages/subscription/return.vue`,
+      `components/subscription/PaywallModal.vue`,
+      `components/subscription/UpsellBanner.vue` — inclui o mapeamento do
+      idioma ativo para os 3 idiomas suportados pelo checkout-sdk da EasyPay,
+      `en`/`pt_PT`/`es_ES`, com fr/de/it a cair em `en`), 4) **previsões/
+      insights de IA (Fase 3) — feito** (`pages/predictions.vue`,
+      `composables/useMLPrediction.ts`, `pages/stats/index.vue`,
+      `components/insights/StatsInsightCard.vue`,
+      `server/api/insights/stats.post.ts` — o prompt de interpretação de
+      estatísticas passa a seguir o idioma ativo da UI, com a cache de 24h a
+      invalidar quando o idioma muda), 5) **registo de investimentos (Fase 6)
+      — feito** (`pages/investimento/index.vue`, `pages/investimento/perfil.vue`,
+      `components/investment/PortfolioTable.vue`,
+      `components/investment/InvestmentSummary.vue`,
+      `components/investment/InvestmentQuickModal.vue`,
+      `components/forms/InvestmentModal.vue`,
+      `components/insights/InvestmentTipsCard.vue` — inclui os rótulos de
+      classe de ativo, que deixaram de vir do `ASSET_CLASS_LABEL` fixo em
+      `shared/portfolio.ts` nestes componentes cliente; o ficheiro
+      partilhado em si não foi tocado, continua a ser usado tal e qual no
+      servidor/IA), 6) **resto — feito**
+      (`components/forms/DocumentScanButton.vue` +
+      `composables/useDocumentScan.ts` — botão "Digitalizar documento" do
+      dashboard e respetivos estados de erro/consentimento;
+      `server/api/transactions/scan.post.ts` — mensagens de erro do servidor
+      via o novo `server/utils/i18n.ts`; varredura final —
+      `components/charts/*.vue` (8 componentes, novo namespace `charts`,
+      incluindo labels de dataset e tooltips do Chart.js), `KpiCard.vue`/
+      `ToastContainer.vue`, e mensagens de erro de
+      `server/api/transactions/index.ts`, `categories/index.ts`,
+      `investor-profile/index.ts`, `investments/index.ts`+`[id].ts` — esta
+      última exigiu passar `locale` como parâmetro a
+      `server/utils/investments.ts` porque as suas funções de validação
+      constroem mensagens com o nome do campo interpolado, também traduzido);
+      confirmado por inspeção que `server/utils/documentScan.ts` e os
+      endpoints de `groups`/`categories/[id]`/`transactions/[id]`/
+      `transactions/export.ts` não tinham texto PT-PT hardcoded
+- [x] Datas, moeda e números formatados com `Intl`/`date-fns` já
+      localizados por idioma ativo — `useFormatters` e o novo
+      `useLocaleFormat` (mapeia o locale ativo para o locale do date-fns e
+      para a string `Intl`); `formatReturnPct`/`formatSignedCurrency` da Fase
+      6 já seguem o locale. Como o formatador em si mudou (não o texto
+      envolvente), isto já se aplica em toda a app, mesmo nas páginas cujas
+      strings ainda não foram extraídas
+- [x] Texto do lado do servidor da Fase 6: mensagens de erro de
       `/api/investments` (formato `Campo: motivo`), rótulos de classe de ativo
       (`ASSET_CLASS_LABEL` em `shared/portfolio.ts`) e o prompt e o
-      **disclaimer** das dicas de investimento (`server/utils/investmentTips.ts`,
-      hardcoded em PT-PT). O disclaimer traduzido para cada língua deve ser
-      **revisto juridicamente**, não só traduzido
-- [ ] Tradução das 6 línguas — rever qualidade (não confiar só em tradução
-      automática para o texto final, especialmente termos financeiros)
+      **disclaimer** das dicas de investimento (`server/utils/investmentTips.ts`)
+      — `DISCLAIMER` passou a `DISCLAIMERS` (um por idioma) e o
+      `SYSTEM_PROMPT` passou a `buildSystemPrompt(locale)`, com a cache a
+      invalidar por idioma. O disclaimer traduzido para cada língua **não foi
+      revisto juridicamente**, só traduzido — isto é um aviso importante
+      (não é aconselhamento financeiro), tratar a tradução como primeira
+      versão até revisão jurídica
+- [~] Tradução das 6 línguas — feita para todo o conteúdo extraído até agora
+      (paridade de chaves confirmada nas 6 línguas); qualidade **não revista
+      por um humano/falante nativo** nesta sessão — tratar como primeira
+      versão, sobretudo para termos financeiros e o disclaimer de
+      investimento acima
 
 ### 3. Geolocalização por IP (server-side)
 
-- [ ] Integrar MaxMind GeoLite2 (`server/utils/geo.ts`) — lookup do IP do
+- [x] Integrar MaxMind GeoLite2 (`server/utils/geo.ts`) — lookup do IP do
       pedido (`x-forwarded-for`/IP direto), devolve código de país (`PT`,
-      `FR`, etc.)
-- [ ] Documentar processo de atualização periódica da base de dados
+      `FR`, etc.). **Não testado com uma base de dados `.mmdb` real** nesta
+      sessão (não incluída no repositório, licenciada) — sem
+      `GEOLITE2_DB_PATH` configurado, devolve sempre país desconhecido
+      (nunca assume Portugal)
+- [x] Documentar processo de atualização periódica da base de dados
       GeoLite2 (licenciada, requer registo gratuito na MaxMind, atualiza-se
-      mensalmente)
+      mensalmente) — ver comentário no topo de `server/utils/geo.ts` e
+      `context/CONFIG-REFERENCE.md`
 
 ### 4. Métodos de pagamento por país
 
-- [ ] `shared/paymentMethods.ts` — tabela `país → métodos pré-pagos
+- [x] `shared/paymentMethods.ts` — tabela `país → métodos pré-pagos
       disponíveis` (hoje: só `PT: ['mbway', 'multibanco']`; qualquer outro
       país → `[]`, cai no fallback recorrente)
-- [ ] `server/api/subscription/easypay/create-prepaid.post.ts` — validar que o
+- [x] `server/api/subscription/easypay/create-prepaid.post.ts` — validar que o
       `paymentMethod` pedido está mesmo disponível para o país detetado do
-      utilizador (nunca confiar só na UI a esconder as opções)
-- [ ] `pages/subscription/index.vue` — só mostrar o separador "Pagar um
+      utilizador (nunca confiar só na UI a esconder as opções). **Efeito
+      colateral importante**: sem `GEOLITE2_DB_PATH` configurado (dev local,
+      ou produção antes de instalar a base de dados), o país é sempre
+      desconhecido e este endpoint passa a rejeitar (403) qualquer pedido
+      MB WAY/Multibanco — mesmo em Portugal. MB WAY/Multibanco só voltam a
+      funcionar depois de configurar a geolocalização
+- [x] `pages/subscription/index.vue` — só mostrar o separador "Pagar um
       período (MB WAY/Multibanco)" quando o país detetado tiver métodos
       disponíveis; caso contrário, mostrar só "Renovação automática"
 
@@ -120,7 +186,8 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
 
 - [ ] Confirmar que o idioma detetado/escolhido no `WebView` do Capacitor
       coincide com o da app web (mesma conta, mesmo idioma nas duas
-      plataformas)
+      plataformas) — **por fazer**, exige um dispositivo Android real (não
+      disponível nesta sessão)
 
 ### 6. Digitalização de documentos (Fase 5) em contexto internacional
 
@@ -128,40 +195,41 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
 > `05-FASE-5-scan-documentos-ia.md`, "Fora de âmbito"). O modelo já lê
 > documentos noutros idiomas, mas a Fase 5 assume Portugal e euros; ler
 > recibos/faturas estrangeiros e recibos de vencimento exige as decisões e
-> ajustes abaixo. **Confirmar cada decisão com o utilizador antes de
-> implementar.**
+> ajustes abaixo.
+>
+> **Decisões confirmadas com o utilizador em 2026-09-22** (as 3 perguntas
+> em aberto desta secção): moeda → opção B (guardar a moeda original);
+> recibos de vencimento → entram no âmbito desta fase; privacidade → pedir
+> consentimento explícito antes do envio.
 
-- [ ] **Moeda** — hoje a app é só em € e a Fase 5 devolve o valor de um
-      documento noutra moeda *sem converter* (formulário com o montante
-      marcado para rever + aviso, moeda original nas notas). A tarefa 2 desta
-      fase só localiza o *formato* de moeda na interface; não trata de
-      guardar/converter valores estrangeiros. Decidir entre:
-      - **A) Converter para €** à taxa do dia do documento, mantendo o
-        ledger só em € (estatísticas e previsões ficam intactas). Precisa de
-        uma fonte de câmbios — a Twelve Data (Fase 3) pode servir, mas **não
-        está confirmado** que o plano gratuito cobre pares de moedas.
-      - **B) Guardar a moeda em cada transação** — mais fiel, mas mexe no
-        modelo `Transaction`, nas estatísticas e nas previsões.
-      Lean inicial: A, por ser bastante mais simples; a confirmar.
-- [ ] **Formato das datas** — o prompt da Fase 5
-      (`DOCUMENT_SYSTEM_PROMPT` em `server/utils/anthropic.ts`) diz que as
-      datas portuguesas são dia/mês/ano; um recibo americano `03/04` seria
-      lido ao contrário. Passar ao modelo o país/idioma do utilizador e/ou do
-      documento e, quando a data for ambígua (dia e mês ≤ 12) sem indicação
-      clara, devolver `confidence.date: 'low'` — reaproveita o realce âmbar
-      que já existe no `TransactionModal`.
-- [ ] **Idioma do prompt** — o prompt de extração está fixo em PT-PT (como as
-      restantes secções de IA); passa a seguir o idioma ativo, tal como o
-      resto do conteúdo gerado por IA.
-- [ ] **Recibos de vencimento** — não estão desenhados na Fase 5: o prompt
-      pede o "total a pagar com IVA", e num recibo de vencimento o valor
-      relevante é o **líquido** (não o bruto). Decidir se entram em âmbito;
-      se sim, prompt/schema próprios (bruto, líquido, descontos) e teste
-      com recibos reais de vários países antes de os prometer.
-- [ ] **Privacidade** — um recibo de vencimento envia NIF, morada e salário
-      à Anthropic. Decidir se pede aviso/consentimento explícito antes do
-      envio (RGPD) e se a política de privacidade da app (Fase 9) o deve
-      mencionar. Vale também para faturas com dados pessoais.
+- [x] **Moeda** — opção B implementada com um desvio deliberado explicado no
+      histórico de `context/current-feature.md`: a transação guarda sempre
+      `currency`/`originalAmount`/`exchangeRate` (fidelidade ao documento),
+      mas `amount` continua a ser sempre o equivalente em € capturado no
+      momento da transação (`server/utils/transactionCurrency.ts` +
+      `server/utils/exchangeRates.ts`, Twelve Data `/exchange_rate`) — assim
+      todas as agregações existentes (KPIs, estatísticas, orçamentos,
+      previsões) continuam a somar um único valor em € sem nenhuma
+      alteração, em vez de exigirem um redesenho multi-moeda. **Não
+      confirmado em sandbox real** se o plano gratuito da Twelve Data cobre
+      pares forex; sem taxa disponível, a transação falha com `422` em vez
+      de gravar um valor não convertido
+- [x] **Formato das datas** — o prompt (`server/utils/anthropic.ts`) já não
+      assume dia/mês/ano: instruído a marcar `confidence.date: 'low'`
+      sempre que dia e mês forem ambos ≤ 12 sem indicação clara do formato.
+      **Não testado com documentos reais ambíguos**
+- [x] **Idioma do prompt** — segue o idioma ativo da UI (lido do cookie do
+      `@nuxtjs/i18n` em `scan.post.ts`); os nomes dos campos do JSON
+      mantêm-se em inglês (são chaves de schema)
+- [x] **Recibos de vencimento** — schema/prompt próprios implementados
+      (`documentType: 'receipt' | 'payslip'`, `grossAmount`/`deductions`,
+      `amount` = líquido para payslips), resumo mostrado no
+      `TransactionModal`. **Não testado com recibos de vencimento reais de
+      nenhum país** — tratar como primeira versão
+- [x] **Privacidade** — consentimento explícito pedido antes do 1.º envio
+      (`DocumentScanButton.vue`, guardado em `localStorage`, não por
+      conta/servidor); a menção na política de privacidade da Fase 9 fica
+      por fazer (a política em si ainda não existe)
 
 ## Fora de âmbito nesta fase
 

@@ -9,10 +9,10 @@
           @click="navigateTo('/')"
         >
           <ArrowLeft class="w-4 h-4" />
-          Voltar ao dashboard
+          {{ t('common.backToDashboard') }}
         </button>
-        <h2 class="font-display font-bold text-2xl text-white">Estatísticas</h2>
-        <p class="text-white/40 text-xs mt-0.5">Análise detalhada das tuas finanças</p>
+        <h2 class="font-display font-bold text-2xl text-white">{{ t('stats.title') }}</h2>
+        <p class="text-white/40 text-xs mt-0.5">{{ t('stats.subtitle') }}</p>
       </div>
       <div class="flex gap-2">
         <button
@@ -43,22 +43,22 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Monthly bar chart -->
       <div class="chart-wrapper">
-        <h3 class="font-semibold text-white mb-1">Receitas vs Despesas</h3>
-        <p class="text-white/40 text-xs mb-5">Comparativo mensal</p>
+        <h3 class="font-semibold text-white mb-1">{{ t('stats.chartMonthlyTitle') }}</h3>
+        <p class="text-white/40 text-xs mb-5">{{ t('stats.chartMonthlySubtitle') }}</p>
         <BarChart :data="stats?.monthly || []" :loading="loading" />
       </div>
 
       <!-- Balance trend -->
       <div class="chart-wrapper">
-        <h3 class="font-semibold text-white mb-1">Evolução do Saldo</h3>
-        <p class="text-white/40 text-xs mb-5">Tendência acumulada</p>
+        <h3 class="font-semibold text-white mb-1">{{ t('stats.chartBalanceTitle') }}</h3>
+        <p class="text-white/40 text-xs mb-5">{{ t('stats.chartBalanceSubtitle') }}</p>
         <AreaChart :data="stats?.monthly || []" :loading="loading" />
       </div>
 
       <!-- Expense by category -->
       <div class="chart-wrapper">
-        <h3 class="font-semibold text-white mb-1">Despesas por Categoria</h3>
-        <p class="text-white/40 text-xs mb-5">Distribuição no período</p>
+        <h3 class="font-semibold text-white mb-1">{{ t('stats.chartExpenseCategoryTitle') }}</h3>
+        <p class="text-white/40 text-xs mb-5">{{ t('stats.chartCategorySubtitle') }}</p>
         <HorizontalBarChart
           :data="expenseCategories"
           :loading="loading"
@@ -68,8 +68,8 @@
 
       <!-- Income by category -->
       <div class="chart-wrapper">
-        <h3 class="font-semibold text-white mb-1">Receitas por Categoria</h3>
-        <p class="text-white/40 text-xs mb-5">Distribuição no período</p>
+        <h3 class="font-semibold text-white mb-1">{{ t('stats.chartIncomeCategoryTitle') }}</h3>
+        <p class="text-white/40 text-xs mb-5">{{ t('stats.chartCategorySubtitle') }}</p>
         <HorizontalBarChart
           :data="incomeCategories"
           :loading="loading"
@@ -81,29 +81,29 @@
     <!-- Advanced stats (Pro+) -->
     <div>
       <div class="flex items-center gap-2 mb-4">
-        <h3 class="font-display font-bold text-lg text-white">Estatísticas Avançadas</h3>
+        <h3 class="font-display font-bold text-lg text-white">{{ t('stats.advancedTitle') }}</h3>
         <span class="text-xs px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-300 font-semibold">Pro</span>
       </div>
 
       <div v-if="!canUseAdvanced" class="glass-card rounded-3xl p-10 text-center">
         <div class="text-4xl mb-3">📊</div>
-        <h4 class="font-semibold text-white mb-2">Distribuição de gastos e quartis por categoria</h4>
+        <h4 class="font-semibold text-white mb-2">{{ t('stats.advancedLockedTitle') }}</h4>
         <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
-          Vê como os teus gastos se distribuem e que categorias têm despesas mais erráticas vs. estáveis — disponível a partir do plano Pro.
+          {{ t('stats.advancedLockedDescription') }}
         </p>
-        <button class="btn-primary" @click="navigateTo('/subscription')">Ver planos</button>
+        <button class="btn-primary" @click="navigateTo('/subscription')">{{ t('common.viewPlans') }}</button>
       </div>
 
       <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="chart-wrapper">
-          <h3 class="font-semibold text-white mb-1">Distribuição de Despesas</h3>
-          <p class="text-white/40 text-xs mb-5">Frequência por faixa de valor</p>
+          <h3 class="font-semibold text-white mb-1">{{ t('stats.distributionTitle') }}</h3>
+          <p class="text-white/40 text-xs mb-5">{{ t('stats.distributionSubtitle') }}</p>
           <DistributionHistogram :data="advancedStats?.distribution || []" :loading="loadingAdvanced" />
         </div>
 
         <div class="chart-wrapper">
-          <h3 class="font-semibold text-white mb-1">Quartis por Categoria</h3>
-          <p class="text-white/40 text-xs mb-5">Mediana, Q1–Q3 e outliers dos gastos</p>
+          <h3 class="font-semibold text-white mb-1">{{ t('stats.boxplotTitle') }}</h3>
+          <p class="text-white/40 text-xs mb-5">{{ t('stats.boxplotSubtitle') }}</p>
           <CategoryBoxplot :data="advancedStats?.boxplot || []" :loading="loadingAdvanced" />
         </div>
       </div>
@@ -115,18 +115,18 @@
     <!-- Monthly detail table -->
     <div class="glass-card rounded-3xl overflow-hidden">
       <div class="p-6 border-b border-white/[0.08]">
-        <h3 class="font-semibold text-white">Detalhe por Mês</h3>
+        <h3 class="font-semibold text-white">{{ t('stats.monthlyDetailTitle') }}</h3>
       </div>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
             <tr class="bg-surface-800/50">
-              <th>Mês</th>
-              <th class="text-right text-emerald-400/70">Receitas</th>
-              <th class="text-right text-rose-400/70">Despesas</th>
-              <th class="text-right">Saldo</th>
-              <th class="text-right hidden sm:table-cell">Poupança</th>
-              <th class="hidden md:table-cell">Progressão</th>
+              <th>{{ t('stats.colMonth') }}</th>
+              <th class="text-right text-emerald-400/70">{{ t('stats.colIncome') }}</th>
+              <th class="text-right text-rose-400/70">{{ t('stats.colExpense') }}</th>
+              <th class="text-right">{{ t('stats.colBalance') }}</th>
+              <th class="text-right hidden sm:table-cell">{{ t('stats.colSavings') }}</th>
+              <th class="hidden md:table-cell">{{ t('stats.colProgress') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -160,7 +160,7 @@
           </tbody>
           <tfoot v-if="!loading && stats?.monthly?.length">
             <tr class="border-t-2 border-white/[0.15] bg-surface-800/30">
-              <td class="font-bold text-white">Total</td>
+              <td class="font-bold text-white">{{ t('stats.totalRow') }}</td>
               <td class="text-right font-bold text-emerald-400">{{ formatCurrency(totals.income) }}</td>
               <td class="text-right font-bold text-rose-400">{{ formatCurrency(totals.expense) }}</td>
               <td class="text-right font-bold" :class="totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'">
@@ -181,10 +181,11 @@
 <script setup lang="ts">
 import { ArrowLeft } from 'lucide-vue-next'
 import { format } from 'date-fns'
-import { pt } from 'date-fns/locale'
 
 definePageMeta({ layout: 'default' })
 
+const { t } = useI18n()
+const { dateFnsLocale } = useLocaleFormat()
 const { formatCurrency, formatCompact } = useFormatters()
 const sub = useSubscription()
 const canUseAdvanced = computed(() => sub.hasFeature('statsAdvanced'))
@@ -194,12 +195,12 @@ const period = ref('6')
 const advancedStats = ref<any>(null)
 const loadingAdvanced = ref(false)
 
-const periodOptions = [
-  { value: '3', label: '3M' },
-  { value: '6', label: '6M' },
-  { value: '12', label: '1A' },
-  { value: '24', label: '2A' },
-]
+const periodOptions = computed(() => [
+  { value: '3', label: t('stats.period3m') },
+  { value: '6', label: t('stats.period6m') },
+  { value: '12', label: t('stats.period1y') },
+  { value: '24', label: t('stats.period2y') },
+])
 
 async function loadStats() {
   loading.value = true
@@ -241,11 +242,12 @@ const totals = computed(() => ({
 }))
 
 const summaryCards = computed(() => {
+  const monthsSub = t('stats.monthsSuffix', { months: parseInt(period.value) })
   return [
-    { label: 'Total Receitas', value: formatCompact(totals.value.income), colorClass: 'text-emerald-400', sub: `${parseInt(period.value)} meses` },
-    { label: 'Total Despesas', value: formatCompact(totals.value.expense), colorClass: 'text-rose-400', sub: `${parseInt(period.value)} meses` },
-    { label: 'Saldo Acumulado', value: formatCompact(totals.value.balance), colorClass: totals.value.balance >= 0 ? 'text-emerald-400' : 'text-rose-400' },
-    { label: 'Média Mensal (saldo)', value: formatCompact(totals.value.balance / Math.max(1, parseInt(period.value))), colorClass: 'text-white' },
+    { label: t('stats.cardTotalIncome'), value: formatCompact(totals.value.income), colorClass: 'text-emerald-400', sub: monthsSub },
+    { label: t('stats.cardTotalExpense'), value: formatCompact(totals.value.expense), colorClass: 'text-rose-400', sub: monthsSub },
+    { label: t('stats.cardAccumulatedBalance'), value: formatCompact(totals.value.balance), colorClass: totals.value.balance >= 0 ? 'text-emerald-400' : 'text-rose-400' },
+    { label: t('stats.cardMonthlyAverage'), value: formatCompact(totals.value.balance / Math.max(1, parseInt(period.value))), colorClass: 'text-white' },
   ]
 })
 
@@ -255,7 +257,7 @@ const monthlyTableData = computed(() =>
     const d = new Date(parseInt(year), parseInt(month) - 1, 1)
     return {
       ...m,
-      label: format(d, 'MMMM yyyy', { locale: pt }),
+      label: format(d, 'MMMM yyyy', { locale: dateFnsLocale.value }),
     }
   })
 )

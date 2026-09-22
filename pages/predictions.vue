@@ -9,12 +9,12 @@
           @click="router.push('/')"
         >
           <ArrowLeft class="w-4 h-4" />
-          Voltar ao dashboard
+          {{ t('common.backToDashboard') }}
         </button>
         <h2 class="font-display font-bold text-2xl text-white flex items-center gap-2">
-          <span>🤖</span> Previsões com IA
+          <span>🤖</span> {{ t('predictions.title') }}
         </h2>
-        <p class="text-white/40 text-xs mt-1">Modelo ConvNeXt-1D treinado com os teus dados históricos</p>
+        <p class="text-white/40 text-xs mt-1">{{ t('predictions.subtitle') }}</p>
       </div>
       <button
         v-if="isTraining"
@@ -22,7 +22,7 @@
         type="button"
         @click="cancelPrediction"
       >
-        Cancelar
+        {{ t('predictions.cancel') }}
       </button>
       <button
         :disabled="isTraining"
@@ -31,7 +31,7 @@
       >
         <Brain v-if="!isTraining" class="w-4 h-4" />
         <Loader2 v-else class="w-4 h-4 animate-spin" />
-        {{ isTraining ? 'A treinar...' : 'Executar Previsão' }}
+        {{ isTraining ? t('predictions.training') : t('predictions.runPrediction') }}
       </button>
     </div>
 
@@ -42,20 +42,19 @@
           <Cpu class="w-5 h-5 text-brand-400" />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold text-white">ConvNeXt-1D Financial Forecaster</p>
+          <p class="text-sm font-semibold text-white">{{ t('predictions.modelName') }}</p>
           <p class="text-white/40 text-xs mt-0.5">
-            Convoluções 1D depthwise-separáveis + Layer Normalization + Residual connections
-            — Inspirado na arquitetura ConvNeXt adaptada para séries temporais financeiras
+            {{ t('predictions.modelDescription') }}
           </p>
         </div>
         <div class="flex gap-3 flex-wrap">
           <div class="text-center">
             <p class="text-brand-400 font-bold text-sm">{{ historicalMonths }}</p>
-            <p class="text-white/30 text-xs">meses de dados</p>
+            <p class="text-white/30 text-xs">{{ t('predictions.monthsOfData') }}</p>
           </div>
           <div class="text-center" v-if="result">
             <p class="text-emerald-400 font-bold text-sm">{{ (result.confidence * 100).toFixed(0) }}%</p>
-            <p class="text-white/30 text-xs">confiança</p>
+            <p class="text-white/30 text-xs">{{ t('predictions.confidence') }}</p>
           </div>
         </div>
       </div>
@@ -69,9 +68,9 @@
             <Loader2 class="w-4 h-4 text-brand-400 animate-spin" />
           </div>
           <div>
-            <p class="text-white font-semibold text-sm">{{ statusMsg || 'A treinar modelo...' }}</p>
+            <p class="text-white font-semibold text-sm">{{ statusMsg || t('predictions.trainingModel') }}</p>
             <p class="text-white/40 text-xs">
-              {{ progress > 0 ? `Epoch ${Math.round(progress / 100 * 48)}/48` : 'A inicializar...' }}
+              {{ progress > 0 ? t('predictions.epoch', { current: Math.round(progress / 100 * 48), total: 48 }) : t('predictions.initializing') }}
             </p>
           </div>
           <p class="ml-auto text-brand-400 font-bold">{{ progress }}%</p>
@@ -102,7 +101,7 @@
       <div>
         <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
           <TrendingUp class="w-4 h-4 text-brand-400" />
-          Previsão para os próximos {{ result.forecasts.length }} meses
+          {{ t('predictions.forecastTitle', { months: result.forecasts.length }) }}
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div
@@ -117,26 +116,26 @@
                 class="text-xs px-2 py-0.5 rounded-full font-semibold"
                 :class="i === 0 ? 'bg-brand-600/30 text-brand-300' : 'bg-surface-600/50 text-white/40'"
               >
-                {{ i === 0 ? 'Próximo' : `+${(i as number) + 1} meses` }}
+                {{ i === 0 ? t('predictions.next') : t('predictions.inMonths', { months: (i as number) + 1 }) }}
               </span>
             </div>
             <div class="space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-xs text-white/40">Receitas</span>
+                <span class="text-xs text-white/40">{{ t('predictions.income') }}</span>
                 <span class="text-emerald-400 font-bold text-sm">{{ formatCompact(f.income.value) }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-xs text-white/40">Despesas</span>
+                <span class="text-xs text-white/40">{{ t('predictions.expense') }}</span>
                 <span class="text-rose-400 font-bold text-sm">{{ formatCompact(f.expense.value) }}</span>
               </div>
               <div class="border-t border-white/[0.08] pt-2 flex justify-between items-center">
-                <span class="text-xs text-white/40">Saldo</span>
+                <span class="text-xs text-white/40">{{ t('predictions.balance') }}</span>
                 <span class="font-bold" :class="f.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'">
                   {{ formatCurrency(f.balance) }}
                 </span>
               </div>
               <div class="text-xs text-white/25 text-right">
-                IC: [{{ formatCompact(f.income.lower) }} – {{ formatCompact(f.income.upper) }}]
+                {{ t('predictions.confidenceInterval', { lower: formatCompact(f.income.lower), upper: formatCompact(f.income.upper) }) }}
               </div>
             </div>
           </div>
@@ -147,13 +146,13 @@
       <div class="chart-wrapper">
         <div class="flex items-center justify-between mb-5">
           <div>
-            <h3 class="font-semibold text-white">Histórico + Previsão</h3>
-            <p class="text-white/40 text-xs mt-0.5">Dados reais vs projeção do modelo</p>
+            <h3 class="font-semibold text-white">{{ t('predictions.historyForecastTitle') }}</h3>
+            <p class="text-white/40 text-xs mt-0.5">{{ t('predictions.historyForecastSubtitle') }}</p>
           </div>
           <div class="flex gap-2 text-xs text-white/50">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-emerald-400 inline-block" />Receitas</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-rose-400 inline-block" />Despesas</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm border-b-2 border-dashed border-brand-400 inline-block" />Previsão</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-emerald-400 inline-block" />{{ t('predictions.legendIncome') }}</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-rose-400 inline-block" />{{ t('predictions.legendExpense') }}</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm border-b-2 border-dashed border-brand-400 inline-block" />{{ t('predictions.legendForecast') }}</span>
           </div>
         </div>
         <ForecastChart :historical="historicalData" :forecasts="result.forecasts" />
@@ -164,11 +163,11 @@
         <!-- Trend indicators -->
         <div class="glass-card rounded-3xl p-6">
           <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity class="w-4 h-4 text-brand-400" /> Tendências Detetadas
+            <Activity class="w-4 h-4 text-brand-400" /> {{ t('predictions.trendsTitle') }}
           </h3>
           <div class="grid grid-cols-2 gap-3">
             <div class="bg-surface-700/50 rounded-2xl p-4">
-              <p class="text-white/40 text-xs mb-2">Receitas</p>
+              <p class="text-white/40 text-xs mb-2">{{ t('predictions.income') }}</p>
               <div class="flex items-center gap-2">
                 <TrendingUp v-if="result.trend.income === 'up'" class="w-5 h-5 text-emerald-400" />
                 <TrendingDown v-else-if="result.trend.income === 'down'" class="w-5 h-5 text-rose-400" />
@@ -186,7 +185,7 @@
               </div>
             </div>
             <div class="bg-surface-700/50 rounded-2xl p-4">
-              <p class="text-white/40 text-xs mb-2">Despesas</p>
+              <p class="text-white/40 text-xs mb-2">{{ t('predictions.expense') }}</p>
               <div class="flex items-center gap-2">
                 <TrendingDown v-if="result.trend.expense === 'down'" class="w-5 h-5 text-emerald-400" />
                 <TrendingUp v-else-if="result.trend.expense === 'up'" class="w-5 h-5 text-rose-400" />
@@ -205,10 +204,10 @@
             </div>
           </div>
           <div class="mt-4 bg-surface-700/30 rounded-2xl p-4">
-            <p class="text-white/50 text-xs font-medium mb-1">Modelo utilizado</p>
+            <p class="text-white/50 text-xs font-medium mb-1">{{ t('predictions.modelUsed') }}</p>
             <p class="text-brand-400 font-semibold text-sm">{{ result.modelType }}</p>
             <p class="text-white/30 text-xs mt-1">
-              Confiança: {{ (result.confidence * 100).toFixed(0) }}% — baseado em {{ historicalMonths }} meses de dados
+              {{ t('predictions.confidenceBasedOn', { pct: (result.confidence * 100).toFixed(0), months: historicalMonths }) }}
             </p>
           </div>
         </div>
@@ -216,7 +215,7 @@
         <!-- AI Insights -->
         <div class="glass-card rounded-3xl p-6">
           <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
-            <Lightbulb class="w-4 h-4 text-yellow-400" /> Insights da IA
+            <Lightbulb class="w-4 h-4 text-yellow-400" /> {{ t('predictions.insightsTitle') }}
           </h3>
           <div class="space-y-3">
             <div
@@ -236,21 +235,20 @@
     <!-- Empty / initial state -->
     <div v-else-if="!isTraining" class="glass-card rounded-3xl p-12 text-center">
       <div class="text-6xl mb-4 animate-bounce-subtle">🧠</div>
-      <h3 class="font-semibold text-white text-lg mb-2">Pronto para prever o futuro?</h3>
+      <h3 class="font-semibold text-white text-lg mb-2">{{ t('predictions.emptyTitle') }}</h3>
       <p class="text-white/40 text-sm mb-6 max-w-md mx-auto">
-        O modelo ConvNeXt-1D vai analisar os teus dados históricos e gerar previsões
-        de receitas e despesas para os próximos 3 meses.
+        {{ t('predictions.emptyDescription') }}
       </p>
       <button class="btn-primary flex items-center gap-2 mx-auto" @click="runPrediction">
-        <Brain class="w-4 h-4" /> Iniciar Previsão IA
+        <Brain class="w-4 h-4" /> {{ t('predictions.startPrediction') }}
       </button>
-      <p class="text-white/20 text-xs mt-4">Precisas de pelo menos 3 meses de dados</p>
+      <p class="text-white/20 text-xs mt-4">{{ t('predictions.emptyHint') }}</p>
     </div>
 
     <PaywallModal
       v-if="showPaywall"
       required-tier="premium"
-      feature-label="Previsões com IA"
+      :feature-label="t('predictions.paywallFeatureLabel')"
       @close="showPaywall = false"
     />
   </div>
@@ -265,6 +263,7 @@ import {
 definePageMeta({ layout: 'default' })
 
 const router = useRouter()
+const { t } = useI18n()
 const { formatCurrency, formatCompact, formatMonthYear } = useFormatters()
 const ml = useMLPrediction()
 const isTraining = ml.isTraining   // top-level ref so Vue auto-unwraps in template
@@ -279,15 +278,15 @@ const historicalData = ref<any[]>([])
 const historicalMonths = ref(0)
 const predictionRunId = ref(0)
 
-const trainingSteps = [
-  { icon: '📊', label: 'Dados', threshold: 10 },
-  { icon: '🏗️', label: 'Modelo', threshold: 25 },
-  { icon: '⚡', label: 'Treino', threshold: 50 },
-  { icon: '🎯', label: 'Previsão', threshold: 90 },
-]
+const trainingSteps = computed(() => [
+  { icon: '📊', label: t('predictions.stepData'), threshold: 10 },
+  { icon: '🏗️', label: t('predictions.stepModel'), threshold: 25 },
+  { icon: '⚡', label: t('predictions.stepTraining'), threshold: 50 },
+  { icon: '🎯', label: t('predictions.stepForecast'), threshold: 90 },
+])
 
-function trendLabel(t: string) {
-  return { up: 'Crescente', down: 'Decrescente', stable: 'Estável' }[t] || t
+function trendLabel(trend: string) {
+  return { up: t('predictions.trendUp'), down: t('predictions.trendDown'), stable: t('predictions.trendStable') }[trend] || trend
 }
 
 async function runPrediction() {
@@ -303,7 +302,7 @@ async function runPrediction() {
     historicalMonths.value = data.monthlySeries.length
 
     if (historicalMonths.value < 2) {
-      toast.error('Precisas de pelo menos 2 meses de dados para fazer previsões')
+      toast.error(t('predictions.toastMinData'))
       return
     }
 
@@ -319,26 +318,26 @@ async function runPrediction() {
 
     if (prediction?.timedOut) {
       ml.cancelTraining()
-      toast.error('O treino demorou demasiado. Tenta novamente mais tarde.')
+      toast.error(t('predictions.toastTimeout'))
       return
     }
 
     result.value = prediction
     if (ml.error.value) {
-      toast.warning(`Modelo IA falhou — a usar previsão linear. (${ml.error.value})`)
+      toast.warning(t('predictions.toastFallback', { error: ml.error.value }))
       ml.error.value = null
     } else {
-      toast.success('Previsão concluída! 🎯')
+      toast.success(t('predictions.toastSuccess'))
     }
   } catch (e: any) {
     ml.cancelTraining()
-    toast.error(e?.message || 'Erro na previsão')
+    toast.error(e?.message || t('predictions.toastError'))
   }
 }
 
 function cancelPrediction() {
   predictionRunId.value++
   ml.cancelTraining()
-  toast.info('Treino cancelado')
+  toast.info(t('predictions.toastCanceled'))
 }
 </script>

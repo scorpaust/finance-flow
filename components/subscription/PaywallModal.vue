@@ -6,17 +6,17 @@
           <Lock class="w-6 h-6 text-brand-400" />
         </div>
 
-        <h2 class="font-display font-bold text-xl text-white">Funcionalidade {{ TIER_LABEL[requiredTier] }}</h2>
+        <h2 class="font-display font-bold text-xl text-white">{{ t('paywall.featureTier', { tier: TIER_LABEL[requiredTier] }) }}</h2>
         <p class="text-white/50 text-sm mt-2">
-          {{ featureLabel }} está disponível a partir do plano
+          {{ t('paywall.availableFrom', { feature: featureLabel }) }}
           <span class="text-brand-300 font-semibold">{{ TIER_LABEL[requiredTier] }}</span>
-          ({{ TIER_PRICE_EUR[requiredTier].toFixed(2).replace('.', ',') }} €/mês).
+          {{ t('paywall.perMonthPrice', { price: TIER_PRICE_EUR[requiredTier].toFixed(2).replace('.', ',') }) }}
         </p>
 
         <div class="flex gap-3 mt-6">
-          <button class="btn-secondary flex-1" type="button" @click="$emit('close')">Agora não</button>
+          <button class="btn-secondary flex-1" type="button" @click="$emit('close')">{{ t('paywall.notNow') }}</button>
           <button class="btn-primary flex-1 flex items-center justify-center gap-2" type="button" @click="goToCheckout">
-            <Sparkles class="w-4 h-4" /> Ver planos
+            <Sparkles class="w-4 h-4" /> {{ t('common.viewPlans') }}
           </button>
         </div>
       </div>
@@ -35,6 +35,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+const { t } = useI18n()
 
 function goToCheckout() {
   emit('close')

@@ -73,6 +73,24 @@ projeto (ver `pages/subscription/index.vue`).
 | `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data — snapshot diário de mercado para as dicas de investimento (Fase 3) |
 | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` | `true` para as dicas de investimento receberem um resumo **agregado** do portfolio registado (Fase 6, tarefa 6 — nunca nomes nem valores por posição). Por omissão desligada (`false`); **só ligar em produção depois da validação jurídica** (ver `06-FASE-6-registo-investimentos.md`, decisão 8) |
 
+## Fase 7 — Internacionalização (idiomas + geolocalização + câmbio)
+
+| Variável | Descrição |
+|---|---|
+| `GEOLITE2_DB_PATH` | Caminho local do ficheiro `GeoLite2-Country.mmdb` (MaxMind, licenciado, gratuito com registo — ver `server/utils/geo.ts` para o processo de download/atualização). Guardado fora do repositório. Sem esta variável, a geolocalização por IP fica sempre "país desconhecido" (nunca assume Portugal), e o checkout de subscrição só mostra a opção de auto-renovação |
+
+Câmbio (transações em moeda estrangeira, Fase 7 tarefa 6) reutiliza
+`TWELVE_DATA_API_KEY` (já existente, Fase 3) — `server/utils/exchangeRates.ts`
+usa o endpoint `/exchange_rate`. **Não confirmado em sandbox real** nesta
+sessão se o plano gratuito cobre pares forex (só índices/ETFs foram testados
+na Fase 3) — por validar antes de depender disto em produção; sem resposta
+válida, a criação/edição da transação falha com `422
+exchange_rate_unavailable` em vez de gravar um valor não convertido.
+
+O idioma da UI (`@nuxtjs/i18n`, cookie `financeflow_locale`) não usa nenhuma
+variável de ambiente — é sempre detetado do `Accept-Language` do browser ou
+escolhido manualmente nas Configurações.
+
 ## Fase 8 — Segurança e observabilidade
 
 | Variável | Descrição |

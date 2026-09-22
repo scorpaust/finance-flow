@@ -8,6 +8,7 @@ import {
   MAX_IMAGE_BYTES,
   MAX_PDF_BYTES,
 } from '../../utils/documentScan'
+import { getServerLocale, serverT } from '../../utils/i18n'
 import { TIER_LIMITS } from '../../../shared/features'
 
 // Digitalização de recibos/faturas com IA (Pro + Premium) — Fase 5, tarefa 3.
@@ -24,30 +25,37 @@ const PRICE_OUT_PER_MTOK = 5
 export default defineEventHandler(async (event) => {
   const { userId, tier } = await requireFeature(event, 'documentScan')
 
+  // Fase 7 — segue o idioma ativo da UI (cookie do @nuxtjs/i18n, ver
+  // nuxt.config.ts → i18n e plugins/locale.ts); sem cookie (1.º pedido
+  // antes de qualquer navegação SSR), cai em inglês. Usado tanto para as
+  // mensagens de erro abaixo (server/utils/i18n.ts) como para o prompt da
+  // Anthropic.
+  const locale = getServerLocale(event)
+
   // Rejeitar cedo pelo cabeçalho, antes de ler o corpo todo para memória.
   const declaredLength = Number(getRequestHeader(event, 'content-length') || 0)
   if (declaredLength > MAX_PDF_BYTES + 64 * 1024) {
-    throw createError({ statusCode: 413, message: 'Ficheiro demasiado grande (máx. 8 MB)', data: { error: 'file_too_large' } })
+    throw createError({ statusCode: 413, message: serverT(locale, 'scan.fileTooLarge8mb'), data: { error: 'file_too_large' } })
   }
 
   const parts = await readMultipartFormData(event)
   const file = parts?.find((p) => p.name === 'file' && p.data?.length)
   if (!file) {
-    throw createError({ statusCode: 400, message: 'Ficheiro em falta', data: { error: 'file_missing' } })
+    throw createError({ statusCode: 400, message: serverT(locale, 'scan.fileMissing'), data: { error: 'file_missing' } })
   }
 
   const mediaType = detectDocumentType(file.data)
   if (mediaType === 'heic') {
     throw createError({
       statusCode: 415,
-      message: 'Formato HEIC não suportado — tira a foto em JPEG ou envia um PDF',
+      message: serverT(locale, 'scan.heicUnsupported'),
       data: { error: 'unsupported_type' },
     })
   }
   if (!mediaType) {
     throw createError({
       statusCode: 415,
-      message: 'Tipo de ficheiro não suportado — usa uma imagem (JPEG, PNG, WebP) ou um PDF',
+      message: serverT(locale, 'scan.unsupportedType'),
       data: { error: 'unsupported_type' },
     })
   }
@@ -56,7 +64,10 @@ export default defineEventHandler(async (event) => {
   if (file.data.length > maxBytes) {
     throw createError({
       statusCode: 413,
-      message: `Ficheiro demasiado grande (máx. ${maxBytes / 1024 / 1024} MB para ${mediaType === 'application/pdf' ? 'PDF' : 'imagens'})`,
+      message: serverT(locale, 'scan.fileTooLarge', {
+        maxMb: maxBytes / 1024 / 1024,
+        kind: mediaType === 'application/pdf' ? serverT(locale, 'scan.kindPdf') : serverT(locale, 'scan.kindImages'),
+      }),
       data: { error: 'file_too_large' },
     })
   }
@@ -66,7 +77,7 @@ export default defineEventHandler(async (event) => {
   if (!(await reserveDocumentScan(userId, limit))) {
     throw createError({
       statusCode: 429,
-      message: `Limite de ${limit} documentos digitalizados por mês atingido`,
+      message: serverT(locale, 'scan.limitReached', { limit }),
       data: { error: 'scan_limit_reached', limit },
     })
   }
@@ -79,6 +90,7 @@ export default defineEventHandler(async (event) => {
       mediaType,
       base64: file.data.toString('base64'),
       categories: categories.map((c) => ({ name: c.name, type: c.type })),
+      locale,
     })
   } catch (e: any) {
     // Falha da Anthropic/configuração, não do utilizador → devolve a quota.
@@ -88,7 +100,7 @@ export default defineEventHandler(async (event) => {
     console.error('[scan] falha na extração:', e?.message || e)
     throw createError({
       statusCode: 502,
-      message: 'Não foi possível ler o documento neste momento — tenta novamente daqui a pouco ou preenche manualmente',
+      message: serverT(locale, 'scan.upstreamError'),
       data: { error: 'upstream_error' },
     })
   }
@@ -103,7 +115,7 @@ export default defineEventHandler(async (event) => {
   if (!extraction.isReceipt || !amount || amount <= 0) {
     throw createError({
       statusCode: 422,
-      message: 'Não conseguimos ler este documento como recibo/fatura — tenta outra foto ou preenche manualmente',
+      message: serverT(locale, 'scan.notAReceipt'),
       data: { error: 'not_a_receipt' },
     })
   }
@@ -126,6 +138,12 @@ export default defineEventHandler(async (event) => {
     type: extraction.type,
     categoryId: category ? String(category._id) : null,
     categoryName: category?.name ?? null,
+    // Fase 7, tarefa 6 — só preenchidos num recibo de vencimento; o client usa
+    // isto só para um resumo informativo (bruto/descontos), nunca gravado na
+    // transação em si (o modelo Transaction não tem esses campos).
+    documentType: extraction.documentType,
+    grossAmount: extraction.grossAmount,
+    deductions: extraction.deductions,
     confidence: {
       merchant: extraction.merchant ? extraction.confidence.merchant : 'low',
       date: dateValid ? extraction.confidence.date : 'low',

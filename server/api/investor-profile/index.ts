@@ -2,6 +2,7 @@ import { User } from '../../models'
 import type { IInvestorProfile } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import { isProfileValid } from '../../utils/investorProfile'
+import { getServerLocale, serverT } from '../../utils/i18n'
 
 const VALID_RISK = ['conservador', 'moderado', 'arrojado']
 const VALID_KNOWLEDGE = ['iniciante', 'intermedio', 'avancado']
@@ -13,6 +14,7 @@ const VALID_KNOWLEDGE = ['iniciante', 'intermedio', 'avancado']
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   const method = getMethod(event)
+  const locale = getServerLocale(event)
 
   if (method === 'GET') {
     const user = await User.findById(userId)
@@ -26,16 +28,16 @@ export default defineEventHandler(async (event) => {
     const body = await readBody<Partial<IInvestorProfile>>(event)
 
     if (!body.riskTolerance || !VALID_RISK.includes(body.riskTolerance)) {
-      throw createError({ statusCode: 400, message: 'riskTolerance inválido' })
+      throw createError({ statusCode: 400, message: serverT(locale, 'investorProfile.invalidRiskTolerance') })
     }
     if (!body.knowledgeLevel || !VALID_KNOWLEDGE.includes(body.knowledgeLevel)) {
-      throw createError({ statusCode: 400, message: 'knowledgeLevel inválido' })
+      throw createError({ statusCode: 400, message: serverT(locale, 'investorProfile.invalidKnowledgeLevel') })
     }
     if (typeof body.horizonYears !== 'number' || body.horizonYears < 0) {
-      throw createError({ statusCode: 400, message: 'horizonYears inválido' })
+      throw createError({ statusCode: 400, message: serverT(locale, 'investorProfile.invalidHorizonYears') })
     }
     if (typeof body.hasExistingInvestments !== 'boolean') {
-      throw createError({ statusCode: 400, message: 'hasExistingInvestments inválido' })
+      throw createError({ statusCode: 400, message: serverT(locale, 'investorProfile.invalidHasExistingInvestments') })
     }
 
     const investorProfile: IInvestorProfile = {

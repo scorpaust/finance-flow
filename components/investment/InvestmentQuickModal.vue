@@ -5,11 +5,11 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="font-display font-bold text-lg text-white">
-              {{ mode === 'reinforce' ? 'Reforçar' : 'Atualizar situação' }}
+              {{ mode === 'reinforce' ? t('investment.quickModal.reinforceTitle') : t('investment.quickModal.updateValueTitle') }}
             </h2>
             <p class="text-white/40 text-xs mt-0.5 truncate max-w-[16rem]">{{ investment.name }}</p>
           </div>
-          <button class="btn-icon" aria-label="Fechar" @click="$emit('close')">
+          <button class="btn-icon" :aria-label="t('investment.quickModal.closeAria')" @click="$emit('close')">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -25,7 +25,7 @@
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <div>
             <label class="form-label" for="quick-amount">
-              {{ mode === 'reinforce' ? 'Valor a acrescentar (€)' : 'Nova situação (€)' }}
+              {{ mode === 'reinforce' ? t('investment.quickModal.reinforceAmountLabel') : t('investment.quickModal.updateValueAmountLabel') }}
             </label>
             <div class="input-group">
               <span class="input-prefix font-medium">€</span>
@@ -47,32 +47,32 @@
           <div class="rounded-2xl bg-surface-700/40 border border-white/10 px-4 py-3 text-xs text-white/50 space-y-1">
             <template v-if="mode === 'reinforce'">
               <p>
-                Reforço: {{ formatCurrency(investment.reinforcement) }} →
+                {{ t('investment.quickModal.reinforceLabel') }}: {{ formatCurrency(investment.reinforcement) }} →
                 <span class="text-white/80 font-medium">{{ formatCurrency(next.reinforcement) }}</span>
               </p>
-              <p>Investido no total: <span class="text-white/80 font-medium">{{ formatCurrency(next.invested) }}</span></p>
+              <p>{{ t('investment.quickModal.investedTotalLabel') }}: <span class="text-white/80 font-medium">{{ formatCurrency(next.invested) }}</span></p>
               <p class="text-white/30">
-                A situação não muda sozinha — atualiza-a a seguir se o valor da posição também mudou.
+                {{ t('investment.quickModal.reinforceNote') }}
               </p>
             </template>
             <template v-else>
               <p>
-                Situação: {{ formatCurrency(investment.currentValue) }} →
+                {{ t('investment.quickModal.valueLabel') }}: {{ formatCurrency(investment.currentValue) }} →
                 <span class="text-white/80 font-medium">{{ formatCurrency(next.currentValue) }}</span>
               </p>
               <p>
-                Rentabilidade: {{ formatReturnPct(investment.returnPct) }} →
+                {{ t('investment.quickModal.returnLabel') }}: {{ formatReturnPct(investment.returnPct) }} →
                 <span class="text-white/80 font-medium">{{ formatReturnPct(next.returnPct) }}</span>
               </p>
             </template>
           </div>
 
           <div class="flex gap-3 pt-1">
-            <button type="button" class="btn-secondary flex-1" @click="$emit('close')">Cancelar</button>
+            <button type="button" class="btn-secondary flex-1" @click="$emit('close')">{{ t('common.cancel') }}</button>
             <button type="submit" :disabled="saving" class="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50">
               <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
               <Check v-else class="w-4 h-4" />
-              {{ saving ? 'A guardar...' : 'Guardar' }}
+              {{ saving ? t('investment.quickModal.saving') : t('common.save') }}
             </button>
           </div>
         </form>
@@ -90,6 +90,7 @@ const emit = defineEmits<{ close: []; saved: [] }>()
 
 const { update } = useInvestments()
 const { formatCurrency, formatReturnPct } = useFormatters()
+const { t } = useI18n()
 
 const saving = ref(false)
 const formError = ref('')
@@ -109,8 +110,8 @@ const next = computed(() => {
 async function handleSubmit() {
   formError.value = ''
   const n = parseFloat(amount.value)
-  if (props.mode === 'reinforce' && !(n > 0)) { formError.value = 'Indica um valor maior que zero.'; return }
-  if (props.mode === 'value' && !(Number.isFinite(n) && n >= 0)) { formError.value = 'Indica um valor válido (≥ 0).'; return }
+  if (props.mode === 'reinforce' && !(n > 0)) { formError.value = t('investment.quickModal.errorReinforce'); return }
+  if (props.mode === 'value' && !(Number.isFinite(n) && n >= 0)) { formError.value = t('investment.quickModal.errorValue'); return }
 
   saving.value = true
   try {
@@ -120,7 +121,7 @@ async function handleSubmit() {
     )
     emit('saved')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao guardar. Tenta novamente.'
+    formError.value = e?.data?.message || t('investment.modal.errorGeneric')
   } finally {
     saving.value = false
   }

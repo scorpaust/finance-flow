@@ -1,6 +1,8 @@
 import { requireAuth } from '../../../utils/auth'
 import { createSinglePaymentCheckout, encodeMerchantKey } from '../../../utils/easypay'
+import { getRequestIp, lookupCountry } from '../../../utils/geo'
 import { TIER_PRICE_EUR } from '../../../../shared/features'
+import { isPrepaidMethodAvailable } from '../../../../shared/paymentMethods'
 import { User } from '../../../models'
 
 const VALID_PERIODS = [1, 3, 6, 12] as const
@@ -27,6 +29,17 @@ export default defineEventHandler(async (event) => {
   }
   if (!periodMonths || !VALID_PERIODS.includes(periodMonths)) {
     throw createError({ statusCode: 400, message: 'Período inválido — tem de ser 1, 3, 6 ou 12 meses' })
+  }
+
+  // Fase 7, tarefa 4 — nunca confiar só na UI a esconder o separador
+  // MB WAY/Multibanco: o país vem da geolocalização do IP do pedido, não de
+  // nenhum campo enviado pelo client (que podia ser adulterado).
+  const country = await lookupCountry(getRequestIp(event))
+  if (!isPrepaidMethodAvailable(country, method)) {
+    throw createError({
+      statusCode: 403,
+      message: `Método "${method}" não está disponível no teu país${country ? ` (${country})` : ''}`,
+    })
   }
 
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()

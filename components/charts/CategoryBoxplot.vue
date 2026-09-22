@@ -29,6 +29,7 @@ const props = defineProps<{
   data: CategoryBoxStats[]
   loading?: boolean
 }>()
+const { t } = useI18n()
 const { formatCurrency } = useFormatters()
 
 // Identidade (categoria) -> cor própria da categoria, já usada no resto da
@@ -39,7 +40,7 @@ const chartData = computed(() => {
     labels: props.data.map((c) => `${c.icon} ${c.name}`),
     datasets: [
       {
-        label: 'Distribuição de gastos',
+        label: t('charts.expenseDistribution'),
         data: props.data.map((c) => ({
           min: c.min,
           q1: c.q1,
@@ -71,9 +72,9 @@ const opts = computed(() => ({
         label: (ctx: any) => {
           const s = ctx.raw
           return [
-            ` Mediana: ${formatCurrency(s.median)}`,
-            ` Q1–Q3: ${formatCurrency(s.q1)} – ${formatCurrency(s.q3)}`,
-            ` Min–Max: ${formatCurrency(s.min)} – ${formatCurrency(s.max)}`,
+            ` ${t('charts.median')}: ${formatCurrency(s.median)}`,
+            ` ${t('charts.q1q3')}: ${formatCurrency(s.q1)} – ${formatCurrency(s.q3)}`,
+            ` ${t('charts.minMax')}: ${formatCurrency(s.min)} – ${formatCurrency(s.max)}`,
           ]
         },
       },

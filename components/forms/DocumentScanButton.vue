@@ -7,7 +7,7 @@
       @click="onClick"
     >
       <ScanLine class="w-4 h-4" />
-      Digitalizar documento
+      {{ t('documentScan.scanButton') }}
     </button>
 
     <input
@@ -25,16 +25,16 @@
     <Teleport v-if="showChooser || scanning || errorMessage" to="body">
       <div v-if="showChooser" class="modal-overlay" @click.self="showChooser = false">
         <div class="modal-content max-w-sm w-full" @click.stop>
-          <h2 class="font-display font-bold text-lg text-white mb-4">Digitalizar documento</h2>
+          <h2 class="font-display font-bold text-lg text-white mb-4">{{ t('documentScan.chooserTitle') }}</h2>
           <div class="space-y-3">
             <button type="button" class="btn-primary w-full flex items-center justify-center gap-2" @click="takePhoto">
-              <Camera class="w-4 h-4" /> Tirar foto
+              <Camera class="w-4 h-4" /> {{ t('documentScan.takePhoto') }}
             </button>
             <button type="button" class="btn-secondary w-full flex items-center justify-center gap-2" @click="pickFile">
-              <FileUp class="w-4 h-4" /> Escolher ficheiro
+              <FileUp class="w-4 h-4" /> {{ t('documentScan.pickFile') }}
             </button>
             <button type="button" class="w-full text-sm text-white/40 hover:text-white py-1" @click="showChooser = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </button>
           </div>
         </div>
@@ -44,8 +44,8 @@
       <div v-if="scanning" class="modal-overlay">
         <div class="modal-content max-w-xs w-full text-center" role="status" aria-live="polite">
           <div class="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p class="text-white font-semibold">A ler o documento…</p>
-          <p class="text-white/40 text-xs mt-1">Pode demorar alguns segundos</p>
+          <p class="text-white font-semibold">{{ t('documentScan.scanningTitle') }}</p>
+          <p class="text-white/40 text-xs mt-1">{{ t('documentScan.scanningHint') }}</p>
         </div>
       </div>
 
@@ -57,8 +57,8 @@
           </div>
           <p class="text-white/80 text-sm">{{ errorMessage }}</p>
           <div class="flex gap-3 mt-6">
-            <button type="button" class="btn-secondary flex-1" @click="fillManually">Preencher manualmente</button>
-            <button type="button" class="btn-primary flex-1" @click="retry">Tentar outra vez</button>
+            <button type="button" class="btn-secondary flex-1" @click="fillManually">{{ t('documentScan.fillManually') }}</button>
+            <button type="button" class="btn-primary flex-1" @click="retry">{{ t('documentScan.retry') }}</button>
           </div>
         </div>
       </div>
@@ -67,9 +67,28 @@
     <PaywallModal
       v-if="showPaywall"
       :required-tier="requiredTierFor('documentScan')"
-      feature-label="Digitalizar recibos e faturas"
+      :feature-label="t('documentScan.paywallFeatureLabel')"
       @close="showPaywall = false"
     />
+
+    <!-- Fase 7, tarefa 6 — consentimento explícito antes do 1.º envio (RGPD):
+         um recibo de vencimento pode conter NIF, morada e salário, enviados a
+         um processador terceiro (Anthropic). Pedido só uma vez por
+         dispositivo (localStorage), não a cada digitalização. -->
+    <Teleport v-if="showConsent" to="body">
+      <div class="modal-overlay" @click.self="showConsent = false">
+        <div class="modal-content max-w-sm w-full" @click.stop>
+          <h2 class="font-display font-bold text-lg text-white mb-3">{{ t('documentScan.consentTitle') }}</h2>
+          <p class="text-white/60 text-sm leading-relaxed">
+            {{ t('documentScan.consentBody') }}
+          </p>
+          <div class="flex gap-3 mt-6">
+            <button type="button" class="btn-secondary flex-1" @click="showConsent = false">{{ t('common.cancel') }}</button>
+            <button type="button" class="btn-primary flex-1" @click="acceptConsent">{{ t('documentScan.consentAccept') }}</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -84,13 +103,31 @@ const emit = defineEmits<{
 }>()
 
 const sub = useSubscription()
+const { t } = useI18n()
 const { isNative, capturePhoto, scan } = useDocumentScan()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const showChooser = ref(false)
 const showPaywall = ref(false)
+const showConsent = ref(false)
 const scanning = ref(false)
 const errorMessage = ref('')
+
+const CONSENT_KEY = 'financeflow_scan_consent'
+
+function hasConsent(): boolean {
+  try {
+    return localStorage.getItem(CONSENT_KEY) === '1'
+  } catch {
+    return false // sem localStorage (privado/bloqueado) → pede sempre, mais seguro
+  }
+}
+
+function acceptConsent() {
+  showConsent.value = false
+  try { localStorage.setItem(CONSENT_KEY, '1') } catch { /* per-viewer only, sem problema falhar */ }
+  proceed()
+}
 
 // Botão sempre visível (Free vê o paywall ao clicar); o enforcement real é o
 // requireFeature() do servidor.
@@ -99,6 +136,14 @@ function onClick() {
     showPaywall.value = true
     return
   }
+  if (!hasConsent()) {
+    showConsent.value = true
+    return
+  }
+  proceed()
+}
+
+function proceed() {
   if (isNative.value) showChooser.value = true
   else pickFile()
 }
@@ -114,7 +159,7 @@ async function takePhoto() {
   try {
     file = await capturePhoto()
   } catch (e: any) {
-    errorMessage.value = e?.message || 'Não foi possível abrir a câmara.'
+    errorMessage.value = e?.message || t('documentScan.errorCamera')
     return
   }
   if (file) await run(file)
@@ -133,7 +178,7 @@ async function run(file: File) {
     emit('scanned', await scan(file))
   } catch (e: any) {
     if (e?.code === 'feature_locked') showPaywall.value = true
-    else errorMessage.value = e?.message || 'Erro ao digitalizar o documento.'
+    else errorMessage.value = e?.message || t('documentScan.errorGeneric')
   } finally {
     scanning.value = false
   }

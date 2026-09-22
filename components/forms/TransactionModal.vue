@@ -7,13 +7,13 @@
         <div class="flex items-center justify-between mb-5">
           <div>
             <h2 class="font-display font-bold text-xl text-white">
-              {{ isEditing ? 'Editar Transação' : 'Nova Transação' }}
+              {{ isEditing ? t('transactionModal.editTitle') : t('transactionModal.newTitle') }}
             </h2>
             <p class="text-white/40 text-xs mt-0.5">
-              {{ isEditing ? 'Actualiza os dados' : prefill ? 'Extraída de um documento — revê antes de guardar' : 'Regista receita ou despesa' }}
+              {{ isEditing ? t('transactionModal.editSubtitle') : prefill ? t('transactionModal.scannedSubtitle') : t('transactionModal.newSubtitle') }}
             </p>
           </div>
-          <button class="btn-icon" aria-label="Fechar" @click="$emit('close')">
+          <button class="btn-icon" :aria-label="t('transactionModal.closeAria')" @click="$emit('close')">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -27,7 +27,7 @@
               : 'text-white/50 hover:text-white'"
             @click="form.type = 'income'; flagged.type = false"
           >
-            <TrendingUp class="w-4 h-4" /> Receita
+            <TrendingUp class="w-4 h-4" /> {{ t('transactionModal.income') }}
           </button>
           <button
             class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2"
@@ -36,7 +36,7 @@
               : 'text-white/50 hover:text-white'"
             @click="form.type = 'expense'; flagged.type = false"
           >
-            <TrendingDown class="w-4 h-4" /> Despesa
+            <TrendingDown class="w-4 h-4" /> {{ t('transactionModal.expense') }}
           </button>
         </div>
 
@@ -47,10 +47,13 @@
         >
           <Sparkles class="w-4 h-4 shrink-0 mt-0.5" />
           <div>
-            <p>Dados lidos por IA a partir do documento. Confirma tudo antes de guardar — nada foi gravado ainda.</p>
-            <p v-if="hasFlagged" class="text-amber-300/80 text-xs mt-1">Os campos a âmbar têm baixa confiança — revê com atenção.</p>
+            <p>{{ t('transactionModal.aiNotice') }}</p>
+            <p v-if="hasFlagged" class="text-amber-300/80 text-xs mt-1">{{ t('transactionModal.aiFlaggedNotice') }}</p>
             <p v-if="foreignCurrency" class="text-amber-300/80 text-xs mt-1">
-              O documento está em {{ prefill.currency }} e o valor não foi convertido — indica o montante em €.
+              {{ t('transactionModal.foreignCurrencyNotice', { currency: prefill.currency }) }}
+            </p>
+            <p v-if="isPayslip" class="text-amber-300/80 text-xs mt-1">
+              {{ payslipNoticeText }}
             </p>
           </div>
         </div>
@@ -68,14 +71,14 @@
 
           <!-- Description -->
           <div>
-            <label class="form-label">Descrição *</label>
+            <label class="form-label">{{ t('transactionModal.descriptionLabel') }}</label>
             <input
               v-model="form.description"
               type="text"
               class="form-input"
               :class="flagged.description ? 'scan-low' : ''"
               @input="flagged.description = false"
-              placeholder="Ex: Salário de Maio, Renda, Supermercado..."
+              :placeholder="t('transactionModal.descriptionPlaceholder')"
               required
               autofocus
             />
@@ -84,9 +87,9 @@
           <!-- Amount + Date -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="form-label">Valor (€) *</label>
+              <label class="form-label">{{ t('transactionModal.amountLabel') }}{{ form.currency === 'EUR' ? ' (€)' : '' }} *</label>
               <div class="input-group">
-                <span class="input-prefix font-medium">€</span>
+                <span class="input-prefix font-medium">{{ form.currency === 'EUR' ? '€' : form.currency }}</span>
                 <input
                   v-model="form.amount"
                   type="number"
@@ -101,7 +104,7 @@
               </div>
             </div>
             <div>
-              <label class="form-label">Data *</label>
+              <label class="form-label">{{ t('transactionModal.dateLabel') }}</label>
               <input
                 v-model="form.date"
                 type="date"
@@ -113,16 +116,30 @@
             </div>
           </div>
 
+          <!-- Moeda (Fase 7, tarefa 6) — escondida por omissão para não
+               complicar o fluxo normal em €; aparece quando o documento
+               digitalizado não é € ou quando se edita uma transação já
+               guardada nessa situação. -->
+          <div v-if="foreignCurrency || form.currency !== 'EUR'">
+            <label class="form-label">{{ t('transactionModal.currencyLabel') }}</label>
+            <select v-model="form.currency" class="form-select">
+              <option v-for="c in CURRENCY_OPTIONS" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <p v-if="resolvedRate" class="text-white/30 text-xs mt-1">
+              {{ t('transactionModal.rateUsed', { currency: form.currency, rate: resolvedRate }) }}
+            </p>
+          </div>
+
           <!-- Category -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="form-label !mb-0">Categoria *</label>
+              <label class="form-label !mb-0">{{ t('transactionModal.categoryLabel') }}</label>
               <button
                 type="button"
                 class="text-xs text-brand-400 hover:text-brand-300 transition-colors"
                 @click="showNewCat = !showNewCat"
               >
-                {{ showNewCat ? '✕ Cancelar' : '+ Nova categoria' }}
+                {{ showNewCat ? t('transactionModal.cancelCategoryToggle') : t('transactionModal.addCategoryToggle') }}
               </button>
             </div>
 
@@ -136,7 +153,7 @@
                   v-model="newCat.name"
                   type="text"
                   class="form-input text-sm py-2"
-                  placeholder="Nome da nova categoria"
+                  :placeholder="t('transactionModal.newCategoryNamePlaceholder')"
                 />
                 <div class="flex flex-wrap gap-1.5">
                   <button
@@ -145,7 +162,7 @@
                     type="button"
                     class="w-8 h-8 rounded-lg text-base hover:bg-white/10 transition-all"
                     :class="newCat.icon === ic ? 'bg-brand-600/40 ring-1 ring-brand-500' : ''"
-                    :aria-label="`Ícone ${ic}`"
+                    :aria-label="t('transactionModal.iconAria', { icon: ic })"
                     @click="newCat.icon = ic"
                   >{{ ic }}</button>
                 </div>
@@ -157,7 +174,7 @@
                     class="w-6 h-6 rounded-lg transition-all hover:scale-110"
                     :class="newCat.color === c ? 'ring-2 ring-white scale-110' : ''"
                     :style="{ background: c }"
-                    :aria-label="`Cor ${c}`"
+                    :aria-label="t('transactionModal.colorAria', { color: c })"
                     @click="newCat.color = c"
                   />
                 </div>
@@ -167,7 +184,7 @@
                   :disabled="!newCat.name"
                   @click="createCategory"
                 >
-                  Criar categoria
+                  {{ t('transactionModal.createCategoryButton') }}
                 </button>
               </div>
             </Transition>
@@ -175,19 +192,19 @@
             <!-- Loading indicator for categories -->
             <div v-if="loadingCats" class="form-input flex items-center gap-2 text-white/30 text-sm">
               <div class="w-3 h-3 border border-brand-400 border-t-transparent rounded-full animate-spin" />
-              A carregar categorias...
+              {{ t('transactionModal.loadingCategories') }}
             </div>
 
             <select v-else v-model="form.categoryId" class="form-select" required>
-              <option value="" disabled>— Selecciona uma categoria —</option>
-              <optgroup v-if="incomeOptions.length && form.type === 'income'" label="Receitas">
+              <option value="" disabled>{{ t('transactionModal.categoryPlaceholder') }}</option>
+              <optgroup v-if="incomeOptions.length && form.type === 'income'" :label="t('transactionModal.incomeGroupLabel')">
                 <option
                   v-for="c in incomeOptions"
                   :key="c._id"
                   :value="c._id"
                 >{{ c.icon }} {{ c.name }}</option>
               </optgroup>
-              <optgroup v-if="expenseOptions.length && form.type === 'expense'" label="Despesas">
+              <optgroup v-if="expenseOptions.length && form.type === 'expense'" :label="t('transactionModal.expenseGroupLabel')">
                 <option
                   v-for="c in expenseOptions"
                   :key="c._id"
@@ -199,7 +216,7 @@
 
           <!-- Tags -->
           <div>
-            <label class="form-label">Tags <span class="text-white/30 font-normal">(opcional)</span></label>
+            <label class="form-label">{{ t('transactionModal.tagsLabel') }} <span class="text-white/30 font-normal">{{ t('transactionModal.optional') }}</span></label>
             <div v-if="form.tags.length" class="flex flex-wrap gap-1.5 mb-2">
               <span
                 v-for="tag in form.tags"
@@ -214,7 +231,7 @@
               v-model="tagInput"
               type="text"
               class="form-input text-sm"
-              placeholder="Escrito enter para adicionar (#fixo, #mensal...)"
+              :placeholder="t('transactionModal.tagsPlaceholder')"
               @keydown.enter.prevent="addTag"
               @keydown="e => e.key === ',' && (e.preventDefault(), addTag())"
             />
@@ -223,18 +240,18 @@
           <!-- Recurrence + Group -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="form-label">Recorrência</label>
+              <label class="form-label">{{ t('transactionModal.recurrenceLabel') }}</label>
               <select v-model="form.recurrence" class="form-select">
-                <option value="none">Única</option>
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensal</option>
-                <option value="yearly">Anual</option>
+                <option value="none">{{ t('transactionModal.recurrenceNone') }}</option>
+                <option value="weekly">{{ t('transactionModal.recurrenceWeekly') }}</option>
+                <option value="monthly">{{ t('transactionModal.recurrenceMonthly') }}</option>
+                <option value="yearly">{{ t('transactionModal.recurrenceYearly') }}</option>
               </select>
             </div>
             <div>
-              <label class="form-label">Grupo</label>
+              <label class="form-label">{{ t('transactionModal.groupLabel') }}</label>
               <select v-model="form.groupId" class="form-select">
-                <option value="">Sem grupo</option>
+                <option value="">{{ t('transactionModal.noGroup') }}</option>
                 <option v-for="g in groups" :key="g._id" :value="g._id">{{ g.name }}</option>
               </select>
             </div>
@@ -242,19 +259,19 @@
 
           <!-- Notes -->
           <div>
-            <label class="form-label">Notas <span class="text-white/30 font-normal">(opcional)</span></label>
+            <label class="form-label">{{ t('transactionModal.notesLabel') }} <span class="text-white/30 font-normal">{{ t('transactionModal.optional') }}</span></label>
             <textarea
               v-model="form.notes"
               class="form-input resize-none"
               rows="2"
-              placeholder="Notas adicionais..."
+              :placeholder="t('transactionModal.notesPlaceholder')"
             />
           </div>
 
           <!-- Actions -->
           <div class="flex gap-3 pt-1">
             <button type="button" class="btn-secondary flex-1" @click="$emit('close')">
-              Cancelar
+              {{ t('common.cancel') }}
             </button>
             <button
               type="submit"
@@ -266,7 +283,7 @@
             >
               <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
               <Check v-else class="w-4 h-4" />
-              {{ saving ? 'A guardar...' : isEditing ? 'Actualizar' : 'Guardar' }}
+              {{ saving ? t('transactionModal.saving') : isEditing ? t('common.update') : t('common.save') }}
             </button>
           </div>
         </form>
@@ -286,6 +303,7 @@ const emit  = defineEmits(['close', 'saved'])
 
 const finance = useFinanceStore()
 const toast   = useToastStore()
+const { t }   = useI18n()
 
 const saving     = ref(false)
 const loadingCats = ref(false)
@@ -301,9 +319,30 @@ const newCat = reactive({ name: '', icon: '💰', color: '#6366f1' })
 
 const today = new Date().toISOString().split('T')[0]
 
-// A app é toda em € — um documento noutra moeda vem sem conversão e o montante
-// fica marcado para revisão.
+// Fase 7, tarefa 6 — moeda original (decisão do utilizador, 2026-09-22: a
+// transação guarda o valor e a moeda tal como no documento; o servidor
+// calcula o equivalente em € à taxa do dia ao guardar — ver
+// server/utils/transactionCurrency.ts).
+const CURRENCY_OPTIONS = ['EUR', 'USD', 'GBP', 'CHF', 'BRL', 'JPY', 'CAD', 'AUD']
 const foreignCurrency = !props.transaction && !!props.prefill && props.prefill.currency !== 'EUR'
+const resolvedRate = props.transaction?.exchangeRate ? props.transaction.exchangeRate.toFixed(4) : null
+const isPayslip = !props.transaction && props.prefill?.documentType === 'payslip'
+const { formatCurrency } = useFormatters()
+
+const payslipNoticeText = computed(() => {
+  const gross = props.prefill?.grossAmount
+  const deductions = props.prefill?.deductions
+  if (gross && deductions) {
+    return t('transactionModal.payslipNoticeWithGross', {
+      gross: formatCurrency(gross, props.prefill!.currency),
+      deductions: formatCurrency(deductions, props.prefill!.currency),
+    })
+  }
+  if (gross) {
+    return t('transactionModal.payslipNoticeWithGrossOnly', { gross: formatCurrency(gross, props.prefill!.currency) })
+  }
+  return t('transactionModal.payslipNoticeSimple')
+})
 
 // Campos a realçar a âmbar (confiança 'low'); o realce some assim que o
 // utilizador mexe no campo.
@@ -317,7 +356,8 @@ const hasFlagged = computed(() => Object.values(flagged).some(Boolean))
 
 const form = reactive({
   type:        (props.transaction?.type || props.prefill?.type || 'expense') as 'income' | 'expense',
-  amount:      props.transaction?.amount?.toString()  || props.prefill?.amount?.toString() || '',
+  amount:      (props.transaction?.originalAmount ?? props.transaction?.amount)?.toString() || props.prefill?.amount?.toString() || '',
+  currency:    props.transaction?.currency || props.prefill?.currency || 'EUR',
   description: props.transaction?.description        || props.prefill?.merchant || '',
   categoryId:  (() => {
     const c = props.transaction?.categoryId
@@ -330,7 +370,7 @@ const form = reactive({
     : props.prefill?.date || today,
   tags:        [...(props.transaction?.tags || [])],
   recurrence:  props.transaction?.recurrence || 'none',
-  notes:       props.transaction?.notes      || (foreignCurrency ? `Valor original: ${props.prefill!.amount} ${props.prefill!.currency}` : ''),
+  notes:       props.transaction?.notes      || '',
   groupId:     (() => {
     const g = props.transaction?.groupId
     if (!g) return ''
@@ -367,25 +407,26 @@ async function createCategory() {
     form.categoryId = cat._id
     showNewCat.value = false
     newCat.name = ''
-    toast.success('Categoria criada!')
+    toast.success(t('transactionModal.toastCategoryCreated'))
   } catch (e: any) {
-    toast.error(e?.data?.message || 'Erro ao criar categoria')
+    toast.error(e?.data?.message || t('transactionModal.toastCategoryCreateError'))
   }
 }
 
 async function handleSubmit() {
   formError.value = ''
 
-  if (!form.description.trim()) { formError.value = 'A descrição é obrigatória.'; return }
-  if (!form.amount || parseFloat(form.amount) <= 0) { formError.value = 'Insere um valor válido.'; return }
-  if (!form.categoryId) { formError.value = 'Selecciona uma categoria.'; return }
-  if (!form.date) { formError.value = 'A data é obrigatória.'; return }
+  if (!form.description.trim()) { formError.value = t('transactionModal.errorDescriptionRequired'); return }
+  if (!form.amount || parseFloat(form.amount) <= 0) { formError.value = t('transactionModal.errorAmountRequired'); return }
+  if (!form.categoryId) { formError.value = t('transactionModal.errorCategoryRequired'); return }
+  if (!form.date) { formError.value = t('transactionModal.errorDateRequired'); return }
 
   saving.value = true
   try {
     const payload = {
       type:        form.type,
       amount:      parseFloat(form.amount),
+      currency:    form.currency,
       description: form.description.trim(),
       categoryId:  form.categoryId,
       date:        form.date,
@@ -401,7 +442,7 @@ async function handleSubmit() {
     }
     emit('saved')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao guardar. Tenta novamente.'
+    formError.value = e?.data?.message || t('transactionModal.errorGeneric')
   } finally {
     saving.value = false
   }

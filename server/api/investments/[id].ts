@@ -2,6 +2,7 @@ import { Investment } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 import { sanitizeId } from '../../utils/auth'
 import { parseInvestmentUpdate, toInvestmentDto } from '../../utils/investments'
+import { getServerLocale, serverT } from '../../utils/i18n'
 
 // Edição parcial e eliminação de uma posição (Fase 6). Todas as queries filtram
 // pelo userId do pedido; um _id de outro utilizador devolve 404, nunca 403 —
@@ -9,13 +10,14 @@ import { parseInvestmentUpdate, toInvestmentDto } from '../../utils/investments'
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'investmentTracker')
   const method = getMethod(event)
+  const locale = getServerLocale(event)
   const id = sanitizeId(getRouterParam(event, 'id') || '')
 
   const doc = await Investment.findOne({ _id: id, userId })
-  if (!doc) throw createError({ statusCode: 404, message: 'Investimento não encontrado' })
+  if (!doc) throw createError({ statusCode: 404, message: serverT(locale, 'investments.notFound') })
 
   if (method === 'PUT') {
-    const changes = parseInvestmentUpdate(await readBody(event))
+    const changes = parseInvestmentUpdate(locale, await readBody(event))
 
     // valueUpdatedAt só muda quando a Situação muda (editar só o nome não conta).
     const valueChanged = changes.currentValue !== undefined && changes.currentValue !== doc.currentValue

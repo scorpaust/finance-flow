@@ -46,6 +46,7 @@ async function downscaleImage(file: File): Promise<File> {
 
 export function useDocumentScan() {
   const { isNative } = usePlatform()
+  const { t } = useI18n()
 
   // Câmara nativa (só Android/nativo). Devolve null se o utilizador cancelar.
   async function capturePhoto(): Promise<File | null> {
@@ -65,10 +66,14 @@ export function useDocumentScan() {
     } catch (e: any) {
       // O plugin rejeita quando o utilizador fecha a câmara — não é um erro.
       if (/cancel/i.test(e?.message || '')) return null
-      throw new ScanError('Não foi possível abrir a câmara. Verifica as permissões da app ou escolhe um ficheiro.')
+      throw new ScanError(t('documentScan.errorCamera'))
     }
   }
 
+  // Fase 7 — pede a resposta do servidor no idioma ativo (cookie
+  // financeflow_locale, lido em scan.post.ts); a mensagem de erro em si
+  // (e?.data?.message) já vem traduzida do servidor quando esse cookie
+  // existe, o fallback local cobre só a falta de resposta do servidor.
   async function scan(file: File): Promise<DocumentScanResult> {
     const prepared = await downscaleImage(file)
     const body = new FormData()
@@ -77,7 +82,7 @@ export function useDocumentScan() {
       return await $fetch<DocumentScanResult>('/api/transactions/scan', { method: 'POST', body })
     } catch (e: any) {
       throw new ScanError(
-        e?.data?.message || 'Erro ao digitalizar o documento. Tenta novamente.',
+        e?.data?.message || t('documentScan.errorGeneric'),
         e?.data?.data?.error
       )
     }

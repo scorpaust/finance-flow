@@ -6,7 +6,7 @@
       @click="auth.signOut()"
     >
       <LogOut class="w-4 h-4 text-rose-400" />
-      Terminar sessão
+      {{ t('auth.signOut') }}
     </button>
 
     <div class="orb w-[500px] h-[500px] bg-brand-700 -top-40 -left-40 opacity-30" style="animation-delay:0s" />
@@ -29,7 +29,7 @@
           </div>
           <h1 class="font-display font-bold text-3xl text-white mb-2">FinanceFlow</h1>
           <p class="text-white/50 text-sm leading-relaxed">
-            {{ mode === 'login' ? 'Entra na tua conta' : 'Cria uma conta local' }}
+            {{ mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle') }}
           </p>
         </div>
 
@@ -40,7 +40,7 @@
             :class="mode === 'login' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('login')"
           >
-            Entrar
+            {{ t('auth.loginTab') }}
           </button>
           <button
             type="button"
@@ -48,13 +48,13 @@
             :class="mode === 'register' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('register')"
           >
-            Criar conta
+            {{ t('auth.registerTab') }}
           </button>
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
           <div v-if="mode === 'register'">
-            <label class="form-label">Nome</label>
+            <label class="form-label">{{ t('auth.nameLabel') }}</label>
             <div class="relative">
               <User class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
               <input
@@ -62,13 +62,13 @@
                 type="text"
                 class="form-input pl-9"
                 autocomplete="name"
-                placeholder="O teu nome"
+                :placeholder="t('auth.namePlaceholder')"
               />
             </div>
           </div>
 
           <div>
-            <label class="form-label">Email</label>
+            <label class="form-label">{{ t('auth.emailLabel') }}</label>
             <div class="relative">
               <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
               <input
@@ -83,7 +83,7 @@
           </div>
 
           <div>
-            <label class="form-label">Password</label>
+            <label class="form-label">{{ t('auth.passwordLabel') }}</label>
             <div class="relative">
               <Lock class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
               <input
@@ -91,7 +91,7 @@
                 type="password"
                 class="form-input pl-9"
                 :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-                placeholder="Minimo 8 caracteres"
+                :placeholder="t('auth.passwordPlaceholder')"
                 required
               />
             </div>
@@ -112,12 +112,12 @@
           >
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
             <LogIn v-else class="w-4 h-4" />
-            {{ loading ? 'A autenticar...' : mode === 'login' ? 'Entrar' : 'Criar conta' }}
+            {{ loading ? t('auth.submitting') : mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister') }}
           </button>
         </form>
 
         <p class="text-center text-white/25 text-xs mt-5">
-          Autenticacao local guardada no MongoDB.
+          {{ t('auth.footerNote') }}
         </p>
       </div>
     </div>
@@ -131,6 +131,7 @@ definePageMeta({ layout: false })
 
 const auth = useAuthStore()
 const toast = useToastStore()
+const { t } = useI18n()
 const loading = ref(false)
 const errorMessage = ref('')
 const mode = ref<'login' | 'register'>('login')
@@ -170,18 +171,18 @@ async function submit() {
         email: form.email,
         password: form.password,
       })
-      toast.success('Conta criada')
+      toast.success(t('auth.toastAccountCreated'))
     } else {
       await auth.signInWithPassword({
         email: form.email,
         password: form.password,
       })
-      toast.success('Sessao iniciada')
+      toast.success(t('auth.toastSignedIn'))
     }
 
     await navigateTo('/')
   } catch (error: any) {
-    errorMessage.value = error?.data?.message || 'Erro de autenticacao'
+    errorMessage.value = error?.data?.message || t('auth.errorGeneric')
   } finally {
     loading.value = false
   }

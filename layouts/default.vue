@@ -25,7 +25,7 @@
         <Transition name="fade">
           <div v-if="sidebarOpen" class="min-w-0">
             <p class="font-display font-bold text-white text-lg leading-tight">FinanceFlow</p>
-            <p class="text-white/40 text-xs">Finanças Pessoais</p>
+            <p class="text-white/40 text-xs">{{ t('nav.appTagline') }}</p>
           </div>
         </Transition>
       </div>
@@ -51,12 +51,12 @@
       <div class="px-3 py-2 border-t border-white/[0.08] hidden lg:block">
         <button
           class="nav-item w-full justify-center"
-          :aria-label="sidebarOpen ? 'Recolher menu' : 'Expandir menu'"
+          :aria-label="sidebarOpen ? t('nav.collapseMenu') : t('nav.expandMenu')"
           @click="sidebarOpen = !sidebarOpen"
         >
           <ChevronLeft :class="['w-4 h-4 transition-transform duration-300', !sidebarOpen && 'rotate-180']" />
           <Transition name="fade">
-            <span v-if="sidebarOpen" class="text-xs ml-2">Recolher</span>
+            <span v-if="sidebarOpen" class="text-xs ml-2">{{ t('nav.collapse') }}</span>
           </Transition>
         </button>
       </div>
@@ -95,7 +95,7 @@
       <!-- Top bar -->
       <header class="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.08] glass-card shrink-0">
         <!-- Mobile hamburger -->
-        <button class="btn-icon lg:hidden" aria-label="Abrir menu" @click="sidebarOpen = !sidebarOpen">
+        <button class="btn-icon lg:hidden" :aria-label="t('nav.openMenu')" @click="sidebarOpen = !sidebarOpen">
           <Menu class="w-5 h-5" />
         </button>
 
@@ -110,7 +110,7 @@
           class="hidden md:flex items-center gap-2 glass-card rounded-2xl px-4 py-2 border"
           :class="quickBalance >= 0 ? 'border-emerald-500/20' : 'border-rose-500/20'"
         >
-          <span class="text-white/40 text-xs">Saldo total</span>
+          <span class="text-white/40 text-xs">{{ t('nav.totalBalance') }}</span>
           <span class="font-bold text-sm" :class="quickBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'">
             {{ formatCompact(quickBalance) }}
           </span>
@@ -122,24 +122,24 @@
           @click="showTxModal = true"
         >
           <Plus class="w-4 h-4" />
-          Nova Transação
+          {{ t('nav.newTransaction') }}
         </button>
         <NuxtLink
           to="/settings"
           class="btn-icon shrink-0"
-          title="Configurações"
-          aria-label="Configurações"
+          :title="t('nav.settings')"
+          :aria-label="t('nav.settings')"
         >
           <Settings class="w-5 h-5" />
         </NuxtLink>
         <button
           class="flex items-center gap-2 rounded-2xl border border-rose-500/30 px-3 sm:px-4 py-2 text-sm font-semibold text-rose-400 transition-all hover:border-rose-400 hover:bg-rose-500/10 shrink-0"
-          title="Terminar sessão"
-          aria-label="Terminar sessão"
+          :title="t('nav.signOutFull')"
+          :aria-label="t('nav.signOutFull')"
           @click="handleSignOut"
         >
           <LogOut class="w-4 h-4" />
-          <span class="hidden sm:inline">Sair</span>
+          <span class="hidden sm:inline">{{ t('nav.signOut') }}</span>
         </button>
       </header>
 
@@ -171,7 +171,6 @@ import {
   LogOut, Menu, Plus, Brain, Layers, ChevronLeft, TrendingUp,
 } from 'lucide-vue-next'
 import { format } from 'date-fns'
-import { pt }     from 'date-fns/locale'
 
 const auth    = useAuthStore()
 const finance = useFinanceStore()
@@ -179,6 +178,8 @@ const toast   = useToastStore()
 const route   = useRoute()
 const { width }        = useWindowSize()
 const { formatCompact } = useFormatters()
+const { t, locale }     = useI18n()
+const { dateFnsLocale } = useLocaleFormat()
 
 const sidebarOpen  = ref(false)
 const showTxModal  = ref(false)
@@ -190,28 +191,28 @@ onMounted(() => {
 })
 watch(isMobile, v => { sidebarOpen.value = !v })
 
-const navItems = [
-  { path: '/',             label: 'Dashboard',    icon: Home },
-  { path: '/transactions', label: 'Transações',   icon: ArrowLeftRight },
-  { path: '/groups',       label: 'Grupos',       icon: Layers },
-  { path: '/stats',        label: 'Estatísticas', icon: BarChart3 },
-  { path: '/predictions',  label: 'Previsões IA', icon: Brain },
-  { path: '/investimento', label: 'Investimento', icon: TrendingUp },
-  { path: '/settings',     label: 'Configurações', icon: Settings },
-]
+const navItems = computed(() => [
+  { path: '/',             label: t('nav.home'),        icon: Home },
+  { path: '/transactions', label: t('nav.transactions'), icon: ArrowLeftRight },
+  { path: '/groups',       label: t('nav.groups'),       icon: Layers },
+  { path: '/stats',        label: t('nav.stats'),        icon: BarChart3 },
+  { path: '/predictions',  label: t('nav.predictions'),  icon: Brain },
+  { path: '/investimento', label: t('nav.investments'),  icon: TrendingUp },
+  { path: '/settings',     label: t('nav.settings'),     icon: Settings },
+])
 
 function isActive(path: string) {
   return path === '/' ? route.path === '/' : route.path.startsWith(path)
 }
 
-const currentTitle = computed(() => navItems.find(n => isActive(n.path))?.label || 'FinanceFlow')
+const currentTitle = computed(() => navItems.value.find(n => isActive(n.path))?.label || 'FinanceFlow')
 const currentDate  = computed(() =>
-  format(new Date(), "EEEE, dd 'de' MMMM", { locale: pt })
+  format(new Date(), locale.value === 'pt-PT' ? "EEEE, dd 'de' MMMM" : 'EEEE, dd MMMM', { locale: dateFnsLocale.value })
 )
 
 async function onSaved() {
   showTxModal.value = false
-  toast.success('Transação adicionada! ✅')
+  toast.success(t('dashboard.toastTransactionAdded'))
   await finance.fetchTransactions({ page: 1 })
   await refreshBalance()
 }

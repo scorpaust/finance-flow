@@ -1,5 +1,6 @@
 import { Category, Transaction } from '../../models'
 import { requireAuth, sanitizeId } from '../../utils/auth'
+import { resolveTransactionAmount } from '../../utils/transactionCurrency'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
@@ -12,10 +13,23 @@ export default defineEventHandler(async (event) => {
   // ──────────── PUT: update ────────────
   if (method === 'PUT') {
     const body = await readBody(event)
-    const { type, amount, description, categoryId, date, tags, recurrence, notes, groupId } = body
+    const { type, amount, currency, description, categoryId, date, tags, recurrence, notes, groupId } = body
 
     if (type !== undefined) tx.type = type
-    if (amount !== undefined) tx.amount = parseFloat(amount)
+    // Fase 7, tarefa 6 — reavalia o equivalente em EUR sempre que o valor
+    // e/ou a moeda mudam (currency pode chegar sozinha, ex. corrigir uma
+    // transação já criada em EUR para a moeda certa do documento).
+    if (amount !== undefined || currency !== undefined) {
+      const resolved = await resolveTransactionAmount(
+        amount !== undefined ? parseFloat(amount) : (tx.originalAmount ?? tx.amount),
+        currency !== undefined ? currency : tx.currency,
+        date !== undefined ? date : tx.date
+      )
+      tx.amount = resolved.amount
+      tx.currency = resolved.currency
+      tx.originalAmount = resolved.originalAmount
+      tx.exchangeRate = resolved.exchangeRate
+    }
     if (description !== undefined) tx.description = description.trim()
     if (categoryId !== undefined) {
       const category = await Category.findOne({ _id: categoryId, userId }).lean()

@@ -9,18 +9,18 @@
           @click="navigateTo('/')"
         >
           <ArrowLeft class="w-4 h-4" />
-          Voltar ao dashboard
+          {{ t('common.backToDashboard') }}
         </button>
-        <h2 class="font-display font-bold text-2xl text-white">Transações</h2>
-        <p class="text-white/40 text-xs mt-0.5">{{ finance.total }} registos encontrados</p>
+        <h2 class="font-display font-bold text-2xl text-white">{{ t('transactions.title') }}</h2>
+        <p class="text-white/40 text-xs mt-0.5">{{ t('transactions.countLabel', { count: finance.total }) }}</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn-icon" title="Exportar CSV" aria-label="Exportar CSV" @click="exportCSV">
+        <button class="btn-icon" :title="t('transactions.exportCsv')" :aria-label="t('transactions.exportCsv')" @click="exportCSV">
           <Download class="w-4 h-4" />
         </button>
         <button class="btn-primary text-sm py-2 flex items-center gap-2" @click="showModal = true">
           <Plus class="w-4 h-4" />
-          Nova Transação
+          {{ t('transactions.newTransaction') }}
         </button>
         <DocumentScanButton @scanned="onScanned" @manual="openManual" />
       </div>
@@ -35,7 +35,7 @@
           <input
             v-model="filters.search"
             type="text"
-            placeholder="Pesquisar transações..."
+            :placeholder="t('transactions.searchPlaceholder')"
             class="form-input pl-9 py-2.5 text-sm"
             @input="debouncedFetch"
           />
@@ -44,21 +44,21 @@
         <!-- Type filter -->
         <div class="flex items-center gap-1 bg-surface-700/50 rounded-xl p-1">
           <button
-            v-for="t in typeOptions"
-            :key="t.value"
+            v-for="opt in typeOptions"
+            :key="opt.value"
             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-            :class="filters.type === t.value
+            :class="filters.type === opt.value
               ? 'bg-brand-600 text-white shadow-glow-sm'
               : 'text-white/50 hover:text-white'"
-            @click="setType(t.value)"
+            @click="setType(opt.value)"
           >
-            {{ t.label }}
+            {{ opt.label }}
           </button>
         </div>
 
         <!-- Category -->
         <select v-model="filters.categoryId" class="form-select text-sm py-2.5 min-w-32" @change="fetchNow">
-          <option value="">Todas as categorias</option>
+          <option value="">{{ t('transactions.allCategories') }}</option>
           <option v-for="c in finance.categories" :key="c._id" :value="c._id">
             {{ c.icon }} {{ c.name }}
           </option>
@@ -80,18 +80,18 @@
 
         <!-- Sort -->
         <select v-model="sortKey" class="form-select text-sm py-2.5 min-w-32" @change="fetchNow">
-          <option value="date:desc">Mais recente</option>
-          <option value="date:asc">Mais antigo</option>
-          <option value="amount:desc">Maior valor</option>
-          <option value="amount:asc">Menor valor</option>
+          <option value="date:desc">{{ t('transactions.sortRecent') }}</option>
+          <option value="date:asc">{{ t('transactions.sortOldest') }}</option>
+          <option value="amount:desc">{{ t('transactions.sortAmountDesc') }}</option>
+          <option value="amount:asc">{{ t('transactions.sortAmountAsc') }}</option>
         </select>
 
         <!-- Clear -->
         <button
           v-if="hasActiveFilters"
           class="btn-icon text-rose-400 border-rose-500/30 hover:border-rose-400"
-          title="Limpar filtros"
-          aria-label="Limpar filtros"
+          :title="t('transactions.clearFilters')"
+          :aria-label="t('transactions.clearFilters')"
           @click="clearFilters"
         >
           <X class="w-4 h-4" />
@@ -116,10 +116,10 @@
       <!-- Empty state -->
       <div v-else-if="!finance.transactions.length" class="py-16 text-center">
         <div class="text-5xl mb-4">🔍</div>
-        <p class="text-white/50 font-medium mb-2">Nenhuma transação encontrada</p>
-        <p class="text-white/30 text-sm mb-6">Tenta ajustar os filtros ou adiciona uma nova transação</p>
+        <p class="text-white/50 font-medium mb-2">{{ t('transactions.emptyTitle') }}</p>
+        <p class="text-white/30 text-sm mb-6">{{ t('transactions.emptySubtitle') }}</p>
         <button class="btn-primary text-sm" @click="showModal = true">
-          <Plus class="w-4 h-4 inline mr-1" /> Adicionar Transação
+          <Plus class="w-4 h-4 inline mr-1" /> {{ t('transactions.addTransaction') }}
         </button>
       </div>
 
@@ -128,12 +128,12 @@
         <table class="data-table">
           <thead>
             <tr class="bg-surface-800/50">
-              <th>Descrição</th>
-              <th class="hidden sm:table-cell">Categoria</th>
-              <th>Data</th>
-              <th class="text-right">Valor</th>
-              <th class="hidden md:table-cell">Recorrência</th>
-              <th class="text-center w-20">Ações</th>
+              <th>{{ t('transactions.colDescription') }}</th>
+              <th class="hidden sm:table-cell">{{ t('transactions.colCategory') }}</th>
+              <th>{{ t('transactions.colDate') }}</th>
+              <th class="text-right">{{ t('transactions.colAmount') }}</th>
+              <th class="hidden md:table-cell">{{ t('transactions.colRecurrence') }}</th>
+              <th class="text-center w-20">{{ t('transactions.colActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -152,13 +152,13 @@
       <!-- Pagination -->
       <div v-if="finance.totalPages > 1" class="flex items-center justify-between px-6 py-4 border-t border-white/[0.08]">
         <p class="text-white/40 text-sm">
-          Página {{ finance.currentPage }} de {{ finance.totalPages }}
+          {{ t('transactions.pageOf', { current: finance.currentPage, total: finance.totalPages }) }}
         </p>
         <div class="flex items-center gap-2">
           <button
             :disabled="finance.currentPage <= 1"
             class="btn-icon disabled:opacity-30"
-            aria-label="Página anterior"
+            :aria-label="t('transactions.prevPage')"
             @click="changePage(finance.currentPage - 1)"
           >
             <ChevronLeft class="w-4 h-4" />
@@ -177,7 +177,7 @@
           <button
             :disabled="finance.currentPage >= finance.totalPages"
             class="btn-icon disabled:opacity-30"
-            aria-label="Página seguinte"
+            :aria-label="t('transactions.nextPage')"
             @click="changePage(finance.currentPage + 1)"
           >
             <ChevronRight class="w-4 h-4" />
@@ -203,7 +203,7 @@
     <PaywallModal
       v-if="showExportPaywall"
       required-tier="pro"
-      feature-label="Exportar CSV"
+      :feature-label="t('transactions.exportCsv')"
       @close="showExportPaywall = false"
     />
   </div>
@@ -218,6 +218,7 @@ definePageMeta({ layout: 'default' })
 const finance = useFinanceStore()
 const toast = useToastStore()
 const sub = useSubscription()
+const { t } = useI18n()
 
 const showModal = ref(false)
 const showExportPaywall = ref(false)
@@ -234,11 +235,11 @@ const filters = reactive({
   endDate: '',
 })
 
-const typeOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'income', label: 'Receitas' },
-  { value: 'expense', label: 'Despesas' },
-]
+const typeOptions = computed(() => [
+  { value: 'all', label: t('transactions.filterAll') },
+  { value: 'income', label: t('transactions.filterIncome') },
+  { value: 'expense', label: t('transactions.filterExpense') },
+])
 
 const hasActiveFilters = computed(
   () => filters.type !== 'all' || filters.categoryId || filters.search || filters.startDate || filters.endDate
@@ -297,12 +298,12 @@ async function changePage(page: number) {
 }
 
 async function handleDelete(id: string) {
-  if (!confirm('Eliminar esta transação?')) return
+  if (!confirm(t('transactions.confirmDelete'))) return
   try {
     await finance.deleteTransaction(id)
-    toast.success('Transação eliminada')
+    toast.success(t('transactions.toastDeleted'))
   } catch {
-    toast.error('Erro ao eliminar')
+    toast.error(t('transactions.toastDeleteError'))
   }
 }
 
@@ -324,7 +325,7 @@ async function onSaved() {
   showModal.value = false
   editTx.value = null
   scanPrefill.value = null
-  toast.success('Guardado com sucesso! ✅')
+  toast.success(t('transactions.toastSaved'))
   await fetchNow()
 }
 
@@ -338,18 +339,21 @@ async function exportCSV() {
   try {
     rows = await $fetch<any[]>('/api/transactions/export', { params: buildFetchParams() })
   } catch (e: any) {
-    toast.error(e?.data?.message || 'Erro ao exportar CSV')
+    toast.error(e?.data?.message || t('transactions.toastExportError'))
     return
   }
 
-  const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor', 'Tags']
-  const csvRows = rows.map((t) => [
-    t.date,
-    t.type === 'income' ? 'Receita' : 'Despesa',
-    t.description,
-    t.category || '',
-    t.type === 'income' ? t.amount : -t.amount,
-    (t.tags || []).join(';'),
+  const headers = [
+    t('transactions.csvDate'), t('transactions.csvType'), t('transactions.csvDescription'),
+    t('transactions.csvCategory'), t('transactions.csvAmount'), t('transactions.csvTags'),
+  ]
+  const csvRows = rows.map((row) => [
+    row.date,
+    row.type === 'income' ? t('transactions.csvIncome') : t('transactions.csvExpense'),
+    row.description,
+    row.category || '',
+    row.type === 'income' ? row.amount : -row.amount,
+    (row.tags || []).join(';'),
   ])
   const csv = [headers, ...csvRows].map((r) => r.join(',')).join('\n')
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
@@ -359,7 +363,7 @@ async function exportCSV() {
   a.download = `transacoes-${new Date().toISOString().split('T')[0]}.csv`
   a.click()
   URL.revokeObjectURL(url)
-  toast.success('CSV exportado!')
+  toast.success(t('transactions.toastExported'))
 }
 
 onMounted(async () => {

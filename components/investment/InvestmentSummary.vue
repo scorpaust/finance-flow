@@ -25,6 +25,7 @@ import type { PortfolioSummary } from '~/shared/portfolio'
 const props = defineProps<{ summary: PortfolioSummary | null; loading?: boolean }>()
 
 const { formatCurrency, formatSignedCurrency, formatReturnPct } = useFormatters()
+const { t } = useI18n()
 
 // Não usa o KpiCard: esse mostra valores compactos ("1.1k €") e a percentagem
 // com 1 casa e cores de "taxa de poupança". Aqui interessam os valores exatos e
@@ -35,16 +36,16 @@ const tiles = computed(() => {
   const trend = gain > 0 ? 'text-emerald-400' : gain < 0 ? 'text-rose-400' : 'text-white'
   const icon = gain > 0 ? TrendingUp : gain < 0 ? TrendingDown : Minus
   return [
-    { label: 'Total investido', value: formatCurrency(s?.totalInvested ?? 0), accent: '#6366f1', class: 'text-white' },
-    { label: 'Valor atual', value: formatCurrency(s?.totalValue ?? 0), accent: '#3b82f6', class: 'text-white' },
-    { label: 'Ganho / perda', value: formatSignedCurrency(gain), accent: gain < 0 ? '#f43f5e' : '#10b981', class: trend, icon },
+    { label: t('investment.summary.totalInvested'), value: formatCurrency(s?.totalInvested ?? 0), accent: '#6366f1', class: 'text-white' },
+    { label: t('investment.summary.totalValue'), value: formatCurrency(s?.totalValue ?? 0), accent: '#3b82f6', class: 'text-white' },
+    { label: t('investment.summary.gain'), value: formatSignedCurrency(gain), accent: gain < 0 ? '#f43f5e' : '#10b981', class: trend, icon },
     {
-      label: 'Rentabilidade',
+      label: t('investment.summary.returnPct'),
       value: formatReturnPct(s?.returnPct),
       accent: gain < 0 ? '#f43f5e' : '#10b981',
       class: trend,
       icon,
-      hint: 'sobre o capital investido',
+      hint: t('investment.summary.returnHint'),
     },
   ]
 })

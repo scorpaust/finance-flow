@@ -13,21 +13,64 @@ import type { IInvestorProfile } from '../models'
 import { generateStructuredJson } from './anthropic'
 import { isProfileValid } from './investorProfile'
 import { portfolioSummaryForAi, type PortfolioForAi } from './portfolio'
+import { getServerLocale, type ServerLocale } from './i18n'
 
-export const DISCLAIMER =
-  'Isto não é aconselhamento financeiro. As dicas seguintes são educativas e ' +
-  'genéricas, adaptadas ao teu perfil de risco — não constituem recomendação ' +
-  'de compra ou venda de nenhum ativo específico. Antes de investir, considera ' +
-  'falar com um consultor financeiro certificado.'
+// Fase 7 — traduzido para as 6 línguas (nunca gerado pelo LLM, ver nota
+// acima); tal como o texto original em PT-PT, esta tradução NÃO foi revista
+// juridicamente — ver context/features/06-FASE-6-registo-investimentos.md
+// decisão 8 e context/features/07-FASE-7-internacionalizacao.md tarefa 2.
+const DISCLAIMERS: Record<ServerLocale, string> = {
+  'pt-PT':
+    'Isto não é aconselhamento financeiro. As dicas seguintes são educativas e ' +
+    'genéricas, adaptadas ao teu perfil de risco — não constituem recomendação ' +
+    'de compra ou venda de nenhum ativo específico. Antes de investir, considera ' +
+    'falar com um consultor financeiro certificado.',
+  en:
+    'This is not financial advice. The following tips are educational and ' +
+    'generic, tailored to your risk profile — they do not constitute a ' +
+    'recommendation to buy or sell any specific asset. Before investing, consider ' +
+    'speaking with a certified financial advisor.',
+  fr:
+    "Ceci n'est pas un conseil financier. Les conseils suivants sont éducatifs et " +
+    "génériques, adaptés à ton profil de risque — ils ne constituent pas une " +
+    "recommandation d'achat ou de vente d'un actif spécifique. Avant d'investir, " +
+    'envisage de parler à un conseiller financier certifié.',
+  de:
+    'Dies ist keine Finanzberatung. Die folgenden Tipps sind allgemeiner und ' +
+    'bildender Natur, angepasst an dein Risikoprofil — sie stellen keine ' +
+    'Empfehlung zum Kauf oder Verkauf eines bestimmten Vermögenswerts dar. Erwäge ' +
+    'vor einer Investition, einen zertifizierten Finanzberater zu konsultieren.',
+  it:
+    'Questo non è un consiglio finanziario. I seguenti consigli sono educativi e ' +
+    'generici, adattati al tuo profilo di rischio — non costituiscono una ' +
+    'raccomandazione di acquisto o vendita di alcun asset specifico. Prima di ' +
+    'investire, considera di parlare con un consulente finanziario certificato.',
+  es:
+    'Esto no es asesoramiento financiero. Los siguientes consejos son educativos ' +
+    'y genéricos, adaptados a tu perfil de riesgo — no constituyen una ' +
+    'recomendación de compra o venta de ningún activo específico. Antes de ' +
+    'invertir, considera hablar con un asesor financiero certificado.',
+}
+
+const RESPONSE_LANGUAGE_NAME: Record<ServerLocale, string> = {
+  'pt-PT': 'português europeu (PT-PT)',
+  en: 'English',
+  fr: 'français',
+  de: 'Deutsch',
+  it: 'italiano',
+  es: 'español',
+}
 
 // Prompt fixo, versionado no código — ver context/features/03-FASE-3-insights-ia.md
 // tarefa 5. Regra não negociável sem validação legal: nunca nomear
-// tickers/ativos específicos.
-const SYSTEM_PROMPT = `És um assistente educativo de literacia financeira para um utilizador
-português. Recebes o perfil de investidor dele (tolerância ao risco,
-horizonte temporal, conhecimento, objetivos), um resumo agregado das
-finanças pessoais dele e um snapshot do contexto geral de mercado.
-Gera 3 a 5 dicas educativas em PT-PT, adaptadas ao perfil de risco.
+// tickers/ativos específicos. Fase 7 — segue o idioma ativo da UI; os nomes
+// dos campos do JSON de resposta (schema `tips: string[]`) não têm texto
+// fixo para traduzir, só o conteúdo gerado pelo modelo.
+function buildSystemPrompt(locale: ServerLocale): string {
+  return `És um assistente educativo de literacia financeira. Recebes o perfil de investidor de um
+utilizador (tolerância ao risco, horizonte temporal, conhecimento, objetivos), um resumo
+agregado das finanças pessoais dele e um snapshot do contexto geral de mercado.
+Gera 3 a 5 dicas educativas em ${RESPONSE_LANGUAGE_NAME[locale]}, adaptadas ao perfil de risco.
 
 Regras obrigatórias, sem exceção:
 - Nunca nomeies um ticker ou ativo específico para comprar ou vender
@@ -38,6 +81,7 @@ Regras obrigatórias, sem exceção:
 - Adapta a linguagem ao knowledgeLevel do utilizador (mais simples para
   iniciante).
 - Nunca prometas retornos ou uses linguagem de certeza sobre o mercado.`
+}
 
 // Só é acrescentado com INVESTMENT_TIPS_INCLUDE_PORTFOLIO ligada — com a flag
 // desligada o prompt é exatamente o da Fase 3. Ver Fase 6, tarefa 6.
@@ -82,8 +126,10 @@ type TipsContext =
 
 // Tudo o que entra no prompt exceto o resumo das finanças (que muda a cada
 // transação e invalidaria a cache sem necessidade). O inputHash cobre perfil,
-// agregados do portfolio e data do snapshot de mercado.
-async function getTipsContext(userId: string): Promise<TipsContext> {
+// agregados do portfolio, data do snapshot de mercado e — desde a Fase 7 —
+// o idioma: mudar o idioma da UI marca a cache como desatualizada (as dicas
+// já geradas ficam na língua antiga até o utilizador voltar a gerar).
+async function getTipsContext(userId: string, locale: ServerLocale): Promise<TipsContext> {
   const user = await User.findById(userId)
     .select('investorProfile')
     .lean<{ investorProfile?: IInvestorProfile }>()
@@ -106,7 +152,7 @@ async function getTipsContext(userId: string): Promise<TipsContext> {
   }
 
   const inputHash = createHash('sha256')
-    .update(JSON.stringify({ profile, portfolio, snapshotDate: snapshot?.date ?? null }))
+    .update(JSON.stringify({ profile, portfolio, snapshotDate: snapshot?.date ?? null, locale }))
     .digest('hex')
 
   return { needsProfile: false, profile, snapshot, portfolio, portfolioIncluded: includePortfolio, inputHash }
@@ -135,12 +181,13 @@ async function loadFinanceSummary(userId: string) {
 }
 
 function tipsResponse(
+  locale: ServerLocale,
   cache: { tips: string[]; marketSnapshotDate: string | null; portfolioIncluded: boolean; generatedAt: Date },
   extra: { cached: boolean; outdated: boolean }
 ) {
   return {
     needsProfile: false as const,
-    disclaimer: DISCLAIMER,
+    disclaimer: DISCLAIMERS[locale],
     tips: cache.tips,
     marketSnapshotDate: cache.marketSnapshotDate,
     portfolioIncluded: cache.portfolioIncluded,
@@ -151,25 +198,25 @@ function tipsResponse(
 
 // GET — devolve as últimas dicas geradas SEM chamar a Anthropic, para a página
 // as mostrar ao abrir. `outdated` diz se um POST geraria dicas novas (perfil,
-// portfolio ou mercado mudaram, ou a cache passou as 24 h) — é o que decide se
-// o botão "Atualizar dicas" faz sentido.
-export async function getCachedTips(userId: string) {
-  const ctx = await getTipsContext(userId)
+// portfolio, mercado ou idioma mudaram, ou a cache passou as 24 h) — é o que
+// decide se o botão "Atualizar dicas" faz sentido.
+export async function getCachedTips(userId: string, locale: ServerLocale) {
+  const ctx = await getTipsContext(userId, locale)
   if (ctx.needsProfile) return { needsProfile: true as const }
 
   const cached = await InvestmentTipsCache.findById(userId).lean()
   if (!cached) {
-    return { needsProfile: false as const, disclaimer: DISCLAIMER, tips: null, portfolioIncluded: ctx.portfolioIncluded }
+    return { needsProfile: false as const, disclaimer: DISCLAIMERS[locale], tips: null, portfolioIncluded: ctx.portfolioIncluded }
   }
   const expired = Date.now() - new Date(cached.generatedAt).getTime() >= CACHE_TTL_MS
-  return tipsResponse(cached, { cached: true, outdated: cached.inputHash !== ctx.inputHash || expired })
+  return tipsResponse(locale, cached, { cached: true, outdated: cached.inputHash !== ctx.inputHash || expired })
 }
 
 // POST — gera dicas novas, ou devolve a cache se nada mudou nas últimas 24 h.
-// Só regenera cedo quando o inputHash mudou (perfil, portfolio ou mercado): controla
-// o custo e impede regeneração em loop com os mesmos dados.
-export async function generateTips(userId: string) {
-  const ctx = await getTipsContext(userId)
+// Só regenera cedo quando o inputHash mudou (perfil, portfolio, mercado ou
+// idioma): controla o custo e impede regeneração em loop com os mesmos dados.
+export async function generateTips(userId: string, locale: ServerLocale) {
+  const ctx = await getTipsContext(userId, locale)
   if (ctx.needsProfile) return { needsProfile: true as const }
 
   const cached = await InvestmentTipsCache.findById(userId).lean()
@@ -178,7 +225,7 @@ export async function generateTips(userId: string) {
     cached.inputHash === ctx.inputHash &&
     Date.now() - new Date(cached.generatedAt).getTime() < CACHE_TTL_MS
   ) {
-    return tipsResponse(cached, { cached: true, outdated: false })
+    return tipsResponse(locale, cached, { cached: true, outdated: false })
   }
 
   const financeSummary = await loadFinanceSummary(userId)
@@ -189,8 +236,9 @@ export async function generateTips(userId: string) {
     ...(ctx.portfolio ? { portfolio: ctx.portfolio } : {}),
   }
 
+  const systemPrompt = buildSystemPrompt(locale)
   const result = await generateStructuredJson<InvestmentTipsResult>({
-    system: ctx.portfolio ? SYSTEM_PROMPT + PORTFOLIO_PROMPT_ADDENDUM : SYSTEM_PROMPT,
+    system: ctx.portfolio ? systemPrompt + PORTFOLIO_PROMPT_ADDENDUM : systemPrompt,
     prompt: `Contexto do utilizador (JSON):\n${JSON.stringify(payload)}`,
     schema: {
       type: 'object',
@@ -210,6 +258,7 @@ export async function generateTips(userId: string) {
   )
 
   return tipsResponse(
+    locale,
     { tips: result.tips, marketSnapshotDate, portfolioIncluded, generatedAt },
     { cached: false, outdated: false }
   )

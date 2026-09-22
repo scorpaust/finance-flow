@@ -7,16 +7,16 @@
       <AlertTriangle class="w-4 h-4 text-amber-400" />
     </div>
     <div class="flex-1 min-w-0">
-      <p class="text-sm font-semibold text-white">O teu plano {{ TIER_LABEL[tier] }} expira em {{ daysUntilExpiry }} dia(s)</p>
+      <p class="text-sm font-semibold text-white">{{ t('upsellBanner.expiresIn', { tier: TIER_LABEL[tier], days: daysUntilExpiry }) }}</p>
       <p v-if="multibancoReference" class="text-white/40 text-xs mt-0.5">
-        Referência Multibanco por pagar — entidade {{ multibancoEntity }}, referência {{ multibancoReference }}.
+        {{ t('upsellBanner.multibancoPending', { entity: multibancoEntity, reference: multibancoReference }) }}
       </p>
       <p v-else class="text-white/40 text-xs mt-0.5">
-        Pagamento por período (MB WAY/Multibanco) — não há renovação automática. Renova manualmente para não perderes o acesso.
+        {{ t('upsellBanner.periodPaymentNotice') }}
       </p>
     </div>
     <button class="btn-primary text-sm py-2 shrink-0" type="button" @click="navigateTo('/subscription')">
-      Ver subscrição
+      {{ t('upsellBanner.viewSubscription') }}
     </button>
   </div>
 </template>
@@ -25,6 +25,7 @@
 import { AlertTriangle } from 'lucide-vue-next'
 import { TIER_LABEL } from '~/shared/features'
 
+const { t } = useI18n()
 // Top-level para Vue auto-unwrapping refs em template (ver padrão em predictions.vue).
 const sub = useSubscription()
 const tier = sub.tier

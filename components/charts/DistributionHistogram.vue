@@ -16,6 +16,7 @@ const props = defineProps<{
   data: Array<{ rangeStart: number; rangeEnd: number; count: number }>
   loading?: boolean
 }>()
+const { t } = useI18n()
 const { formatCompact } = useFormatters()
 
 // Um único hue (magnitude já está codificada na altura da barra — cor
@@ -28,7 +29,7 @@ const chartData = computed(() => {
     labels: props.data.map((b) => `${formatCompact(b.rangeStart)}–${formatCompact(b.rangeEnd)}`),
     datasets: [
       {
-        label: 'Transações',
+        label: t('charts.transactions'),
         data: props.data.map((b) => b.count),
         backgroundColor: BAR_COLOR,
         borderRadius: 6,
@@ -45,8 +46,8 @@ const opts = computed(() => ({
     legend: { display: false },
     tooltip: {
       callbacks: {
-        title: (items: any) => `Entre ${items[0].label}`,
-        label: (ctx: any) => ` ${ctx.raw} transaç${ctx.raw === 1 ? 'ão' : 'ões'}`,
+        title: (items: any) => `${t('charts.between')} ${items[0].label}`,
+        label: (ctx: any) => ` ${ctx.raw === 1 ? t('charts.transactionSingular', { count: ctx.raw }) : t('charts.transactionsPlural', { count: ctx.raw })}`,
       },
     },
   },

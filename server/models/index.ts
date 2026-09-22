@@ -176,6 +176,15 @@ export interface ITransaction extends Document {
   recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
   notes?:     string
   groupId?:   mongoose.Types.ObjectId
+  // Fase 7, tarefa 6 — `amount` continua a ser sempre o valor em EUR (usado,
+  // sem alterações, por todas as agregações existentes: KPIs, estatísticas,
+  // orçamentos de grupo, previsões, exportação CSV). Quando a transação nasce
+  // de um documento numa moeda estrangeira, `currency`/`originalAmount`/
+  // `exchangeRate` preservam o valor tal como no documento — nunca gravado
+  // como € sem essa informação ao lado (decisão do utilizador, 2026-09-22).
+  currency:       string
+  originalAmount: number | null
+  exchangeRate:   number | null
   createdAt:  Date
   updatedAt:  Date
 }
@@ -194,8 +203,11 @@ const TransactionSchema = new Schema<ITransaction>(
       enum:    ['none', 'daily', 'weekly', 'monthly', 'yearly'],
       default: 'none',
     },
-    notes:   { type: String, trim: true },
-    groupId: { type: Schema.Types.ObjectId, ref: 'TransactionGroup', default: null },
+    notes:          { type: String, trim: true },
+    groupId:        { type: Schema.Types.ObjectId, ref: 'TransactionGroup', default: null },
+    currency:       { type: String, default: 'EUR', uppercase: true, trim: true },
+    originalAmount: { type: Number, default: null, min: 0 },
+    exchangeRate:   { type: Number, default: null, min: 0 },
   },
   { timestamps: true }
 )
@@ -274,6 +286,10 @@ export interface IAiInsightCache extends Document {
   insights: string[]
   suggestions: string[]
   generatedAt: Date
+  // Fase 7 — idioma em que as insights foram geradas; mudar o idioma da UI
+  // invalida a cache (ver server/api/insights/stats.post.ts). Cache antiga
+  // sem este campo é tratada como 'pt-PT' (era o único idioma antes da Fase 7).
+  locale?: string
 }
 
 const AiInsightCacheSchema = new Schema<IAiInsightCache>({
@@ -282,6 +298,7 @@ const AiInsightCacheSchema = new Schema<IAiInsightCache>({
   insights:    [{ type: String }],
   suggestions: [{ type: String }],
   generatedAt: { type: Date, required: true },
+  locale:      { type: String, default: 'pt-PT' },
 })
 export const AiInsightCache =
   mongoose.models.AiInsightCache ||

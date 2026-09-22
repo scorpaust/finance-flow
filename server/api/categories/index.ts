@@ -2,10 +2,12 @@ import { Category } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import { getUserTier } from '../../utils/requireFeature'
 import { TIER_LIMITS } from '../../../shared/features'
+import { getServerLocale, serverT } from '../../utils/i18n'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   const method = getMethod(event)
+  const locale = getServerLocale(event)
 
   if (method === 'GET') {
     const query = getQuery(event) as { type?: string }
@@ -21,7 +23,7 @@ export default defineEventHandler(async (event) => {
   if (method === 'POST') {
     const body = await readBody(event)
     const { name, type, icon, color } = body
-    if (!name || !type) throw createError({ statusCode: 400, message: 'Nome e tipo obrigatórios' })
+    if (!name || !type) throw createError({ statusCode: 400, message: serverT(locale, 'categories.nameAndTypeRequired') })
 
     const tier = await getUserTier(userId)
     const customLimit = TIER_LIMITS[tier].customCategories
@@ -30,7 +32,7 @@ export default defineEventHandler(async (event) => {
       if (customCount >= customLimit) {
         throw createError({
           statusCode: 403,
-          message: `Limite de ${customLimit} categorias personalizadas do plano Gratuito atingido`,
+          message: serverT(locale, 'categories.customLimitReached', { limit: customLimit }),
           data: { error: 'feature_locked', requiredTier: 'pro' },
         })
       }
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
       userId,
       name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
     })
-    if (existing) throw createError({ statusCode: 409, message: 'Categoria já existe' })
+    if (existing) throw createError({ statusCode: 409, message: serverT(locale, 'categories.alreadyExists') })
 
     const cat = await Category.create({
       userId,

@@ -1,121 +1,128 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/06-FASE-6-registo-investimentos.md -->
+<!-- Ver especificação completa em context/features/07-FASE-7-internacionalizacao.md -->
 
 ## Estado
 
-Concluída — branch `feature/fase-6-registo-investimentos` mergeado em `main` e
-removido (2026-09-22). Implementada com os valores por omissão da secção "A
-confirmar com o utilizador" da especificação (Premium com chave própria
-`investmentTracker`, "Data" = data do investimento inicial, `assetClass`
-opcional, vender = eliminar, flag da IA desligada). **Fechada com validações em
-aberto** (não foram feitas, não assumir que estão): a geração real de dicas com
-portfolio nunca correu (conta Anthropic sem créditos), o custo por geração não
-foi medido, e a validação jurídica das dicas com portfolio está por fazer — por
-isso `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` fica desligada — ver histórico.
-A Fase 5 (digitalização de documentos) está concluída e mergeada.
+Em progresso — branch `feature/fase-7-internacionalizacao` criado a partir de
+`main` em 2026-09-22. Ver histórico para o detalhe do que já está
+implementado e do que falta.
 
 ## Objetivos
 
-FASE 6 — Registo de Investimentos (Portfolio pessoal + integração com a IA). O
-utilizador regista os investimentos que tem, com o modelo da folha de Excel que
-já usa: **Portfolio** (nome), **Inicial**, **Data**, **Reforço**, **Situação**
-(valor atual) e **%** (calculada, nunca guardada:
-`(Situação − (Inicial + Reforço)) / (Inicial + Reforço)`). Vive dentro de
-`/investimento`, depois de o utilizador preencher o perfil de investidor da Fase
-3; a página passa a ser um hub com o portfolio primeiro e as dicas de IA por
-baixo. Duas ações rápidas por linha (Reforçar e Atualizar situação) cobrem o uso
-mensal real da folha. As dicas de IA passam a poder ter em conta a composição da
-carteira, mas só em agregado (nunca nomes nem valores por posição), atrás de uma
-flag desligada até haver validação jurídica.
+FASE 7 — Internacionalização (Idiomas + Métodos de Pagamento por País). Dois
+sinais independentes, nunca confundidos: o **idioma da UI** segue a
+preferência de idioma do browser/dispositivo (`Accept-Language`), com override
+manual persistente nas Configurações — localização física é irrelevante (um
+português a viajar continua a querer PT-PT); os **métodos de pagamento
+pré-pagos disponíveis** seguem o país detetado por geolocalização de IP — é
+uma questão de que rails bancários existem nesse país, não de preferência do
+utilizador. 6 idiomas no lançamento (PT-PT, EN, FR, DE, IT, ES), com **EN como
+fallback universal** para qualquer idioma de browser não suportado. Biblioteca
+`@nuxtjs/i18n`; geolocalização via MaxMind GeoLite2 (base de dados local, sem
+chamadas externas por pedido). Âmbito de pagamento deliberadamente limitado:
+tabela país → métodos, mas só Portugal (MB WAY/Multibanco, já existente desde
+a Fase 2) implementado a fundo; qualquer outro país cai no fallback universal
+de cartão com auto-renovação (EasyPay, `billingMode: 'auto'`).
 
-Ler `context/features/06-FASE-6-registo-investimentos.md` para a especificação
-completa (9 decisões de arquitetura, modelo de dados, fluxo por estado do
-utilizador, 6 tarefas, critérios de aceitação), `03-FASE-3-insights-ia.md`
-(perfil de investidor, dicas e a decisão regulatória 4) e `00-CODE-SPEC.md`
-secções 3 e 4 (feature gating).
+Ler `context/features/07-FASE-7-internacionalizacao.md` para a especificação
+completa (5 decisões de arquitetura, 6 tarefas, critérios de aceitação),
+`02-FASE-2-sistema-subscricoes.md` (EasyPay/MB WAY/Multibanco),
+`05-FASE-5-scan-documentos-ia.md` (digitalização de documentos, ver tarefa 6
+abaixo) e `00-CODE-SPEC.md` secções 3 e 4.
 
 Tarefas principais (ver especificação para detalhe completo):
-1. `shared/features.ts` — nova chave `investmentTracker` (Premium por omissão,
-   a confirmar); `requireFeature()` em todos os endpoints novos
-2. Modelo `Investment` (`server/models/index.ts`) e `shared/portfolio.ts` com o
-   cálculo (`returnPct`, resumo do portfolio sobre totais, não média das %)
-   partilhado por servidor, formulário e IA
-3. API `server/api/investments/` (`index.ts` GET/POST, `[id].ts` PUT parcial/
-   DELETE), sempre filtrada por `userId` (id alheio → 404)
-4. Client — `useInvestments`, `InvestmentModal` com pré-visualização da
-   rentabilidade, ações "Reforçar" e "Atualizar situação"
-5. `pages/investimento/index.vue` reestruturada como hub por estado (paywall /
-   sem perfil / perfil válido / perfil expirado), `PortfolioTable` (colunas da
-   folha em desktop, cartões em mobile), estado vazio; deixa de chamar a
-   Anthropic ao abrir a página
-6. Integração com a IA — resumo só com agregados, flag
-   `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (default `false`), regras novas no
-   prompt, cache `InvestmentTipsCache`, `InvestmentTipsCard`
+1. Infraestrutura de i18n — instalar `@nuxtjs/i18n`, ficheiros de tradução por
+   idioma (`i18n/locales/*.json`, organizados por página/secção), deteção
+   `Accept-Language` no primeiro acesso com override manual persistente (nunca
+   volta a detetar depois de o utilizador escolher), seletor de idioma em
+   `pages/settings/index.vue`
+2. Extração de strings (o trabalho mecanicamente maior) — auditoria de todo o
+   PT-PT hardcoded em `pages/`, `components/` e erros de servidor
+   (`createError({message})`); prioridade: auth/dashboard →
+   transações/categorias/grupos → subscrição/checkout/paywall →
+   previsões/insights de IA (Fase 3) → registo de investimentos (Fase 6) →
+   resto; `useFormatters` adaptado para receber o locale (inclui
+   `formatReturnPct`/`formatSignedCurrency` da Fase 6, que hoje fixam pt-PT);
+   texto de servidor da Fase 6 (erros de `/api/investments`,
+   `ASSET_CLASS_LABEL`, prompt e **disclaimer** das dicas de investimento em
+   `server/utils/investmentTips.ts` — disclaimer traduzido a rever
+   **juridicamente** por idioma, não só traduzido); tradução das 6 línguas com
+   revisão de qualidade (não confiar só em tradução automática, sobretudo
+   termos financeiros)
+3. Geolocalização por IP (server-side) — MaxMind GeoLite2
+   (`server/utils/geo.ts`), lookup do IP do pedido → código de país; documentar
+   o processo de atualização periódica (mensal) da base de dados
+4. Métodos de pagamento por país — `shared/paymentMethods.ts` (tabela país →
+   métodos pré-pagos; hoje só `PT: ['mbway', 'multibanco']`, resto `[]`);
+   `create-prepaid.post.ts` valida no servidor que o método pedido está
+   disponível para o país detetado (nunca confiar só na UI a esconder
+   opções); `pages/subscription/index.vue` só mostra o separador
+   MB WAY/Multibanco quando o país detetado tiver métodos disponíveis
+5. Android — confirmar que o idioma detetado/escolhido no WebView do
+   Capacitor coincide com o da app web (mesma conta, mesmo idioma)
+6. Digitalização de documentos (Fase 5) em contexto internacional — levantado
+   ao concluir a Fase 5; **cada decisão abaixo exige confirmação do
+   utilizador antes de implementar**: moeda (converter para € à taxa do dia
+   vs. guardar a moeda por transação — lean inicial: converter, fonte de
+   câmbios por confirmar), formato de datas ambíguas (`DOCUMENT_SYSTEM_PROMPT`
+   assume dia/mês/ano; passar país/idioma ao modelo e marcar `confidence.date:
+   'low'` quando ambíguo), idioma do prompt de extração (hoje fixo em PT-PT,
+   passa a seguir o idioma ativo), recibos de vencimento (fora de âmbito da
+   Fase 5 — valor líquido vs. bruto, por decidir se entram), privacidade/RGPD
+   de dados pessoais (NIF, morada, salário) enviados à Anthropic
 
-Fora de âmbito nesta fase: preços de mercado automáticos por posição,
-histórico de valorizações/gráfico de evolução, reforços com data e
-rentabilidade anualizada (TWR/IRR), vendas/ganho realizado, várias moedas,
-ligar reforços a `Transaction`, importar a folha de Excel/CSV, digitalizar
-extratos de corretora, investimentos nas estatísticas/previsões e qualquer
-recomendação específica de compra/venda.
+Fora de âmbito nesta fase: métodos de pagamento locais de outros países além
+de Portugal (Bancontact, iDEAL, etc. — trabalho futuro incremental, país a
+país), tradução de conteúdo gerado por IA (Fase 3) para outro idioma além do
+ativo no momento do pedido, mais do que as 6 línguas confirmadas.
 
 ## Notas
 
-- Decisões de arquitetura da especificação (modelo = a folha, `%` sempre
-  derivada, `Reforço` como total acumulado, `Situação` manual, registo separado
-  das transações, IA só com agregados, dicas com portfolio atrás de flag) não
-  devem ser reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
-- A fórmula da `%` foi verificada contra as duas linhas da folha do utilizador
-  (FTSE All-World ETF 1,94%; Innodata Ação −2,00%). Rentabilidade simples sobre
-  o capital investido, não anualizada.
-- A data da folha de exemplo (01/10/2026) é posterior à data em que a fase foi
-  desenhada (2026-09-21), por isso o formulário não deve rejeitar datas futuras.
-- Só a tarefa 6 depende de validação jurídica (dicas que leem a carteira real do
-  utilizador aproximam-se de aconselhamento personalizado, decisão regulatória 4
-  da Fase 3). As tarefas 1 a 5 entregam valor sozinhas.
-- Esta fase foi inserida antes da Internacionalização a pedido do utilizador em
-  2026-09-21 — Internacionalização, Segurança/Qualidade e Publicação foram
-  renumeradas de Fase 6/7/8 para Fase 7/8/9 (ver `00-CODE-SPEC.md` secção 6 e
-  histórico abaixo).
-- **Não depender de índices `unique` do Mongoose**: a criação automática de
-  índices não funciona neste projeto (`server/plugins/mongoose.ts` liga com
-  `bufferCommands: false`). Para o cache da tarefa 6 usar `_id` determinístico
-  (`userId`), como já se faz em `DocumentScanUsage`.
+- Decisões de arquitetura da especificação (dois sinais independentes
+  idioma/país, 6 idiomas com EN como fallback universal, `@nuxtjs/i18n`,
+  MaxMind GeoLite2, âmbito de pagamento limitado a Portugal) não devem ser
+  reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
+- Deliberadamente depois do Design System (Fase 4), da Digitalização de
+  Documentos (Fase 5) e do Registo de Investimentos (Fase 6) — traduzir só
+  depois de todo o UI estar estruturalmente estável evita retrabalho (extrair
+  strings de um template que ainda vai ser reescrito é desperdício).
+- A tarefa 6 (documentos estrangeiros) tem várias decisões por confirmar com o
+  utilizador antes de implementar — não assumir nenhuma sem essa confirmação.
+- Confirmar a cobertura da EasyPay fora de Portugal (cartões emitidos noutros
+  países; Débito Direto SEPA só faz sentido em países SEPA) antes de a
+  prometer no checkout.
+- Pendências transversais herdadas de fases anteriores, ainda por resolver
+  (não são âmbito desta fase, mas ficam o lembrete): ⚠️ **BLOQUEADOR antes de
+  produção** — `android/app/src/main/AndroidManifest.xml` tem
+  `android:usesCleartextTraffic="true"` (ligado para testar via USB, reverter
+  para `"false"` antes de qualquer build de release, tarefa da Fase 9); índices
+  `unique` do Mongoose nunca criados (`server/plugins/mongoose.ts` liga com
+  `bufferCommands: false`); `requireAuth` autentica por cookie `userId` **ou**
+  header `x-user-id` em claro, sem assinatura (a resolver na Fase 8).
 - Testar sempre em pelo menos mobile (emulador/dispositivo Android) e desktop
   (janela larga), incluindo tablet/ultra-wide — ver `AGENT-RULES.md` ("Testes
-  manuais mínimos"). A tabela de 6 colunas tem de degradar para cartões em
-  mobile. Confirmar que o gating das Fases 2 e 3 não regrediu.
-- ⚠️ **BLOQUEADOR antes de produção (herdado da Fase 3, ainda por resolver)**:
-  `android/app/src/main/AndroidManifest.xml` tem
-  `android:usesCleartextTraffic="true"`, ligado para testar a app Android via
-  `adb reverse` num telemóvel físico por cabo USB. Tem de voltar a `"false"`
-  antes de qualquer build de produção/release — decisão explícita do utilizador
-  de deixar para a fase de publicação. Não é âmbito desta fase, mas fica o
-  lembrete enquanto não for revertido.
+  manuais mínimos").
 
 ## Critérios de aceitação
 
-- Reproduz a folha: FTSE All-World ETF (1 000 € + 30 € → 1 050 €) mostra 1,94%,
-  Innodata Ação (50 € + 0 € → 49 €) mostra −2,00%; resumo do portfolio 1 080 €
-  investidos, 1 099 € de valor atual, 19 € de ganho e 1,76% (sobre totais)
-- A `%` não existe na base de dados; alterar a `Situação` recalcula-a sem outra
-  escrita; "Reforçar" soma ao reforço existente
-- Free/Pro não usam a área — paywall no client e `403 feature_locked` em todos
-  os endpoints `/api/investments/**` mesmo chamados diretamente
-- Um utilizador nunca vê, edita nem elimina posições de outro (id alheio → 404)
-- Sem perfil de investidor, `/investimento` pede-o primeiro e volta ao hub ao
-  guardar; com perfil expirado o portfolio continua visível e editável
-- Abrir `/investimento` não faz pedidos à Anthropic; só "Gerar dicas" o faz, e
-  uma 2.ª geração em 24 h sem alterações devolve o cache
-- Com a flag desligada o payload da IA é igual ao da Fase 3; com a flag ligada
-  só leva agregados (sem nomes, valores por posição nem datas)
-- As dicas com portfolio nunca nomeiam um ativo, nunca dizem
-  comprar/vender/reequilibrar e mostram sempre o disclaimer
-- Layout correto em mobile (cartões), desktop (tabela) e ultra-wide, sem
-  regressões no gating das Fases 2 e 3
-- Validação jurídica das dicas com portfolio feita antes de ligar a flag em
-  produção (não bloqueia o resto da fase)
+- App abre automaticamente no idioma do browser quando é um dos 6 suportados,
+  e em EN quando não é
+- Escolha manual de idioma nas Configurações persiste e nunca é substituída
+  por deteção automática depois de escolhida
+- Nenhuma string visível fica por traduzir em nenhuma das 6 línguas (auditoria
+  completa, não amostragem)
+- Checkout de subscrição só mostra MB WAY/Multibanco para utilizadores com
+  país detetado = Portugal; todos os outros só veem a opção recorrente
+- `POST /api/subscription/easypay/create-prepaid` rejeita (403/400) um pedido
+  de `paymentMethod` não disponível no país do utilizador, mesmo que a UI
+  tenha sido adulterada
+- Datas/moeda mostradas corretamente formatadas para cada um dos 6 idiomas
+- Um recibo/fatura numa moeda diferente de € é tratado segundo a decisão
+  confirmada (convertido ou guardado com a moeda) — nunca gravado como € sem
+  aviso
+- Um recibo com data ambígua (ex. `03/04`) não é gravado com o mês trocado em
+  silêncio: fica com a data realçada como baixa confiança
 
 ## Histórico
 
@@ -1017,3 +1024,359 @@ recomendação específica de compra/venda.
     deploy com a flag e o cleartext; regra de nunca enviar nomes/valores por
     posição do portfolio à Anthropic e de nunca devolver ao client o corpo de
     erros de fornecedores externos.
+- 2026-09-22: Definida como funcionalidade atual — FASE 7 (Internacionalização:
+  idiomas + métodos de pagamento por país), especificação em
+  `context/features/07-FASE-7-internacionalizacao.md`. Estado inicial: não
+  iniciada.
+- 2026-09-22: Branch `feature/fase-7-internacionalizacao` criado a partir de
+  `main`. Estado passa a "Em progresso". Antes de implementar, confirmadas com
+  o utilizador as 3 decisões em aberto da tarefa 6 (documentos internacionais,
+  ver `05-FASE-5-scan-documentos-ia.md`): moeda estrangeira → guardar a moeda
+  original (não converter só internamente); recibos de vencimento → entram no
+  âmbito desta fase; privacidade → pedir consentimento explícito antes do
+  envio à Anthropic. Implementadas as tarefas 1, 3 e 4 por completo, a tarefa
+  2 só na prioridade 1, e a tarefa 6 com as 3 decisões acima — ver checklist
+  detalhado marcado em `07-FASE-7-internacionalizacao.md`.
+  - **Tarefa 1 (infraestrutura i18n)**: `@nuxtjs/i18n` instalado
+    (`strategy: 'no_prefix'` — a app não tem nem precisa de rotas
+    `/en/...`, é só uma preferência de interface); `detectBrowserLanguage`
+    com cookie `financeflow_locale` deteta o `Accept-Language` uma vez e
+    nunca mais volta a detetar depois de uma escolha manual (mesmo cookie
+    escrito por `setLocale()`). `i18n/locales/{pt-PT,en,fr,de,it,es}.json`
+    com namespaces `common`/`nav`/`auth`/`dashboard`/`settings`. Novo
+    `composables/useLocaleFormat.ts` mapeia o locale ativo para o locale do
+    date-fns e para a string `Intl` — `useFormatters` inteiro passa a segui-
+    lo (datas, `formatReturnPct`, `formatSignedCurrency` da Fase 6 incluídos,
+    já não fixam `pt-PT`). Seletor de idioma novo em
+    `pages/settings/index.vue`.
+  - **Tarefa 2 (extração de strings)**: só a prioridade 1 da especificação —
+    autenticação (`pages/login.vue`) e dashboard (`pages/index.vue`,
+    `layouts/default.vue`, `components/layout/MobileNav.vue`). O resto do
+    código (transações, grupos, estatísticas, previsões, subscrição,
+    investimento, texto de servidor) continua com strings PT-PT hardcoded —
+    funciona, mas não muda de idioma. Fica para sessões seguintes, com a
+    estrutura de namespaces já pronta para continuar.
+  - **Tarefa 3 (geolocalização)**: `server/utils/geo.ts` com
+    `@maxmind/geoip2-node` sobre um ficheiro `GeoLite2-Country.mmdb` local
+    (licenciado, fora do repositório, caminho em `GEOLITE2_DB_PATH`); sem o
+    ficheiro configurado devolve sempre país desconhecido, nunca assume
+    Portugal. Processo de obtenção/atualização documentado no topo do
+    ficheiro e em `CONFIG-REFERENCE.md`.
+  - **Tarefa 4 (pagamento por país)**: `shared/paymentMethods.ts` (tabela
+    país → métodos, só `PT: ['mbway', 'multibanco']`);
+    `create-prepaid.post.ts` valida o país no servidor (nunca confia na UI);
+    novo `GET /api/subscription/payment-methods` para o client saber que
+    separador mostrar; `pages/subscription/index.vue` esconde MB
+    WAY/Multibanco quando o país não os tem. **Efeito colateral
+    importante**: sem `GEOLITE2_DB_PATH` configurado (nunca configurado
+    ainda), o país fica sempre desconhecido e o servidor passa a rejeitar
+    (403) qualquer pedido MB WAY/Multibanco — mesmo a partir de Portugal.
+    Confirmado neste teste (ver abaixo): antes de voltar a testar/usar
+    MB WAY/Multibanco (herdados da Fase 2, já validados em sandbox), é
+    preciso configurar a geolocalização.
+  - **Tarefa 6 (documentos internacionais)**: modelo `Transaction` ganhou
+    `currency`/`originalAmount`/`exchangeRate` — desvio deliberado face à
+    opção B escolhida pelo utilizador, explicado para não voltar a ser visto
+    como erro: `amount` continua a ser **sempre** o equivalente em €
+    (capturado no momento da transação via `server/utils/exchangeRates.ts`,
+    Twelve Data `/exchange_rate`), para que todas as agregações existentes
+    (KPIs, estatísticas, orçamentos, previsões, CSV) continuem a somar um
+    único valor em € sem nenhuma alteração; `currency`/`originalAmount`
+    preservam o valor tal como no documento, mostrado ao lado nas listagens
+    e no formulário. Sem taxa disponível, a transação falha com `422` em vez
+    de gravar um valor não convertido. Prompt de extração
+    (`server/utils/anthropic.ts`) passou a: seguir o idioma ativo da UI (lido
+    do cookie `financeflow_locale` em `scan.post.ts`), marcar
+    `confidence.date: 'low'` em datas ambíguas (dia/mês ambos ≤ 12 sem
+    indicação clara) em vez de assumir uma ordem, e reconhecer recibos de
+    vencimento (`documentType: 'payslip'`, `grossAmount`/`deductions`,
+    `amount` = líquido) — resumo mostrado no `TransactionModal`.
+    Consentimento explícito antes do 1.º envio adicionado a
+    `DocumentScanButton.vue` (guardado em `localStorage`, pede menção a NIF/
+    morada/salário num recibo de vencimento).
+  - **Não feito**: tarefa 5 (Android) — precisa de um dispositivo real, não
+    disponível nesta sessão.
+  - **Validado** nesta sessão (dev server local, sem dispositivo Android):
+    `npm run build` e `npm run type-check` ficaram muito lentos neste
+    ambiente (o típecheck aponta várias dezenas de erros, mas são quase
+    todos pré-existentes — `typescript.typeCheck: false` no `nuxt.config.ts`
+    significa que o build real nunca os verifica; só um era meu, corrigido).
+    O `npm run build` de produção nunca chegou a terminar num tempo
+    razoável (ficou preso ~11 min a "transforming" com CPU ativa, possível
+    interação lenta disco/antivírus deste ambiente com o preset detetado
+    automaticamente `netlify-legacy`, não o `node-server` real de produção)
+    — abortado e substituído por `npm run dev` + `curl`, que é como as fases
+    anteriores já validavam. Nesse processo, uma limpeza de
+    `node_modules/.cache`/`.nuxt` foi necessária depois de um erro `EPERM`
+    do Windows a renomear a cache do Vite (ficheiro preso por um processo
+    anterior) — depois disso o dev server arrancou normalmente (~1min de
+    arranque a frio, mais lento que o habitual por ser a 1.ª vez com os 2
+    pacotes novos, depois rápido). Com o dev server a correr: `/`,
+    `/settings`, `/subscription`, `/transactions`, `/groups`, `/stats`,
+    `/predictions`, `/investimento` devolvem `302` para `/login` sem sessão
+    (sem erro 500); `/login` devolve `200`. Idioma confirmado
+    ponta-a-ponta: `Accept-Language: pt-PT` → página em português
+    ("Entra na tua conta"), cookie `financeflow_locale=pt-PT` escrito;
+    `Accept-Language: ja` (não suportado) → cai em inglês ("Sign in"); sem
+    header → inglês (fallback). `GET /api/subscription/payment-methods` com
+    sessão → `200 { country: null, prepaidMethods: [] }`; sem sessão →
+    `401`. `POST /api/subscription/easypay/create-prepaid` com `mbway` e
+    sem geolocalização configurada → `403` (confirma o efeito colateral
+    acima). Nenhum erro 500 nem aviso novo no log do servidor durante os
+    testes.
+  - **NÃO validado / por fazer**: extração de strings além da prioridade 1
+    (tarefa 2, a maior parte do trabalho mecanicamente grande); tradução
+    revista por um humano/falante nativo (feita só pelo modelo nesta
+    sessão); base de dados GeoLite2 real (`.mmdb`) nunca obtida nem testada;
+    câmbio real via Twelve Data nunca chamado (não confirmado se o plano
+    gratuito cobre pares forex); recibos de vencimento e datas ambíguas
+    nunca testados com documentos reais; teste em dispositivo Android real
+    (tarefa 5); texto de servidor da Fase 6 (`shared/portfolio.ts`,
+    `investmentTips.ts`, incluindo o disclaimer que precisa de revisão
+    jurídica por idioma) continua por extrair.
+- 2026-09-22: Bug real reportado pelo utilizador logo a seguir (config do
+  `GEOLITE2_DB_PATH` real, ver "Notas" abaixo): depois de entrar
+  (`pages/login.vue`), a app ficava presa no login, sem navegar para o
+  dashboard. Causa: `detectBrowserLanguage.redirectOn: 'root'` do
+  `@nuxtjs/i18n` corre sempre que a app chega a `/` — mas um utilizador não
+  autenticado nunca chega lá (`middleware/auth.global.ts` intercepta e
+  manda logo para `/login`), por isso a 1.ª vez que `/` era mesmo visitado
+  era já do lado do client, logo a seguir ao login (`navigateTo('/')`), e o
+  redireciono embutido do módulo entrava em conflito com essa navegação —
+  mesmo sem nenhum URL diferente para onde ir (`strategy: 'no_prefix'` não
+  tem rotas por idioma). Corrigido: `detectBrowserLanguage` desligado por
+  completo em `nuxt.config.ts`; deteção e persistência do idioma passam a
+  ser feitas à mão num novo `plugins/locale.ts` (lê o cookie
+  `financeflow_locale`, ou deteta o `Accept-Language`/`navigator.languages`
+  na ausência dele, sem nunca chamar nenhum mecanismo de navegação — só
+  `setLocale()`); `pages/settings/index.vue` passa a escrever o mesmo
+  cookie explicitamente em vez de depender do módulo. Na primeira tentativa
+  do plugin, `useI18n()` dentro de um plugin (fora de um `setup()` de
+  componente) rebentava com "Must be called at the top of a `setup`
+  function" — corrigido usando `nuxtApp.$i18n` (a mesma instância global,
+  sem essa restrição) em vez da composable. Validado com o dev server:
+  `/login` volta a `200` (tinha ficado `500` a meio da correção, por causa
+  do erro do `useI18n()` acima); com uma conta de teste registada e
+  apagada no fim, `GET /` com o cookie de sessão devolve `200` com o
+  dashboard completo (antes só validado o lado do servidor até ao login,
+  nunca o `/` autenticado); deteção de idioma continua a funcionar
+  (`Accept-Language: pt-PT` → página em português, cookie escrito). **Não
+  foi possível confirmar visualmente no browser real** (sem ferramenta de
+  browser disponível nesta sessão) que o clique em "Entrar" navega mesmo
+  para o dashboard — só o lado do servidor foi validado com `curl`; pedir
+  ao utilizador para confirmar no browser antes de dar como fechado.
+- 2026-09-22: O utilizador reparou que a página de Configurações continuava
+  em PT-PT depois de mudar o idioma — confirmado: só a prioridade 1
+  (autenticação/dashboard) tinha sido extraída, exatamente como já estava
+  documentado. A pedido do utilizador ("avança"), extraída a prioridade 2 da
+  tarefa 2 (transações/categorias/grupos):
+  `pages/transactions/index.vue`, `pages/groups/index.vue`,
+  `pages/settings/index.vue` inteira (Perfil, Idioma, Subscrição,
+  Categorias), `components/forms/TransactionModal.vue` e
+  `components/ui/TransactionRow.vue` — cerca de 160 novas chaves em
+  `common`/`settings`/`transactionModal`/`transactions`/`groups`, traduzidas
+  para as 6 línguas (qualidade não revista por um humano/falante nativo,
+  como já assinalado para a prioridade 1). Cuidado tomado com variáveis de
+  loop chamadas `t` em vários sítios (`v-for="t in ..."`, parâmetros de
+  função `t`) que sombreavam o `t()` do i18n — renomeadas onde precisavam de
+  chamar `t()` dentro do mesmo âmbito.
+  **Validado** com o dev server local (registo e eliminação de uma conta de
+  teste no fim): `/transactions`, `/groups` e `/settings` autenticadas
+  devolvem `200` em inglês (por omissão) e em português
+  (`Accept-Language: pt-PT`), com o texto esperado em cada idioma e sem
+  nenhuma chave em bruto (`transactions.xxx` etc.) a aparecer no HTML —
+  script de verificação automática confirmou que as 6 línguas têm
+  exatamente o mesmo conjunto de 284 chaves (sem chaves em falta nem a
+  mais). **Não testado no browser real** (sem essa ferramenta disponível).
+  Continuam por fazer as prioridades 3 a 6 da tarefa 2 (subscrição/checkout,
+  previsões/insights de IA, investimento, resto — incluindo texto de
+  servidor).
+- 2026-09-22: O utilizador reparou que a zona de Investimento (Fase 6)
+  continuava em PT-PT. Confirmado que era esperado — é a prioridade 5, ainda
+  por fazer — e extraída de imediato, fora da ordem original (3 e 4 ainda
+  não feitas), a pedido implícito do utilizador ao testar exatamente essa
+  área: `pages/investimento/index.vue`, `pages/investimento/perfil.vue`,
+  `components/investment/PortfolioTable.vue`,
+  `components/investment/InvestmentSummary.vue`,
+  `components/investment/InvestmentQuickModal.vue`,
+  `components/forms/InvestmentModal.vue` e
+  `components/insights/InvestmentTipsCard.vue` — 125 novas chaves no
+  namespace `investment` (`assetClass`/`hub`/`profile`/`table`/`summary`/
+  `modal`/`quickModal`/`tips`), traduzidas para as 6 línguas.
+  **Desvios registados**:
+  - Os rótulos de classe de ativo (ETF, Ação, Obrigações...) deixaram de vir
+    de `ASSET_CLASS_LABEL` (`shared/portfolio.ts`) nos dois componentes
+    cliente que os mostravam — esse ficheiro é partilhado com o
+    servidor/prompt da IA e não foi tocado, continua fixo em PT-PT aí (é
+    português mesmo estando "correto" porque as dicas da Fase 3/6 ainda são
+    sempre geradas em PT-PT, independentemente do idioma da UI — trabalho
+    ainda não feito, texto de servidor da Fase 6/tarefa 6 da Fase 7).
+  - `perfil.vue`: os "Objetivos" do perfil de investidor (`form.goals`)
+    passaram de guardar o texto visível em PT-PT (ex. `"Reforma"`) para um
+    identificador estável (`"retirement"`) — o servidor nunca validou isto
+    contra uma lista fixa (só aceita qualquer array de strings), por isso
+    não quebra nada; perfis já gravados com o texto antigo só deixam de
+    aparecer pré-selecionados ao reabrir o formulário, até o utilizador
+    voltar a guardar.
+  - Uma frase com "Reforço: X → Y" (`InvestmentQuickModal.vue`) foi
+    reestruturada — separada em rótulo + valor em vez de uma frase única com
+    dois placeholders, mais simples de traduzir corretamente nas 6 línguas.
+  **Validado** com o dev server local (conta de teste registada e apagada no
+  fim): `/investimento` e `/investimento/perfil` autenticadas devolvem `200`
+  em inglês e em português, com o texto esperado ("Investments"/
+  "Investimento", "Investor Profile"/"Perfil de Investidor") e sem nenhuma
+  chave em bruto (`investment.xxx`) a aparecer no HTML; script automático
+  confirmou as 6 línguas com exatamente o mesmo conjunto de 409 chaves no
+  total (as 284 anteriores + as 125 novas). **Não validado**: o estado de
+  paywall/bloqueado (`PaywallModal`, ainda em PT-PT — é da prioridade 6,
+  "resto") só resolve do lado do client depois do fetch da subscrição, por
+  isso não apareceu no HTML de `curl` (mesma limitação já registada para a
+  página de Grupos); confirmação visual num browser real continua por
+  fazer, sem essa ferramenta disponível nesta sessão.
+  Continuam por fazer as prioridades 3, 4 e 6 da tarefa 2.
+- 2026-09-22: O utilizador pediu explicitamente para traduzir "mesmo tudo" o
+  que restava, apontando dois casos concretos ainda em falta — o botão
+  "Digitalizar documento" do dashboard (Fase 5) e o aviso "isto não é
+  aconselhamento financeiro" das dicas de investimento (Fase 3/6), que
+  ficava sempre em PT-PT independentemente do idioma da UI. Interpretado
+  como autorização para completar as prioridades 3, 4 e 6 da tarefa 2 de
+  uma vez, não só os dois itens apontados:
+  - **`documentScan` (Fase 5)**: `components/forms/DocumentScanButton.vue` e
+    `composables/useDocumentScan.ts` totalmente traduzidos (botão, modal de
+    escolha câmara/ficheiro, estados de digitalização/erro, modal de
+    consentimento, rótulo no `PaywallModal`).
+  - **Texto de servidor**: novo `server/utils/i18n.ts` — utilitário leve
+    (`getServerLocale(event)` lê o cookie `financeflow_locale` já gerido
+    pelo `plugins/locale.ts`; `serverT(locale, key, params)` faz lookup num
+    dicionário próprio, com interpolação de `{param}`) para mensagens de
+    erro do servidor não passarem pelo bundle de traduções do client.
+    `server/api/transactions/scan.post.ts` migrado para `serverT()`.
+  - **Disclaimer de investimento e prompt da IA (Fase 3/6)**:
+    `server/utils/investmentTips.ts` — `DISCLAIMER` (uma string) passou a
+    `DISCLAIMERS` (uma por idioma) e `SYSTEM_PROMPT` (fixo) passou a
+    `buildSystemPrompt(locale)`, a pedir a resposta no idioma ativo da UI;
+    `getTipsContext`/`getCachedTips`/`generateTips` passam a receber
+    `locale` e a incluí-lo no `inputHash` da cache, para nunca devolver
+    dicas em cache no idioma errado. Mesmo padrão aplicado a
+    `server/api/insights/stats.post.ts` (interpretação de estatísticas) —
+    `IAiInsightCache` (`server/models/index.ts`) ganhou um campo `locale`
+    persistido, comparado antes de servir da cache. **O disclaimer
+    traduzido não foi revisto juridicamente em nenhuma das 6 línguas** —
+    continua a mesma ressalva já registada para a prioridade 5, agora
+    aplicável a texto de aviso legal em vez de só UI.
+  - **Subscrição/checkout/paywall (prioridade 3)**:
+    `pages/subscription/index.vue` (a página maior desta fase, ~90 chaves
+    novas), `pages/subscription/return.vue`,
+    `components/subscription/PaywallModal.vue`,
+    `components/subscription/UpsellBanner.vue`. O checkout-sdk da EasyPay só
+    suporta 3 idiomas (confirmado via Context7) — adicionado
+    `EASYPAY_LANGUAGE: Record<string, 'en'|'pt_PT'|'es_ES'>`, com fr/de/it a
+    cair em `en` só para o formulário de pagamento embutido (o resto da
+    página continua nos 6 idiomas normalmente).
+  - **Previsões/insights de IA (prioridade 4)**: `pages/predictions.vue`,
+    `composables/useMLPrediction.ts` (10 strings de insight geradas
+    client-side, com o prefixo emoji preservado — o template extrai o
+    emoji separadamente do texto), `pages/stats/index.vue` (títulos de
+    gráfico, secção de Estatísticas Avançadas incluindo o estado
+    bloqueado/paywall, tabela de detalhe mensal, `periodOptions`/
+    `summaryCards` convertidos para `computed()`, e a formatação do mês
+    (`date-fns` `format(..., { locale: pt })`) passou a usar
+    `useLocaleFormat().dateFnsLocale` em vez do import fixo `pt`),
+    `components/insights/StatsInsightCard.vue`.
+  - Corrigidos mais dois casos do bug recorrente de sombra de `t` (parâmetro
+    `trendLabel(t: string)` em `predictions.vue`, `v-for="t in
+    SUBSCRIPTION_TIERS"` em `subscription/index.vue`) — mesmo padrão já
+    visto nas prioridades anteriores.
+  - Script de paridade de chaves confirmou as 6 línguas com exatamente o
+    mesmo conjunto de 606 chaves no total (as 409 anteriores + ~197 novas
+    entre `documentScan`, `paywall`, `upsellBanner`, `subscriptionReturn`,
+    `subscription`, `predictions`, `statsInsights` e `stats`). Tradução das
+    5 línguas além de PT-PT/EN feita nesta sessão, com a mesma ressalva de
+    sempre: primeira versão, não revista por um falante nativo.
+  Ainda por confirmar antes de fechar a prioridade 6 por completo: uma
+  varredura final a componentes de gráficos (`components/charts/`) e aos
+  endpoints de servidor fora de scan/investment-tips/stats
+  (`transactions/index.ts`, `[id].ts`, `export.ts`), e validação no browser
+  real (só validado por inspeção de código e paridade de chaves nesta
+  sessão, sem dev server/curl desta vez).
+- 2026-09-22: Varredura final da prioridade 6, delegada a um subagente de
+  investigação (só leitura) para encontrar tudo o que ainda faltava depois
+  do lote anterior — confirmou 15 ficheiros com texto PT-PT hardcoded,
+  todos corrigidos nesta entrada:
+  - **`components/charts/`** (8 ficheiros): `ChartEmpty.vue` ("Sem dados
+    para exibir"), `CategoryDonut.vue` ("Total"), `BalanceChart.vue`/
+    `BarChart.vue` (labels de dataset "Receitas"/"Despesas", mostrados
+    diretamente nas tooltips do Chart.js via `ctx.dataset.label`),
+    `AreaChart.vue` ("Saldo Acumulado" + prefixo "Saldo:" da tooltip),
+    `ForecastChart.vue` (4 labels "Receitas/Despesas (real/prev.)"),
+    `DistributionHistogram.vue` (título "Entre X" + pluralização manual
+    "transação/transações" nas tooltips), `CategoryBoxplot.vue` (labels
+    "Mediana"/"Q1–Q3"/"Min–Max" nas tooltips). Novo namespace `charts` (18
+    chaves) — nota técnica: os labels de dataset são lidos com `t()` dentro
+    de `computed()` (reativos ao idioma), mas os textos dentro de callbacks
+    de tooltip do Chart.js (`opts` também `computed()`, mas a função
+    callback só corre no render da tooltip) resolvem o idioma atual em
+    cada chamada, por já usarem o `t` vindo de `useI18n()` — não precisam
+    de estar dentro do corpo do `computed` para reagirem à mudança de
+    idioma.
+  - **`components/ui/KpiCard.vue`** ("vs mês anterior" → `common.vsLastMonth`)
+    e **`components/ui/ToastContainer.vue`** (`aria-label="Fechar
+    notificação"` → `common.closeNotification`).
+  - **Texto de servidor fora de scan/investment-tips/stats**:
+    `server/api/transactions/index.ts` (limite mensal de transações),
+    `server/api/categories/index.ts` (nome/tipo obrigatórios, limite de
+    categorias, categoria já existe), `server/api/investor-profile/index.ts`
+    (4 mensagens de validação de enum), `server/api/investments/index.ts` +
+    `[id].ts` (limite de investimentos, "não encontrado") — todos migrados
+    para `serverT()`. **`server/utils/investments.ts`** teve de ser
+    refatorado mais a fundo: as suas funções de validação (`parseAmount`/
+    `parseDate`/`parseAssetClass`/`parseName`, chamadas por
+    `parseInvestmentCreate`/`parseInvestmentUpdate`) construíam mensagens
+    como `` `${field}: valor inválido` `` com o nome do campo em PT-PT
+    embutido — passaram a receber `locale` como primeiro parâmetro e a
+    montar a mensagem via `serverT()`, com os próprios nomes de campo
+    ("Valor inicial"/"Reforço"/"Situação") também traduzidos
+    (`investments.fieldInitialAmount` etc.), interpolados na chave de erro
+    (`investments.errorInvalidValue` = `"{field}: valor inválido"`).
+  - Confirmado por inspeção de código que `server/utils/documentScan.ts` e
+    os endpoints de `groups`/`categories/[id]`/`transactions/[id]`/
+    `transactions/export.ts` não tinham nenhum texto PT-PT hardcoded (só
+    mensagens já em inglês, fora do âmbito desta fase).
+  - Script de paridade de chaves confirmou as 6 línguas com exatamente o
+    mesmo conjunto de 626 chaves de UI (as 606 anteriores + 20 novas em
+    `common`/`charts`) e 30 chaves de servidor por idioma em
+    `server/utils/i18n.ts` (as 10 de `scan.*` + 20 novas entre
+    `transactions`/`categories`/`investorProfile`/`investments`).
+  - **Validado com o dev server local** (`nuxt typecheck` sem novos erros
+    além de um padrão pré-existente e já conhecido de falsos positivos do
+    `vue-tsc` — `navigateTo` "não existe" em páginas que também usam
+    `useI18n()`, presente desde as prioridades anteriores desta fase, sem
+    impacto em runtime): conta de teste registada e apagada no fim,
+    `/stats` confirmado a devolver `200` nas 6 línguas sem nenhuma chave em
+    bruto no HTML, título traduzido corretamente em cada uma
+    ("Statistics"/"Estatísticas"/"Statistiques"/"Statistiken"/
+    "Statistiche"/"Estadísticas"); botão "Digitalizar documento" do
+    dashboard confirmado em EN ("Scan document") e PT-PT ("Digitalizar
+    documento") — o item concreto apontado pelo utilizador no pedido
+    original; mensagens de erro do servidor testadas com o cookie
+    `financeflow_locale` definido diretamente (a primeira tentativa via só
+    `Accept-Language` não localizou nada, como esperado — `getServerLocale`
+    só lê o cookie por desenho, nunca o header, para ficar sempre
+    consistente com o idioma que o `plugins/locale.ts` já persistiu no
+    client) — `POST /api/categories` sem nome/tipo devolveu a mensagem
+    certa em pt-PT/fr/de, `POST /api/investor-profile` com `riskTolerance`
+    inválido em es.
+  - **Não validado**: o disclaimer de investimento em runtime real (exige
+    tier Premium + perfil de investidor + uma chamada real à Anthropic —
+    não repetido nesta sessão para não gastar API real só para confirmar
+    texto já verificado por inspeção direta do código); o estado
+    bloqueado/paywall de páginas geridas só no client (mesma limitação já
+    registada nas entradas anteriores); confirmação visual num browser
+    real continua por fazer.
+  Com esta entrada, a prioridade 6 ("resto") e a tarefa 2 da especificação
+  ficam **completas na medida do que é detetável por auditoria de código**
+  — não fica nenhuma string PT-PT hardcoded conhecida por traduzir. Falta
+  só: revisão de qualidade da tradução por um falante nativo (ressalva
+  repetida em todas as entradas desta fase), revisão jurídica do
+  disclaimer de investimento, e confirmação visual num browser real em
+  todas as páginas.

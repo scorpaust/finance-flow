@@ -19,7 +19,7 @@
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 flex items-center justify-center -mt-6 shadow-glow border-4 border-surface-900">
           <Plus class="w-5 h-5 text-white" />
         </div>
-        <span class="text-[10px] font-medium text-white/40">Novo</span>
+        <span class="text-[10px] font-medium text-white/40">{{ t('nav.new') }}</span>
       </button>
     </div>
   </nav>
@@ -29,12 +29,13 @@
 import { Home, ArrowLeftRight, Layers, Settings, Plus } from 'lucide-vue-next'
 defineEmits(['add'])
 const route = useRoute()
-const navItems = [
-  { path: '/',             label: 'Início',     icon: Home },
-  { path: '/transactions', label: 'Transações', icon: ArrowLeftRight },
-  { path: '/groups',       label: 'Grupos',     icon: Layers },
-  { path: '/settings',     label: 'Config',     icon: Settings },
-]
+const { t } = useI18n()
+const navItems = computed(() => [
+  { path: '/',             label: t('nav.homeMobile'),   icon: Home },
+  { path: '/transactions', label: t('nav.transactions'), icon: ArrowLeftRight },
+  { path: '/groups',       label: t('nav.groups'),       icon: Layers },
+  { path: '/settings',     label: t('nav.settingsMobile'), icon: Settings },
+])
 function isActive(path: string) {
   return path === '/' ? route.path === '/' : route.path.startsWith(path)
 }

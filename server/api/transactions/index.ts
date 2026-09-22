@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
     const category = await Category.findOne({ _id: categoryId, userId }).lean()
     if (!category) throw createError({ statusCode: 400, message: 'Invalid category' })
 
-    const resolved = await resolveTransactionAmount(parseFloat(amount), currency, date)
+    const resolved = await resolveTransactionAmount(locale, parseFloat(amount), currency, date)
 
     const tx = await Transaction.create({
       userId,

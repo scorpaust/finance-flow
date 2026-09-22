@@ -4,9 +4,13 @@
 
 ## Estado
 
-Em progresso — branch `feature/fase-7-internacionalizacao` criado a partir de
-`main` em 2026-09-22. Ver histórico para o detalhe do que já está
-implementado e do que falta.
+Concluída — branch `feature/fase-7-internacionalizacao` criado a partir de
+`main` em 2026-09-22, mergeado em `main` e removido na mesma sessão. Ver
+histórico para o detalhe do que foi implementado. Pendências que não
+bloquearam o merge (por decisão explícita, não por esquecimento): revisão de
+qualidade da tradução por um falante nativo, revisão jurídica do disclaimer
+de investimento traduzido, e confirmação visual num browser real em todas as
+páginas e nos 6 idiomas — ver últimas entradas do histórico.
 
 ## Objetivos
 
@@ -1380,3 +1384,60 @@ ativo no momento do pedido, mais do que as 6 línguas confirmadas.
   repetida em todas as entradas desta fase), revisão jurídica do
   disclaimer de investimento, e confirmação visual num browser real em
   todas as páginas.
+- 2026-09-22: O utilizador reportou "português não tem MB WAY nem
+  Multibanco" ao testar o checkout localmente. Investigado — **não é bug**:
+  o ficheiro `GeoLite2-Country.mmdb` está corretamente configurado
+  (`GEOLITE2_DB_PATH` aponta para um ficheiro real, confirmado a existir),
+  mas em `localhost` o IP do pedido é sempre loopback/privado, que o
+  GeoLite2 não consegue mapear a nenhum país — `lookupCountry()` devolve
+  `null`, e por desenho ("país desconhecido nunca é assumido como
+  Portugal") isso esconde o separador MB WAY/Multibanco, exatamente como
+  para qualquer país não reconhecido. Confirmado com um teste direto ao
+  endpoint `GET /api/subscription/payment-methods`: sem cabeçalho, devolve
+  `{ country: null, prepaidMethods: [] }`; com
+  `X-Forwarded-For: 213.13.4.1` (gama portuguesa), devolve
+  `{ country: "PT", prepaidMethods: ["mbway", "multibanco"] }` —
+  confirma que a base de dados e a lógica funcionam. Em produção, atrás de
+  um proxy real, o `x-forwarded-for` traz o IP real do utilizador e isto
+  resolve-se sozinho. Utilizador confirmou que não quer nenhuma alteração
+  de código (rejeitou a opção de um override de dev tipo
+  `DEV_FORCE_COUNTRY=PT`) — sem alterações nesta entrada.
+- 2026-09-22: Antes de fechar a fase, uma segunda varredura ao texto de
+  servidor (pedida no âmbito de preparar a documentação para o merge)
+  encontrou mais 8 mensagens de erro PT-PT hardcoded fora do que a
+  varredura anterior tinha coberto — todas em fluxos que um utilizador
+  real pode mesmo atingir (não erros de configuração interna):
+  `server/api/subscription/easypay/create-subscription.post.ts` (plano/
+  método inválido, utilizador não encontrado),
+  `server/api/subscription/easypay/create-prepaid.post.ts` (plano/método/
+  período inválido, método não disponível no país — esta mensagem tem
+  interpolação condicional do país, ex. `(PT)`, tratada com um
+  `countrySuffix` já formatado pelo chamador), `.../cancel.post.ts` ("não
+  tens subscrição com auto-renovação ativa"), e
+  `server/utils/transactionCurrency.ts` (taxa de câmbio indisponível —
+  esta teve de passar a receber `locale` como novo primeiro parâmetro,
+  com os dois chamadores em `transactions/index.ts` e `[id].ts`
+  atualizados). Novos namespaces `subscriptionApi` (7 chaves) e
+  `transactionCurrency` (1 chave) em `server/utils/i18n.ts`, traduzidos
+  para as 6 línguas — confirmado por script que todas têm exatamente 38
+  chaves de servidor (as 30 anteriores + 8 novas).
+  Deixadas deliberadamente por traduzir (decisão, não esquecimento): 5
+  mensagens de erro de configuração interna/falha a montante
+  (`ANTHROPIC_API_KEY em falta`, `EASYPAY_ACCOUNT_ID/API_KEY em falta`,
+  `TWELVE_DATA_API_KEY em falta`, resposta da Anthropic sem texto/JSON
+  inválido) — só podem acontecer com o servidor mal configurado ou uma
+  API externa a falhar, nunca num fluxo normal de utilizador numa
+  implantação correta; tratadas como diagnóstico de operação, não como
+  texto de UI.
+  `npm run type-check` corrido depois destas alterações sem nenhum erro
+  novo (só o padrão pré-existente e já conhecido de falsos positivos do
+  `vue-tsc` em `navigateTo`, presente desde prioridades anteriores desta
+  fase).
+  Com esta entrada, considera-se fechada a auditoria de string
+  hardcoded do lado do servidor — os critérios de aceitação da fase
+  ficam cumpridos na medida do que é verificável nesta sessão (ver
+  ressalvas nas entradas anteriores sobre revisão por falante nativo,
+  revisão jurídica do disclaimer, e confirmação visual em browser real,
+  que continuam por fazer e não bloqueiam o merge). Branch mergeada em
+  `main` (merge commit) e removida nesta sessão. Estado passa a
+  "Concluída".

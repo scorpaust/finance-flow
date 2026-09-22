@@ -1,4 +1,5 @@
 import { getExchangeRateToEur } from './exchangeRates'
+import { serverT, type ServerLocale } from './i18n'
 
 export interface ResolvedTransactionAmount {
   amount:         number       // sempre em EUR — usado por todas as agregações existentes
@@ -14,6 +15,7 @@ export interface ResolvedTransactionAmount {
 // não puder ser obtida — o utilizador escolhe tentar de novo mais tarde ou
 // preencher manualmente em €.
 export async function resolveTransactionAmount(
+  locale: ServerLocale,
   rawAmount: number,
   currency: string | undefined,
   date: string | Date
@@ -29,7 +31,7 @@ export async function resolveTransactionAmount(
   if (rate === null) {
     throw createError({
       statusCode: 422,
-      message: `Não foi possível obter a taxa de câmbio de ${code} para EUR — tenta novamente ou indica o valor em €`,
+      message: serverT(locale, 'transactionCurrency.exchangeRateUnavailable', { currency: code }),
       data: { error: 'exchange_rate_unavailable', currency: code },
     })
   }

@@ -1,10 +1,12 @@
 import { Category, Transaction } from '../../models'
 import { requireAuth, sanitizeId } from '../../utils/auth'
 import { resolveTransactionAmount } from '../../utils/transactionCurrency'
+import { getServerLocale } from '../../utils/i18n'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   const method = getMethod(event)
+  const locale = getServerLocale(event)
   const id = sanitizeId(getRouterParam(event, 'id') || '')
 
   const tx = await Transaction.findOne({ _id: id, userId })
@@ -21,6 +23,7 @@ export default defineEventHandler(async (event) => {
     // transação já criada em EUR para a moeda certa do documento).
     if (amount !== undefined || currency !== undefined) {
       const resolved = await resolveTransactionAmount(
+        locale,
         amount !== undefined ? parseFloat(amount) : (tx.originalAmount ?? tx.amount),
         currency !== undefined ? currency : tx.currency,
         date !== undefined ? date : tx.date

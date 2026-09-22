@@ -128,7 +128,19 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
       constroem mensagens com o nome do campo interpolado, também traduzido);
       confirmado por inspeção que `server/utils/documentScan.ts` e os
       endpoints de `groups`/`categories/[id]`/`transactions/[id]`/
-      `transactions/export.ts` não tinham texto PT-PT hardcoded
+      `transactions/export.ts` não tinham texto PT-PT hardcoded; segunda
+      varredura antes do merge encontrou mais 8 mensagens fora do já
+      coberto — `server/api/subscription/easypay/create-subscription.post.ts`,
+      `create-prepaid.post.ts`, `cancel.post.ts` e
+      `server/utils/transactionCurrency.ts` (esta última passou a receber
+      `locale` como parâmetro, com os dois chamadores em
+      `transactions/index.ts`/`[id].ts` atualizados) — novos namespaces
+      `subscriptionApi` (7 chaves) e `transactionCurrency` (1 chave).
+      Deixadas por traduzir de propósito: 5 mensagens de configuração
+      interna/falha a montante (`ANTHROPIC_API_KEY`/`EASYPAY_ACCOUNT_ID`/
+      `TWELVE_DATA_API_KEY` em falta, resposta da Anthropic sem texto/JSON
+      inválido) — só ocorrem com o servidor mal configurado, nunca num
+      fluxo normal de utilizador
 - [x] Datas, moeda e números formatados com `Intl`/`date-fns` já
       localizados por idioma ativo — `useFormatters` e o novo
       `useLocaleFormat` (mapeia o locale ativo para o locale do date-fns e
@@ -242,22 +254,34 @@ mundo vê só as opções de auto-renovação (cartão; Débito Direto onde apli
 
 ## Critérios de aceitação
 
-- [ ] App abre automaticamente no idioma do browser quando é um dos 6
-      suportados, e em EN quando não é
-- [ ] Escolha manual de idioma nas Configurações persiste e nunca é
-      substituída por deteção automática depois de escolhida
-- [ ] Nenhuma string visível fica por traduzir em nenhuma das 6 línguas
-      (auditoria completa, não amostragem)
-- [ ] Checkout de subscrição só mostra MB WAY/Multibanco para utilizadores
+- [x] App abre automaticamente no idioma do browser quando é um dos 6
+      suportados, e em EN quando não é — `plugins/locale.ts`, testado com
+      `Accept-Language` nas 6 línguas
+- [x] Escolha manual de idioma nas Configurações persiste e nunca é
+      substituída por deteção automática depois de escolhida — cookie
+      `financeflow_locale`, deteção automática desligada
+      (`detectBrowserLanguage: false`) para evitar o módulo repor a escolha
+- [x] Nenhuma string visível fica por traduzir em nenhuma das 6 línguas
+      (auditoria completa, não amostragem) — auditado por varredura
+      automática + subagente de investigação (duas rondas); ressalva:
+      qualidade da tradução em si não foi revista por um falante nativo
+- [x] Checkout de subscrição só mostra MB WAY/Multibanco para utilizadores
       com país detetado = Portugal; todos os outros só veem a opção
-      recorrente
-- [ ] `POST /api/subscription/easypay/create-prepaid` rejeita (403/400) um
+      recorrente — verificado via `GET /api/subscription/payment-methods`
+      (sem IP conhecido → `[]`; com IP português → `["mbway",
+      "multibanco"]`)
+- [x] `POST /api/subscription/easypay/create-prepaid` rejeita (403/400) um
       pedido de `paymentMethod` não disponível no país do utilizador, mesmo
-      que a UI tenha sido adulterada
-- [ ] Datas/moeda mostradas corretamente formatadas para cada um dos 6
-      idiomas
-- [ ] Um recibo/fatura numa moeda diferente de € é tratado segundo a decisão
+      que a UI tenha sido adulterada — verificado diretamente: pedido de
+      `mbway` sem geolocalização PT devolve `403`
+- [x] Datas/moeda mostradas corretamente formatadas para cada um dos 6
+      idiomas — `useLocaleFormat`, verificado em `/stats` nas 6 línguas
+- [~] Um recibo/fatura numa moeda diferente de € é tratado segundo a decisão
       confirmada (convertido ou guardado com a moeda) — nunca gravado como €
-      sem aviso
-- [ ] Um recibo com data ambígua (ex. `03/04`) não é gravado com o mês
-      trocado em silêncio: fica com a data realçada como baixa confiança
+      sem aviso — implementado (`transactionCurrency.ts`), mas **não
+      confirmado em sandbox real** se o plano gratuito da Twelve Data cobre
+      pares forex (ver tarefa 6 acima)
+- [~] Um recibo com data ambígua (ex. `03/04`) não é gravado com o mês
+      trocado em silêncio: fica com a data realçada como baixa confiança —
+      implementado no prompt (`server/utils/anthropic.ts`), mas **não
+      testado com documentos reais ambíguos**

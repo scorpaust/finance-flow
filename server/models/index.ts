@@ -98,6 +98,11 @@ export interface IUser extends Document {
   twoFactorEnabled: boolean
   twoFactorSecret?: string
   twoFactorBackupCodes?: string[]
+  // Aceitação explícita dos termos e da política de privacidade no registo
+  // (prova de quando e de que versão — ver utils/legalContent.ts). Contas
+  // anteriores a esta regra não têm estes campos.
+  termsAcceptedAt?: Date
+  termsVersion?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -115,6 +120,8 @@ const UserSchema = new Schema<IUser>(
     twoFactorEnabled:    { type: Boolean, default: false },
     twoFactorSecret:     { type: String, select: false },
     twoFactorBackupCodes: { type: [String], select: false, default: undefined },
+    termsAcceptedAt:      { type: Date },
+    termsVersion:         { type: String },
   },
   { timestamps: true }
 )

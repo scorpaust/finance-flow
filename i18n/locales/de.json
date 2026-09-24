@@ -67,7 +67,8 @@
     "twoFactorCodePlaceholder": "6-stelliger Code",
     "twoFactorHint": "Kein Zugriff mehr auf dein Gerät? Du kannst auch einen deiner Wiederherstellungscodes verwenden.",
     "twoFactorSubmit": "Bestätigen",
-    "twoFactorBackButton": "Zurück zur Anmeldung"
+    "twoFactorBackButton": "Zurück zur Anmeldung",
+    "acceptTerms": "Ich habe die {terms} und die {privacy} gelesen und akzeptiere sie."
   },
   "dashboard": {
     "greetingMorning": "Guten Morgen",

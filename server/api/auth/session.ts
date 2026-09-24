@@ -7,6 +7,7 @@ import { issueSession, issuePending2fa, clearAppSession, readSession } from '../
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { hashPassword, verifyPassword } from '../../utils/password'
 import { logEvent, hashIdentifier } from '../../utils/logger'
+import { LEGAL_UPDATED } from '../../../utils/legalContent'
 
 // Fase 8, ponto 1 — shape validado por Zod; as mensagens de negócio (email já
 // registado, password errada) continuam a vir de `serverT`, não do Zod, para
@@ -21,10 +22,16 @@ const AuthBodySchema = z
       .refine((v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'auth.emailInvalid'),
     password: z.string().min(8, 'auth.passwordTooShort'),
     name: z.string().trim().optional().default(''),
+    acceptTerms: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.action === 'register' && !data.name) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'auth.nameRequired', path: ['name'] })
+    }
+    // Aceitação explícita (checkbox desmarcada por omissão no client) — exigida
+    // também no servidor: não pode depender só de a UI a mostrar.
+    if (data.action === 'register' && data.acceptTerms !== true) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'auth.termsRequired', path: ['acceptTerms'] })
     }
   })
 
@@ -171,6 +178,8 @@ export default defineEventHandler(async (event) => {
       user.passwordHash = hashPassword(password)
       user.provider = 'password'
       user.emailVerified = user.emailVerified || new Date()
+      user.termsAcceptedAt = new Date()
+      user.termsVersion = LEGAL_UPDATED
       await user.save()
       await seedDefaultBudget(user._id)
     } else {

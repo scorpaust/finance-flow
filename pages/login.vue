@@ -97,6 +97,25 @@
             </div>
           </div>
 
+          <!-- Aceitação explícita: desmarcada por omissão e obrigatória (validada
+               também no servidor). Só no registo. -->
+          <label v-if="mode === 'register'" class="flex items-start gap-3 cursor-pointer">
+            <input
+              v-model="form.acceptTerms"
+              type="checkbox"
+              class="mt-0.5 w-4 h-4 shrink-0 accent-brand-500"
+              required
+            />
+            <i18n-t keypath="auth.acceptTerms" tag="span" class="text-white/60 text-xs leading-relaxed">
+              <template #terms>
+                <NuxtLink to="/terms" target="_blank" class="underline hover:text-white">{{ t('legal.terms') }}</NuxtLink>
+              </template>
+              <template #privacy>
+                <NuxtLink to="/privacy" target="_blank" class="underline hover:text-white">{{ t('legal.privacy') }}</NuxtLink>
+              </template>
+            </i18n-t>
+          </label>
+
           <div
             v-if="errorMessage"
             class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
@@ -189,6 +208,7 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
+  acceptTerms: false,
 })
 
 // Quem já tem sessão válida não deve ficar parado no ecrã de login (acontecia
@@ -230,6 +250,7 @@ async function submit() {
         name: form.name,
         email: form.email,
         password: form.password,
+        acceptTerms: form.acceptTerms,
       })
       toast.success(t('auth.toastAccountCreated'))
       await navigateTo('/')

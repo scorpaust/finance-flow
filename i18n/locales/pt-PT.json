@@ -67,7 +67,8 @@
     "twoFactorCodePlaceholder": "Código de 6 dígitos",
     "twoFactorHint": "Perdeste o acesso ao dispositivo? Também podes usar um dos teus códigos de recuperação.",
     "twoFactorSubmit": "Verificar",
-    "twoFactorBackButton": "Voltar ao início de sessão"
+    "twoFactorBackButton": "Voltar ao início de sessão",
+    "acceptTerms": "Li e aceito os {terms} e a {privacy}."
   },
   "dashboard": {
     "greetingMorning": "Bom dia",

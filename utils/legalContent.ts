@@ -5,317 +5,329 @@
 // jurista antes de publicar, e os marcadores [ENTRE PARÊNTESIS RETOS] têm de
 // ser preenchidos com os dados reais do responsável pelo tratamento.
 // Enquanto LEGAL_IS_DRAFT for true, as páginas mostram um aviso visível.
-export const LEGAL_IS_DRAFT = true
-export const LEGAL_UPDATED = '2026-09-24'
+export const LEGAL_IS_DRAFT = true;
+export const LEGAL_UPDATED = "2026-09-24";
 
-export type LegalDocKey = 'privacy' | 'terms'
+export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
-  h: string
-  p: string[]
+  h: string;
+  p: string[];
 }
 export interface LegalDoc {
-  title: string
-  sections: LegalSection[]
+  title: string;
+  sections: LegalSection[];
 }
 
 // Só PT-PT e EN estão escritos; os outros idiomas mostram EN (nota na página).
-type Content = Record<LegalDocKey, { 'pt-PT': LegalDoc; en: LegalDoc }>
+type Content = Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }>;
 
 export const LEGAL_CONTENT: Content = {
   privacy: {
-    'pt-PT': {
-      title: 'Política de Privacidade',
+    "pt-PT": {
+      title: "Política de Privacidade",
       sections: [
         {
-          h: '1. Quem é o responsável pelo tratamento',
+          h: "1. Quem é o responsável pelo tratamento",
           p: [
-            'O responsável pelo tratamento dos teus dados é [NOME OU DENOMINAÇÃO DO RESPONSÁVEL], [MORADA/NIF]. Para qualquer questão sobre privacidade: [EMAIL DE CONTACTO].',
+            "O responsável pelo tratamento dos teus dados é Dinis Miguel da Silva Costa, NIF: 176280340. Para qualquer questão sobre privacidade: dinismiguelcosta@gmail.com.",
           ],
         },
         {
-          h: '2. Que dados tratamos',
+          h: "2. Que dados tratamos",
           p: [
-            'Conta: nome, email e um hash da tua password (nunca guardamos a password em texto). Se ativares a autenticação de dois fatores, guardamos o segredo do autenticador encriptado e apenas hashes dos códigos de recuperação.',
-            'Dados financeiros que tu introduzes: transações, categorias, grupos e orçamentos, e o registo de investimentos. Se preencheres o questionário de perfil de investidor, guardamos as respostas.',
-            'Subscrição: o plano, o estado e as referências do pagamento. Os dados de cartão, IBAN ou telemóvel MB WAY são recolhidos diretamente pela EasyPay e nunca passam pelos nossos servidores.',
-            'Preferências: idioma da interface e, no Android, se ativaste o bloqueio por biometria (guardado apenas no teu telemóvel; a app nunca recebe a tua impressão digital ou rosto).',
-            'Dados técnicos: o teu endereço IP é usado para deduzir o país (com uma base de dados local, sem o enviar a terceiros) e para limitar tentativas abusivas; mantemos registos de segurança (por exemplo, tentativas de início de sessão falhadas) sem passwords, códigos nem o conteúdo dos teus dados.',
+            "Conta: nome, email e um hash da tua password (nunca guardamos a password em texto). Se ativares a autenticação de dois fatores, guardamos o segredo do autenticador encriptado e apenas hashes dos códigos de recuperação.",
+            "Dados financeiros que tu introduzes: transações, categorias, grupos e orçamentos, e o registo de investimentos. Se preencheres o questionário de perfil de investidor, guardamos as respostas.",
+            "Subscrição: o plano, o estado e as referências do pagamento. Os dados de cartão, IBAN ou telemóvel MB WAY são recolhidos diretamente pela EasyPay e nunca passam pelos nossos servidores.",
+            "Preferências: idioma da interface e, no Android, se ativaste o bloqueio por biometria (guardado apenas no teu telemóvel; a app nunca recebe a tua impressão digital ou rosto).",
+            "Dados técnicos: o teu endereço IP é usado para deduzir o país (com uma base de dados local, sem o enviar a terceiros) e para limitar tentativas abusivas; mantemos registos de segurança (por exemplo, tentativas de início de sessão falhadas) sem passwords, códigos nem o conteúdo dos teus dados.",
           ],
         },
         {
-          h: '3. Para que usamos os dados e com que fundamento',
+          h: "3. Para que usamos os dados e com que fundamento",
           p: [
-            'Prestar o serviço que pediste (gerir finanças, subscrições, previsões e estatísticas): execução do contrato.',
-            'Segurança da conta e prevenção de abuso (limites de tentativas, registos de segurança, 2FA): interesse legítimo.',
-            'Cumprir obrigações legais aplicáveis, por exemplo fiscais e de faturação: obrigação legal.',
-            'Funcionalidades de inteligência artificial: só enviam dados quando as usas (ver ponto 5).',
+            "Prestar o serviço que pediste (gerir finanças, subscrições, previsões e estatísticas): execução do contrato.",
+            "Segurança da conta e prevenção de abuso (limites de tentativas, registos de segurança, 2FA): interesse legítimo.",
+            "Cumprir obrigações legais aplicáveis, por exemplo fiscais e de faturação: obrigação legal.",
+            "Funcionalidades de inteligência artificial: só enviam dados quando as usas (ver ponto 5).",
           ],
         },
         {
-          h: '4. Com quem partilhamos os dados (subcontratantes)',
+          h: "4. Com quem partilhamos os dados (subcontratantes)",
           p: [
-            'MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.',
-            'EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).',
-            'Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.',
-            'Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.',
-            '[SENTRY — só se estiver ativo] monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.',
-            'Alguns destes fornecedores podem tratar dados fora do Espaço Económico Europeu; nesses casos aplicam-se as salvaguardas previstas no RGPD [CONFIRMAR COM CADA FORNECEDOR: cláusulas contratuais-tipo / decisão de adequação].',
+            "MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.",
+            "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
+            "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
+            "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
+            "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
+            "Alguns destes fornecedores podem tratar dados fora do Espaço Económico Europeu; nesses casos aplicam-se as salvaguardas previstas no RGPD [CONFIRMAR COM CADA FORNECEDOR: cláusulas contratuais-tipo / decisão de adequação].",
           ],
         },
         {
-          h: '5. Inteligência artificial — o que é enviado',
+          h: "5. Inteligência artificial — o que é enviado",
           p: [
-            'Interpretação de estatísticas (planos Pro e Premium): enviamos valores agregados (totais por mês e por categoria) e nomes de categorias — nunca as descrições das tuas transações.',
-            'Dicas de investimento (plano Premium): enviamos as respostas do teu perfil de investidor, um resumo agregado das tuas finanças e o contexto de mercado do dia. O resumo agregado do teu portfolio só é incluído se essa opção estiver ativa no serviço [CONFIRMAR ESTADO].',
-            'Digitalização de documentos (planos Pro e Premium): a imagem ou PDF que carregas é enviado à Anthropic para extrair os campos, é processado em memória e não é guardado por nós. Evita carregar documentos com dados pessoais que não sejam necessários (por exemplo, NIF ou morada num recibo de vencimento).',
-            'O conteúdo gerado por IA é meramente informativo e pode conter erros; não constitui aconselhamento financeiro.',
+            "Interpretação de estatísticas (planos Pro e Premium): enviamos valores agregados (totais por mês e por categoria) e nomes de categorias — nunca as descrições das tuas transações.",
+            "Dicas de investimento (plano Premium): enviamos as respostas do teu perfil de investidor, um resumo agregado das tuas finanças e o contexto de mercado do dia. Neste momento não enviamos nenhum dado do teu registo de investimentos (portfolio); se isso vier a mudar, esta política é atualizada antes.",
+            "Digitalização de documentos (planos Pro e Premium): a imagem ou PDF que carregas é enviado à Anthropic para extrair os campos, é processado em memória e não é guardado por nós. Evita carregar documentos com dados pessoais que não sejam necessários (por exemplo, NIF ou morada num recibo de vencimento).",
+            "O conteúdo gerado por IA é meramente informativo e pode conter erros; não constitui aconselhamento financeiro.",
           ],
         },
         {
-          h: '6. Durante quanto tempo guardamos os dados',
+          h: "6. Durante quanto tempo guardamos os dados",
           p: [
-            'Enquanto a tua conta existir. Quando eliminas a conta (Definições → Privacidade e dados), apagamos os teus dados da base de dados. Cópias de segurança podem manter os dados até [PRAZO DE RETENÇÃO DOS BACKUPS] antes de serem substituídas.',
-            'Podemos conservar apenas o estritamente necessário para cumprir obrigações legais (por exemplo, registos de faturação) durante o prazo que a lei exigir.',
+            "Enquanto a tua conta existir. Quando eliminas a conta (Definições → Privacidade e dados), apagamos os teus dados da base de dados. Cópias de segurança podem manter os dados até 3 anos antes de serem substituídas.",
+            "Podemos conservar apenas o estritamente necessário para cumprir obrigações legais (por exemplo, registos de faturação) durante o prazo que a lei exigir.",
           ],
         },
         {
-          h: '7. Os teus direitos',
+          h: "7. Os teus direitos",
           p: [
-            'Acesso e portabilidade: em Definições → Privacidade e dados podes descarregar todos os teus dados em JSON.',
-            'Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes.',
-            'Retificação: podes corrigir os teus dados diretamente na app. Tens ainda direito à limitação e à oposição ao tratamento; contacta-nos em [EMAIL DE CONTACTO].',
-            'Podes apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt.',
+            "Acesso e portabilidade: em Definições → Privacidade e dados podes descarregar todos os teus dados em JSON.",
+            "Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes.",
+            "Retificação: podes corrigir os teus dados diretamente na app. Tens ainda direito à limitação e à oposição ao tratamento; contacta-nos em dinismiguelcosta@gmail.com.",
+            "Podes apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt.",
           ],
         },
         {
-          h: '8. Cookies e armazenamento local',
+          h: "8. Cookies e armazenamento local",
           p: [
             'Usamos apenas cookies estritamente necessários: "session" (mantém a tua sessão iniciada, até 30 dias), "pending_2fa" (10 minutos, só durante a verificação de dois fatores) e "financeflow_locale" (o teu idioma). Guardamos ainda a tua preferência de bloqueio biométrico no armazenamento local do telemóvel. Não usamos cookies de publicidade nem de análise de comportamento.',
           ],
         },
         {
-          h: '9. Segurança',
+          h: "9. Segurança",
           p: [
-            'Passwords guardadas com hash (scrypt), sessões assinadas, limitação de tentativas, autenticação de dois fatores opcional, segredos de 2FA encriptados em repouso e ligações cifradas (HTTPS). Nenhum sistema é infalível; se ocorrer uma violação de dados que te afete, notificamos-te e à CNPD nos termos da lei.',
+            "Passwords guardadas com hash (scrypt), sessões assinadas, limitação de tentativas, autenticação de dois fatores opcional, segredos de 2FA encriptados em repouso e ligações cifradas (HTTPS). Nenhum sistema é infalível; se ocorrer uma violação de dados que te afete, notificamos-te e à CNPD nos termos da lei.",
           ],
         },
         {
-          h: '10. Alterações',
-          p: ['Se alterarmos esta política de forma relevante, avisamos-te na app. Última atualização: ' + LEGAL_UPDATED + '.'],
+          h: "10. Alterações",
+          p: [
+            "Se alterarmos esta política de forma relevante, avisamos-te na app. Última atualização: " +
+              LEGAL_UPDATED +
+              ".",
+          ],
         },
       ],
     },
     en: {
-      title: 'Privacy Policy',
+      title: "Privacy Policy",
       sections: [
         {
-          h: '1. Who is responsible for your data',
+          h: "1. Who is responsible for your data",
           p: [
-            'The data controller is [NAME OF CONTROLLER], [ADDRESS / TAX ID]. For any privacy question: [CONTACT EMAIL].',
+            "The data controller is Dinis Miguel da Silva Costa, tax ID (NIF): 176280340. For any privacy question: dinismiguelcosta@gmail.com.",
           ],
         },
         {
-          h: '2. What data we process',
+          h: "2. What data we process",
           p: [
-            'Account: name, email and a hash of your password (we never store the password itself). If you enable two-factor authentication we store the authenticator secret encrypted and only hashes of the recovery codes.',
-            'Financial data you enter: transactions, categories, groups and budgets, and your investment records. If you complete the investor-profile questionnaire, we store your answers.',
-            'Subscription: plan, status and payment references. Card, IBAN or MB WAY phone details are collected directly by EasyPay and never pass through our servers.',
-            'Preferences: interface language and, on Android, whether you enabled biometric lock (stored only on your phone; the app never receives your fingerprint or face).',
-            'Technical data: your IP address is used to infer your country (through a local database, without sending it to third parties) and to limit abusive attempts; we keep security logs (for example failed sign-in attempts) without passwords, codes or the content of your data.',
+            "Account: name, email and a hash of your password (we never store the password itself). If you enable two-factor authentication we store the authenticator secret encrypted and only hashes of the recovery codes.",
+            "Financial data you enter: transactions, categories, groups and budgets, and your investment records. If you complete the investor-profile questionnaire, we store your answers.",
+            "Subscription: plan, status and payment references. Card, IBAN or MB WAY phone details are collected directly by EasyPay and never pass through our servers.",
+            "Preferences: interface language and, on Android, whether you enabled biometric lock (stored only on your phone; the app never receives your fingerprint or face).",
+            "Technical data: your IP address is used to infer your country (through a local database, without sending it to third parties) and to limit abusive attempts; we keep security logs (for example failed sign-in attempts) without passwords, codes or the content of your data.",
           ],
         },
         {
-          h: '3. Why we use the data and on what legal basis',
+          h: "3. Why we use the data and on what legal basis",
           p: [
-            'To provide the service you asked for (managing finances, subscriptions, forecasts and statistics): performance of a contract.',
-            'Account security and abuse prevention (attempt limits, security logs, 2FA): legitimate interest.',
-            'Complying with applicable legal obligations, such as tax and invoicing: legal obligation.',
-            'Artificial-intelligence features only send data when you use them (see section 5).',
+            "To provide the service you asked for (managing finances, subscriptions, forecasts and statistics): performance of a contract.",
+            "Account security and abuse prevention (attempt limits, security logs, 2FA): legitimate interest.",
+            "Complying with applicable legal obligations, such as tax and invoicing: legal obligation.",
+            "Artificial-intelligence features only send data when you use them (see section 5).",
           ],
         },
         {
-          h: '4. Who we share data with (processors)',
+          h: "4. Who we share data with (processors)",
           p: [
-            'MongoDB Atlas — hosting of the database that stores your data.',
-            'EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).',
-            'Anthropic — provider of the AI model used for the features described in section 5.',
-            'Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.',
-            '[SENTRY — only if enabled] technical error monitoring, configured not to send request content, cookies or headers.',
-            'Some providers may process data outside the European Economic Area; in that case the safeguards required by the GDPR apply [CONFIRM WITH EACH PROVIDER: standard contractual clauses / adequacy decision].',
+            "MongoDB Atlas — hosting of the database that stores your data.",
+            "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
+            "Anthropic — provider of the AI model used for the features described in section 5.",
+            "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
+            "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",
+            "Some providers may process data outside the European Economic Area; in that case the safeguards required by the GDPR apply [CONFIRM WITH EACH PROVIDER: standard contractual clauses / adequacy decision].",
           ],
         },
         {
-          h: '5. Artificial intelligence — what is sent',
+          h: "5. Artificial intelligence — what is sent",
           p: [
-            'Statistics insights (Pro and Premium plans): we send aggregated figures (totals per month and category) and category names — never the descriptions of your transactions.',
-            'Investment tips (Premium plan): we send your investor-profile answers, an aggregated summary of your finances and the day’s market context. An aggregated summary of your portfolio is only included if that option is enabled on the service [CONFIRM STATUS].',
-            'Document scanning (Pro and Premium plans): the image or PDF you upload is sent to Anthropic to extract the fields, processed in memory and not stored by us. Avoid uploading documents with personal data that is not needed (for example tax ID or address on a payslip).',
-            'AI-generated content is for information only, may contain errors and is not financial advice.',
+            "Statistics insights (Pro and Premium plans): we send aggregated figures (totals per month and category) and category names — never the descriptions of your transactions.",
+            "Investment tips (Premium plan): we send your investor-profile answers, an aggregated summary of your finances and the day’s market context. We do not currently send any data from your investment records (portfolio); if that changes, this policy is updated first.",
+            "Document scanning (Pro and Premium plans): the image or PDF you upload is sent to Anthropic to extract the fields, processed in memory and not stored by us. Avoid uploading documents with personal data that is not needed (for example tax ID or address on a payslip).",
+            "AI-generated content is for information only, may contain errors and is not financial advice.",
           ],
         },
         {
-          h: '6. How long we keep the data',
+          h: "6. How long we keep the data",
           p: [
-            'As long as your account exists. When you delete your account (Settings → Privacy and data) we delete your data from the database. Backups may keep the data until [BACKUP RETENTION PERIOD] before being overwritten.',
-            'We may retain only what is strictly necessary to meet legal obligations (for example invoicing records) for the period the law requires.',
+            "As long as your account exists. When you delete your account (Settings → Privacy and data) we delete your data from the database. Backups may keep the data until 3 years before being overwritten.",
+            "We may retain only what is strictly necessary to meet legal obligations (for example invoicing records) for the period the law requires.",
           ],
         },
         {
-          h: '7. Your rights',
+          h: "7. Your rights",
           p: [
-            'Access and portability: in Settings → Privacy and data you can download all your data as JSON.',
-            'Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first.',
-            'Rectification: you can correct your data directly in the app. You also have the right to restriction and objection; contact us at [CONTACT EMAIL].',
-            'You may lodge a complaint with the Portuguese data protection authority (CNPD), www.cnpd.pt, or your local authority.',
+            "Access and portability: in Settings → Privacy and data you can download all your data as JSON.",
+            "Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first.",
+            "Rectification: you can correct your data directly in the app. You also have the right to restriction and objection; contact us at dinismiguelcosta@gmail.com.",
+            "You may lodge a complaint with the Portuguese data protection authority (CNPD), www.cnpd.pt, or your local authority.",
           ],
         },
         {
-          h: '8. Cookies and local storage',
+          h: "8. Cookies and local storage",
           p: [
             'We only use strictly necessary cookies: "session" (keeps you signed in, up to 30 days), "pending_2fa" (10 minutes, only during two-factor verification) and "financeflow_locale" (your language). We also keep your biometric-lock preference in your phone’s local storage. We do not use advertising or behavioural analytics cookies.',
           ],
         },
         {
-          h: '9. Security',
+          h: "9. Security",
           p: [
-            'Passwords stored as hashes (scrypt), signed sessions, attempt limiting, optional two-factor authentication, 2FA secrets encrypted at rest and encrypted connections (HTTPS). No system is infallible; if a data breach affecting you occurs, we will notify you and the authority as required by law.',
+            "Passwords stored as hashes (scrypt), signed sessions, attempt limiting, optional two-factor authentication, 2FA secrets encrypted at rest and encrypted connections (HTTPS). No system is infallible; if a data breach affecting you occurs, we will notify you and the authority as required by law.",
           ],
         },
         {
-          h: '10. Changes',
-          p: ['If we make material changes to this policy we will tell you in the app. Last updated: ' + LEGAL_UPDATED + '.'],
+          h: "10. Changes",
+          p: [
+            "If we make material changes to this policy we will tell you in the app. Last updated: " +
+              LEGAL_UPDATED +
+              ".",
+          ],
         },
       ],
     },
   },
   terms: {
-    'pt-PT': {
-      title: 'Termos de Serviço',
+    "pt-PT": {
+      title: "Termos de Serviço",
       sections: [
         {
-          h: '1. Aceitação',
+          h: "1. Aceitação",
           p: [
-            'Ao criar uma conta ou usar o FinanceFlow aceitas estes termos e a Política de Privacidade. O serviço é prestado por [NOME OU DENOMINAÇÃO DO PRESTADOR], [MORADA/NIF], contacto [EMAIL DE CONTACTO].',
+            "Ao criar uma conta ou usar o FinanceFlow aceitas estes termos e a Política de Privacidade. O serviço é prestado por Dinis Miguel da Silva Costa, NIF: 176280340, contacto dinismiguelcosta@gmail.com.",
           ],
         },
         {
-          h: '2. O serviço',
+          h: "2. O serviço",
           p: [
-            'O FinanceFlow é uma aplicação de gestão de finanças pessoais (registo de transações, orçamentos, estatísticas, previsões e registo de investimentos), disponível na web e em Android.',
+            "O FinanceFlow é uma aplicação de gestão de finanças pessoais (registo de transações, orçamentos, estatísticas, previsões e registo de investimentos), disponível na web e em Android.",
           ],
         },
         {
-          h: '3. A tua conta',
+          h: "3. A tua conta",
           p: [
-            'És responsável por manter a password e o autenticador em segurança e por toda a atividade na tua conta. Recomendamos ativar a autenticação de dois fatores e guardar os códigos de recuperação. Avisa-nos de imediato se suspeitares de acesso não autorizado.',
-            'Deves fornecer informação verdadeira e ter capacidade legal para celebrar este contrato.',
+            "És responsável por manter a password e o autenticador em segurança e por toda a atividade na tua conta. Recomendamos ativar a autenticação de dois fatores e guardar os códigos de recuperação. Avisa-nos de imediato se suspeitares de acesso não autorizado.",
+            "Deves fornecer informação verdadeira e ter capacidade legal para celebrar este contrato.",
           ],
         },
         {
-          h: '4. Planos e pagamentos',
+          h: "4. Planos e pagamentos",
           p: [
-            'Existe um plano Gratuito com limites e planos pagos (Pro e Premium) com mais funcionalidades, ao preço indicado na app no momento da subscrição. Os pagamentos são processados pela EasyPay.',
-            'Cartão e débito direto: subscrição com renovação automática até a cancelares (Definições → Subscrição); mantém o acesso até ao fim do período já pago.',
-            'MB WAY e Multibanco: pagamento único por um período fixo (1, 3, 6 ou 12 meses), sem renovação automática; o acesso termina no fim do período pago, a menos que voltes a pagar. Uma referência por pagar não dá acesso ao plano.',
-            'Livre resolução e reembolsos: [DEFINIR — direito de livre resolução de 14 dias para consumidores e condições de reembolso].',
+            "Existe um plano Gratuito com limites e planos pagos (Pro e Premium) com mais funcionalidades, ao preço indicado na app no momento da subscrição. Os pagamentos são processados pela EasyPay.",
+            "Cartão e débito direto: subscrição com renovação automática até a cancelares (Definições → Subscrição); mantém o acesso até ao fim do período já pago.",
+            "MB WAY e Multibanco: pagamento único por um período fixo (1, 3, 6 ou 12 meses), sem renovação automática; o acesso termina no fim do período pago, a menos que voltes a pagar. Uma referência por pagar não dá acesso ao plano.",
+            "Livre resolução e reembolsos: se és consumidor, podes resolver o contrato no prazo de 14 dias a contar da sua celebração, sem indicar qualquer motivo, contactando-nos em dinismiguelcosta@gmail.com. Reembolsamos o valor pago no prazo máximo de 14 dias a contar do momento em que tomarmos conhecimento da tua decisão, pelo mesmo meio de pagamento usado na compra sempre que possível. Se o serviço não funcionar de acordo com o acordado, tens direito à reposição da conformidade e, se esta for impossível ou desproporcionada, à redução do preço ou à resolução do contrato com reembolso, nos termos da lei. [REVER COM JURISTA — eventual valor proporcional pelo serviço já usado durante o prazo de 14 dias].",
           ],
         },
         {
-          h: '5. Conteúdo gerado por IA e informação financeira',
+          h: "5. Conteúdo gerado por IA e informação financeira",
           p: [
-            'As interpretações de estatísticas, dicas de investimento, previsões e a leitura automática de documentos são geradas por sistemas automáticos, têm carácter meramente informativo e educativo e podem conter erros.',
-            'Nada na app constitui aconselhamento financeiro, de investimento, fiscal ou jurídico, nem uma recomendação personalizada para comprar ou vender qualquer produto financeiro. As decisões e os riscos são teus. Revê sempre os dados extraídos de um documento antes de os guardares.',
+            "As interpretações de estatísticas, dicas de investimento, previsões e a leitura automática de documentos são geradas por sistemas automáticos, têm carácter meramente informativo e educativo e podem conter erros.",
+            "Nada na app constitui aconselhamento financeiro, de investimento, fiscal ou jurídico, nem uma recomendação personalizada para comprar ou vender qualquer produto financeiro. As decisões e os riscos são teus. Revê sempre os dados extraídos de um documento antes de os guardares.",
           ],
         },
         {
-          h: '6. Utilização aceitável',
+          h: "6. Utilização aceitável",
           p: [
-            'Não podes usar o serviço para fins ilícitos, tentar aceder a contas ou dados de outras pessoas, contornar limites e medidas de segurança, sobrecarregar o serviço ou fazer engenharia inversa para além do permitido por lei.',
+            "Não podes usar o serviço para fins ilícitos, tentar aceder a contas ou dados de outras pessoas, contornar limites e medidas de segurança, sobrecarregar o serviço ou fazer engenharia inversa para além do permitido por lei.",
           ],
         },
         {
-          h: '7. Disponibilidade e responsabilidade',
+          h: "7. Disponibilidade e responsabilidade",
           p: [
-            'Esforçamo-nos por manter o serviço disponível mas não garantimos funcionamento ininterrupto nem ausência de erros. Na medida permitida por lei, não respondemos por perdas indiretas nem por decisões financeiras tomadas com base na app. [REVER COM JURISTA — limites de responsabilidade e direitos imperativos do consumidor].',
+            "Esforçamo-nos por manter o serviço disponível mas não garantimos funcionamento ininterrupto nem ausência de erros. Na medida permitida por lei, não respondemos por perdas indiretas nem por decisões financeiras tomadas com base na app. [REVER COM JURISTA — limites de responsabilidade e direitos imperativos do consumidor].",
           ],
         },
         {
-          h: '8. Cancelamento e encerramento da conta',
+          h: "8. Cancelamento e encerramento da conta",
           p: [
-            'Podes cancelar a subscrição e eliminar a tua conta a qualquer momento nas Definições; a eliminação apaga os teus dados (ver Política de Privacidade). Podemos suspender contas em caso de violação destes termos ou de utilização abusiva.',
+            "Podes cancelar a subscrição e eliminar a tua conta a qualquer momento nas Definições; a eliminação apaga os teus dados (ver Política de Privacidade). Podemos suspender contas em caso de violação destes termos ou de utilização abusiva.",
           ],
         },
         {
-          h: '9. Alterações, lei aplicável e litígios',
+          h: "9. Alterações, lei aplicável e litígios",
           p: [
-            'Podemos alterar estes termos e avisamos-te na app antes de as alterações relevantes entrarem em vigor. Aplica-se a lei portuguesa; [DEFINIR FORO]. Como consumidor podes recorrer a uma entidade de resolução alternativa de litígios de consumo e à plataforma europeia de resolução de litígios em linha. Última atualização: ' + LEGAL_UPDATED + '.',
+            "Podemos alterar estes termos e avisamos-te na app antes de as alterações relevantes entrarem em vigor. Lei aplicável: estes termos e qualquer litígio decorrente da utilização da app regem-se pela lei portuguesa; se és consumidor residente noutro Estado-Membro da União Europeia, esta escolha não afasta a proteção das regras imperativas do teu país de residência. Foro: em caso de litígio judicial, como consumidor podes propor a ação nos tribunais portugueses ou nos tribunais do Estado-Membro da União Europeia onde resides. Resolução alternativa de litígios: em caso de litígio de consumo, podes recorrer a uma entidade de resolução alternativa de litígios de consumo, por exemplo o CNIACC – Centro Nacional de Informação e Arbitragem de Conflitos de Consumo (www.cniacc.pt) ou o centro de arbitragem da tua área de residência. [REVER COM JURISTA — entidades de RAL a que o prestador está vinculado (Lei n.º 144/2015) e obrigação de Livro de Reclamações Eletrónico]. Última atualização: " +
+              LEGAL_UPDATED +
+              ".",
           ],
         },
       ],
     },
     en: {
-      title: 'Terms of Service',
+      title: "Terms of Service",
       sections: [
         {
-          h: '1. Acceptance',
+          h: "1. Acceptance",
           p: [
-            'By creating an account or using FinanceFlow you accept these terms and the Privacy Policy. The service is provided by [NAME OF PROVIDER], [ADDRESS / TAX ID], contact [CONTACT EMAIL].',
+            "By creating an account or using FinanceFlow you accept these terms and the Privacy Policy. The service is provided by Dinis Miguel da Silva Costa, tax ID (NIF): 176280340, contact dinismiguelcosta@gmail.com.",
           ],
         },
         {
-          h: '2. The service',
+          h: "2. The service",
           p: [
-            'FinanceFlow is a personal-finance app (transaction tracking, budgets, statistics, forecasts and investment records), available on the web and on Android.',
+            "FinanceFlow is a personal-finance app (transaction tracking, budgets, statistics, forecasts and investment records), available on the web and on Android.",
           ],
         },
         {
-          h: '3. Your account',
+          h: "3. Your account",
           p: [
-            'You are responsible for keeping your password and authenticator safe and for all activity on your account. We recommend enabling two-factor authentication and saving your recovery codes. Tell us immediately if you suspect unauthorised access.',
-            'You must provide accurate information and have the legal capacity to enter into this contract.',
+            "You are responsible for keeping your password and authenticator safe and for all activity on your account. We recommend enabling two-factor authentication and saving your recovery codes. Tell us immediately if you suspect unauthorised access.",
+            "You must provide accurate information and have the legal capacity to enter into this contract.",
           ],
         },
         {
-          h: '4. Plans and payments',
+          h: "4. Plans and payments",
           p: [
-            'There is a Free plan with limits and paid plans (Pro and Premium) with more features, at the price shown in the app when you subscribe. Payments are processed by EasyPay.',
-            'Card and direct debit: subscription that renews automatically until you cancel it (Settings → Subscription); you keep access until the end of the period already paid.',
-            'MB WAY and Multibanco: a one-off payment for a fixed period (1, 3, 6 or 12 months), with no automatic renewal; access ends at the end of the paid period unless you pay again. An unpaid reference does not grant access to the plan.',
-            'Right of withdrawal and refunds: [DEFINE — 14-day consumer withdrawal right and refund conditions].',
+            "There is a Free plan with limits and paid plans (Pro and Premium) with more features, at the price shown in the app when you subscribe. Payments are processed by EasyPay.",
+            "Card and direct debit: subscription that renews automatically until you cancel it (Settings → Subscription); you keep access until the end of the period already paid.",
+            "MB WAY and Multibanco: a one-off payment for a fixed period (1, 3, 6 or 12 months), with no automatic renewal; access ends at the end of the paid period unless you pay again. An unpaid reference does not grant access to the plan.",
+            "Right of withdrawal and refunds: if you are a consumer, you may withdraw from the contract within 14 days of its conclusion, without giving any reason, by contacting us at dinismiguelcosta@gmail.com. We will refund the amount paid within 14 days of learning of your decision, using the same payment method as the purchase where possible. If the service does not work as agreed, you are entitled to have it brought into conformity and, where that is impossible or disproportionate, to a price reduction or to terminate the contract with a refund, as provided by law. [REVIEW WITH A LAWYER — any proportional amount for the service already used during the 14-day period].",
           ],
         },
         {
-          h: '5. AI-generated content and financial information',
+          h: "5. AI-generated content and financial information",
           p: [
-            'Statistics insights, investment tips, forecasts and automatic document reading are produced by automated systems, are for information and education only and may contain errors.',
-            'Nothing in the app is financial, investment, tax or legal advice, or a personal recommendation to buy or sell any financial product. Decisions and risks are yours. Always review data extracted from a document before saving it.',
+            "Statistics insights, investment tips, forecasts and automatic document reading are produced by automated systems, are for information and education only and may contain errors.",
+            "Nothing in the app is financial, investment, tax or legal advice, or a personal recommendation to buy or sell any financial product. Decisions and risks are yours. Always review data extracted from a document before saving it.",
           ],
         },
         {
-          h: '6. Acceptable use',
+          h: "6. Acceptable use",
           p: [
-            'You may not use the service for unlawful purposes, try to access other people’s accounts or data, bypass limits or security measures, overload the service or reverse engineer it beyond what the law allows.',
+            "You may not use the service for unlawful purposes, try to access other people’s accounts or data, bypass limits or security measures, overload the service or reverse engineer it beyond what the law allows.",
           ],
         },
         {
-          h: '7. Availability and liability',
+          h: "7. Availability and liability",
           p: [
-            'We work to keep the service available but do not guarantee uninterrupted operation or freedom from errors. To the extent permitted by law we are not liable for indirect losses or for financial decisions made based on the app. [REVIEW WITH A LAWYER — liability limits and mandatory consumer rights].',
+            "We work to keep the service available but do not guarantee uninterrupted operation or freedom from errors. To the extent permitted by law we are not liable for indirect losses or for financial decisions made based on the app. [REVIEW WITH A LAWYER — liability limits and mandatory consumer rights].",
           ],
         },
         {
-          h: '8. Cancellation and account closure',
+          h: "8. Cancellation and account closure",
           p: [
-            'You can cancel your subscription and delete your account at any time in Settings; deletion erases your data (see the Privacy Policy). We may suspend accounts that breach these terms or are used abusively.',
+            "You can cancel your subscription and delete your account at any time in Settings; deletion erases your data (see the Privacy Policy). We may suspend accounts that breach these terms or are used abusively.",
           ],
         },
         {
-          h: '9. Changes, governing law and disputes',
+          h: "9. Changes, governing law and disputes",
           p: [
-            'We may change these terms and will tell you in the app before material changes take effect. Portuguese law applies; [DEFINE JURISDICTION]. As a consumer you may use an alternative dispute-resolution body and the EU online dispute-resolution platform. Last updated: ' + LEGAL_UPDATED + '.',
+            "We may change these terms and will tell you in the app before material changes take effect. Governing law: these terms and any dispute arising from the use of the app are governed by Portuguese law; if you are a consumer resident in another EU Member State, this choice does not remove the protection of the mandatory rules of your country of residence. Jurisdiction: in case of court proceedings, as a consumer you may bring the action before the Portuguese courts or before the courts of the EU Member State where you live. Alternative dispute resolution: in a consumer dispute you may turn to an alternative consumer dispute-resolution body, for example CNIACC – the Portuguese National Consumer Dispute Information and Arbitration Centre (www.cniacc.pt) or the arbitration centre for your area of residence. [REVIEW WITH A LAWYER — ADR bodies the provider is bound to (Law 144/2015) and any electronic complaints-book obligation]. Last updated: " +
+              LEGAL_UPDATED +
+              ".",
           ],
         },
       ],
     },
   },
-}
+};

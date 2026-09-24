@@ -290,7 +290,31 @@ reais, em web e Android.
       a subscrição com renovação automática na EasyPay **antes** de apagar —
       se falhar, não apaga); UI em Configurações → Privacidade e dados.
       Bases legais e conservação descritas no rascunho da política.
-      **Não testado ainda** (nem a exportação nem a eliminação)
+      Testado ponta a ponta em dev (22/22): exportação sem segredos, eliminação
+      com password errada/certa e com 2FA (sem código, código errado, código de
+      recuperação), e remoção de todos os dados associados
+- [x] Aceitação explícita dos termos no registo: caixa desmarcada por omissão
+      em `pages/login.vue`, exigida **também no servidor** (`acceptTerms`
+      booleano `true` no schema Zod de `auth/session.ts`), com data e versão
+      guardadas em `User.termsAcceptedAt`/`termsVersion`. Testado (7/7).
+      **Contas anteriores a esta regra não têm registo de aceitação** — hoje
+      só há contas de teste, mas antes de haver utilizadores reais convém
+      pedir a aceitação no primeiro início de sessão após uma mudança de
+      versão. **Não coberto**: o texto do botão de pagamento ("encomenda com
+      obrigação de pagar") e o consentimento expresso para a perda do direito
+      de livre resolução — decisão de negócio + jurista
+- [x] Texto legal preenchido no que dependia de factos: identificação (nome,
+      NIF, email; **sem morada**, por decisão do utilizador), reembolso,
+      lei/foro/RAL, portfolio (não enviado — a variável não está definida).
+      **Corrigido um erro do rascunho**: mencionava a plataforma europeia de
+      resolução de litígios em linha (RLL/ODR), que foi encerrada em julho de
+      2025 (a ligação que o utilizador colou é uma página de relocação); o
+      texto colado sobre "texto obrigatório da plataforma RLL" estava
+      desatualizado e não foi usado. **Continua em rascunho**: retenção de
+      backups ("3 anos", suspeita de não corresponder à realidade do plano do
+      Atlas), transferências fora do EEE, valor proporcional em livre
+      resolução, RAL a que o prestador está vinculado e Livro de Reclamações
+      Eletrónico — tudo marcado `[REVER COM JURISTA]`
 - [ ] Rever se dados financeiros sensíveis exigem medidas adicionais
       (encriptação em repouso, se aplicável ao plano de hosting)
 

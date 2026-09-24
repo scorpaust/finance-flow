@@ -67,7 +67,8 @@
     "twoFactorCodePlaceholder": "6-digit code",
     "twoFactorHint": "Lost access to your device? You can also use one of your recovery codes.",
     "twoFactorSubmit": "Verify",
-    "twoFactorBackButton": "Back to sign in"
+    "twoFactorBackButton": "Back to sign in",
+    "acceptTerms": "I have read and accept the {terms} and the {privacy}."
   },
   "dashboard": {
     "greetingMorning": "Good morning",

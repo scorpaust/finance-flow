@@ -1745,8 +1745,32 @@ Tarefas principais (ver especificação para detalhe completo):
     cancelada (`canceled`) ou sem subscrição, permite. Testado 6/6 no servidor
     real. **Consequência para o utilizador**: mudar de plano passa a exigir
     cancelar primeiro (já era o fluxo documentado).
-  - **Por fazer** (a exportação/eliminação de conta já foi testada, 22/22):
-    débito direto, MB WAY e Multibanco na sandbox; confirmar visualmente as
-    restantes traduções novas; preencher e rever o texto legal;
-    criar o projeto Sentry; os pontos 6 (integração/E2E), 7 (performance) e
-    a limpeza da dívida técnica (11).
+  - **Testes de integração completados — insights/IA e webhook `capture`**
+    (2026-09-24): a suite tinha ficado em 12/12 com dois testes por fazer
+    (ver entrada acima); agora **17/17 a passar**. Novo: webhook `capture`
+    (MB WAY/Multibanco) — arranca de um estado `pending` com
+    `billingMode: push_confirm` (o mesmo em que fica logo após o
+    `confirm.post.ts`/`onSuccess` do Checkout, antes da confirmação
+    assíncrona), o `GET /single/<id>` simulado devolve `status: success`
+    com a `key` codificada, e o webhook ativa o plano (`status: active`,
+    `paymentMethod: mbway`) de forma idempotente ao reenviar o mesmo
+    evento. Segundo teste, dirigido à proteção da Fase 8 ponto 5 no ramo de
+    falha: uma conta já ativa por um pagamento MAIS RECENTE recebe uma
+    notificação de falha para um pagamento ANTIGO já substituído — a conta
+    fica inalterada (`sub.easypaySubscriptionId === resourceId` em
+    `server/utils/subscriptionSync.ts` só rebaixa quem está mesmo a pagar
+    esse pedido). `POST /api/insights/stats`: Anthropic simulada devolve
+    `{insights, suggestions}` via `content[0].text` (JSON-stringificado,
+    tal como o formato real da resposta), confirma `cached: false` na 1.ª
+    chamada e `cached: true` na 2.ª sem um novo pedido a `/v1/messages`
+    (contado via `stub.requests()`). `POST /api/insights/investment`:
+    `needsProfile: true` sem `investorProfile` válido, e depois de escrever
+    um perfil válido diretamente na BD, `needsProfile: false` com as dicas
+    e o disclaimer. Ambos os endpoints também confirmados a devolver 403
+    para o plano Gratuito. Todos os 5 novos testes passaram à primeira
+    (sem iteração de depuração — os stubs e o formato da resposta da
+    Anthropic já estavam bem entendidos das entradas anteriores).
+  - **Por fazer**: confirmar visualmente as restantes traduções novas;
+    preencher e rever o texto legal com um jurista; criar o projeto Sentry;
+    E2E (Playwright), performance/Lighthouse (ponto 7), aviso de hidratação
+    no Android (ponto 11) e a limpeza de dívida técnica restante.

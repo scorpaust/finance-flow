@@ -5,6 +5,10 @@ import { readTestEnv, stubClient, extractCookies } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { User, Category, Transaction, Investment } from '../../server/models/index'
 
+function anthropicTextResponse(data: unknown) {
+  return { content: [{ type: 'text', text: JSON.stringify(data) }], usage: { input_tokens: 1, output_tokens: 1 } }
+}
+
 // Fase 8, ponto 6 — testes de integração: servidor Nuxt/Nitro REAL (via
 // @nuxt/test-utils), MongoDB em memória (nunca o Atlas), Anthropic/EasyPay
 // simulados (nunca chamadas reais — ver tests/integration/stubProviders.ts).
@@ -346,5 +350,197 @@ describe('subscrição — checkout e webhook EasyPay (simulados)', () => {
     expect(res.status).toBe(500)
     const user = await User.findOne({ email })
     expect(user!.subscription.tier).toBe('free')
+  })
+
+  it('webhook "capture" (MB WAY/Multibanco) ativa o plano pré-pago de forma idempotente', async () => {
+    const email = uniqueEmail('capture')
+    await register(email)
+    const user = await User.findOne({ email })
+
+    // Estado imediatamente a seguir ao onSuccess do Checkout SDK
+    // (syncFromCheckout → syncSinglePayment em server/utils/subscriptionSync.ts)
+    // para um MB WAY ainda não confirmado pelo push assíncrono: já tem
+    // billingMode/paymentMethod definidos, mas status ainda 'pending'.
+    const paymentId = 'mbway-payment-teste-1'
+    await User.updateOne(
+      { email },
+      {
+        $set: {
+          'subscription.tier': 'pro',
+          'subscription.status': 'pending',
+          'subscription.provider': 'easypay',
+          'subscription.paymentMethod': 'mbway',
+          'subscription.billingMode': 'push_confirm',
+          'subscription.autoRenew': false,
+          'subscription.easypaySubscriptionId': paymentId,
+          'subscription.currentPeriodEnd': new Date(Date.now() + 30 * 864e5),
+        },
+      }
+    )
+
+    const key = encodeMerchantKey(String(user!._id), 'pro', 'mbway', 1)
+    await stub.setEasyPayResponse('GET', `/single/${paymentId}`, {
+      id: paymentId,
+      status: 'success',
+      key,
+      method: { type: 'MBW', status: 'success' },
+    })
+
+    const webhook1 = await fetch('/api/subscription/easypay/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: paymentId, type: 'capture' }),
+    })
+    expect(webhook1.status).toBe(200)
+
+    const afterFirst = await User.findOne({ email })
+    expect(afterFirst!.subscription.status).toBe('active')
+    expect(afterFirst!.subscription.tier).toBe('pro')
+    expect(afterFirst!.subscription.paymentMethod).toBe('mbway')
+    const periodEndAfterFirst = afterFirst!.subscription.currentPeriodEnd?.getTime()
+
+    // Reenvio do mesmo evento — idempotente, tal como o subscription_create.
+    const webhook2 = await fetch('/api/subscription/easypay/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: paymentId, type: 'capture' }),
+    })
+    expect(webhook2.status).toBe(200)
+    const afterSecond = await User.findOne({ email })
+    expect(afterSecond!.subscription.currentPeriodEnd?.getTime()).toBe(periodEndAfterFirst)
+  })
+
+  it('webhook "capture" com falha só rebaixa a conta se o id bater com o pagamento em curso (não uma notificação tardia de um pagamento antigo)', async () => {
+    const email = uniqueEmail('capture-fail')
+    await register(email)
+    const user = await User.findOne({ email })
+
+    const oldPaymentId = 'multibanco-antigo-1'
+    const currentPaymentId = 'multibanco-atual-1'
+    // A conta já está ativa através de um pagamento MAIS RECENTE que o que
+    // vai falhar agora — simula uma notificação de falha tardia e obsoleta.
+    await User.updateOne(
+      { email },
+      {
+        $set: {
+          'subscription.tier': 'premium',
+          'subscription.status': 'active',
+          'subscription.provider': 'easypay',
+          'subscription.paymentMethod': 'multibanco',
+          'subscription.billingMode': 'manual_reference',
+          'subscription.autoRenew': false,
+          'subscription.easypaySubscriptionId': currentPaymentId,
+          'subscription.currentPeriodEnd': new Date(Date.now() + 30 * 864e5),
+          'subscription.appliedPaymentIds': [oldPaymentId, currentPaymentId],
+        },
+      }
+    )
+
+    const key = encodeMerchantKey(String(user!._id), 'premium', 'multibanco', 1)
+    await stub.setEasyPayResponse('GET', `/single/${oldPaymentId}`, {
+      id: oldPaymentId,
+      status: 'failed',
+      key,
+    })
+
+    const res = await fetch('/api/subscription/easypay/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: oldPaymentId, type: 'capture' }),
+    })
+    expect(res.status).toBe(200)
+
+    const after = await User.findOne({ email })
+    expect(after!.subscription.status).toBe('active')
+    expect(after!.subscription.easypaySubscriptionId).toBe(currentPaymentId)
+  })
+})
+
+describe('insights de IA (Anthropic simulada)', () => {
+  it('POST /api/insights/stats gera com a IA e depois serve da cache de 24h sem chamar a Anthropic outra vez', async () => {
+    const email = uniqueEmail('ai-stats')
+    const { cookie } = await register(email)
+    await setTier(email, 'pro')
+
+    await stub.setAnthropicResponse(
+      anthropicTextResponse({ insights: ['Gastas mais em restauração ao fim de semana.'], suggestions: ['Define um orçamento mensal para restauração.'] })
+    )
+
+    const first = await fetch('/api/insights/stats', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ months: 3 }),
+    })
+    expect(first.status).toBe(200)
+    const firstBody = await first.json()
+    expect(firstBody.cached).toBe(false)
+    expect(firstBody.insights).toEqual(['Gastas mais em restauração ao fim de semana.'])
+    expect(firstBody.suggestions).toEqual(['Define um orçamento mensal para restauração.'])
+
+    const requestsAfterFirst = await stub.requests()
+    const anthropicCallsAfterFirst = requestsAfterFirst.filter((r) => r.path === '/v1/messages').length
+    expect(anthropicCallsAfterFirst).toBe(1)
+
+    const second = await fetch('/api/insights/stats', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ months: 3 }),
+    })
+    expect(second.status).toBe(200)
+    const secondBody = await second.json()
+    expect(secondBody.cached).toBe(true)
+    expect(secondBody.insights).toEqual(firstBody.insights)
+
+    const requestsAfterSecond = await stub.requests()
+    const anthropicCallsAfterSecond = requestsAfterSecond.filter((r) => r.path === '/v1/messages').length
+    expect(anthropicCallsAfterSecond).toBe(1)
+  })
+
+  it('POST /api/insights/investment devolve needsProfile sem perfil, e as dicas depois de o perfil existir', async () => {
+    const email = uniqueEmail('ai-invest')
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+
+    const withoutProfile = await fetch('/api/insights/investment', { method: 'POST', headers: { cookie } })
+    expect(withoutProfile.status).toBe(200)
+    const withoutProfileBody = await withoutProfile.json()
+    expect(withoutProfileBody.needsProfile).toBe(true)
+
+    await User.updateOne(
+      { email },
+      {
+        $set: {
+          investorProfile: {
+            riskTolerance: 'moderado',
+            horizonYears: 10,
+            hasExistingInvestments: false,
+            knowledgeLevel: 'intermedio',
+            goals: ['reforma'],
+            updatedAt: new Date(),
+          },
+        },
+      }
+    )
+
+    await stub.setAnthropicResponse(anthropicTextResponse({ tips: ['Considera um fundo de emergência antes de investir mais.'] }))
+
+    const withProfile = await fetch('/api/insights/investment', { method: 'POST', headers: { cookie } })
+    expect(withProfile.status).toBe(200)
+    const withProfileBody = await withProfile.json()
+    expect(withProfileBody.needsProfile).toBe(false)
+    expect(withProfileBody.tips).toEqual(['Considera um fundo de emergência antes de investir mais.'])
+    expect(typeof withProfileBody.disclaimer).toBe('string')
+    expect(withProfileBody.disclaimer.length).toBeGreaterThan(0)
+  })
+
+  it('POST /api/insights/stats e /api/insights/investment devolvem 403 para o plano Gratuito', async () => {
+    const email = uniqueEmail('ai-free')
+    const { cookie } = await register(email)
+
+    const stats = await fetch('/api/insights/stats', { method: 'POST', headers: { cookie } })
+    expect(stats.status).toBe(403)
+
+    const investment = await fetch('/api/insights/investment', { method: 'POST', headers: { cookie } })
+    expect(investment.status).toBe(403)
   })
 })

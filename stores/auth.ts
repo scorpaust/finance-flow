@@ -24,14 +24,27 @@ export const useAuthStore = defineStore('auth', () => {
 
     loading.value  = true
     _fetched.value = true          // mark immediately to prevent races
-    try {
-      const data = await $fetch<{ user: User | null }>('/api/auth/session')
-      user.value = data.user
-    } catch {
-      user.value = null
-    } finally {
-      loading.value = false
+    // GET /api/auth/session responde SEMPRE 200 (`{ user: null }` quando não há
+    // sessão) — por isso um erro aqui é rede ou servidor indisponível (ex. o
+    // servidor a reiniciar, um corte de Wi-Fi no telemóvel), nunca "sem
+    // sessão". Tratá-lo como logout mandava um utilizador com sessão válida
+    // para o login. Tenta algumas vezes antes de desistir.
+    const attempts = 6
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const data = await $fetch<{ user: User | null }>('/api/auth/session')
+        user.value = data.user
+        loading.value = false
+        return
+      } catch {
+        if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 1500))
+      }
     }
+    // Continua sem resposta: mostra o login, mas deixa a próxima navegação
+    // tentar de novo em vez de ficar marcado como "já verificado".
+    user.value = null
+    _fetched.value = false
+    loading.value = false
   }
 
   // Fase 8, ponto 3 — quando a conta tem 2FA ativo, o servidor não devolve

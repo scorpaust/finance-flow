@@ -6,6 +6,7 @@ import { getServerLocale, serverT } from '../../../utils/i18n'
 import { enforceRateLimit } from '../../../utils/rateLimit'
 import { z } from 'zod'
 import { validateBody } from '../../../utils/validate'
+import { assertNoActiveAutoRenew } from '../../../utils/subscriptionGuard'
 
 // Onboarding do fluxo 'auto' (Cartão/Débito Direto) — ver
 // context/features/02-FASE-2-sistema-subscricoes.md tarefa 5. O checkout
@@ -27,6 +28,8 @@ export default defineEventHandler(async (event) => {
       method: z.enum(['cc', 'dd'], 'subscriptionApi.invalidMethodCcDd'),
     })
   )
+
+  await assertNoActiveAutoRenew(event, userId)
 
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()
   if (!user) throw createError({ statusCode: 404, message: serverT(locale, 'subscriptionApi.userNotFound') })

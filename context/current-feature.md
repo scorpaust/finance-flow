@@ -1654,7 +1654,35 @@ Tarefas principais (ver especificação para detalhe completo):
     o APK instalado aponta agora a esse IP — sem regra de firewall a app
     deixa de carregar. Para voltar ao USB: `adb reverse tcp:3100 tcp:3100`
     e recompilar com `CAPACITOR_SERVER_URL=http://localhost:3100`.
-  - **Por fazer**: testar exportação/eliminação de conta; confirmar
-    visualmente as restantes traduções novas; preencher e rever o texto legal;
+  - **Sandbox EasyPay, cartão validado** (2026-09-24): leitura direta da base
+    de dados depois de o utilizador pagar — `tier: pro`, `status: active`,
+    `billingMode: auto`, `currentPeriodEnd` ≈ +1 mês, `appliedPaymentIds`
+    preenchido. Prova o caso positivo do cartão. **MB WAY interrompido**: o
+    Vite recarregou a página a meio ("new dependencies optimized:
+    @easypaypt/checkout-sdk", comportamento só de modo dev, à 1.ª vez que o
+    SDK é importado). Débito direto e Multibanco por testar.
+  - **Teste de MB WAY/Multibanco em dev**: em `localhost` o país é `null`
+    (IP de loopback) e o servidor recusa os métodos pré-pagos, como deve.
+    Para testar sem tocar no código da app usa-se um proxy local **fora do
+    repositório** que acrescenta `X-Forwarded-For` com um IP português
+    (213.13.4.1) — `localhost:3200` → `localhost:3100`. Provado: direto dá
+    `country: null` + 403; via proxy dá `PT` + `["mbway","multibanco"]` + 200.
+  - **`fetchSession` deixou de tratar erros de rede como "sem sessão"**:
+    `GET /api/auth/session` responde sempre 200, por isso um erro é rede/
+    servidor indisponível, nunca ausência de sessão; tenta 6 vezes (1,5 s)
+    antes de desistir. **Ainda não testado no browser.**
+  - **Achado e corrigido**: `create-prepaid` (e `create-subscription`) não
+    verificavam se já existia uma subscrição com renovação automática ativa.
+    Um utilizador com cartão ativo que comprasse um plano pré-pago tinha o
+    registo local sobreposto mas **a subscrição recorrente continuava ativa
+    na EasyPay** (cobrança dupla em produção). Agora
+    `server/utils/subscriptionGuard.ts` recusa com 409 (mensagem traduzida)
+    enquanto houver uma subscrição `auto` em `active` ou `past_due`; depois de
+    cancelada (`canceled`) ou sem subscrição, permite. Testado 6/6 no servidor
+    real. **Consequência para o utilizador**: mudar de plano passa a exigir
+    cancelar primeiro (já era o fluxo documentado).
+  - **Por fazer** (a exportação/eliminação de conta já foi testada, 22/22):
+    débito direto, MB WAY e Multibanco na sandbox; confirmar visualmente as
+    restantes traduções novas; preencher e rever o texto legal;
     criar o projeto Sentry; os pontos 6 (integração/E2E), 7 (performance) e
     a limpeza da dívida técnica (11).

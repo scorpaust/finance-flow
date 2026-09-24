@@ -67,6 +67,9 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     () =>
       (subscription.value.billingMode === 'manual_reference' || subscription.value.billingMode === 'push_confirm') &&
       daysUntilExpiry.value !== null &&
+      // >= 0: depois de expirar o plano já é gratuito (ver effectiveTier); antes,
+      // `<= 7` incluía negativos e a faixa mostrava "expira em -1 dias".
+      daysUntilExpiry.value >= 0 &&
       daysUntilExpiry.value <= 7
   )
 

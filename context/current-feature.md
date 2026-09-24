@@ -1671,6 +1671,41 @@ Tarefas principais (ver especificação para detalhe completo):
     `GET /api/auth/session` responde sempre 200, por isso um erro é rede/
     servidor indisponível, nunca ausência de sessão; tenta 6 vezes (1,5 s)
     antes de desistir. **Ainda não testado no browser.**
+  - **Bug antigo da Fase 2 descoberto e corrigido — cancelar renovação
+    automática falhava sempre (502)**: `server/utils/easypay.ts` usava
+    `/subscriptions/{id}` (plural); o caminho certo é `/subscription/{id}`
+    (singular), confirmado na documentação oficial via Context7 e contra a
+    sandbox: `GET /subscriptions/<id>` → 404 "page not found",
+    `GET /subscription/<id>` → 200 com a subscrição do utilizador. O 404 de
+    rota (texto simples) distingue-se de um 404 de recurso (JSON). Isto
+    explica também a nota do histórico de 2026-09-19 de que o `payment.id`
+    "não batia certo" com `/subscriptions/{id}`: o id estava certo, o caminho
+    é que não. Corrigidos `cancelSubscription` e `getSubscriptionResource`.
+    Segundo problema latente encontrado ao rever: `easypayFetch` fazia
+    `res.json()` numa resposta vazia, e o `DELETE` bem-sucedido devolve 204
+    sem corpo — rebentava DEPOIS de a EasyPay já ter cancelado, deixando o
+    estado local dessincronizado. Agora respostas sem corpo são sucesso.
+    **Ainda por confirmar em runtime**: o utilizador tem de voltar a cancelar
+    na UI (só li a subscrição com GET; não apaguei nada da sandbox).
+  - **Sandbox EasyPay, resultados finais** (2026-09-24, confirmados na base
+    de dados E diretamente na EasyPay): **cartão** (subscrição ativada,
+    depois cancelada com sucesso pela UI — `GET /subscription/<id>` passou
+    a 404 "Subscription Not Found", ou seja, a EasyPay deixou de cobrar),
+    **MB WAY** (`paid`, 12,99 €) e **Multibanco** (`paid`, 15 €, 3 meses,
+    ativo até 24/12) — os três ids ficaram em `appliedPaymentIds`. Só o
+    **débito direto** ficou por testar.
+  - **Expiração testada em runtime** (conta descartável): cancelada e dentro
+    do período mantém o plano (200); cancelada com o período terminado volta
+    a gratuito (403, `tier: free`) em tempo real; o job
+    `check-expirations` recusa segredo errado (401), e com o certo passou a
+    conta a `expired`/`free` com os campos limpos e não tocou na conta real.
+    **Defeito encontrado**: após expirar, `daysUntilExpiry` é negativo e a
+    faixa de aviso (`isExpiringSoon`, `<= 7`) mostraria "expira em -1 dias"
+    num plano já gratuito — corrigido (`>= 0`), **não testado no browser**.
+    **Nada agenda o job `check-expirations` em lado nenhum** — só o acesso
+    em tempo real está garantido; os campos de subscrição de quem expirou
+    só são limpos quando um cron externo o chamar (CRON_SECRET existe no
+    `.env`, o cron real não está configurado).
   - **Achado e corrigido**: `create-prepaid` (e `create-subscription`) não
     verificavam se já existia uma subscrição com renovação automática ativa.
     Um utilizador com cartão ativo que comprasse um plano pré-pago tinha o

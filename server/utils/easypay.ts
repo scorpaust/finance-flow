@@ -37,7 +37,12 @@ async function easypayFetch<T>(
     throw createError({ statusCode: 502, message: `Erro EasyPay (${res.status}): ${detail.slice(0, 500)}` })
   }
 
-  return (await res.json()) as T
+  // Respostas sem corpo são sucesso (ex. `DELETE /subscription/{id}` devolve
+  // 204): tentar `res.json()` numa resposta vazia rebentava DEPOIS de a
+  // EasyPay já ter executado a operação, deixando o estado local
+  // dessincronizado do da EasyPay.
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 // A EasyPay deixa-nos encodar o nosso próprio identificador no pagamento
@@ -185,7 +190,11 @@ export async function getSingle(id: string): Promise<EasyPayResource> {
 }
 
 export async function getSubscriptionResource(id: string): Promise<EasyPayResource> {
-  return easypayFetch<EasyPayResource>(`/subscriptions/${id}`)
+  // Caminho SINGULAR (`/subscription/{id}`, confirmado na documentação oficial
+  // e contra a sandbox em 2026-09-24). Durante a Fase 2 usou-se o plural
+  // (`/subscriptions/{id}`), que devolve "404 page not found" — foi isso, e não
+  // o id, que fazia o endpoint "não bater certo" nos testes de sandbox.
+  return easypayFetch<EasyPayResource>(`/subscription/${id}`)
 }
 
 // Verificação pelo id do **checkout** (o que o nosso servidor recebeu ao
@@ -210,5 +219,7 @@ export async function getCheckoutStatus(checkoutId: string): Promise<EasyPayChec
 // ─── Subscription nativa (CC/DD) ──────────────────────────────────────────────
 
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
-  await easypayFetch<unknown>(`/subscriptions/${subscriptionId}`, { method: 'DELETE' })
+  // `DELETE /subscription/{id}` (singular) — o plural dava 404 e o botão
+  // "cancelar renovação automática" falhava sempre com 502.
+  await easypayFetch<unknown>(`/subscription/${subscriptionId}`, { method: 'DELETE' })
 }

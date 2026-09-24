@@ -1,11 +1,11 @@
 import type { H3Event } from 'h3'
 import { User } from '../models'
 import { requireAuth } from './auth'
-import { hasFeature, requiredTierFor, type FeatureKey, type SubscriptionTier } from '../../shared/features'
+import { hasFeature, requiredTierFor, effectiveTier, type FeatureKey, type SubscriptionTier, type SubscriptionLike } from '../../shared/features'
 
 export async function getUserTier(userId: string): Promise<SubscriptionTier> {
-  const user = await User.findById(userId).select('subscription').lean<{ subscription?: { tier?: SubscriptionTier } }>()
-  return user?.subscription?.tier || 'free'
+  const user = await User.findById(userId).select('subscription').lean<{ subscription?: SubscriptionLike }>()
+  return effectiveTier(user?.subscription)
 }
 
 // Enforcement obrigatório no servidor — ver context/00-CODE-SPEC.md secção 4.

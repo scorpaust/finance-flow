@@ -1,4 +1,5 @@
 import { User } from '../../models'
+import { requireCronSecret } from '../../utils/cron'
 
 // Job de expiração/downgrade — ver tarefa 7 da especificação da Fase 2. Sem
 // scheduler no projeto (sem node-cron nem Nitro scheduled tasks configuradas),
@@ -8,12 +9,8 @@ import { User } from '../../models'
 // existe nenhum serviço de notificações no projeto ainda; a resposta devolve
 // a lista de utilizadores a avisar para um processo externo tratar disso.
 export default defineEventHandler(async (event) => {
+  requireCronSecret(event)
   const config = useRuntimeConfig()
-  const providedSecret = getHeader(event, 'x-cron-secret')
-
-  if (!config.cronSecret || providedSecret !== config.cronSecret) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
-  }
 
   const now = new Date()
   const reminderDays = parseInt(config.subscriptionRenewalReminderDays) || 5

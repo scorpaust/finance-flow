@@ -11,7 +11,6 @@ dist/
 # Environment
 .env
 .env.local
-.env.example
 .env.*.local
 
 # Logs

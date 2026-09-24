@@ -8,7 +8,7 @@
 | Variável | Descrição |
 |---|---|
 | `MONGODB_URI` | Ligação à instância MongoDB |
-| `SESSION_SECRET` (nome pode variar — confirmar no código atual de auth) | Segredo para assinar/gerir sessão |
+| `SESSION_SECRET` | Segredo HMAC para assinar o cookie de sessão (Fase 8, `server/utils/session.ts`) — gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, nunca reutilizar entre ambientes |
 
 ## Fase 1 — Capacitor / Android
 
@@ -95,9 +95,16 @@ escolhido manualmente nas Configurações.
 
 | Variável | Descrição |
 |---|---|
-| `SENTRY_DSN` | Endpoint do projeto Sentry (ou equivalente) |
-| `NODE_ENV` | `development` / `production` — controla cookies `secure`, logging, etc. |
-| `CORS_ALLOWED_ORIGIN` | Domínio de produção permitido para CORS |
+| `SESSION_SECRET` | Ver linha em "Já existentes" acima — implementado nesta fase |
+| `TWO_FACTOR_ENCRYPTION_KEY` | Chave para encriptar (AES-256-GCM) os segredos TOTP do 2FA em repouso (`server/utils/twoFactor.ts`) — gerar da mesma forma que `SESSION_SECRET`, com um valor diferente. Sem valor, qualquer tentativa de configurar 2FA falha (falha alto e cedo, não assina com um valor previsível) |
+| `CORS_ALLOWED_ORIGINS` | Origens (separadas por vírgula) autorizadas a fazer pedidos cross-origin à API (`server/middleware/00-cors.ts`) — vazio por omissão (usa `APP_URL`); sem isto o browser já bloqueia leitura cross-origin por Same-Origin Policy, isto é sobretudo para um domínio de staging separado a consumir a API de produção |
+| `SENTRY_DSN` | DSN do projeto Sentry (`@sentry/nuxt` 10.x). **Vazio = desligado**: o módulo nem é carregado (`nuxt.config.ts`), nada é enviado. Com DSN, envia erros de client e servidor **sem** corpo dos pedidos, cookies nem cabeçalhos (`sentry.*.config.ts`) e sem Session Replay (gravaria valores financeiros). O DSN é público por desenho (vai no bundle do client). Em produção (`node-server`) arrancar com `node --import ./.output/server/sentry.server.config.mjs .output/server/index.mjs` para instrumentar o servidor |
+| `NODE_ENV` | `development` / `production` — já existente, controla cookies `secure`, logging, etc. |
+
+2FA (`server/utils/twoFactor.ts`, ponto 3) suporta só app autenticadora (TOTP)
+— `otpauth` para gerar/validar o código, `qrcode` para o QR code do setup.
+Email e SMS ficaram deliberadamente fora de âmbito (sem infraestrutura de
+envio no projeto — ver `context/features/08-FASE-8-seguranca-qualidade.md`).
 
 ## Fase 9 — Publicação / produção
 

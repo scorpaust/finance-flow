@@ -1,132 +1,101 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/07-FASE-7-internacionalizacao.md -->
+<!-- Ver especificação completa em context/features/08-FASE-8-seguranca-qualidade.md -->
 
 ## Estado
 
-Concluída — branch `feature/fase-7-internacionalizacao` criado a partir de
-`main` em 2026-09-22, mergeado em `main` e removido na mesma sessão. Ver
-histórico para o detalhe do que foi implementado. Pendências que não
-bloquearam o merge (por decisão explícita, não por esquecimento): revisão de
-qualidade da tradução por um falante nativo, revisão jurídica do disclaimer
-de investimento traduzido, e confirmação visual num browser real em todas as
-páginas e nos 6 idiomas — ver últimas entradas do histórico.
+Em progresso — branch `feature/fase-8-seguranca-qualidade` criado a partir de
+`main` em 2026-09-22. Âmbito desta sessão, acordado explicitamente com o
+utilizador: pontos 1-3 da especificação (validação/rate limiting, sessão
+assinada, 2FA). Levantado a propósito do 2FA e acrescentado à especificação
+como novo ponto 4 (não implementado ainda): bloqueio da app por biometria no
+Android, camada de conveniência sobre a sessão já existente. Pontos 5-11
+(webhooks, testes automatizados, performance, observabilidade, legal, dados,
+dívida técnica) ainda não foram iniciados. Ver histórico para o detalhe do
+que foi implementado e testado nesta sessão.
 
 ## Objetivos
 
-FASE 7 — Internacionalização (Idiomas + Métodos de Pagamento por País). Dois
-sinais independentes, nunca confundidos: o **idioma da UI** segue a
-preferência de idioma do browser/dispositivo (`Accept-Language`), com override
-manual persistente nas Configurações — localização física é irrelevante (um
-português a viajar continua a querer PT-PT); os **métodos de pagamento
-pré-pagos disponíveis** seguem o país detetado por geolocalização de IP — é
-uma questão de que rails bancários existem nesse país, não de preferência do
-utilizador. 6 idiomas no lançamento (PT-PT, EN, FR, DE, IT, ES), com **EN como
-fallback universal** para qualquer idioma de browser não suportado. Biblioteca
-`@nuxtjs/i18n`; geolocalização via MaxMind GeoLite2 (base de dados local, sem
-chamadas externas por pedido). Âmbito de pagamento deliberadamente limitado:
-tabela país → métodos, mas só Portugal (MB WAY/Multibanco, já existente desde
-a Fase 2) implementado a fundo; qualquer outro país cai no fallback universal
-de cartão com auto-renovação (EasyPay, `billingMode: 'auto'`).
+FASE 8 — Segurança, Qualidade e Preparação para Produção. Não adiciona
+funcionalidades novas — endurece o que já existe antes da Fase 9
+(publicação), para deixar a aplicação pronta para expor a utilizadores reais,
+com pagamentos reais, em web e Android.
 
-Ler `context/features/07-FASE-7-internacionalizacao.md` para a especificação
-completa (5 decisões de arquitetura, 6 tarefas, critérios de aceitação),
-`02-FASE-2-sistema-subscricoes.md` (EasyPay/MB WAY/Multibanco),
-`05-FASE-5-scan-documentos-ia.md` (digitalização de documentos, ver tarefa 6
-abaixo) e `00-CODE-SPEC.md` secções 3 e 4.
+Ler `context/features/08-FASE-8-seguranca-qualidade.md` para a especificação
+completa (10 tarefas, critérios de aceitação).
 
 Tarefas principais (ver especificação para detalhe completo):
-1. Infraestrutura de i18n — instalar `@nuxtjs/i18n`, ficheiros de tradução por
-   idioma (`i18n/locales/*.json`, organizados por página/secção), deteção
-   `Accept-Language` no primeiro acesso com override manual persistente (nunca
-   volta a detetar depois de o utilizador escolher), seletor de idioma em
-   `pages/settings/index.vue`
-2. Extração de strings (o trabalho mecanicamente maior) — auditoria de todo o
-   PT-PT hardcoded em `pages/`, `components/` e erros de servidor
-   (`createError({message})`); prioridade: auth/dashboard →
-   transações/categorias/grupos → subscrição/checkout/paywall →
-   previsões/insights de IA (Fase 3) → registo de investimentos (Fase 6) →
-   resto; `useFormatters` adaptado para receber o locale (inclui
-   `formatReturnPct`/`formatSignedCurrency` da Fase 6, que hoje fixam pt-PT);
-   texto de servidor da Fase 6 (erros de `/api/investments`,
-   `ASSET_CLASS_LABEL`, prompt e **disclaimer** das dicas de investimento em
-   `server/utils/investmentTips.ts` — disclaimer traduzido a rever
-   **juridicamente** por idioma, não só traduzido); tradução das 6 línguas com
-   revisão de qualidade (não confiar só em tradução automática, sobretudo
-   termos financeiros)
-3. Geolocalização por IP (server-side) — MaxMind GeoLite2
-   (`server/utils/geo.ts`), lookup do IP do pedido → código de país; documentar
-   o processo de atualização periódica (mensal) da base de dados
-4. Métodos de pagamento por país — `shared/paymentMethods.ts` (tabela país →
-   métodos pré-pagos; hoje só `PT: ['mbway', 'multibanco']`, resto `[]`);
-   `create-prepaid.post.ts` valida no servidor que o método pedido está
-   disponível para o país detetado (nunca confiar só na UI a esconder
-   opções); `pages/subscription/index.vue` só mostra o separador
-   MB WAY/Multibanco quando o país detetado tiver métodos disponíveis
-5. Android — confirmar que o idioma detetado/escolhido no WebView do
-   Capacitor coincide com o da app web (mesma conta, mesmo idioma)
-6. Digitalização de documentos (Fase 5) em contexto internacional — levantado
-   ao concluir a Fase 5; **cada decisão abaixo exige confirmação do
-   utilizador antes de implementar**: moeda (converter para € à taxa do dia
-   vs. guardar a moeda por transação — lean inicial: converter, fonte de
-   câmbios por confirmar), formato de datas ambíguas (`DOCUMENT_SYSTEM_PROMPT`
-   assume dia/mês/ano; passar país/idioma ao modelo e marcar `confidence.date:
-   'low'` quando ambíguo), idioma do prompt de extração (hoje fixo em PT-PT,
-   passa a seguir o idioma ativo), recibos de vencimento (fora de âmbito da
-   Fase 5 — valor líquido vs. bruto, por decidir se entram), privacidade/RGPD
-   de dados pessoais (NIF, morada, salário) enviados à Anthropic
-
-Fora de âmbito nesta fase: métodos de pagamento locais de outros países além
-de Portugal (Bancontact, iDEAL, etc. — trabalho futuro incremental, país a
-país), tradução de conteúdo gerado por IA (Fase 3) para outro idioma além do
-ativo no momento do pedido, mais do que as 6 línguas confirmadas.
+1. Validação e segurança de input — schema Zod em todos os endpoints
+   `server/api/**`, uniformizar erros da Anthropic para nunca expor o corpo
+   da resposta do fornecedor ao client, reforçar sanitização de IDs, rate
+   limiting em endpoints sensíveis (login, registo, checkout, webhooks,
+   insights de IA)
+2. Sessão e cookies em produção — **crítico**: assinar a sessão e remover a
+   autenticação por header `x-user-id` (hoje `requireAuth` aceita esse
+   header em claro, sem assinatura, como alternativa ao cookie `userId`);
+   cookies `secure`/`sameSite`/expiração; CORS de produção; segredos só por
+   variável de ambiente
+3. Autenticação de dois fatores (2FA) — opcional, só por app autenticadora
+   (TOTP: Google Authenticator/Authy/1Password via `otpauth`/`speakeasy` +
+   `qrcode`); email e SMS ficaram deliberadamente fora de âmbito (o projeto
+   não tem infraestrutura de envio de nenhum dos dois); inclui códigos de
+   recuperação de uso único e rate limiting dedicado no endpoint de
+   verificação do código
+4. Webhooks — confirmar que todos os handlers da EasyPay (que não assina
+   webhooks) verificam a autenticidade consultando a API de volta pelo `id`
+   do recurso, e que eventos repetidos são idempotentes
+5. Testes automatizados — unit (Vitest), integração (auth, transactions,
+   subscription, insights/IA com mocks, `/api/investments`) e E2E
+   (Playwright) do fluxo principal e da internacionalização (Fase 7)
+6. Performance — Lighthouse web + auditoria Android, lazy-load do
+   TensorFlow.js, code-splitting, teste em dispositivo Android de gama baixa
+7. Observabilidade — Sentry (client + server), logging estruturado de
+   eventos críticos
+8. Conformidade legal — política de privacidade, termos de serviço,
+   checklist RGPD
+9. Estratégia de dados — backups do MongoDB, plano de rollback de schema,
+   criar os índices Mongoose que nunca chegaram a existir por causa do
+   `bufferCommands: false`
+10. Dívida técnica conhecida — aviso de hidratação num `<span>` visto só na
+    app Android, origem por identificar
 
 ## Notas
 
-- Decisões de arquitetura da especificação (dois sinais independentes
-  idioma/país, 6 idiomas com EN como fallback universal, `@nuxtjs/i18n`,
-  MaxMind GeoLite2, âmbito de pagamento limitado a Portugal) não devem ser
-  reabertas sem motivo forte — ver secção dedicada no ficheiro da fase.
-- Deliberadamente depois do Design System (Fase 4), da Digitalização de
-  Documentos (Fase 5) e do Registo de Investimentos (Fase 6) — traduzir só
-  depois de todo o UI estar estruturalmente estável evita retrabalho (extrair
-  strings de um template que ainda vai ser reescrito é desperdício).
-- A tarefa 6 (documentos estrangeiros) tem várias decisões por confirmar com o
-  utilizador antes de implementar — não assumir nenhuma sem essa confirmação.
-- Confirmar a cobertura da EasyPay fora de Portugal (cartões emitidos noutros
-  países; Débito Direto SEPA só faz sentido em países SEPA) antes de a
-  prometer no checkout.
-- Pendências transversais herdadas de fases anteriores, ainda por resolver
-  (não são âmbito desta fase, mas ficam o lembrete): ⚠️ **BLOQUEADOR antes de
-  produção** — `android/app/src/main/AndroidManifest.xml` tem
+- O ponto 2 (assinar a sessão, remover `x-user-id`) é o item mais crítico
+  desta fase — foi usado em testes manuais de várias fases anteriores, por
+  isso convém confirmar que nenhum script/endpoint ainda depende dele antes
+  de o remover.
+- 2FA (ponto 3) ficou deliberadamente restrito a app autenticadora (TOTP) por
+  pedido explícito do utilizador — email e SMS foram considerados e
+  descartados por exigirem infraestrutura de envio que o projeto não tem
+  hoje; não reabrir sem pedido explícito.
+- Pendências transversais herdadas de fases anteriores que esta fase deve
+  resolver: ⚠️ **BLOQUEADOR antes de produção** —
+  `android/app/src/main/AndroidManifest.xml` tem
   `android:usesCleartextTraffic="true"` (ligado para testar via USB, reverter
-  para `"false"` antes de qualquer build de release, tarefa da Fase 9); índices
-  `unique` do Mongoose nunca criados (`server/plugins/mongoose.ts` liga com
-  `bufferCommands: false`); `requireAuth` autentica por cookie `userId` **ou**
-  header `x-user-id` em claro, sem assinatura (a resolver na Fase 8).
+  para `"false"` antes de qualquer build de release — a especificação
+  original deixa esta reversão para a Fase 9, confirmar se ainda faz
+  sentido); índices `unique` do Mongoose nunca criados (ponto 9); `requireAuth`
+  autentica por cookie `userId` **ou** header `x-user-id` em claro (ponto 2).
 - Testar sempre em pelo menos mobile (emulador/dispositivo Android) e desktop
   (janela larga), incluindo tablet/ultra-wide — ver `AGENT-RULES.md` ("Testes
   manuais mínimos").
 
 ## Critérios de aceitação
 
-- App abre automaticamente no idioma do browser quando é um dos 6 suportados,
-  e em EN quando não é
-- Escolha manual de idioma nas Configurações persiste e nunca é substituída
-  por deteção automática depois de escolhida
-- Nenhuma string visível fica por traduzir em nenhuma das 6 línguas (auditoria
-  completa, não amostragem)
-- Checkout de subscrição só mostra MB WAY/Multibanco para utilizadores com
-  país detetado = Portugal; todos os outros só veem a opção recorrente
-- `POST /api/subscription/easypay/create-prepaid` rejeita (403/400) um pedido
-  de `paymentMethod` não disponível no país do utilizador, mesmo que a UI
-  tenha sido adulterada
-- Datas/moeda mostradas corretamente formatadas para cada um dos 6 idiomas
-- Um recibo/fatura numa moeda diferente de € é tratado segundo a decisão
-  confirmada (convertido ou guardado com a moeda) — nunca gravado como € sem
-  aviso
-- Um recibo com data ambígua (ex. `03/04`) não é gravado com o mês trocado em
-  silêncio: fica com a data realçada como baixa confiança
+- Suite de testes (unit + integração + e2e principal) corre em CI e passa
+- Nenhum segredo no repositório; `.env.example` atualizado e completo
+- A sessão é assinada e o header `x-user-id` já não autentica nada (testado
+  com um `_id` válido de outro utilizador)
+- Um utilizador consegue ativar 2FA (TOTP), fazer login com o segundo fator,
+  e recuperar o acesso com um código de recuperação caso perca o dispositivo
+- Nenhum endpoint devolve ao client o corpo de um erro de um fornecedor
+  externo (Anthropic, EasyPay, Twelve Data)
+- Webhooks validam assinatura e são idempotentes (testado com reenvio de
+  evento)
+- Lighthouse web ≥ 90 em Performance e Acessibilidade (ou justificação
+  documentada dos itens não atingidos)
+- Política de privacidade e termos de serviço publicados e linkados na app
 
 ## Histórico
 
@@ -1441,3 +1410,251 @@ ativo no momento do pedido, mais do que as 6 línguas confirmadas.
   que continuam por fazer e não bloqueiam o merge). Branch mergeada em
   `main` (merge commit) e removida nesta sessão. Estado passa a
   "Concluída".
+- 2026-09-22: Definida como funcionalidade atual — FASE 8 (Segurança,
+  Qualidade e Preparação para Produção), especificação em
+  `context/features/08-FASE-8-seguranca-qualidade.md`. Antes de iniciar a
+  implementação, o utilizador pediu para acrescentar a esta especificação a
+  possibilidade de autenticação de dois fatores (2FA); depois de considerar
+  as três opções (app autenticadora/TOTP, email, SMS) e confirmar por
+  pesquisa no código que o projeto não tem hoje nenhuma infraestrutura de
+  envio de email nem SMS, o utilizador decidiu manter só a app autenticadora
+  (TOTP) — passou a ser o novo ponto 3 da especificação, com os pontos
+  seguintes renumerados (4-10). Estado inicial: não iniciada.
+- 2026-09-22: Branch `feature/fase-8-seguranca-qualidade` criado a partir de
+  `main`. Estado passa a "Em progresso". A pedido do utilizador, o âmbito
+  desta sessão ficou limitado aos pontos 1-3 da especificação (segurança
+  crítica) — confirmado antes de começar, dado o tamanho da fase completa.
+  - **Ponto 2 (sessão assinada, crítico)**: `server/utils/session.ts` (novo)
+    — cookie `session` assinado por HMAC-SHA256 (`SESSION_SECRET`), com
+    `userId` + expiração + um `purpose` ('session' vs '2fa-pending') dentro do
+    valor assinado, para um cookie de um tipo nunca poder ser reaproveitado
+    como o outro. `requireAuth` (`server/utils/auth.ts`) deixa de aceitar o
+    header `x-user-id` **por completo** — confirmado por grep que nada mais
+    no código dependia dele. `middleware/auth.global.ts` atualizado para o
+    novo nome de cookie (só verificação de presença em SSR, a validação real
+    da assinatura continua a acontecer sempre a seguir). Cookies mantêm
+    `secure`/`sameSite`/expiração já existentes, agora centralizados.
+    `server/middleware/00-cors.ts` (novo) — restringe CORS a
+    `CORS_ALLOWED_ORIGINS`/`APP_URL`, nunca `*` (cookies de sessão viajam nos
+    pedidos). **Auditoria de segredos**: `.env.example` tinha a chave real da
+    Anthropic, da Twelve Data, e o caminho local do GeoLite2 do utilizador —
+    estava no `.gitignore` (nunca chegou a ser commitado), mas ainda assim
+    substituído por placeholders; `.env.example` deixa de estar no
+    `.gitignore` para poder ser rastreado como template. `SESSION_SECRET` e
+    `TWO_FACTOR_ENCRYPTION_KEY` gerados e adicionados ao `.env` local (nunca
+    commitado) para o dev server continuar a funcionar.
+  - **Ponto 3 (2FA por TOTP)**: `server/utils/twoFactor.ts` (novo) — `otpauth`
+    para gerar/validar o código de 6 dígitos, `qrcode` para o QR do setup,
+    segredo encriptado em repouso (AES-256-GCM, `TWO_FACTOR_ENCRYPTION_KEY`,
+    nunca em texto simples), 10 códigos de recuperação por ativação (hash
+    SHA-256, uso único, comparação em tempo constante). Novos campos em
+    `User` (`twoFactorEnabled`, `twoFactorSecret`, `twoFactorBackupCodes`,
+    todos `select: false` exceto o primeiro). Quatro endpoints novos em
+    `server/api/auth/2fa/`: `setup` (gera segredo+QR, não ativa),
+    `enable` (confirma um código real antes de ativar, devolve os códigos de
+    recuperação em texto simples uma única vez), `verify` (2.º passo do
+    login — sem `requireAuth`, lê o cookie `pending_2fa` de 10 min emitido
+    por `session.ts` quando a password está certa mas falta o 2FA; aceita
+    TOTP ou código de recuperação), `disable` (exige password atual + um
+    código válido). Client: `stores/auth.ts` (`signInWithPassword` devolve
+    `{ twoFactorRequired: true }` em vez de user quando aplicável;
+    `verifyTwoFactor`/`setTwoFactorEnabled` novos), `pages/login.vue` (passo
+    extra de UI para o código), `components/settings/TwoFactorCard.vue`
+    (novo — ativar/desativar, mostrado em `pages/settings/index.vue`).
+    Chaves i18n novas (`auth.twoFactor*`, `settings.twoFactor.*`) traduzidas
+    nas 6 línguas (qualidade não revista por falante nativo, mesma ressalva
+    de sempre nas strings novas desta sessão).
+  - **Ponto 1 (parcial — ver spec para o detalhe exato do que ficou por
+    fazer)**: `server/utils/rateLimit.ts` (novo, em memória — assume-se
+    single-process, decisão da Fase 1; documentado no próprio ficheiro) 
+    aplicado a login/registo (duas camadas: por IP e por IP+email),
+    `2fa/verify` (5/10min, chaveado pelo userId pendente — pedido explícito
+    da especificação por ser alvo natural de força bruta), criação de
+    checkout EasyPay, webhook EasyPay, `insights/stats`, `insights/investment`
+    e `transactions/scan` (custo direto de chamadas à Anthropic).
+    `server/utils/anthropic.ts` uniformizado: o detalhe cru de qualquer falha
+    (HTTP, resposta sem texto, JSON inválido) fica só no `console.error`, o
+    client recebe sempre a mesma mensagem genérica — antes disto só
+    `transactions/scan.post.ts` escondia o detalhe, `insights/stats` e
+    `insights/investment` deixavam passar o erro cru da Anthropic. Zod
+    (`server/utils/validate.ts`, novo helper com mensagens localizáveis via
+    `serverT`) introduzido em `auth/session.ts`, `auth/2fa/**`,
+    `transactions/index.ts` + `[id].ts`, `categories/index.ts`,
+    `groups/index.ts`, e `server/utils/investments.ts` migrado por completo
+    da validação manual (era o pedido explícito da especificação). Por
+    migrar ainda: `categories/[id].ts`, `groups/[id].ts`,
+    `subscription/easypay/create-*.ts`, `insights/stats.post.ts` e
+    `insights/investment.post.ts` — continuam com a validação manual que já
+    tinham (funcional, só não passou a usar Zod).
+  - **Testado em dev local** contra o MongoDB Atlas real (contas de teste
+    `@example.com`, apagadas no fim desta sessão): fluxo completo de
+    registo → 2FA setup → enable (código TOTP real gerado por `otpauth`) →
+    logout → login → `twoFactorRequired` → verify com TOTP e com código de
+    recuperação → reutilização do mesmo código de recuperação rejeitada
+    (401) → rate limit do `2fa/verify` a bloquear corretamente ao fim de 5
+    tentativas (429, inclusive bloqueando uma tentativa válida a seguir,
+    como esperado de um rate limit) → `GET /api/auth/session` com o header
+    `x-user-id` de uma conta real, sem cookie nenhum, devolve `{ user: null }`
+    (o critério de aceitação exato da especificação). `npm run type-check`
+    corrido antes e depois das alterações — nenhum erro novo introduzido além
+    de um (`resolveTransactionAmount` a receber `string|number` em vez de
+    `string|Date`, corrigido); os restantes erros reportados são todos
+    pré-existentes (padrão sistémico de `$fetch<T>()`/`.lean()` em todo o
+    projeto, já presente antes desta sessão, consistente com
+    `typescript.typeCheck: false` estar desligado no `nuxt.config.ts`).
+- 2026-09-22: O utilizador reportou que o login estava a demorar muito.
+  Investigado com medições diretas (curl + script isolado a medir cada
+  operação): **bug real, pré-existente, não introduzido por esta fase** —
+  `seedDefaultBudget()` (`server/api/auth/session.ts`) corre 32 escritas no
+  MongoDB (9 grupos + 23 categorias) em **série** (um `await` a seguir ao
+  outro dentro de um `for`), e é chamada em **todo** login e em **todo**
+  `GET /api/auth/session` (ou seja, no arranque de qualquer página). Corrigido
+  para correr cada fase (grupos, depois categorias — a 2.ª depende do
+  `groupMap` da 1.ª, por isso as duas fases continuam sequenciais entre si)
+  em paralelo com `Promise.all`, mantendo exatamente o mesmo resultado (os
+  upserts já eram idempotentes). Medido antes/depois em dev local contra o
+  Atlas real: ~2,0-2,5s por pedido de login antes, ~1,2s depois (a
+  latência de rede do próprio Atlas para este cluster ronda os 100-160ms por
+  operação simples, por isso paralelizar ~32 operações em 2 lotes em vez de
+  32 pedidos sequenciais faz uma diferença real).
+  **Dois fatores adicionais identificados, não corrigidos** (fora do âmbito
+  desta correção pontual, por serem sensíveis ou de infraestrutura):
+  1. `scryptSync` (hash da password, `server/utils/password.ts`) demora
+     ~500-700ms nesta máquina com os parâmetros por omissão do Node
+     (`N=16384`) — bem mais lento do que o típico (50-100ms), mas **pré-
+     existente e não alterado**: o parâmetro de custo nunca fica guardado no
+     hash (`salt:hash` em hex), por isso baixá-lo invalidaria a verificação
+     de **todas** as passwords já criadas — mudança que precisa de decisão
+     explícita do utilizador antes de ser feita, nunca unilateral.
+  2. Latência do próprio cluster MongoDB Atlas (~100-160ms por operação
+     simples, medido diretamente) — parece alta para uma ligação normal;
+     pode ser a região do cluster, rede local, ou o plano gratuito (M0);
+     não é algo que se resolva no código.
+  Testado o fluxo de login de ponta a ponta depois da correção (conta de
+  teste `@example.com`, apagada no fim, incluindo os grupos/categorias que
+  criou). Ficheiro afetado: só `server/api/auth/session.ts` (função
+  `seedDefaultBudget`) — sem mudanças de comportamento, só de concorrência.
+  - **Por fazer**: completar a migração Zod dos endpoints listados acima;
+    pontos 4-11 da especificação (bloqueio por biometria no Android,
+    webhooks, testes automatizados, performance, observabilidade, legal,
+    estratégia de dados, dívida técnica) — nada disto foi iniciado nesta
+    sessão; confirmar visualmente em browser o novo passo de 2FA no login e
+    o cartão de Configurações
+    (só testado via API nesta sessão, não na UI real).
+- 2026-09-22: A propósito do 2FA, o utilizador notou que apps financeiros no
+  telemóvel costumam desbloquear por biometria em vez de pedir sempre
+  password/código. Esclarecido que isto seria uma camada de conveniência
+  sobre a sessão já existente (o cookie de 30 dias já persiste na WebView
+  Android, não é login novo) — um ecrã de bloqueio que pede impressão
+  digital/Face ID sempre que a app volta do fundo, via plugin Capacitor (ex.
+  `capacitor-native-biometric`), nunca substituindo a autenticação real
+  contra o servidor. A pedido do utilizador, acrescentada à especificação da
+  Fase 8 como novo ponto 4 (`context/features/08-FASE-8-seguranca-qualidade.md`),
+  com os pontos seguintes renumerados (5-11). Só Android (sem iOS, decisão já
+  tomada em fases anteriores). Não implementado nesta sessão.
+- 2026-09-24: 2FA e login testados pelo utilizador no telemóvel Android real
+  (app instalada aponta para `localhost:3100` via `adb reverse`; um pedido de
+  autorização USB tinha desaparecido e foi preciso reiniciar o servidor ADB).
+  Seguiram-se as tarefas que não dependem de decisões do utilizador nem de
+  contas externas:
+  - **Ponto 5 (webhooks) — 4 falhas reais de integridade de pagamentos**,
+    todas em `server/utils/subscriptionSync.ts`/`requireFeature.ts`:
+    (1) uma referência Multibanco/MB WAY **por pagar** (`status: 'pending'`)
+    dava acesso Pro/Premium completo — o servidor lia só `subscription.tier`;
+    (2) `syncCapture` confiava no `status` do corpo do webhook (não assinado),
+    por isso um POST forjado com o id de uma referência por pagar ativava o
+    plano, ou `status: 'failure'` punha a conta de outra pessoa em
+    `past_due`; (3) nada era idempotente: repetir um webhook, ou chamar
+    `/easypay/confirm` (endpoint de utilizador) com um checkout antigo,
+    reescrevia `currentPeriodEnd = agora + período` — período grátis
+    infinito, ou reativação de um plano expirado; (4) `/easypay/confirm`
+    aceitava o checkout de outra conta. Correções: `effectiveTier()` puro em
+    `shared/features.ts` (só `active`, ou `canceled`/`past_due` dentro do
+    período pago, dão acesso; pré-pagos fora do período voltam a gratuito em
+    tempo real — o cron de expiração não corre em lado nenhum), aplicado
+    também a `GET /api/subscription` para o client ver o mesmo que o servidor
+    aplica; resultado do pagamento lido da API EasyPay, nunca do corpo do
+    webhook; `User.subscription.appliedPaymentIds` (últimos 20 ids, nunca
+    limpo pela expiração) torna cada pagamento aplicável uma só vez;
+    `confirm` exige que o checkout pertença à sessão. **Não testado contra a
+    EasyPay sandbox real** (só por leitura de código + testes unitários do
+    `effectiveTier`) — convém repetir um checkout de cada método em sandbox
+    antes de confiar nisto. Segredo dos crons passou a comparação em tempo
+    constante (`server/utils/cron.ts`).
+  - **Ponto 1 concluído**: migração Zod dos endpoints que faltavam
+    (`groups/[id]`, `categories/[id]`, `create-subscription`,
+    `create-prepaid`, `confirm`, corpo opcional de `insights/stats`).
+  - **Ponto 10 (parcial)**: `scripts/sync-indexes.mjs` (`npm run
+    db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
+    encontrou duplicados; **não aplicado** — fica à espera de decisão do
+    utilizador (é aditivo, mas mexe na base de dados partilhada).
+  - **Ponto 6 (parcial)**: Vitest 3.x (a 5.x exige `@types/node` ≥22 e o
+    projeto está no 20) com 24 testes a passar em `tests/`
+    (`effectiveTier`/`hasFeature`, `shared/portfolio.ts`, TOTP e códigos de
+    recuperação do 2FA). Por fazer: integração, E2E, `useSubscription`,
+    `useFormatters`.
+  - **Não iniciados por precisarem de decisão/conta do utilizador**:
+    biometria (quando bloquear: sempre que volta do fundo ou após X minutos),
+    Sentry (conta/DSN), textos legais (revisão jurídica), performance/
+    Lighthouse.
+- 2026-09-24 (tarde): decididas as três pendências acima (índices: sim;
+  biometria: "o mais usual"; Sentry e legal: agora) e implementadas:
+  - **Índices Mongoose aplicados** no Atlas (14, 3 unique). Efeito
+    secundário tratado: com o unique `{userId,name}` de `categories` a existir
+    de verdade, o seed de `auth/session.ts` (agora em paralelo) ignora
+    `E11000` quando dois pedidos correm em simultâneo, senão partia o login.
+  - **Ponto 4 (biometria Android)**, `@capgo/capacitor-native-biometric` 8.x
+    (única das 3 candidatas que declara Capacitor ≥8). Bloqueia ao abrir e ao
+    voltar do fundo após 60 s — a tolerância evita pedir biometria a meio do
+    login ao ir buscar o código à app autenticadora. `stores/appLock.ts`,
+    `components/AppLockOverlay.vue`, `components/settings/BiometricLockCard.vue`.
+    **Armadilha do Capacitor que custou várias iterações**: o objeto do plugin
+    é um Proxy; devolvê-lo de uma função `async`/Promise faz o JS chamar
+    `.then` nele, o Capacitor trata-o como método nativo `then` que nunca
+    responde e a Promise fica pendurada para sempre, sem erro. O sintoma era
+    "sem resposta" logo ao ligar ao plugin, e foi atribuído primeiro (mal) ao
+    `import()` dinâmico. O acesso ao plugin é agora síncrono. Ativação
+    confirmada pelo utilizador no telemóvel real (Honor); o utilizador
+    reportou depois ter feito os testes de bloqueio ao reabrir/cancelar/
+    tolerância de 1 min, sem detalhar resultados — **não registei falhas, mas
+    também não vi os resultados um a um**.
+  - **Dúvida "desativar a biometria desativa o 2FA"**: o botão da biometria
+    só escreve `localStorage` e não há acoplamento no código. Experiência
+    controlada: 2FA reativado, biometria desligada, leitura da base de dados
+    antes/depois — `twoFactorEnabled` e `updatedAt` inalterados. **Não provou
+    o que aconteceu da primeira vez** (hipótese mais provável, não confirmada:
+    tocou-se no botão "Desativar" do cartão do 2FA, que era quase idêntico ao
+    da biometria). Cartão da biometria passou a ter ícone e textos próprios.
+  - **Ponto 8 (observabilidade)**: `@sentry/nuxt` 10.x (a 11.x exige um Vite
+    que o Nuxt 3.21 não usa; instalado com `--legacy-peer-deps` por causa do
+    peer opcional `nitro@3`) — só carrega com `SENTRY_DSN`, sem corpos/
+    cookies/cabeçalhos/Session Replay. **Servidor validado com um DSN real**
+    (erro 500 de teste chegou ao painel; o utilizador confirmou com uma
+    captura); browser/telemóvel e produção por validar.
+    Logging estruturado em JSON (`server/utils/logger.ts`,
+    `server/plugins/errorLog.ts`): login falhado, 2FA falhado, rate limit,
+    falha de captura de pagamento, falha de webhook (que agora responde 500
+    para a EasyPay reentregar), e todo o 5xx.
+  - **Ponto 9 (legal/RGPD)**: `GET /api/account/export` e `DELETE
+    /api/account` (password + código 2FA; cancela a subscrição com renovação
+    automática **antes** de apagar e recusa apagar se o cancelamento falhar);
+    UI em Configurações → Privacidade e dados. Textos legais escritos como
+    **rascunho** (`utils/legalContent.ts`, PT-PT e EN), páginas públicas
+    `/privacy` e `/terms` — as ligações no login foram confirmadas pelo
+    utilizador no telemóvel. Campos `[...]` por preencher e revisão jurídica
+    por fazer; `LEGAL_IS_DRAFT` continua `true`. **Exportação e eliminação
+    de conta nunca testadas.**
+  - **Ambiente de teste no telemóvel**: o `adb reverse` (túnel USB) perdeu-se
+    ~6 vezes numa tarde porque o cabo "piscava", gerando sintomas enganadores
+    (ecrã em branco, "página não disponível", login que não avança) que
+    pareciam bugs da app. Passou-se a testar por Wi-Fi: APK recompilado com
+    `CAPACITOR_SERVER_URL=http://192.168.11.224:3100` (IP do PC na LAN,
+    muda com o DHCP) e uma regra de firewall temporária, restrita à porta
+    3100/TCP e a `LocalSubnet`, **já removida pelo utilizador**. Consequência:
+    o APK instalado aponta agora a esse IP — sem regra de firewall a app
+    deixa de carregar. Para voltar ao USB: `adb reverse tcp:3100 tcp:3100`
+    e recompilar com `CAPACITOR_SERVER_URL=http://localhost:3100`.
+  - **Por fazer**: testar exportação/eliminação de conta; confirmar
+    visualmente as restantes traduções novas; preencher e rever o texto legal;
+    criar o projeto Sentry; os pontos 6 (integração/E2E), 7 (performance) e
+    a limpeza da dívida técnica (11).

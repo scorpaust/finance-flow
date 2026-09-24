@@ -61,7 +61,13 @@
     "signOut": "Cerrar sesión",
     "toastAccountCreated": "Cuenta creada",
     "toastSignedIn": "Sesión iniciada",
-    "errorGeneric": "Error de autenticación"
+    "errorGeneric": "Error de autenticación",
+    "twoFactorSubtitle": "Introduce el código de tu aplicación de autenticación",
+    "twoFactorCodeLabel": "Código de verificación",
+    "twoFactorCodePlaceholder": "Código de 6 dígitos",
+    "twoFactorHint": "¿Perdiste el acceso a tu dispositivo? También puedes usar uno de tus códigos de recuperación.",
+    "twoFactorSubmit": "Verificar",
+    "twoFactorBackButton": "Volver al inicio de sesión"
   },
   "dashboard": {
     "greetingMorning": "Buenos días",
@@ -135,6 +141,30 @@
       "description": "Idioma de la interfaz — no afecta a los métodos de pago disponibles, que dependen del país detectado.",
       "label": "Idioma de la app"
     },
+    "twoFactor": {
+      "title": "Autenticación de dos factores",
+      "description": "Añade un paso de verificación adicional al iniciar sesión mediante una app de autenticación (Google Authenticator, Authy, 1Password, etc.).",
+      "statusEnabled": "Activada",
+      "statusDisabled": "Desactivada",
+      "enableButton": "Activar 2FA",
+      "disableButton": "Desactivar",
+      "setupTitle": "Configurar la autenticación de dos factores",
+      "setupInstructions": "Escanea este código QR con tu app de autenticación e introduce el código de 6 dígitos que muestre para confirmar.",
+      "secretLabel": "¿No puedes escanearlo? Introduce este código manualmente",
+      "codeLabel": "Código de confirmación",
+      "codePlaceholder": "Código de 6 dígitos",
+      "confirmButton": "Confirmar y activar",
+      "backupCodesWarning": "Guarda estos códigos de recuperación en un lugar seguro — cada uno se puede usar una vez si pierdes el acceso a tu app de autenticación. No se volverán a mostrar.",
+      "backupCodesDoneButton": "Ya guardé mis códigos",
+      "disableTitle": "Desactivar la autenticación de dos factores",
+      "disablePasswordLabel": "Contraseña actual",
+      "disableCodeLabel": "Código de verificación",
+      "disableCodePlaceholder": "Código de 6 dígitos o código de recuperación",
+      "disableConfirmButton": "Desactivar",
+      "toastEnabled": "Autenticación de dos factores activada",
+      "toastDisabled": "Autenticación de dos factores desactivada",
+      "errorGeneric": "Algo salió mal — inténtalo de nuevo"
+    },
     "title": "Ajustes",
     "subtitle": "Gestiona categorías, grupos y preferencias",
     "profileTitle": "Perfil",
@@ -163,7 +193,28 @@
     "toastCategoryCreated": "¡Categoría creada!",
     "toastCategoryCreateError": "Error al crear",
     "toastCategoryDeleted": "Categoría eliminada",
-    "toastCategoryDeleteError": "Error al eliminar"
+    "toastCategoryDeleteError": "Error al eliminar",
+    "biometric": {
+      "title": "Bloqueo biométrico",
+      "description": "Pide huella dactilar o reconocimiento facial al abrir la app y al volver del segundo plano (tras 1 minuto).",
+      "enable": "Activar",
+      "toastEnabled": "Bloqueo biométrico activado",
+      "unavailable": "Biometría no disponible ahora mismo. Comprueba que tienes una huella o un rostro registrado en los Ajustes de Android.",
+      "retry": "Volver a comprobar",
+      "statusEnabled": "Bloqueo activo",
+      "statusDisabled": "Bloqueo desactivado",
+      "disable": "Desactivar el bloqueo"
+    },
+    "account": {
+      "title": "Privacidad y datos",
+      "description": "Descarga una copia de tus datos o elimina tu cuenta y todo lo asociado a ella.",
+      "export": "Exportar mis datos",
+      "delete": "Eliminar cuenta",
+      "deleteTitle": "Eliminar cuenta",
+      "deleteWarning": "Esto elimina de forma permanente tu cuenta, transacciones, categorías, grupos e inversiones. No se puede deshacer. Una suscripción con renovación automática se cancela antes.",
+      "deleteConfirm": "Eliminar para siempre",
+      "errorGeneric": "Algo salió mal — inténtalo de nuevo"
+    }
   },
   "transactionModal": {
     "editTitle": "Editar transacción",
@@ -680,5 +731,19 @@
     "median": "Mediana",
     "q1q3": "Q1–Q3",
     "minMax": "Min–Max"
+  },
+  "appLock": {
+    "title": "App bloqueada",
+    "subtitle": "Confirma tu identidad para continuar",
+    "unlock": "Desbloquear",
+    "signOut": "Cerrar sesión",
+    "reason": "Desbloquear FinanceFlow"
+  },
+  "legal": {
+    "back": "Volver",
+    "draftNotice": "Borrador — este texto aún no ha sido revisado por un jurista y tiene campos por rellenar.",
+    "englishOnly": "Este documento solo está disponible en portugués e inglés; se muestra la versión en inglés.",
+    "terms": "Términos del servicio",
+    "privacy": "Política de privacidad"
   }
 }

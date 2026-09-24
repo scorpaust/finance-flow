@@ -10,6 +10,7 @@ import {
 } from '../../utils/documentScan'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { TIER_LIMITS } from '../../../shared/features'
+import { enforceRateLimit } from '../../utils/rateLimit'
 
 // Digitalização de recibos/faturas com IA (Pro + Premium) — Fase 5, tarefa 3.
 // Recebe o ficheiro, extrai os campos e DEVOLVE-OS ao client. Nunca cria a
@@ -24,6 +25,9 @@ const PRICE_OUT_PER_MTOK = 5
 
 export default defineEventHandler(async (event) => {
   const { userId, tier } = await requireFeature(event, 'documentScan')
+  // Fase 8, ponto 1 — além do teto mensal (DocumentScanUsage), trava rajadas
+  // rápidas dentro desse mesmo teto (cada chamada custa dinheiro na Anthropic).
+  enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
 
   // Fase 7 — segue o idioma ativo da UI (cookie do @nuxtjs/i18n, ver
   // nuxt.config.ts → i18n e plugins/locale.ts); sem cookie (1.º pedido

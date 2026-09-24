@@ -173,7 +173,7 @@ export interface EasyPayResource {
   key?: string
   status?: string
   payment_status?: string
-  method?: { type?: string; entity?: string; reference?: string; expiration_date?: string } | string
+  method?: { type?: string; status?: string; entity?: string; reference?: string; expiration_date?: string } | string
   customer?: { key?: string; email?: string; name?: string }
   subscription_id?: string
   frequent_id?: string

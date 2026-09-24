@@ -11,7 +11,9 @@
     "postinstall": "nuxt prepare",
     "seed": "node scripts/seed.mjs",
     "migrate:subscriptions": "node scripts/migrate-subscriptions.mjs",
+    "db:sync-indexes": "node scripts/sync-indexes.mjs",
     "type-check": "nuxt typecheck",
+    "test": "vitest run",
     "build:android:assets": "cross-env NITRO_PRESET=static nuxi generate",
     "cap:sync": "cap sync android",
     "build:android": "npm run build:android:assets && npm run cap:sync",
@@ -24,12 +26,14 @@
     "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@capgo/capacitor-native-biometric": "^8.6.11",
     "@easypaypt/checkout-sdk": "^2.9.1",
     "@maxmind/geoip2-node": "^7.1.0",
     "@nuxt/image": "^1.7.0",
     "@nuxtjs/color-mode": "^3.4.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^0.5.1",
+    "@sentry/nuxt": "^10.75.3",
     "@sgratzl/chartjs-chart-boxplot": "^4.4.5",
     "@tensorflow/tfjs": "^4.20.0",
     "@vueuse/nuxt": "^10.9.0",
@@ -39,21 +43,26 @@
     "mongoose": "^8.3.4",
     "next-auth": "^4.24.7",
     "nuxt": "^3.11.2",
+    "otpauth": "^9.5.2",
     "pinia": "^2.1.7",
+    "qrcode": "^1.5.4",
     "vue": "^3.4.27",
     "vue-chartjs": "^5.3.0",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2",
     "@nuxtjs/tailwindcss": "^6.12.0",
     "@types/node": "^20.12.7",
+    "@types/qrcode": "^1.5.6",
     "@vite-pwa/nuxt": "^0.6.0",
     "autoprefixer": "^10.4.19",
     "cross-env": "^10.1.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^3.2.7"
   }
 }

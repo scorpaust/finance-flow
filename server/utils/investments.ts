@@ -1,7 +1,10 @@
-// Validação e serialização do registo de investimentos (Fase 6, tarefa 3). Ver
-// context/features/06-FASE-6-registo-investimentos.md. Validação manual, no
-// mesmo estilo de server/api/investor-profile/index.ts — o Zod só chega na Fase 8,
-// por isso as regras estão concentradas aqui para serem fáceis de migrar.
+// Validação e serialização do registo de investimentos (Fase 6, tarefa 3;
+// migrado de validação manual para Zod na Fase 8, ponto 1). Ver
+// context/features/06-FASE-6-registo-investimentos.md. As mensagens continuam
+// a vir de `serverT` (não de texto fixo do Zod) — são resolvidas no momento em
+// que o schema é construído (já sabemos o `locale` aqui), por isso chegam já
+// prontas a `server/utils/validate.ts`.
+import { z } from 'zod'
 import type { IInvestment } from '../models'
 import {
   ASSET_CLASSES,
@@ -14,6 +17,8 @@ import {
   type InvestmentDto,
 } from '../../shared/portfolio'
 import { serverT, type ServerLocale } from './i18n'
+import { validateBody } from './validate'
+import type { H3Event } from 'h3'
 
 export interface InvestmentFields {
   name: string
@@ -24,81 +29,88 @@ export interface InvestmentFields {
   currentValue: number
 }
 
-function invalid(message: string, code = 'invalid_investment') {
-  return createError({ statusCode: 400, message, data: { error: code } })
-}
-
-function parseAmount(
-  locale: ServerLocale,
-  value: unknown,
-  fieldKey: string,
-  opts: { min: number; exclusiveMin?: boolean }
-): number {
+function amountSchema(locale: ServerLocale, fieldKey: string, opts: { min: number; exclusiveMin?: boolean }) {
   const field = serverT(locale, fieldKey)
-  if (typeof value !== 'number' || !Number.isFinite(value)) throw invalid(serverT(locale, 'investments.errorInvalidValue', { field }))
-  if (opts.exclusiveMin ? value <= opts.min : value < opts.min) {
-    throw invalid(
-      opts.exclusiveMin
+  return z
+    .number(serverT(locale, 'investments.errorInvalidValue', { field }))
+    .refine((v) => Number.isFinite(v), serverT(locale, 'investments.errorInvalidValue', { field }))
+    .refine((v) => (opts.exclusiveMin ? v > opts.min : v >= opts.min), {
+      message: opts.exclusiveMin
         ? serverT(locale, 'investments.errorMustBeGreaterThan', { field, min: opts.min })
-        : serverT(locale, 'investments.errorCannotBeNegative', { field })
-    )
-  }
-  if (value > MAX_INVESTMENT_AMOUNT) throw invalid(serverT(locale, 'investments.errorValueTooHigh', { field }))
-  return roundMoney(value)
+        : serverT(locale, 'investments.errorCannotBeNegative', { field }),
+    })
+    .refine((v) => v <= MAX_INVESTMENT_AMOUNT, serverT(locale, 'investments.errorValueTooHigh', { field }))
+    .transform(roundMoney)
 }
 
-function parseDate(locale: ServerLocale, value: unknown): Date {
-  const d = typeof value === 'string' || typeof value === 'number' ? new Date(value) : null
+function dateSchema(locale: ServerLocale) {
   // Datas futuras são válidas de propósito (a data da folha de exemplo é
   // posterior à data em que a fase foi desenhada) — só se rejeita o absurdo.
-  if (!d || Number.isNaN(d.getTime()) || d.getFullYear() < 1900 || d.getFullYear() > 2100) {
-    throw invalid(serverT(locale, 'investments.errorInvalidDate'))
-  }
-  return d
+  return z.preprocess(
+    (v) => (typeof v === 'string' || typeof v === 'number' ? new Date(v) : v),
+    z.date(serverT(locale, 'investments.errorInvalidDate'))
+  ).refine((d) => d.getFullYear() >= 1900 && d.getFullYear() <= 2100, serverT(locale, 'investments.errorInvalidDate'))
 }
 
-function parseAssetClass(locale: ServerLocale, value: unknown): AssetClass | null {
-  if (value === undefined || value === null || value === '') return null
-  if (typeof value !== 'string' || !(ASSET_CLASSES as readonly string[]).includes(value)) {
-    throw invalid(serverT(locale, 'investments.errorInvalidAssetClass'))
-  }
-  return value as AssetClass
+function assetClassSchema(locale: ServerLocale) {
+  return z.preprocess(
+    (v) => (v === '' || v === undefined ? null : v),
+    z.enum(ASSET_CLASSES, serverT(locale, 'investments.errorInvalidAssetClass')).nullable()
+  )
 }
 
-function parseName(locale: ServerLocale, value: unknown): string {
-  if (typeof value !== 'string') throw invalid(serverT(locale, 'investments.errorInvalidName'))
-  const name = value.trim()
-  if (name.length < 1 || name.length > 80) throw invalid(serverT(locale, 'investments.errorNameLength'))
-  return name
+function nameSchema(locale: ServerLocale) {
+  return z
+    .string(serverT(locale, 'investments.errorInvalidName'))
+    .trim()
+    .min(1, serverT(locale, 'investments.errorNameLength'))
+    .max(80, serverT(locale, 'investments.errorNameLength'))
 }
 
-// POST — todos os campos obrigatórios exceto assetClass e reinforcement (default 0).
-export function parseInvestmentCreate(locale: ServerLocale, body: any): InvestmentFields & { valueUpdatedAt: Date } {
-  const initialAmount = parseAmount(locale, body?.initialAmount, 'investments.fieldInitialAmount', { min: 0, exclusiveMin: true })
-  const reinforcement = body?.reinforcement === undefined ? 0 : parseAmount(locale, body.reinforcement, 'investments.fieldReinforcement', { min: 0 })
+export async function parseInvestmentCreate(event: H3Event, locale: ServerLocale): Promise<InvestmentFields & { valueUpdatedAt: Date }> {
+  const schema = z.object({
+    name: nameSchema(locale),
+    assetClass: assetClassSchema(locale).optional(),
+    initialAmount: amountSchema(locale, 'investments.fieldInitialAmount', { min: 0, exclusiveMin: true }),
+    initialDate: dateSchema(locale),
+    reinforcement: amountSchema(locale, 'investments.fieldReinforcement', { min: 0 }).default(0),
+    currentValue: amountSchema(locale, 'investments.fieldCurrentValue', { min: 0 }),
+  })
+
+  const body = await validateBody(event, schema)
   return {
-    name: parseName(locale, body?.name),
-    assetClass: parseAssetClass(locale, body?.assetClass),
-    initialAmount,
-    initialDate: parseDate(locale, body?.initialDate),
-    reinforcement,
-    currentValue: parseAmount(locale, body?.currentValue, 'investments.fieldCurrentValue', { min: 0 }),
+    name: body.name,
+    assetClass: body.assetClass ?? null,
+    initialAmount: body.initialAmount,
+    initialDate: body.initialDate,
+    reinforcement: body.reinforcement,
+    currentValue: body.currentValue,
     valueUpdatedAt: new Date(),
   }
 }
 
 // PUT parcial — só valida os campos enviados; serve tanto a edição completa como
 // as ações rápidas ("Reforçar" e "Atualizar situação").
-export function parseInvestmentUpdate(locale: ServerLocale, body: any): Partial<InvestmentFields> {
+export async function parseInvestmentUpdate(event: H3Event, locale: ServerLocale): Promise<Partial<InvestmentFields>> {
+  const schema = z
+    .object({
+      name: nameSchema(locale).optional(),
+      assetClass: assetClassSchema(locale).optional(),
+      initialAmount: amountSchema(locale, 'investments.fieldInitialAmount', { min: 0, exclusiveMin: true }).optional(),
+      initialDate: dateSchema(locale).optional(),
+      reinforcement: amountSchema(locale, 'investments.fieldReinforcement', { min: 0 }).optional(),
+      currentValue: amountSchema(locale, 'investments.fieldCurrentValue', { min: 0 }).optional(),
+    })
+    .partial()
+
+  const body = await validateBody(event, schema)
   const out: Partial<InvestmentFields> = {}
-  if (body?.name !== undefined) out.name = parseName(locale, body.name)
-  if (body?.assetClass !== undefined) out.assetClass = parseAssetClass(locale, body.assetClass)
-  if (body?.initialAmount !== undefined) {
-    out.initialAmount = parseAmount(locale, body.initialAmount, 'investments.fieldInitialAmount', { min: 0, exclusiveMin: true })
-  }
-  if (body?.initialDate !== undefined) out.initialDate = parseDate(locale, body.initialDate)
-  if (body?.reinforcement !== undefined) out.reinforcement = parseAmount(locale, body.reinforcement, 'investments.fieldReinforcement', { min: 0 })
-  if (body?.currentValue !== undefined) out.currentValue = parseAmount(locale, body.currentValue, 'investments.fieldCurrentValue', { min: 0 })
+  if (body.name !== undefined) out.name = body.name
+  if (body.assetClass !== undefined) out.assetClass = body.assetClass ?? null
+  if (body.initialAmount !== undefined) out.initialAmount = body.initialAmount
+  if (body.initialDate !== undefined) out.initialDate = body.initialDate
+  if (body.reinforcement !== undefined) out.reinforcement = body.reinforcement
+  if (body.currentValue !== undefined) out.currentValue = body.currentValue
   return out
 }
 

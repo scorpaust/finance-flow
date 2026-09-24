@@ -1,5 +1,6 @@
 import { MarketSnapshot } from '../../models'
 import { fetchMarketSnapshot } from '../../utils/marketData'
+import { requireCronSecret } from '../../utils/cron'
 
 // Job diário do snapshot de mercado (Fase 3, tarefa 5) — mesmo padrão do cron
 // de server/api/subscription/check-expirations.post.ts: sem scheduler no
@@ -10,12 +11,7 @@ import { fetchMarketSnapshot } from '../../utils/marketData'
 // (protege o limite de 800 pedidos/dia mesmo que o cron externo corra mais
 // do que uma vez no mesmo dia).
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const providedSecret = getHeader(event, 'x-cron-secret')
-
-  if (!config.cronSecret || providedSecret !== config.cronSecret) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
-  }
+  requireCronSecret(event)
 
   const today = new Date().toISOString().slice(0, 10)
 

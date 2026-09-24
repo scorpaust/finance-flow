@@ -19,6 +19,10 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
+    // Fase 8, ponto 8 — monitorização de erros. Só carrega com SENTRY_DSN
+    // definido: sem DSN a app não instrumenta nem envia nada (dev/testes
+    // nunca poluem o projeto Sentry, e um DSN em falta nunca parte o build).
+    ...(process.env.SENTRY_DSN ? ['@sentry/nuxt/module'] : []),
   ],
 
   // Fase 7 — Internacionalização. `strategy: 'no_prefix'` porque a app não
@@ -107,6 +111,15 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow',
+    // Fase 8, ponto 2 — assina o cookie de sessão (server/utils/session.ts).
+    // Sem valor por omissão de propósito: sem isto, TODAS as sessões seriam
+    // inválidas (falha alto e cedo, em vez de assinar com um segredo
+    // previsível/partilhado entre instalações).
+    sessionSecret: process.env.SESSION_SECRET || '',
+    // Fase 8, ponto 3 — chave de encriptação dos segredos TOTP em repouso
+    // (server/utils/twoFactor.ts). Também sem default: nunca deve ser
+    // previsível.
+    twoFactorEncryptionKey: process.env.TWO_FACTOR_ENCRYPTION_KEY || '',
     // Fase 2 — Subscrições (EasyPay: CC/DD, MB WAY, Multibanco). Ver context/CONFIG-REFERENCE.md.
     easypayEnv: process.env.EASYPAY_ENV || 'test',
     easypayAccountId: process.env.EASYPAY_ACCOUNT_ID || '',
@@ -127,6 +140,8 @@ export default defineNuxtConfig({
     // devolve sempre `null` (país desconhecido) em vez de rebentar.
     geoliteDbPath: process.env.GEOLITE2_DB_PATH || '',
     public: {
+      // O DSN do Sentry é público por desenho (vai no bundle do client).
+      sentryDsn: process.env.SENTRY_DSN || '',
       appUrl: process.env.APP_URL || 'http://localhost:3000',
       // Passado ao @easypaypt/checkout-sdk (opção `testing`) — não é secreto,
       // só diz ao SDK client-side qual API da EasyPay usar.
@@ -150,7 +165,10 @@ export default defineNuxtConfig({
   // TF.js is browser-only — pre-bundle for fast dynamic import, exclude from SSR
   vite: {
     optimizeDeps: {
-      include: ['@tensorflow/tfjs'],
+      // Os módulos do Capacitor são importados dinamicamente (só correm em
+      // nativo) — sem isto o Vite só os descobre na primeira utilização, o que
+      // reotimiza e recarrega a página a meio (ver stores/appLock.ts).
+      include: ['@tensorflow/tfjs', '@capacitor/core', '@capacitor/app'],
     },
     ssr: {
       noExternal: ['chart.js'],

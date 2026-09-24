@@ -106,14 +106,9 @@ npm run migrate:subscriptions
 
 ## 🔐 Autenticação
 
-A app usa autenticação **local** — sem OAuth externo. Regista uma conta diretamente no ecrã de login com nome, email e password (mínimo 8 caracteres). A password é guardada em hash com `scrypt` e a sessão é mantida via cookie `httpOnly`.
+A app usa autenticação **local** — sem OAuth externo. Regista uma conta diretamente no ecrã de login com nome, email e password (mínimo 8 caracteres). A password é guardada em hash com `scrypt` e a sessão é mantida via um cookie `httpOnly` assinado (HMAC, `SESSION_SECRET` — ver `server/utils/session.ts`); o antigo header `x-user-id` em claro foi removido (Fase 8, ponto 2).
 
-> ⚠️ **Limitação conhecida, a resolver antes de produção (Fase 8)**: o cookie de
-> sessão (`userId`) contém o `_id` do utilizador **em claro, sem assinatura**, e
-> `requireAuth` aceita também o header `x-user-id` com o mesmo valor. Quem
-> conhecer ou adivinhar um `_id` consegue agir como esse utilizador. Foi útil
-> para testar os endpoints à mão, mas não pode chegar a produção — ver
-> [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md).
+Suporta opcionalmente autenticação de dois fatores (2FA) por app autenticadora (TOTP — Google Authenticator, Authy, 1Password, etc.), ativável nas Configurações. Ver `server/utils/twoFactor.ts` e [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md) (ponto 3).
 
 ---
 

@@ -1,8 +1,10 @@
 import mongoose from 'mongoose'
+import { z } from 'zod'
 import { Transaction, AiInsightCache } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 import { generateStructuredJson } from '../../utils/anthropic'
 import { getServerLocale, type ServerLocale } from '../../utils/i18n'
+import { enforceRateLimit } from '../../utils/rateLimit'
 
 // Interpretação de estatísticas com IA (Pro + Premium) — Fase 3, tarefa 4.
 // Só agregados já calculados vão para o LLM (nunca descrições de transações
@@ -39,8 +41,9 @@ interface StatsInsightResult {
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'aiStatsInsights')
-  const body = await readBody<{ months?: number }>(event).catch(() => ({}))
-  const months = Math.max(1, Math.min(24, body?.months || 6))
+  // Corpo opcional: um POST sem corpo (ou com corpo inválido) usa o default de 6 meses.
+  const parsed = z.object({ months: z.coerce.number().int().optional() }).safeParse(await readBody(event).catch(() => ({})))
+  const months = Math.max(1, Math.min(24, (parsed.success && parsed.data.months) || 6))
   const locale = getServerLocale(event)
 
   const cached = await AiInsightCache.findOne({ userId }).lean()
@@ -51,6 +54,10 @@ export default defineEventHandler(async (event) => {
   ) {
     return { insights: cached.insights, suggestions: cached.suggestions, generatedAt: cached.generatedAt, cached: true }
   }
+
+  // Fase 8, ponto 1 — só limita gerações reais (custo direto na Anthropic),
+  // nunca leituras servidas pela cache de 24h acima.
+  enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
 
   const uid = new mongoose.Types.ObjectId(userId)
   const now = new Date()

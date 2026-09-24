@@ -41,6 +41,11 @@
       </select>
     </div>
 
+    <!-- Segurança (Fase 8, ponto 3) -->
+    <TwoFactorCard />
+    <BiometricLockCard />
+    <AccountDataCard />
+
     <!-- Subscription -->
     <div class="glass-card rounded-3xl p-6">
       <h3 class="font-semibold text-white mb-4 flex items-center gap-2"><Crown class="w-4 h-4 text-brand-400" /> {{ t('settings.subscriptionTitle') }}</h3>

@@ -29,6 +29,12 @@ export interface IUserSubscription {
   multibancoReference?: string
   multibancoExpiresAt?: Date | null
   reminderSentAt?: Date | null
+  // Fase 8, ponto 5 — ids de pagamento/checkout EasyPay já aplicados a esta
+  // conta (últimos 20). Idempotência: repetir um webhook, ou chamar
+  // /easypay/confirm outra vez com um checkout antigo, não volta a conceder
+  // nem a estender período pago. Nunca limpo pelo job de expiração — senão um
+  // checkout antigo reativava uma subscrição já expirada.
+  appliedPaymentIds?: string[]
 }
 
 const UserSubscriptionSchema = new Schema<IUserSubscription>(
@@ -45,6 +51,7 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
     multibancoReference:      { type: String },
     multibancoExpiresAt:      { type: Date, default: null },
     reminderSentAt:           { type: Date, default: null },
+    appliedPaymentIds:        { type: [String], default: [] },
   },
   { _id: false }
 )
@@ -83,6 +90,14 @@ export interface IUser extends Document {
   provider?: string
   subscription: IUserSubscription
   investorProfile?: IInvestorProfile
+  // Fase 8, ponto 3 — 2FA por app autenticadora (TOTP), único método suportado
+  // (ver context/features/08-FASE-8-seguranca-qualidade.md). `twoFactorSecret`
+  // nunca é guardado em texto simples (server/utils/twoFactor.ts encripta/
+  // desencripta); `twoFactorBackupCodes` guarda só hashes SHA-256, de uso
+  // único (removidos da lista à medida que são consumidos).
+  twoFactorEnabled: boolean
+  twoFactorSecret?: string
+  twoFactorBackupCodes?: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -97,6 +112,9 @@ const UserSchema = new Schema<IUser>(
     provider:      { type: String, default: 'password' },
     subscription:  { type: UserSubscriptionSchema, default: () => ({}) },
     investorProfile: { type: InvestorProfileSchema },
+    twoFactorEnabled:    { type: Boolean, default: false },
+    twoFactorSecret:     { type: String, select: false },
+    twoFactorBackupCodes: { type: [String], select: false, default: undefined },
   },
   { timestamps: true }
 )

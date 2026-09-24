@@ -5,6 +5,7 @@ interface User {
   name: string
   email: string
   image?: string
+  twoFactorEnabled?: boolean
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -33,10 +34,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Fase 8, ponto 3 — quando a conta tem 2FA ativo, o servidor não devolve
+  // `user` nenhum, só `{ twoFactorRequired: true }` (sessão ainda não
+  // concedida). O componente de login trata isto como um passo extra antes
+  // de navegar para o dashboard — ver pages/login.vue.
   async function signInWithPassword(payload: { email: string; password: string }) {
-    const data = await $fetch<{ user: User }>('/api/auth/session', {
+    const data = await $fetch<{ user?: User; twoFactorRequired?: boolean }>('/api/auth/session', {
       method: 'POST',
       body: { ...payload, action: 'login' },
+    })
+    if (data.twoFactorRequired) return { twoFactorRequired: true as const }
+
+    user.value     = data.user!
+    _fetched.value = true
+    return { twoFactorRequired: false as const, user: data.user! }
+  }
+
+  async function verifyTwoFactor(code: string) {
+    const data = await $fetch<{ user: User }>('/api/auth/2fa/verify', {
+      method: 'POST',
+      body: { code },
     })
     user.value     = data.user
     _fetched.value = true
@@ -51,6 +68,10 @@ export const useAuthStore = defineStore('auth', () => {
     user.value     = data.user
     _fetched.value = true
     return data.user
+  }
+
+  function setTwoFactorEnabled(enabled: boolean) {
+    if (user.value) user.value.twoFactorEnabled = enabled
   }
 
   async function signOut() {
@@ -68,6 +89,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     fetchSession,
     signInWithPassword,
+    verifyTwoFactor,
+    setTwoFactorEnabled,
     registerWithPassword,
     signOut,
   }

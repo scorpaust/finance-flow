@@ -228,7 +228,7 @@ reais, em web e Android.
       `effectiveTier`/`hasFeature`/matriz, `shared/portfolio.ts` e as funções
       puras do 2FA (TOTP + códigos de recuperação). **Por fazer**:
       `useSubscription`, `useFormatters`, previsão
-- [ ] Testes de integração para endpoints críticos: auth, transactions CRUD,
+- [x] Testes de integração para endpoints críticos: auth, transactions CRUD,
       subscription checkout/webhook (com mocks da EasyPay), insights/IA
       (com mocks da Anthropic e da Twelve Data — nunca chamadas reais nos
       testes, custam dinheiro), `/api/investments` (Fase 6: 403 a Free, 404 para
@@ -236,6 +236,32 @@ reais, em web e Android.
       `valueUpdatedAt` só mudar quando a Situação muda), a cache das dicas de
       investimento (`inputHash` + 24 h, com mock da Anthropic) e o
       `server/middleware/00-db.ts` (um pedido a frio não pode dar 500)
+      — **parcial, mas contra o servidor Nuxt/Nitro real**: `npm run
+      test:integration` (`vitest.integration.config.ts`,
+      `tests/integration/`), 12/12 a passar. `@nuxt/test-utils` 3.23 (a 4.x
+      exige vitest ^4/^5, o projeto está no 3.x), servidor arrancado em modo
+      `dev` (um build de produção completo — Sentry, TF.js, i18n, PWA —
+      demora vários minutos nesta máquina; medido nesta sessão), MongoDB em
+      memória (`mongodb-memory-server`, isolado do Atlas) e um servidor HTTP
+      local que finge a Anthropic/EasyPay (`tests/integration/stubProviders.ts`
+      — nunca chamadas reais). `easypayFetch`/`fetchMarketSnapshot` passaram a
+      aceitar um URL base por variável de ambiente só para isto (nunca
+      definida fora dos testes). Cobertos: registo (com/sem aceitar termos,
+      email duplicado), login (password errada/certa), limite de 50
+      transações/mês do plano Gratuito, `/api/investments` completo (403
+      Free, 404 de outra conta em GET e PUT, teto de 100, validação, regra do
+      `valueUpdatedAt`), checkout+webhook `subscription_create` com
+      idempotência (reenviar o mesmo evento não estende o período), e um
+      webhook forjado (`status: success` no corpo, id que a EasyPay não
+      reconhece) confirmado a não alterar nada. **Achado a caminho**: os
+      testes tiveram de simular um IP diferente por "utilizador" (cabeçalho
+      `X-Forwarded-For`) — a suite cria mais contas do que o limite de
+      registo (5/15min por IP) permitiria a partir de uma única origem; não
+      se tocou no limite em si, só se simulou corretamente contas de pessoas
+      diferentes. **Por fazer**: insights/IA (interpretação de estatísticas,
+      dicas de investimento, cache de 24h) e a asserção de assinatura/
+      idempotência do webhook `capture` (mbway/multibanco) — só o
+      `subscription_create` (CC/DD) tem teste automatizado
 - [ ] E2E (Playwright) do fluxo principal: registo → login → criar
       transação → ver dashboard → tentar aceder a previsões sem Premium
       (deve mostrar paywall) → upgrade sandbox → aceder a previsões

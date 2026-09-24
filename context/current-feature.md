@@ -1687,6 +1687,26 @@ Tarefas principais (ver especificação para detalhe completo):
     estado local dessincronizado. Agora respostas sem corpo são sucesso.
     **Ainda por confirmar em runtime**: o utilizador tem de voltar a cancelar
     na UI (só li a subscrição com GET; não apaguei nada da sandbox).
+  - **Testes de integração** (`npm run test:integration`, 12/12 a passar,
+    contra um servidor Nuxt/Nitro REAL, não simulações soltas):
+    `@nuxt/test-utils` 3.23 (a 4.x exige vitest ^4/^5; ficou-se pela 3.x, a
+    mesma limitação já encontrada com o Vitest em si), `mongodb-memory-server`
+    (isolado do Atlas), e um servidor HTTP local a fingir a Anthropic/EasyPay
+    (nunca chamadas reais — `tests/integration/stubProviders.ts`).
+    `easypayFetch`/`fetchMarketSnapshot` passaram a aceitar um URL base por
+    variável de ambiente só para isto. Arrancar o servidor em modo `dev`
+    (não um build de produção completo — Sentry+TF.js+i18n+PWA demoraram
+    >4 min e o `setupTimeout` esgotou na 1.ª tentativa, medido nesta sessão).
+    Cobre: registo/login, limite de transações do plano Gratuito,
+    `/api/investments` completo (403/404/teto/validação/`valueUpdatedAt`),
+    checkout+webhook `subscription_create` idempotente, e um webhook forjado
+    confirmado a não alterar nada. **Achado a meio do caminho, não um bug**:
+    a suite criava mais contas do que o limite de registo (5/15min por IP)
+    permitia a partir de uma única origem — corrigido simulando um
+    `X-Forwarded-For` diferente por "utilizador" de teste, sem tocar no
+    limite em si (estava a funcionar corretamente). **Por fazer**: insights/
+    IA e o webhook `capture` (MB WAY/Multibanco) — só `subscription_create`
+    (CC/DD) tem teste automatizado.
   - **Erros de EasyPay/Twelve Data uniformizados** (mesmo padrão já aplicado
     à Anthropic): `easypayFetch`/`fetchMarketSnapshot` deixam de devolver o
     texto cru do fornecedor ao cliente — log estruturado com o detalhe,

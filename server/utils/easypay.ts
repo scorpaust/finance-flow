@@ -15,10 +15,14 @@ import { logEvent } from './logger'
 // aviso) — confirmado por grep antes desta alteração.
 const EASYPAY_GENERIC_MESSAGE = 'Payment provider is temporarily unavailable — please try again shortly'
 
+// Fase 8, ponto 6 — `EASYPAY_API_BASE_URL` só existe nos testes de
+// integração, para apontar a um servidor simulado local (nunca EasyPay real
+// nos testes). Sem essa variável, o comportamento é exatamente o de sempre.
 const EASYPAY_API_BASE = () =>
-  useRuntimeConfig().easypayEnv === 'production'
+  process.env.EASYPAY_API_BASE_URL ||
+  (useRuntimeConfig().easypayEnv === 'production'
     ? 'https://api.easypay.pt/2.0'
-    : 'https://api.test.easypay.pt/2.0'
+    : 'https://api.test.easypay.pt/2.0')
 
 async function easypayFetch<T>(
   path: string,

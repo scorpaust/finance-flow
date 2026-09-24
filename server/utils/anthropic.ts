@@ -12,7 +12,11 @@
 // do tipo `{ type: 'json_schema', schema }` e header
 // `anthropic-beta: structured-outputs-2025-12-15` em `/v1/messages?beta=true`.
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages?beta=true'
+// Fase 8, ponto 6 — URL configurável só para os testes de integração
+// apontarem a um servidor simulado local em vez da Anthropic real (nunca
+// chamadas reais nos testes, custam dinheiro). Em produção/dev normal,
+// `ANTHROPIC_API_BASE_URL` nunca é definida e usa-se sempre o valor real.
+const ANTHROPIC_API_URL = `${process.env.ANTHROPIC_API_BASE_URL || 'https://api.anthropic.com'}/v1/messages?beta=true`
 const ANTHROPIC_VERSION = '2023-06-01'
 const STRUCTURED_OUTPUTS_BETA = 'structured-outputs-2025-12-15'
 const MODEL = 'claude-haiku-4-5'

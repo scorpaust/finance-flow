@@ -12,7 +12,8 @@
 
 import { logEvent } from './logger'
 
-const TWELVE_DATA_API_URL = 'https://api.twelvedata.com/quote'
+// Fase 8, ponto 6 — URL configurável só para os testes de integração.
+const TWELVE_DATA_API_URL = `${process.env.TWELVE_DATA_API_BASE_URL || 'https://api.twelvedata.com'}/quote`
 // Mesmo tratamento da EasyPay/Anthropic — detalhe cru só no log estruturado.
 // Só o cron de market-snapshot chama isto (nunca um pedido de utilizador),
 // mas uniformiza-se na mesma para não haver uma regra diferente por fornecedor.

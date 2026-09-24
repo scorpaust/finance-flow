@@ -4,6 +4,16 @@
 // Documentação consultada via Context7 (/websites/easypay_pt).
 
 import type { CheckoutManifest } from '@easypaypt/checkout-sdk'
+import { logEvent } from './logger'
+
+// Fase 8 — o mesmo tratamento já aplicado à Anthropic
+// (server/utils/anthropic.ts): o detalhe cru da EasyPay (que pode incluir
+// texto interno do fornecedor) fica só no log estruturado; quem chama nunca
+// vê mais do que "algo correu mal com o pagamento". Nenhum código neste
+// projeto decide o que fazer a seguir a partir do texto da mensagem (só
+// alguns sítios apanham a exceção e tentam outro caminho, ou registam um
+// aviso) — confirmado por grep antes desta alteração.
+const EASYPAY_GENERIC_MESSAGE = 'Payment provider is temporarily unavailable — please try again shortly'
 
 const EASYPAY_API_BASE = () =>
   useRuntimeConfig().easypayEnv === 'production'
@@ -34,7 +44,8 @@ async function easypayFetch<T>(
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    throw createError({ statusCode: 502, message: `Erro EasyPay (${res.status}): ${detail.slice(0, 500)}` })
+    logEvent('error', 'payment.easypay_upstream_error', { status: res.status, path, detail: detail.slice(0, 2000) })
+    throw createError({ statusCode: 502, message: EASYPAY_GENERIC_MESSAGE, data: { error: 'easypay_upstream_error' } })
   }
 
   // Respostas sem corpo são sucesso (ex. `DELETE /subscription/{id}` devolve

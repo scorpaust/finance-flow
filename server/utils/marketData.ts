@@ -10,7 +10,13 @@
 // GET /quote, símbolos separados por vírgula num único pedido — resposta
 // passa a ser um objeto chaveado por símbolo em vez de um único quote.
 
+import { logEvent } from './logger'
+
 const TWELVE_DATA_API_URL = 'https://api.twelvedata.com/quote'
+// Mesmo tratamento da EasyPay/Anthropic — detalhe cru só no log estruturado.
+// Só o cron de market-snapshot chama isto (nunca um pedido de utilizador),
+// mas uniformiza-se na mesma para não haver uma regra diferente por fornecedor.
+const TWELVE_DATA_GENERIC_MESSAGE = 'Market data provider is temporarily unavailable — please try again shortly'
 
 // Índices globais principais como contexto geral de mercado, não recomendação
 // de ativos específicos. Os símbolos "puros" de índice (ex. SPX, IXIC,
@@ -53,7 +59,8 @@ export async function fetchMarketSnapshot(): Promise<MarketIndexQuote[]> {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    throw createError({ statusCode: 502, message: `Erro Twelve Data (${res.status}): ${detail.slice(0, 500)}` })
+    logEvent('error', 'market.twelvedata_upstream_error', { status: res.status, detail: detail.slice(0, 2000) })
+    throw createError({ statusCode: 502, message: TWELVE_DATA_GENERIC_MESSAGE, data: { error: 'twelvedata_upstream_error' } })
   }
 
   const data = (await res.json()) as Record<string, TwelveDataQuote> | TwelveDataQuote

@@ -1687,13 +1687,22 @@ Tarefas principais (ver especificação para detalhe completo):
     estado local dessincronizado. Agora respostas sem corpo são sucesso.
     **Ainda por confirmar em runtime**: o utilizador tem de voltar a cancelar
     na UI (só li a subscrição com GET; não apaguei nada da sandbox).
+  - **Erros de EasyPay/Twelve Data uniformizados** (mesmo padrão já aplicado
+    à Anthropic): `easypayFetch`/`fetchMarketSnapshot` deixam de devolver o
+    texto cru do fornecedor ao cliente — log estruturado com o detalhe,
+    mensagem genérica na resposta. Testado no servidor real (id inexistente
+    → cliente vê a mensagem genérica; o log tem "Subscription Not Found").
+    Fecha o critério de aceitação correspondente.
   - **Sandbox EasyPay, resultados finais** (2026-09-24, confirmados na base
     de dados E diretamente na EasyPay): **cartão** (subscrição ativada,
     depois cancelada com sucesso pela UI — `GET /subscription/<id>` passou
     a 404 "Subscription Not Found", ou seja, a EasyPay deixou de cobrar),
     **MB WAY** (`paid`, 12,99 €) e **Multibanco** (`paid`, 15 €, 3 meses,
-    ativo até 24/12) — os três ids ficaram em `appliedPaymentIds`. Só o
-    **débito direto** ficou por testar.
+    ativo até 24/12) — os três ids ficaram em `appliedPaymentIds`. **Débito
+    direto testado depois** (2026-09-24, tarde): `paymentMethod: dd`,
+    `billingMode: auto`, id novo em `appliedPaymentIds`, cancelado a seguir
+    (confirmado idêntico ao cartão). **Os 4 métodos de pagamento estão agora
+    validados na sandbox.**
   - **Expiração testada em runtime** (conta descartável): cancelada e dentro
     do período mantém o plano (200); cancelada com o período terminado volta
     a gratuito (403, `tier: free`) em tempo real; o job

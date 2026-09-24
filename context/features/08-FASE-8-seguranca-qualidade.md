@@ -209,6 +209,13 @@ reais, em web e Android.
       fora do período pago voltam a gratuito em tempo real (o cron de
       expiração não corre em lado nenhum ainda)
 - [x] Segredo dos crons comparado em tempo constante (`server/utils/cron.ts`)
+- [x] Sandbox EasyPay validada nos 4 métodos (cartão, débito direto, MB WAY,
+      Multibanco) — confirmado na base de dados a cada um: `paymentMethod`,
+      `billingMode`, `appliedPaymentIds` a crescer; cartão e débito direto
+      também confirmados como cancelados diretamente na EasyPay (deixou de
+      cobrar, não só o registo local). Corrigido pelo caminho: caminho
+      singular `/subscription/{id}` (a Fase 2 usava o plural, 404 sempre) e
+      tratamento de respostas sem corpo (`DELETE` devolve 204)
 
 ### 6. Testes automatizados
 - [ ] Unit tests (Vitest) para: `useSubscription`, `useFormatters`,
@@ -358,8 +365,16 @@ reais, em web e Android.
       login → `twoFactorRequired` → verify com TOTP e com código de
       recuperação → reutilização do mesmo código de recuperação rejeitada →
       rate limit a bloquear ao fim de 5 tentativas)
-- [ ] Nenhum endpoint devolve ao client o corpo de um erro de um fornecedor
-      externo (Anthropic, EasyPay, Twelve Data)
+- [x] Nenhum endpoint devolve ao client o corpo de um erro de um fornecedor
+      externo (Anthropic, EasyPay, Twelve Data) — Anthropic já estava feito;
+      EasyPay e Twelve Data uniformizados na fonte (`easypayFetch`,
+      `fetchMarketSnapshot`, mesmo padrão): detalhe cru só no log estruturado
+      (`payment.easypay_upstream_error`/`market.twelvedata_upstream_error`),
+      mensagem genérica ao cliente. Confirmado por grep que nenhum código
+      decide o que fazer a partir do texto da mensagem (só apanha a exceção
+      para tentar outro caminho ou registar aviso). Testado no servidor real
+      com um id inexistente: cliente recebe a mensagem genérica, o log
+      guarda o detalhe verdadeiro ("Subscription Not Found")
 - [ ] Webhooks validam assinatura e são idempotentes (testado com reenvio de
       evento)
 - [ ] Lighthouse web ≥ 90 em Performance e Acessibilidade (ou justificação

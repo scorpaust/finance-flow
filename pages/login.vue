@@ -36,6 +36,7 @@
         <div v-if="step === 'credentials'" class="grid grid-cols-2 gap-1 bg-surface-700/50 rounded-2xl p-1 mb-6">
           <button
             type="button"
+            data-testid="login-tab-login"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'login' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('login')"
@@ -44,6 +45,7 @@
           </button>
           <button
             type="button"
+            data-testid="login-tab-register"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'register' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('register')"
@@ -60,6 +62,7 @@
               <input
                 v-model="form.name"
                 type="text"
+                data-testid="login-name"
                 class="form-input pl-9"
                 autocomplete="name"
                 :placeholder="t('auth.namePlaceholder')"
@@ -74,6 +77,7 @@
               <input
                 v-model="form.email"
                 type="email"
+                data-testid="login-email"
                 class="form-input pl-9"
                 autocomplete="email"
                 placeholder="nome@email.com"
@@ -89,6 +93,7 @@
               <input
                 v-model="form.password"
                 type="password"
+                data-testid="login-password"
                 class="form-input pl-9"
                 :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
                 :placeholder="t('auth.passwordPlaceholder')"
@@ -103,6 +108,7 @@
             <input
               v-model="form.acceptTerms"
               type="checkbox"
+              data-testid="login-accept-terms"
               class="mt-0.5 w-4 h-4 shrink-0 accent-brand-500"
               required
             />
@@ -126,6 +132,7 @@
 
           <button
             :disabled="loading"
+            data-testid="login-submit"
             class="btn-primary w-full flex items-center justify-center gap-2"
             type="submit"
           >

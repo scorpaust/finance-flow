@@ -15,6 +15,7 @@
     "type-check": "nuxt typecheck",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
     "build:android:assets": "cross-env NITRO_PRESET=static nuxi generate",
     "cap:sync": "cap sync android",
     "build:android": "npm run build:android:assets && npm run cap:sync",
@@ -57,6 +58,7 @@
     "@capacitor/cli": "^8.5.2",
     "@nuxt/test-utils": "^3.23.0",
     "@nuxtjs/tailwindcss": "^6.12.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^20.12.7",
     "@types/qrcode": "^1.5.6",
     "@vite-pwa/nuxt": "^0.6.0",
@@ -67,5 +69,8 @@
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "ofetch": "1.5.1"
   }
 }

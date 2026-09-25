@@ -1,5 +1,14 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, type Model } from 'mongoose'
 import { ASSET_CLASSES, type AssetClass } from '../../shared/portfolio'
+
+// Fase 8, ponto 6 — todo modelo abaixo é exportado com a anotação explícita
+// `Model<T>`. Sem isto, `mongoose.models.X || mongoose.model<T>(...)` (o
+// padrão que evita "OverwriteModelError" em hot-reload) infere uma união
+// larga demais para o TypeScript resolver `.lean()`/`.findById()` sem um
+// genérico explícito no chamador — descoberto via `nuxt typecheck` quando
+// server/utils/investmentTips.ts (`.findById(userId).lean()`, sem genérico)
+// deixou de resolver `cached.inputHash`/`cached.generatedAt`, e de novo em
+// `MarketSnapshot.findOne().lean()` (`snapshotDoc.date`/`.indices`).
 
 // ─── USER ────────────────────────────────────────────────────────────────────
 // Ver context/00-CODE-SPEC.md secção 3 e context/features/02-FASE-2-sistema-subscricoes.md
@@ -125,7 +134,7 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true }
 )
-export const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
+export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
 
 // ─── CATEGORY ────────────────────────────────────────────────────────────────
 export interface ICategory extends Document {
@@ -157,7 +166,7 @@ const CategorySchema = new Schema<ICategory>(
   { timestamps: true }
 )
 CategorySchema.index({ userId: 1, name: 1 }, { unique: true })
-export const Category =
+export const Category: Model<ICategory> =
   mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema)
 
 // ─── TRANSACTION GROUP ───────────────────────────────────────────────────────
@@ -185,7 +194,7 @@ const TransactionGroupSchema = new Schema<ITransactionGroup>(
   },
   { timestamps: true }
 )
-export const TransactionGroup =
+export const TransactionGroup: Model<ITransactionGroup> =
   mongoose.models.TransactionGroup ||
   mongoose.model<ITransactionGroup>('TransactionGroup', TransactionGroupSchema)
 
@@ -239,7 +248,7 @@ const TransactionSchema = new Schema<ITransaction>(
 TransactionSchema.index({ userId: 1, date: -1 })
 TransactionSchema.index({ userId: 1, type: 1 })
 TransactionSchema.index({ userId: 1, categoryId: 1 })
-export const Transaction =
+export const Transaction: Model<ITransaction> =
   mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema)
 
 // ─── MARKET SNAPSHOT ─────────────────────────────────────────────────────────
@@ -272,7 +281,7 @@ const MarketSnapshotSchema = new Schema<IMarketSnapshot>({
   ],
   fetchedAt: { type: Date, required: true },
 })
-export const MarketSnapshot =
+export const MarketSnapshot: Model<IMarketSnapshot> =
   mongoose.models.MarketSnapshot ||
   mongoose.model<IMarketSnapshot>('MarketSnapshot', MarketSnapshotSchema)
 
@@ -284,8 +293,7 @@ export const MarketSnapshot =
 // o rate limiting exige vem do índice `_id` (sempre presente), não de um
 // índice composto — a criação automática de índices não é fiável neste
 // projeto (ver server/plugins/mongoose.ts, `bufferCommands: false`).
-export interface IDocumentScanUsage extends Document {
-  _id: string
+export interface IDocumentScanUsage extends Document<string> {
   userId: mongoose.Types.ObjectId
   month: string
   count: number
@@ -297,7 +305,7 @@ const DocumentScanUsageSchema = new Schema<IDocumentScanUsage>({
   month:  { type: String, required: true },
   count:  { type: Number, required: true, default: 0 },
 })
-export const DocumentScanUsage =
+export const DocumentScanUsage: Model<IDocumentScanUsage> =
   mongoose.models.DocumentScanUsage ||
   mongoose.model<IDocumentScanUsage>('DocumentScanUsage', DocumentScanUsageSchema)
 
@@ -325,7 +333,7 @@ const AiInsightCacheSchema = new Schema<IAiInsightCache>({
   generatedAt: { type: Date, required: true },
   locale:      { type: String, default: 'pt-PT' },
 })
-export const AiInsightCache =
+export const AiInsightCache: Model<IAiInsightCache> =
   mongoose.models.AiInsightCache ||
   mongoose.model<IAiInsightCache>('AiInsightCache', AiInsightCacheSchema)
 
@@ -364,7 +372,7 @@ const InvestmentSchema = new Schema<IInvestment>(
   { timestamps: true }
 )
 InvestmentSchema.index({ userId: 1, initialDate: -1 })
-export const Investment =
+export const Investment: Model<IInvestment> =
   mongoose.models.Investment || mongoose.model<IInvestment>('Investment', InvestmentSchema)
 
 // ─── INVESTMENT TIPS CACHE ───────────────────────────────────────────────────
@@ -373,8 +381,7 @@ export const Investment =
 // propósito (mesmo motivo de DocumentScanUsage: a unicidade vem do índice
 // `_id`, que existe sempre). `inputHash` cobre o perfil, os agregados do
 // portfolio e a data do snapshot de mercado — ver server/utils/investmentTips.ts.
-export interface IInvestmentTipsCache extends Document {
-  _id: string
+export interface IInvestmentTipsCache extends Document<string> {
   tips: string[]
   inputHash: string
   marketSnapshotDate: string | null
@@ -390,6 +397,6 @@ const InvestmentTipsCacheSchema = new Schema<IInvestmentTipsCache>({
   portfolioIncluded:  { type: Boolean, required: true, default: false },
   generatedAt:        { type: Date, required: true },
 })
-export const InvestmentTipsCache =
+export const InvestmentTipsCache: Model<IInvestmentTipsCache> =
   mongoose.models.InvestmentTipsCache ||
   mongoose.model<IInvestmentTipsCache>('InvestmentTipsCache', InvestmentTipsCacheSchema)

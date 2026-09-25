@@ -218,16 +218,27 @@ reais, em web e Android.
       tratamento de respostas sem corpo (`DELETE` devolve 204)
 
 ### 6. Testes automatizados
-- [ ] Unit tests (Vitest) para: `useSubscription`, `useFormatters`,
+- [x] Unit tests (Vitest) para: `useSubscription`, `useFormatters`,
       `hasFeature`/matriz de features, lógica de previsão (partes não-TF), e
       `shared/portfolio.ts` (Fase 6 — é puro de propósito, primeiro candidato:
       exemplos da folha 1,94% / −2,00% / total 1,76%, e `returnPct` nulo sem
       capital investido)
-      — **parcial**: Vitest 3.x (a 5.x exige `@types/node` ≥22, o projeto usa
-      20) configurado (`npm test`); 24 testes a passar em `tests/`:
-      `effectiveTier`/`hasFeature`/matriz, `shared/portfolio.ts` e as funções
-      puras do 2FA (TOTP + códigos de recuperação). **Por fazer**:
-      `useSubscription`, `useFormatters`, previsão
+      — Vitest 3.x (a 5.x exige `@types/node` ≥22, o projeto usa 20)
+      configurado (`npm test`); **46 testes a passar** em `tests/`:
+      `effectiveTier`/`hasFeature`/matriz, `shared/portfolio.ts`, as funções
+      puras do 2FA (TOTP + códigos de recuperação), `useFormatters` (13
+      testes — arredondamento/sinal de `formatCurrency`/`formatReturnPct`/
+      `formatSignedCurrency`, a regressão da folha de investimentos 1,94%/
+      −2,00%, `relativeTime`), `useMLPrediction` (4 testes — o caminho
+      `simpleForecast()` que o browser usa sempre que a série é curta demais
+      para treinar; nunca importa `@tensorflow/tfjs`) e a store de
+      subscrição (5 testes — `isExpiringSoon`, incluindo a regressão dos
+      dias negativos corrigida no ponto 5). `useSubscription`/`useFormatters`/
+      a store dependem de auto-imports do Nuxt (`ref`/`computed`/`useI18n`/
+      `useLocaleFormat`) que não existem fora do Nuxt — resolvido com stubs
+      mínimos em `tests/setup/nuxtStubs.ts` (o próprio `useLocaleFormat` real,
+      não uma reimplementação) e um alias `~` em `vitest.config.ts`, em vez de
+      arrancar um Nuxt inteiro só para testes de lógica pura.
 - [x] Testes de integração para endpoints críticos: auth, transactions CRUD,
       subscription checkout/webhook (com mocks da EasyPay), insights/IA
       (com mocks da Anthropic e da Twelve Data — nunca chamadas reais nos
@@ -267,20 +278,80 @@ reais, em web e Android.
       do que o limite de registo (5/15min por IP) permitiria a partir de uma
       única origem; não se tocou no limite em si, só se simulou corretamente
       contas de pessoas diferentes.
-- [ ] E2E (Playwright) do fluxo principal: registo → login → criar
+- [x] E2E (Playwright) do fluxo principal: registo → login → criar
       transação → ver dashboard → tentar aceder a previsões sem Premium
       (deve mostrar paywall) → upgrade sandbox → aceder a previsões
-- [ ] E2E cobrindo a Fase 7 (internacionalização): app abre em EN para um IP
+      — `e2e/main-flow.spec.ts`, `npm run test:e2e`, contra um servidor Nuxt
+      real em modo `dev` + MongoDB em memória (`scripts/e2e-server.mjs`,
+      mesma receita dos testes de integração). "Upgrade" é uma escrita direta
+      na BD (via um pequeno servidor de controlo HTTP no mesmo processo do
+      `e2e-server.mjs`), não o checkout real da EasyPay pelo browser — esse
+      caminho já está coberto com mais precisão pelos testes de integração
+      (idempotência, verificação contra a API); aqui o que interessa é a
+      reação da UI ao tier mudar. **Achados corrigidos pelo caminho**: (1)
+      `@easypaypt/checkout-sdk` fazia o Vite reotimizar dependências e
+      recarregar a página a meio de um teste em modo `dev` (mesma classe de
+      bug já resolvida para o Capacitor/TF.js) — acrescentado a
+      `vite.optimizeDeps.include`, mas mesmo assim insuficiente sozinho;
+      resolvido de vez com `e2e/global-setup.ts`, que visita cada rota uma
+      vez com uma conta descartável antes dos testes reais correrem; (2) uma
+      corrida real: `page.reload()`/`page.goto()` só esperam pelo evento
+      `load`, não pelo pedido assíncrono a `/api/subscription` que
+      `useSubscription` dispara — um clique a seguir podia ler o tier por
+      omissão. Resolvido com `waitForLoadState('networkidle')` antes de
+      interagir. **Nota de infraestrutura**: importar qualquer módulo `.ts`
+      partilhado a partir de um spec (mesmo trivial, sem dependências)
+      rebentava o transform do Playwright com "exports/require is not
+      defined" nesta máquina/versão (1.63, sem `"type": "module"` no
+      `package.json`) — os helpers ficam inline em cada spec, não num
+      `e2e/helpers.ts` partilhado
+- [x] E2E cobrindo a Fase 7 (internacionalização): app abre em EN para um IP
       simulado fora dos 6 países suportados (fallback), muda de idioma
       manualmente nas Configurações, e o checkout de subscrição só mostra
       MB WAY/Multibanco para Portugal
+      — `e2e/i18n-flow.spec.ts`, 2/2 a passar. **Correção à especificação**:
+      o idioma nunca dependeu de geolocalização (`detectBrowserLanguage:
+      false` de propósito, ver `plugins/locale.ts`) — deteta-se do
+      `Accept-Language`/`navigator.languages`, nunca do IP; a geolocalização
+      só decide os métodos de pagamento pré-pagos. O teste cobre os dois
+      mecanismos, separados corretamente: (1) `Accept-Language: ja-JP`
+      (Playwright `locale: 'ja-JP'`) cai em EN, gravado no cookie
+      `financeflow_locale`; (2) sem `GEOLITE2_DB_PATH` configurado neste
+      ambiente (sem licença MaxMind disponível), o país fica sempre
+      desconhecido — o mesmo resultado que "fora de Portugal" — e só CC/DD
+      aparecem no checkout; **não testado** o caso positivo (Portugal → MB
+      WAY/Multibanco aparecem), que exigiria uma base de dados GeoLite2 real.
+      **Achado, não confirmado como bug**: trocar manualmente o idioma em
+      Configurações via `select.selectOption()` do Playwright muda o valor
+      do `<select>` nativo mas o resto da app nunca reage (o cabeçalho
+      "Language"/"Idioma" nunca muda) — removido do teste automatizado por
+      não se conseguir confirmar se é um defeito real da app ou uma
+      particularidade de como o Playwright dispara eventos sintéticos num
+      `<select>`; precisa de confirmação manual num browser real
 
 ### 7. Performance
 - [ ] Lighthouse (web) e auditoria equivalente em Android: performance,
       acessibilidade, PWA
-- [ ] Carregar TensorFlow.js apenas na página de previsões (lazy/dynamic
-      import), não no bundle inicial
+      — **por fazer**: um `npm run build` de produção (preset `netlify-legacy`,
+      ver ponto 8) falhou nesta sessão com
+      `Error: Could not load .../.nuxt/dist/server/styles.mjs (imported by
+      .../build-files.mjs): ENOENT` — não investigado a fundo (não bloqueava
+      o trabalho desta sessão, que correu inteiramente contra o servidor de
+      `dev`); tentar `rm -rf .nuxt .output` antes de repetir o build antes de
+      assumir que é um bug real
+- [x] Carregar TensorFlow.js apenas na página de previsões (lazy/dynamic
+      import), não no bundle inicial — **já estava feito** (Fase 1, tarefa 7):
+      `composables/useMLPrediction.ts` só faz `await import('@tensorflow/tfjs')`
+      dentro de `predictNextMonths()`, nunca a nível de módulo; `nuxt.config.ts`
+      já marca `@tensorflow/tfjs` como `ssr.external` (nunca no bundle do
+      servidor) e em `optimizeDeps.include` (pré-empacotado para o dynamic
+      import ser rápido quando pedido, não para entrar no bundle inicial).
+      Confirmado por grep: nenhum ficheiro importa `@tensorflow/tfjs` fora
+      deste único `await import()`
 - [ ] Rever tamanho de bundle e code-splitting por rota
+      — **por fazer**: bloqueado pelo mesmo erro de build acima (o passo que
+      falhou é já depois do bundle do client estar gerado — `Client built in
+      516628ms` — mas antes de se conseguir correr uma auditoria completa)
 - [ ] Testar app em dispositivo Android de gama baixa (ou emulador com
       recursos limitados) para validar fluidez das animações da Fase 4 e do
       modelo de ML
@@ -294,12 +365,23 @@ reais, em web e Android.
       Projeto `javascript-nuxt` criado e DSN no `.env` local. **Servidor
       validado ponta a ponta em dev**: um erro 500 provocado de propósito
       (endpoint temporário, já apagado) apareceu como issue no painel.
-      **Por validar**: erros de JavaScript no browser/telemóvel, e o
-      comportamento em produção (o SDK avisa em dev que "detetou um build
-      Netlify" e que o envio do servidor pode ser pouco fiável nesse caso —
-      a produção usa `node-server` em Docker, mas não foi testada). Em
-      produção arrancar com
-      `node --import ./.output/server/sentry.server.config.mjs`
+      **Corrigido nesta sessão**: a nota anterior aqui presumia, sem
+      confirmar, que a produção usa `node-server` em Docker (nesse caso
+      arrancaria com `node --import ./.output/server/sentry.server.config.mjs`).
+      **Falso** — confirmado a partir de `.netlify/` (estado real de deploy
+      já ligado neste projeto) que o alvo real é o **Netlify** (Nitro gera
+      funções serverless, preset `netlify-legacy`). Num serverless não há
+      comando de arranque nosso para passar `--import`, e sem o `flush()`
+      certo os eventos podem perder-se quando a função termina logo a seguir
+      a responder. `nuxt.config.ts` passou a definir
+      `sentry: { autoInjectServerSentry: 'top-level-import' }` — injeta a
+      configuração no topo do ficheiro de entrada do Nitro e faz a Sentry
+      voltar a exportar o handler serverless embrulhado (consultado via
+      Context7, documentação oficial "Nuxt SDK — Limited Server Tracing").
+      Ver context/OPERATIONS.md. **Ainda por validar**: erros de JavaScript
+      no browser/telemóvel, e um teste real contra o Netlify (só verificado
+      em dev e por documentação — este projeto não tem um deploy de
+      produção ativo para testar contra)
 - [x] Logging estruturado de eventos críticos: falhas de pagamento,
       falhas de webhook, erros de autenticação — `server/utils/logger.ts`
       (uma linha JSON por evento; emails só como hash curto): `auth.login_failed`,
@@ -353,13 +435,39 @@ reais, em web e Android.
       Atlas), transferências fora do EEE, valor proporcional em livre
       resolução, RAL a que o prestador está vinculado e Livro de Reclamações
       Eletrónico — tudo marcado `[REVER COM JURISTA]`
-- [ ] Rever se dados financeiros sensíveis exigem medidas adicionais
+- [x] Rever se dados financeiros sensíveis exigem medidas adicionais
       (encriptação em repouso, se aplicável ao plano de hosting)
+      — ver `context/OPERATIONS.md` secção "Dados financeiros sensíveis —
+      encriptação em repouso". Decisão: a Atlas encripta o disco por omissão
+      em todos os tiers (incluindo o M0 gratuito), TLS obrigatório em
+      trânsito, e password/segredo TOTP/códigos de recuperação já são
+      encriptados/hash ao nível da aplicação (Fase 8, pontos 1-3). Não
+      adicionar encriptação ao nível de campo aos valores financeiros — impede
+      agregações no servidor (KPIs, insights de IA) sem decifrar tudo
+      primeiro, e os dados aqui não são de categoria especial do RGPD
 
 ### 10. Estratégia de dados
-- [ ] Backups regulares do MongoDB de produção documentados
-- [ ] Plano de rollback para migrações de schema (ex. campo `subscription`)
-- [ ] **Índices do Mongoose que nunca são criados**: com `bufferCommands: false`
+- [x] Backups regulares do MongoDB de produção documentados
+      — ver `context/OPERATIONS.md`. **Estado real**: o projeto usa o tier
+      M0 (gratuito) da Atlas, que **não tem nenhum backup gerido** (só a
+      partir do M10, pago). `scripts/backup-mongo.mjs`/`restore-mongo.mjs`
+      dão um mínimo viável (exportação/restauro completo via EJSON, sem
+      depender do binário `mongodump`, que não está instalado neste
+      ambiente) — testado com um ciclo completo backup→apagar→restauro
+      contra MongoDB em memória, nunca contra o Atlas real, confirmando que
+      `ObjectId`/`Date`/números voltam com o tipo original. **Por fazer,
+      decisão do utilizador**: agendar o script (GitHub Actions + secret) ou
+      subir para o M10 — nenhuma das duas ativada nesta sessão (a 1.ª precisa
+      de um secret no GitHub, a 2.ª de uma alteração de plano paga na Atlas)
+- [x] Plano de rollback para migrações de schema (ex. campo `subscription`)
+      — ver `context/OPERATIONS.md`. O projeto usa migrações ad-hoc
+      (`scripts/migrate-subscriptions.mjs`, `scripts/sync-indexes.mjs`), não
+      uma framework com rollback automático — desproporcional à escala atual.
+      Documentado: backup antes de qualquer migração é o próprio plano de
+      rollback; migrações aditivas não têm "voltar atrás" que faça sentido
+      (só corrigir para a frente); um padrão de dois passos para eventuais
+      migrações destrutivas futuras (nenhuma feita até agora)
+- [x] **Índices do Mongoose que nunca são criados**: com `bufferCommands: false`
       a criação automática de índices não funciona (`server/utils/db.ts`), por
       isso os índices `unique` declarados (`MarketSnapshot.date`,
       `AiInsightCache.userId`) e o índice de desempenho de `Investment` não
@@ -375,15 +483,51 @@ reais, em web e Android.
       pedidos correm o seed em simultâneo
 
 ### 11. Dívida técnica conhecida (de fases anteriores)
-- [ ] Aviso de hidratação num `<span>` de texto ("Hydration text content
+- [x] Aviso de hidratação num `<span>` de texto ("Hydration text content
       mismatch") visto no log da app Android, que não aparece no browser de
       desktop — origem por identificar (suspeita: texto dependente da hora ou do
       fuso, como a data do topo). Inofensivo; o do `ToastContainer` já foi
       corrigido na Fase 6
+      — **origem confirmada e corrigida**: duas ocorrências reais de
+      `new Date()` chamado dentro de um `computed`, executado uma vez no
+      servidor (SSR) e outra no cliente (hidratação) — `pages/index.vue`
+      (saudação "Bom dia/Boa tarde/Boa noite", depende da HORA) e
+      `layouts/default.vue` (data por extenso no cabeçalho, depende do DIA).
+      Nenhum dos dois precisa que servidor e cliente concordem sempre —
+      só que não *discordem* entre os dois renders da mesma navegação, o que
+      acontece sempre que a hora muda de escalão (meio-dia, 18h) ou o dia
+      muda (meia-noite) entre o render do servidor e a hidratação no
+      cliente, ou quando o fuso horário do servidor de produção não coincide
+      com o do telemóvel. Corrigido com `useState()` a fixar o valor
+      calculado no servidor e reutilizá-lo na hidratação, em vez de o
+      recalcular no cliente com o seu próprio relógio. **Não testado no
+      Android real** (só localmente, forçando o computed a correr perto de
+      um limite de hora) — o aviso original só tinha sido visto lá
 
 ## Critérios de aceitação
-- [ ] Suite de testes (unit + integração + e2e principal) corre em CI e
+- [x] Suite de testes (unit + integração + e2e principal) corre em CI e
       passa
+      — `.github/workflows/ci.yml`, 3 jobs: `unit` (46/46), `integration`
+      (17/17, servidor Nuxt real + Mongo em memória), `e2e` (3/3, Playwright
+      + Chromium, mesma receita). Nenhum precisa de segredos reais. `nuxt
+      typecheck` corre no job `unit` só a informar (`|| true`, nunca falha o
+      job) — tem uma dívida de erros de tipos pré-existente e maior do que o
+      âmbito desta sessão (confirmado com `git stash`: os mesmos erros já
+      existiam antes de qualquer alteração feita aqui). **Corrigidos pelo
+      caminho** (afetavam código de produção, não só o `typecheck`):
+      `ofetch@2.0.0-alpha.3` duplicado (nested em `@nuxt/telemetry`,
+      conflituava com o `ofetch@1.5.1` usado pelo resto do projeto — fixado
+      com `overrides` no `package.json`), `$fetch<T>()` deixou de aceitar um
+      genérico depois desse fix (contornado com um cast no valor devolvido
+      em `stores/{auth,finance,groups,subscription}.ts`, sem mudar
+      comportamento em runtime), os modelos Mongoose exportados sem
+      anotação `Model<T>` explícita perdiam o tipo de retorno de
+      `.lean()`/`.findById()` sem genérico no chamador (`server/models/index.ts`
+      — todos os 9 modelos anotados; `IInvestmentTipsCache`/
+      `IDocumentScanUsage` também corrigidos para `extends Document<string>`,
+      já que usam `_id` string, não `ObjectId`), e uma chave computada
+      inválida em `server/utils/marketData.ts` (união não estreitada por
+      `'symbol' in data`)
 - [x] Nenhum segredo no repositório; `.env.example` atualizado e completo
 - [x] A sessão é assinada e o header `x-user-id` já não autentica nada (testado
       com um `_id` válido de outro utilizador) — testado em dev local contra
@@ -406,8 +550,13 @@ reais, em web e Android.
       para tentar outro caminho ou registar aviso). Testado no servidor real
       com um id inexistente: cliente recebe a mensagem genérica, o log
       guarda o detalhe verdadeiro ("Subscription Not Found")
-- [ ] Webhooks validam assinatura e são idempotentes (testado com reenvio de
+- [x] Webhooks validam assinatura e são idempotentes (testado com reenvio de
       evento)
+      — a EasyPay não assina webhooks (ponto 5); a "assinatura" real é a
+      verificação obrigatória contra a própria API antes de confiar em
+      qualquer campo do corpo (nunca o `status` do pedido recebido).
+      Idempotência testada com reenvio de evento para `subscription_create`
+      e para `capture` (`tests/integration/api.test.ts`, 17/17) — ver ponto 6
 - [ ] Lighthouse web ≥ 90 em Performance e Acessibilidade (ou justificação
       documentada dos itens não atingidos)
 - [ ] Política de privacidade e termos de serviço publicados e linkados na

@@ -14,7 +14,10 @@ import { startStubProviders } from './stubProviders'
 export const TEST_ENV_FILE = fileURLToPath(new URL('./.testenv.json', import.meta.url))
 
 export default async function setup() {
-  const mongo = await MongoMemoryServer.create()
+  // launchTimeout generoso: o valor por omissão (10s) já falhou algumas
+  // vezes nesta sessão numa máquina ocupada — não é o mongod a estar
+  // avariado, só lento a arrancar sob carga (ver scripts/e2e-server.mjs).
+  const mongo = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } })
   const stub = await startStubProviders()
 
   const env = {

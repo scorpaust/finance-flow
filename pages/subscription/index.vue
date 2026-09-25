@@ -90,10 +90,11 @@
     <div v-if="selectedTier !== 'free' && selectedTier !== currentTier" class="glass-card rounded-3xl p-6 space-y-5">
       <div>
         <label class="form-label">{{ t('subscription.paymentMethodLabel') }}</label>
-        <div class="grid grid-cols-2 gap-2 mt-1.5">
+        <div class="grid grid-cols-2 gap-2 mt-1.5" data-testid="subscription-methods">
           <button
             v-for="m in METHODS"
             :key="m.value"
+            :data-testid="`subscription-method-${m.value}`"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="selectedMethod === m.value ? 'bg-brand-600 text-white' : 'bg-surface-700/50 text-white/50 hover:text-white'"
             type="button"

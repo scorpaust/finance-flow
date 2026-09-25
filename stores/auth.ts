@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
     const attempts = 6
     for (let i = 0; i < attempts; i++) {
       try {
-        const data = await $fetch<{ user: User | null }>('/api/auth/session')
+        const data = (await $fetch('/api/auth/session')) as { user: User | null }
         user.value = data.user
         loading.value = false
         return
@@ -52,10 +52,10 @@ export const useAuthStore = defineStore('auth', () => {
   // concedida). O componente de login trata isto como um passo extra antes
   // de navegar para o dashboard — ver pages/login.vue.
   async function signInWithPassword(payload: { email: string; password: string }) {
-    const data = await $fetch<{ user?: User; twoFactorRequired?: boolean }>('/api/auth/session', {
+    const data = (await $fetch('/api/auth/session', {
       method: 'POST',
       body: { ...payload, action: 'login' },
-    })
+    })) as { user?: User; twoFactorRequired?: boolean }
     if (data.twoFactorRequired) return { twoFactorRequired: true as const }
 
     user.value     = data.user!
@@ -64,20 +64,20 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function verifyTwoFactor(code: string) {
-    const data = await $fetch<{ user: User }>('/api/auth/2fa/verify', {
+    const data = (await $fetch('/api/auth/2fa/verify', {
       method: 'POST',
       body: { code },
-    })
+    })) as { user: User }
     user.value     = data.user
     _fetched.value = true
     return data.user
   }
 
   async function registerWithPassword(payload: { name: string; email: string; password: string; acceptTerms: boolean }) {
-    const data = await $fetch<{ user: User }>('/api/auth/session', {
+    const data = (await $fetch('/api/auth/session', {
       method: 'POST',
       body: { ...payload, action: 'register' },
-    })
+    })) as { user: User }
     user.value     = data.user
     _fetched.value = true
     return data.user

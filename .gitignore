@@ -30,3 +30,13 @@ Thumbs.db
 # PWA
 public/sw.js
 public/workbox-*.js
+
+# Testes
+test-results/
+playwright-report/
+blob-report/
+e2e/.e2eenv.json
+tests/integration/.testenv.json
+
+# Backups locais (scripts/backup-mongo.mjs) — nunca commitar dados reais
+backups/

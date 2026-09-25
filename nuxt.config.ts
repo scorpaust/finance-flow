@@ -25,6 +25,21 @@ export default defineNuxtConfig({
     ...(process.env.SENTRY_DSN ? ['@sentry/nuxt/module'] : []),
   ],
 
+  // Fase 8, ponto 8 — o alvo de deploy real é o Netlify (Nitro gera funções
+  // serverless, confirmado pelo preset `netlify-legacy` detetado a partir de
+  // .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
+  // uma versão anterior desta nota presumia sem confirmar). Num serverless o
+  // CLI flag `--import` não é aplicável (não há um comando de arranque
+  // nosso a controlar) — `autoInjectServerSentry: 'top-level-import'` injeta
+  // a configuração do Sentry no topo do ficheiro de entrada do Nitro durante
+  // o build, e o próprio módulo volta a exportar o handler serverless
+  // embrulhado (necessário para a Sentry conseguir fazer `flush()` antes de
+  // a função terminar — sem isto, eventos capturados podem perder-se quando
+  // o processo é morto logo após responder). Ver context/OPERATIONS.md.
+  sentry: {
+    autoInjectServerSentry: 'top-level-import',
+  },
+
   // Fase 7 — Internacionalização. `strategy: 'no_prefix'` porque a app não
   // tem (nem precisa de) rotas prefixadas por idioma (`/en/transacoes`) — o
   // idioma é só uma preferência de interface, não faz parte do endereço da
@@ -167,8 +182,13 @@ export default defineNuxtConfig({
     optimizeDeps: {
       // Os módulos do Capacitor são importados dinamicamente (só correm em
       // nativo) — sem isto o Vite só os descobre na primeira utilização, o que
-      // reotimiza e recarrega a página a meio (ver stores/appLock.ts).
-      include: ['@tensorflow/tfjs', '@capacitor/core', '@capacitor/app'],
+      // reotimiza e recarrega a página a meio (ver stores/appLock.ts). O SDK
+      // de checkout da EasyPay tem o mesmo problema — reproduzido nesta
+      // sessão por um teste E2E (Playwright) que abriu a página de
+      // subscrição pela 1.ª vez a meio de um fluxo: o Vite reotimizou e
+      // recarregou a página, perdendo o estado do formulário nessa página.
+      // Só acontece em `nuxt dev` (produção pré-empacota tudo à partida).
+      include: ['@tensorflow/tfjs', '@capacitor/core', '@capacitor/app', '@easypaypt/checkout-sdk'],
     },
     ssr: {
       noExternal: ['chart.js'],

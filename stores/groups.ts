@@ -21,20 +21,20 @@ export const useGroupsStore = defineStore('groups', () => {
   async function fetchGroups() {
     loading.value = true
     try {
-      groups.value = await $fetch<Group[]>('/api/groups')
+      groups.value = (await $fetch('/api/groups')) as Group[]
     } finally {
       loading.value = false
     }
   }
 
   async function createGroup(data: Partial<Group>) {
-    const g = await $fetch<Group>('/api/groups', { method: 'POST', body: data })
+    const g = (await $fetch('/api/groups', { method: 'POST', body: data })) as Group
     groups.value.unshift(g)
     return g
   }
 
   async function updateGroup(id: string, data: Partial<Group>) {
-    const g = await $fetch<Group>(`/api/groups/${id}`, { method: 'PUT', body: data })
+    const g = (await $fetch(`/api/groups/${id}`, { method: 'PUT', body: data })) as Group
     const idx = groups.value.findIndex((g) => g._id === id)
     if (idx >= 0) groups.value[idx] = g
     return g

@@ -36,7 +36,7 @@
       <h3 class="font-semibold text-white mb-4 flex items-center gap-2"><Languages class="w-4 h-4 text-brand-400" /> {{ t('settings.language.title') }}</h3>
       <p class="text-white/40 text-xs mb-3">{{ t('settings.language.description') }}</p>
       <label class="form-label">{{ t('settings.language.label') }}</label>
-      <select v-model="currentLocale" class="form-select w-full sm:w-auto">
+      <select v-model="currentLocale" data-testid="settings-language-select" class="form-select w-full sm:w-auto">
         <option v-for="l in availableLocales" :key="l.code" :value="l.code">{{ l.name }}</option>
       </select>
     </div>

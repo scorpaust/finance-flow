@@ -5,14 +5,23 @@
 ## Estado
 
 Em progresso — branch `feature/fase-8-seguranca-qualidade` criado a partir de
-`main` em 2026-09-22. Âmbito desta sessão, acordado explicitamente com o
-utilizador: pontos 1-3 da especificação (validação/rate limiting, sessão
-assinada, 2FA). Levantado a propósito do 2FA e acrescentado à especificação
-como novo ponto 4 (não implementado ainda): bloqueio da app por biometria no
-Android, camada de conveniência sobre a sessão já existente. Pontos 5-11
-(webhooks, testes automatizados, performance, observabilidade, legal, dados,
-dívida técnica) ainda não foram iniciados. Ver histórico para o detalhe do
-que foi implementado e testado nesta sessão.
+`main` em 2026-09-22. Âmbito alargado ao longo da sessão para cobrir
+praticamente toda a especificação (pontos 1-11 e os critérios de aceitação),
+a pedido explícito do utilizador ("conclui os restantes"). Ver histórico
+completo abaixo para o detalhe de cada ponto; resumo do que falta
+genuinamente (não é código que se resolva sozinho):
+- **Ponto 7 (Performance)**: Lighthouse e revisão de bundle por fazer — um
+  `npm run build` de produção falhou com um erro ENOENT não investigado a
+  fundo; teste em dispositivo Android de gama baixa precisa do telemóvel
+  físico do utilizador
+- **Ponto 9 (Legal)**: o texto ainda tem campos `[REVER COM JURISTA]` — precisa
+  de um jurista real, não é código
+- **Ponto 10 (Dados)**: backups documentados e com script pronto, mas não
+  agendados — precisa de uma decisão do utilizador (GitHub Actions + secret,
+  ou subir a Atlas para o tier M10 pago) e da ação correspondente fora do
+  código
+- Critério de aceitação "Lighthouse ≥ 90" e "política de privacidade
+  publicada": dependem dos dois pontos acima
 
 ## Objetivos
 
@@ -1770,7 +1779,97 @@ Tarefas principais (ver especificação para detalhe completo):
     para o plano Gratuito. Todos os 5 novos testes passaram à primeira
     (sem iteração de depuração — os stubs e o formato da resposta da
     Anthropic já estavam bem entendidos das entradas anteriores).
-  - **Por fazer**: confirmar visualmente as restantes traduções novas;
-    preencher e rever o texto legal com um jurista; criar o projeto Sentry;
-    E2E (Playwright), performance/Lighthouse (ponto 7), aviso de hidratação
-    no Android (ponto 11) e a limpeza de dívida técnica restante.
+  - **Por fazer nessa altura**: confirmar visualmente as restantes traduções
+    novas; preencher e rever o texto legal com um jurista; E2E (Playwright),
+    performance/Lighthouse (ponto 7), aviso de hidratação no Android (ponto
+    11) e a limpeza de dívida técnica restante. (Sentry já estava com
+    projeto criado — essa frase estava desatualizada; ver a entrada
+    seguinte, 2026-09-25, para a correção real do Sentry em produção.)
+
+  - **Sessão de 2026-09-25 — "conclui os restantes"**: o utilizador pediu
+    para fechar praticamente tudo o que faltava na Fase 8. Trabalho, por
+    ponto da especificação:
+    - **Ponto 6 (testes)**: `tests/formatters.test.ts` (13 testes,
+      `useFormatters`), `tests/mlPrediction.test.ts` (4 testes, o caminho
+      `simpleForecast()` de `useMLPrediction` — nunca importa TF.js) e
+      `tests/subscriptionStore.test.ts` (5 testes, `isExpiringSoon` da store
+      de subscrição, incluindo a regressão dos dias negativos). Estes
+      composables usam auto-imports do Nuxt (`ref`/`computed`/`useI18n`/
+      `useLocaleFormat`) inexistentes fora do Nuxt — resolvido com
+      `tests/setup/nuxtStubs.ts` (stubs mínimos, mas usando o
+      `useLocaleFormat` REAL) e um alias `~` em `vitest.config.ts`, evitando
+      arrancar um Nuxt inteiro só para testes de lógica pura. Total: 46/46
+      testes unitários. E2E com Playwright (`playwright.config.ts`,
+      `e2e/`): `main-flow.spec.ts` (registo → transação → paywall sem
+      Premium → upgrade via escrita direta na BD → previsões) e
+      `i18n-flow.spec.ts` (fallback de Accept-Language para EN; checkout só
+      mostra CC/DD sem GeoLite2). Infraestrutura própria
+      (`scripts/e2e-server.mjs`): MongoDB em memória + um pequeno servidor
+      de controlo HTTP no mesmo processo (evita importar `mongoose`/módulos
+      `.ts` partilhados a partir de um spec — isso rebentava o transform do
+      Playwright com "exports/require is not defined" nesta versão/máquina).
+      `e2e/global-setup.ts` visita cada rota uma vz com uma conta descartável
+      antes dos testes reais, para o Vite já ter descoberto e pré-empacotado
+      tudo (`@easypaypt/checkout-sdk` incluído — o mesmo bug de reload a
+      meio já visto com o Capacitor/TF.js) — sem isto, o reload automático
+      do Vite a meio de um teste em modo `dev` fazia-o falhar por timeout.
+      **Achado, não confirmado como bug**: trocar o idioma em Configurações
+      via `selectOption()` do Playwright não propaga ao resto da app (texto/
+      cookie) apesar do `<select>` mudar de valor — removido do teste
+      automatizado, precisa de confirmação manual num browser real.
+    - **Ponto 7 (Performance)**: TF.js já estava lazy-loaded corretamente
+      (Fase 1) — só confirmado, não é trabalho novo. Lighthouse e revisão de
+      bundle ficaram por fazer: um `npm run build` de produção falhou com
+      `ENOENT .nuxt/dist/server/styles.mjs`, não investigado a fundo.
+    - **Ponto 8 (Observabilidade)**: **achado importante** — a nota anterior
+      sobre o Sentry presumia, sem confirmar, que a produção usa um
+      `node-server` em Docker. Falso: `.netlify/` (estado de deploy já
+      ligado neste projeto, site `financeflow-fase2-subs`) confirma que o
+      alvo real é o **Netlify** (funções serverless). Corrigido
+      `nuxt.config.ts` com `sentry: { autoInjectServerSentry:
+      'top-level-import' }` (consultado via Context7 — documentação oficial
+      do SDK Nuxt da Sentry para ambientes serverless), que também faz a
+      Sentry exportar o handler serverless embrulhado (necessário para
+      `flush()` antes da função terminar). Não testado contra o Netlify real
+      (o projeto não tem deploy ativo).
+    - **Ponto 9 (Legal)**: revista a questão de encriptação de dados
+      financeiros sensíveis — decisão documentada em `context/OPERATIONS.md`
+      (a Atlas já encripta o disco por omissão em todos os tiers; não vale a
+      pena encriptação ao nível de campo, que impediria agregações no
+      servidor). O texto legal em si continua por rever por um jurista —
+      fora do alcance de código.
+    - **Ponto 10 (Dados)**: `context/OPERATIONS.md` (novo) documenta
+      backups e o plano de rollback de migrações. **Achado**: o tier M0
+      (gratuito) da Atlas não tem NENHUM backup gerido — só a partir do M10
+      pago. `scripts/backup-mongo.mjs`/`restore-mongo.mjs` (novos, testados
+      com um ciclo completo contra MongoDB em memória) dão um mínimo viável
+      via EJSON, sem depender do binário `mongodump` (não instalado). Nem
+      agendado nem a Atlas foi mudada de tier — decisão do utilizador, fora
+      do alcance de código.
+    - **Ponto 11 (dívida técnica)**: o aviso de hidratação Android tinha
+      origem real e confirmada: `new Date()` dentro de `computed` em
+      `pages/index.vue` (saudação, depende da hora) e `layouts/default.vue`
+      (data no cabeçalho, depende do dia) — corrido uma vez no servidor
+      (SSR) e outra no cliente (hidratação), discordando sempre que a hora/
+      dia muda de escalão entre os dois. Corrigido com `useState()` a fixar
+      o valor do servidor. Não testado no Android real.
+    - **Critérios de aceitação**: `.github/workflows/ci.yml` (novo) — 3
+      jobs (`unit`, `integration`, `e2e`), nenhum precisa de segredos reais.
+      `nuxt typecheck` corre só a informar (`|| true`): tem uma dívida de
+      erros de tipos pré-existente confirmada com `git stash` (os mesmos
+      erros já existiam antes desta sessão), maior do que o âmbito de
+      "concluir a Fase 8". **Corrigidos pelo caminho** (bugs reais, não só
+      do typecheck): `ofetch@2.0.0-alpha.3` duplicado e nested em
+      `@nuxt/telemetry` (conflituava com o `ofetch@1.5.1` do resto do
+      projeto — `overrides` no `package.json`); os 9 modelos Mongoose
+      exportados sem `Model<T>` explícito perdiam o tipo de `.lean()`/
+      `.findById()` sem genérico no chamador (`server/models/index.ts`,
+      todos anotados; `IInvestmentTipsCache`/`IDocumentScanUsage` corrigidos
+      para `extends Document<string>`); uma chave computada inválida em
+      `server/utils/marketData.ts`. Webhooks idempotentes já estavam
+      confirmados pelos testes de integração — só marcado.
+    - **Não tocado nesta sessão** (fora do alcance de código, ou já
+      corretamente adiado): revisão jurídica do texto legal, agendamento
+      real de backups/decisão de subir a Atlas de tier, Lighthouse/bundle
+      (bloqueado pelo erro de build), teste em Android de gama baixa
+      (precisa do telemóvel físico).

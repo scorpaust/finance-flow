@@ -67,9 +67,12 @@ export async function fetchMarketSnapshot(): Promise<MarketIndexQuote[]> {
   const data = (await res.json()) as Record<string, TwelveDataQuote> | TwelveDataQuote
 
   // Um único símbolo devolve o quote diretamente; vários símbolos devolvem um
-  // objeto chaveado por símbolo.
+  // objeto chaveado por símbolo. `'symbol' in data` não elimina o ramo
+  // `Record<string, TwelveDataQuote>` da união (um índice de assinatura por
+  // string aceita a chave "symbol" estruturalmente) — sem o cast explícito,
+  // `data.symbol` fica com um tipo de união inválido como chave computada.
   const quotesBySymbol: Record<string, TwelveDataQuote> =
-    'symbol' in data ? { [data.symbol]: data } : data
+    'symbol' in data ? { [(data as TwelveDataQuote).symbol]: data as TwelveDataQuote } : data
 
   return TRACKED_INDICES.map((tracked) => {
     const quote = quotesBySymbol[tracked.symbol]

@@ -448,7 +448,18 @@ reais, em web e Android.
       model, `POST /api/admin/refund-delete` protegido por `ADMIN_SECRET`
       próprio, verificação no registo em `auth/session.ts`; testado em
       integração: 401 sem/com segredo errado, elimina com o segredo certo,
-      e um novo registo com o mesmo email é recusado). Livro de Reclamações
+      e um novo registo com o mesmo email é recusado). **Achado depois**: o
+      pedido em si não passa por nenhum ecrã da app nem tinha nenhum passo de
+      confirmação — sem isso, não havia registo de que o cliente sabia da
+      eliminação/bloqueio e quis mesmo avançar. Fechado com um processo
+      manual (não código): um modelo de email de confirmação explícita
+      (PT-PT e EN) que o operador tem de enviar e receber resposta antes de
+      processar — ver `context/OPERATIONS.md`, secção "Reembolso por livre
+      resolução". Alternativa considerada e não escolhida: um ecrã próprio na
+      app com pedido + confirmação self-service, guardando o consentimento na
+      BD — mais robusto, mas funcionalidade nova a construir; adiado
+      enquanto o volume for baixo o suficiente para o processo manual chegar.
+      Livro de Reclamações
       Eletrónico — obrigatório em Portugal, ainda por registar pelo
       utilizador; texto e um link placeholder já em `pages/login.vue`
       (rodapé), a trocar pelo link específico do comerciante depois do

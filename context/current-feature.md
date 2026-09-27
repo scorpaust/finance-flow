@@ -1945,4 +1945,33 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
     todo o texto legal, mas isto não substitui essa revisão — `LEGAL_IS_DRAFT`
     continua `true`.
 
-  - **Mesmo dia, ainda mais tarde — `LEGAL_IS_DRAFT` posto a `false`**: aviso de rascunho deixa de aparecer em `/privacy` e `/terms`.
+  - **Mesmo dia, ainda mais tarde — `LEGAL_IS_DRAFT` posto a `false`**: o
+    utilizador pediu explicitamente para publicar, depois de ter sido
+    avisado sobre a preocupação com o DL 446/85 na resposta anterior. Feito
+    — `LEGAL_IS_DRAFT = false`, aviso de rascunho deixa de aparecer em
+    `/privacy` e `/terms`. **Sem revisão por um jurista** — decisão de risco
+    do próprio utilizador, não uma recomendação desta sessão; reverter é uma
+    linha (`LEGAL_IS_DRAFT = true`) se vier a fazer sentido depois de falar
+    com alguém.
+
+  - **Sessão de 2026-09-27 (continuação) — como o cliente pede o reembolso,
+    na prática**: o utilizador perguntou, com razão, onde é que o cliente
+    pede o reembolso na app e como se sabe depois que ele quis mesmo
+    avançar sabendo do bloqueio de 6 meses — a resposta honesta era "em lado
+    nenhum, e não se sabe": o `POST /api/admin/refund-delete` construído
+    antes só executa a eliminação, não captura consentimento nenhum; o
+    pedido chega por email, fora do sistema, sem qualquer prova de que o
+    cliente foi avisado da consequência antes de a aceitar.
+    Apresentadas duas opções: (A) continuar manual por email, mas com um
+    modelo de confirmação explícita a enviar e a exigir resposta por escrito
+    antes de processar; (B) um ecrã self-service na app com pedido +
+    confirmação, guardando o consentimento na BD. O utilizador escolheu A.
+    Feito: `context/OPERATIONS.md` ganhou um modelo de email (PT-PT e EN)
+    que o operador tem de enviar ("recebi o teu pedido... antes de avançar,
+    confirmo os termos exatos... responde com a frase exata...") e só depois
+    de receber a confirmação por escrito é que processa o reembolso e chama
+    o endpoint — os dois emails (o modelo enviado + a resposta do cliente)
+    ficam como o único registo do consentimento. Sem alteração de código —
+    é inteiramente processo/documentação. A opção B (ecrã próprio,
+    consentimento guardado na BD) fica registada como não escolhida, para
+    reconsiderar se o volume de pedidos algum dia justificar automatizar.

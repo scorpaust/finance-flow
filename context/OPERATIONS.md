@@ -74,14 +74,24 @@ R2 + Actions (ambos com níveis gratuitos suficientes para este volume).
 
 Os Termos de Serviço (ponto 4) prometem devolução total sem perguntas nos
 primeiros 14 dias, com a contrapartida de a conta ser eliminada e ficar
-bloqueada 6 meses para um novo registo com o mesmo email. Como não há
-reembolso automático via API da EasyPay integrado neste projeto, o fluxo é
-manual, feito pelo operador (tu):
+bloqueada 6 meses para um novo registo com o mesmo email. Não há reembolso
+automático via API da EasyPay integrado neste projeto, nem nenhum ecrã na
+app onde o cliente peça isto — o fluxo é inteiramente manual, por email,
+feito pelo operador (tu). **Sem um passo de confirmação explícita, não há
+nenhum registo de que o cliente sabia da consequência (eliminação + bloqueio
+de 6 meses) e quis mesmo avançar** — por isso o passo 2 abaixo não é
+opcional, é o que serve de prova do consentimento.
 
 1. O pedido chega por email (dinismiguelcosta@gmail.com, conforme os Termos).
-2. Processas o reembolso manualmente no dashboard da EasyPay.
-3. Chamas o endpoint de administração para apagar a conta e aplicar o
-   bloqueação de 6 meses:
+2. **Antes de processar nada**, responde com o modelo abaixo (PT ou EN,
+   conforme o idioma do cliente) e espera pela confirmação explícita por
+   escrito. Guarda os dois emails (o teu e a resposta dele) — ex. numa
+   etiqueta/pasta "Reembolsos" — é o único registo que vai existir de que
+   ele foi avisado e concordou.
+3. Só depois de receberes essa confirmação: processas o reembolso
+   manualmente no dashboard da EasyPay.
+4. Chamas o endpoint de administração para apagar a conta e aplicar o
+   bloqueio de 6 meses:
    ```bash
    curl -X POST https://<domínio-de-produção>/api/admin/refund-delete \
      -H "content-type: application/json" \
@@ -91,6 +101,69 @@ manual, feito pelo operador (tu):
    Cancela primeiro qualquer subscrição com renovação automática na EasyPay
    (se existir) — se essa cancelação falhar, a conta NÃO é apagada, para não
    ficares a cobrar alguém já reembolsado.
+
+### Modelo de email — PT-PT
+
+```
+Assunto: Confirmação necessária — reembolso e eliminação de conta (FinanceFlow)
+
+Olá [nome],
+
+Recebi o teu pedido para exercer o direito de livre resolução da tua
+subscrição FinanceFlow. Antes de avançar, confirmo os termos exatos (ponto 4
+dos Termos de Serviço):
+
+- Vais receber a devolução total do valor pago, sem qualquer dedução, no
+  prazo de 14 dias a contar de hoje.
+- Em contrapartida, a tua conta ([email]) vai ser ELIMINADA de forma
+  irreversível — todos os teus dados, transações, investimentos e
+  definições serão apagados.
+- Não poderás criar uma nova conta com este mesmo email durante os 6 meses
+  seguintes.
+
+Para avançar, responde a este email com a frase exata:
+
+"Confirmo que quero o reembolso total e aceito que a minha conta seja
+eliminada e que fico impedido de criar uma nova conta com este email
+durante 6 meses."
+
+Assim que receber essa confirmação, processo o reembolso e elimino a conta.
+Se tiveres dúvidas antes de confirmar, responde a este email.
+
+Cumprimentos,
+Dinis
+```
+
+### Email template — EN
+
+```
+Subject: Confirmation needed — refund and account deletion (FinanceFlow)
+
+Hi [name],
+
+I received your request to exercise your right of withdrawal for your
+FinanceFlow subscription. Before proceeding, let me confirm the exact terms
+(Terms of Service, section 4):
+
+- You will receive a full refund of the amount paid, with no deductions,
+  within 14 days from today.
+- In exchange, your account ([email]) will be PERMANENTLY DELETED — all
+  your data, transactions, investments and settings will be erased.
+- You will not be able to create a new account with this same email for the
+  following 6 months.
+
+To proceed, please reply to this email with the exact sentence:
+
+"I confirm I want the full refund and I accept that my account will be
+deleted and that I will not be able to create a new account with this
+email for 6 months."
+
+Once I receive that confirmation, I will process the refund and delete the
+account. If you have any questions before confirming, just reply here.
+
+Best,
+Dinis
+```
 
 ## Plano de rollback para migrações de schema
 

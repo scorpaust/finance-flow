@@ -1940,3 +1940,12 @@ Tarefas principais (ver especificação para detalhe completo):
     jurídica. Já não há nenhum marcador `[ENTRE PARÊNTESIS]` por preencher em
     todo o texto legal, mas isto não substitui essa revisão — `LEGAL_IS_DRAFT`
     continua `true`.
+
+  - **Mesmo dia, ainda mais tarde — `LEGAL_IS_DRAFT` posto a `false`**: o
+    utilizador pediu explicitamente para publicar, depois de ter sido
+    avisado sobre a preocupação com o DL 446/85 na resposta anterior. Feito
+    — `LEGAL_IS_DRAFT = false`, aviso de rascunho deixa de aparecer em
+    `/privacy` e `/terms`. **Sem revisão por um jurista** — decisão de risco
+    do próprio utilizador, não uma recomendação desta sessão; reverter é uma
+    linha (`LEGAL_IS_DRAFT = true`) se vier a fazer sentido depois de falar
+    com alguém.

@@ -1,11 +1,12 @@
 // Fase 8, ponto 9 — política de privacidade e termos de serviço.
 //
-// ⚠️ RASCUNHO. Escrito a partir do que o código realmente faz (quem recebe
-// que dados), mas NÃO é aconselhamento jurídico: tem de ser revisto por um
-// jurista antes de publicar, e os marcadores [ENTRE PARÊNTESIS RETOS] têm de
-// ser preenchidos com os dados reais do responsável pelo tratamento.
-// Enquanto LEGAL_IS_DRAFT for true, as páginas mostram um aviso visível.
-export const LEGAL_IS_DRAFT = true;
+// Publicado a pedido explícito do utilizador em 2026-09-27, sem revisão por
+// um jurista — nomeadamente a cláusula de limitação de responsabilidade
+// (Termos, ponto 7), que cita o DL 446/85 num sentido que pode estar
+// invertido (essa lei é mais conhecida por proibir cláusulas deste tipo em
+// contratos de consumo do que por as autorizar). Reverter para true a
+// qualquer momento volta a mostrar o aviso de rascunho nas páginas.
+export const LEGAL_IS_DRAFT = false;
 export const LEGAL_UPDATED = "2026-09-27";
 
 export type LegalDocKey = "privacy" | "terms";

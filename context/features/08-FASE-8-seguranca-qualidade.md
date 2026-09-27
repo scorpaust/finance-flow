@@ -391,20 +391,21 @@ reais, em web e Android.
       falha, para a EasyPay reentregar (os handlers são idempotentes)
 
 ### 9. Conformidade legal
-- [ ] Política de privacidade e termos de serviço (obrigatórios para Play
+- [x] Política de privacidade e termos de serviço (obrigatórios para Play
       Store e para cobrança de subscrições)
-      — **texto completo, mas continua NÃO publicável**: `utils/legalContent.ts`
-      (PT-PT e EN; os outros 4 idiomas mostram EN com nota), páginas públicas
-      `/privacy` e `/terms` ligadas no login e nas Configurações, aviso de
-      rascunho visível enquanto `LEGAL_IS_DRAFT`. Escrito a partir do que o
-      código realmente faz (Atlas, EasyPay, Anthropic, Twelve Data, Sentry,
-      cookies). **Já não tem nenhum campo `[ENTRE PARÊNTESIS RETOS]` por
-      preencher** (todos fechados entre 2026-09-24 e 2026-09-27 — ver as
-      entradas de histórico correspondentes), mas **continua a precisar de
-      revisão por um jurista** antes de pôr `LEGAL_IS_DRAFT = false`,
-      sobretudo a cláusula de limitação de responsabilidade (ponto 7 dos
-      Termos) — tem uma referência ao DL 446/85 que pode estar a citar essa
-      lei no sentido errado (ver a entrada de 2026-09-27 mais abaixo)
+      — `utils/legalContent.ts` (PT-PT e EN; os outros 4 idiomas mostram EN
+      com nota), páginas públicas `/privacy` e `/terms` ligadas no login e
+      nas Configurações. Escrito a partir do que o código realmente faz
+      (Atlas, EasyPay, Anthropic, Twelve Data, Sentry, cookies). Já não tem
+      nenhum campo `[ENTRE PARÊNTESIS RETOS]` por preencher (todos fechados
+      entre 2026-09-24 e 2026-09-27 — ver as entradas de histórico
+      correspondentes). **`LEGAL_IS_DRAFT = false` desde 2026-09-27, a
+      pedido explícito do utilizador** — publicado **sem revisão por um
+      jurista**, incluindo a cláusula de limitação de responsabilidade
+      (ponto 7 dos Termos), que tem uma referência ao DL 446/85 que pode
+      estar a citar essa lei no sentido errado (ver a entrada de 2026-09-27
+      mais abaixo). Decisão de risco do utilizador, não uma recomendação
+      desta sessão
 - [x] Checklist RGPD: base legal para dados pessoais, exportação de dados do
       utilizador, eliminação de conta e dados associados — exportação:
       `GET /api/account/export` (sem hash da password nem segredos 2FA);
@@ -602,5 +603,8 @@ reais, em web e Android.
       e para `capture` (`tests/integration/api.test.ts`, 17/17) — ver ponto 6
 - [ ] Lighthouse web ≥ 90 em Performance e Acessibilidade (ou justificação
       documentada dos itens não atingidos)
-- [ ] Política de privacidade e termos de serviço publicados e linkados na
+- [x] Política de privacidade e termos de serviço publicados e linkados na
       app
+      — `LEGAL_IS_DRAFT = false` desde 2026-09-27, ligados no login e nas
+      Configurações. Publicados sem revisão jurídica, a pedido explícito do
+      utilizador — ver ponto 9

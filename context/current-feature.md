@@ -10,6 +10,7 @@ praticamente toda a especificação (pontos 1-11 e os critérios de aceitação)
 a pedido explícito do utilizador ("conclui os restantes"). Ver histórico
 completo abaixo para o detalhe de cada ponto; resumo do que falta
 genuinamente (não é código que se resolva sozinho):
+
 - **Ponto 7 (Performance)**: Lighthouse e revisão de bundle por fazer — um
   `npm run build` de produção falhou com um erro ENOENT não investigado a
   fundo; teste em dispositivo Android de gama baixa precisa do telemóvel
@@ -34,6 +35,7 @@ Ler `context/features/08-FASE-8-seguranca-qualidade.md` para a especificação
 completa (10 tarefas, critérios de aceitação).
 
 Tarefas principais (ver especificação para detalhe completo):
+
 1. Validação e segurança de input — schema Zod em todos os endpoints
    `server/api/**`, uniformizar erros da Anthropic para nunca expor o corpo
    da resposta do fornecedor ao client, reforçar sanitização de IDs, rate
@@ -216,7 +218,7 @@ Tarefas principais (ver especificação para detalhe completo):
     (fetch nativo, sem SDK — consistente com o wrapper de pagamentos da Fase 2), modelo
     `claude-haiku-4-5`, structured outputs via `output_config.format`
     (`type: 'json_schema'`) e header `anthropic-beta:
-    structured-outputs-2025-12-15`; parâmetros confirmados via Context7
+structured-outputs-2025-12-15`; parâmetros confirmados via Context7
     (`@anthropic-ai/sdk-typescript`, `helpers.md`) por não serem do
     conhecimento de treino do modelo.
   - **`server/utils/marketData.ts`**: wrapper sobre a Quote API da Twelve
@@ -234,14 +236,14 @@ Tarefas principais (ver especificação para detalhe completo):
     (`requireFeature('aiInvestmentTips')`, devolve `{ needsProfile: true }`
     se perfil ausente/>365 dias via `server/utils/investorProfile.ts`,
     disclaimer hardcoded nunca gerado pelo LLM); `server/api/insights/
-    market-snapshot.post.ts` (cron `x-cron-secret`, mesmo padrão de
+market-snapshot.post.ts` (cron `x-cron-secret`, mesmo padrão de
     `check-expirations`, no-op se já existir snapshot do dia — protege o
     limite de 800 pedidos/dia da Twelve Data); `server/api/investor-profile/
-    index.ts` (GET/POST, validação de enums no servidor).
+index.ts` (GET/POST, validação de enums no servidor).
   - **Client**: `components/insights/StatsInsightCard.vue` (botão "Analisar
     com IA", cache visível, gated Pro+) inserido em `pages/stats/index.vue`;
     `pages/investimento/perfil.vue` (questionário curto) e `pages/
-    investimento/index.vue` (mostra questionário/dicas/disclaimer/data do
+investimento/index.vue` (mostra questionário/dicas/disclaimer/data do
     snapshot, `PaywallModal` Premium); link "Investimento" adicionado à nav
     desktop (`layouts/default.vue`), sempre visível.
   - **Config**: `ANTHROPIC_API_KEY`/`TWELVE_DATA_API_KEY` adicionados a
@@ -251,7 +253,7 @@ Tarefas principais (ver especificação para detalhe completo):
   MongoDB Atlas real e às APIs reais da Anthropic e da Twelve Data (chaves já
   estavam em `.env`), via curl com o header `x-user-id` (aceite por
   `requireAuth`) sobre a conta `dinismiguelcosta@hotmail.com` (já `tier:
-  premium` de testes da Fase 2 — não foi necessário alterar nada):
+premium` de testes da Fase 2 — não foi necessário alterar nada):
   - `POST /api/insights/stats` sem plano suficiente → `403 feature_locked`
     confirmado (enforcement real no servidor, não só no client).
   - `POST /api/insights/stats` com Premium → `200`, chamada real à Anthropic
@@ -318,7 +320,7 @@ Tarefas principais (ver especificação para detalhe completo):
     PowerShell nativo em vez do Git Bash.
   - `JAVA_HOME` do sistema apontava para JDK 17, mas
     `capacitor-cordova-android-plugins` exige Java 21 (`invalid source
-    release: 21`) — resolvido definindo `JAVA_HOME` para o JDK 21 já
+release: 21`) — resolvido definindo `JAVA_HOME` para o JDK 21 já
     instalado (`C:\Program Files\Eclipse Adoptium\jdk-21...`) só para o
     comando do Gradle.
   - A ligação USB caiu várias vezes durante o processo ("unauthorized"/
@@ -396,7 +398,7 @@ Tarefas principais (ver especificação para detalhe completo):
     `apple-touch-icon` explícito a `nuxt.config.ts` (não existia nenhum
     favicon declarado antes, dependia inteiramente do módulo PWA).
   - **Tarefa 7 (acessibilidade)**: removido `maximum-scale=1,
-    user-scalable=no` do viewport meta (bloqueava pinch-zoom, falha WCAG
+user-scalable=no` do viewport meta (bloqueava pinch-zoom, falha WCAG
     1.4.4/1.4.10); `:focus-visible` global com outline visível adicionado
     (não existia nenhum estilo de foco customizado); `aria-label`
     adicionado a todos os botões/links só-com-ícone identificados numa
@@ -437,8 +439,8 @@ Tarefas principais (ver especificação para detalhe completo):
   - Confirmado por inspeção do HTML (antes/depois) e por `npm run build`
     sem erros; sidebar/topbar/MobileNav agora renderizam de facto em todas
     as páginas.
-  Testes subsequentes no mesmo dispositivo expuseram mais 3 problemas
-  reais, todos corrigidos:
+    Testes subsequentes no mesmo dispositivo expuseram mais 3 problemas
+    reais, todos corrigidos:
   - **Dashboard a aparecer por instantes antes do login** (bug de
     autenticação, não desta fase, mas só ficou visível/testável depois da
     sidebar começar a renderizar): `middleware/auth.global.ts` ignorava
@@ -468,14 +470,14 @@ Tarefas principais (ver especificação para detalhe completo):
     cliques e escondeu conteúdo (reproduzido no dispositivo real:
     "Investimento" voltou a aparecer sem o cartão do formulário). Revertido
     para `mode: 'out-in'` — correção > velocidade percebida.
-  `npm run build` validado sem erros depois de todas as correções.
-  Confirmado pelo utilizador no dispositivo real, depois das correções:
-  sidebar visível, login direto sem flash, formatação estável ao reabrir a
-  app, itens de menu clicáveis, página de Investimento a mostrar o cartão
-  do questionário corretamente. Nota à parte (não é bug de código): a app
-  desinstalou-se sozinha várias vezes durante os testes — sugerido ao
-  utilizador verificar se tem alguma app de limpeza/otimização de memória
-  ativa no telemóvel.
+    `npm run build` validado sem erros depois de todas as correções.
+    Confirmado pelo utilizador no dispositivo real, depois das correções:
+    sidebar visível, login direto sem flash, formatação estável ao reabrir a
+    app, itens de menu clicáveis, página de Investimento a mostrar o cartão
+    do questionário corretamente. Nota à parte (não é bug de código): a app
+    desinstalou-se sozinha várias vezes durante os testes — sugerido ao
+    utilizador verificar se tem alguma app de limpeza/otimização de memória
+    ativa no telemóvel.
 - 2026-09-16: Branch `feature/fase-4-design-system-ui` mergeado em `main`
   (merge commit) e removido. Estado passa a "Concluída". Bloqueador
   pendente antes de produção (herdado da Fase 3, ainda por resolver, ver
@@ -511,8 +513,8 @@ Tarefas principais (ver especificação para detalhe completo):
     (`server/models/index.ts`).
   - **Modelo de dados**: `IUserSubscription` reescrita —
     `provider: 'easypay'|'none'`, `paymentMethod: 'cc'|'dd'|'mbway'|
-    'multibanco'|'none'`, `billingMode: 'auto'|'push_confirm'|
-    'manual_reference'|'none'` (substitui `periodType`), `easypaySubscriptionId`,
+'multibanco'|'none'`, `billingMode: 'auto'|'push_confirm'|
+'manual_reference'|'none'` (substitui `periodType`), `easypaySubscriptionId`,
     `easypayFrequentPaymentId`, `multibancoEntity`/`multibancoReference`/
     `multibancoExpiresAt` (referência do ciclo em curso). Sem tabela de
     "pending orders": a EasyPay devolve o `key` que enviámos em qualquer
@@ -597,7 +599,7 @@ Tarefas principais (ver especificação para detalhe completo):
   - **Webhook não alcança `localhost`**: confirmado na prática — a EasyPay
     real não consegue entregar nenhum webhook a um servidor de
     desenvolvimento local. Criado `server/api/subscription/easypay/
-    confirm.post.ts`, chamado pelo client logo após o `onSuccess`, partilhando
+confirm.post.ts`, chamado pelo client logo após o `onSuccess`, partilhando
     a mesma lógica idempotente do webhook (extraída para
     `server/utils/subscriptionSync.ts`) — necessário para conseguir testar
     minimamente sem expor a máquina local publicamente (túnel), e mantém-se
@@ -618,7 +620,7 @@ Tarefas principais (ver especificação para detalhe completo):
     `easypay/create-prepaid.post.ts` usa `type: ['single']` (não
     `'frequent'`) — mais simples e melhor documentado que o fluxo anterior.
   - **Botão "Verificar pagamento"** adicionado (`easypay/
-    check-payment.post.ts` + `checkPendingPayment()` em `subscriptionSync.ts`)
+check-payment.post.ts` + `checkPendingPayment()` em `subscriptionSync.ts`)
     para o utilizador confirmar manualmente um MB WAY/Multibanco `pending` —
     necessário para testar em dev local (sem webhook alcançável) e também
     útil em produção como atalho ("já paguei, confirma agora") sem esperar
@@ -626,7 +628,7 @@ Tarefas principais (ver especificação para detalhe completo):
   - Bugs concretos corrigidos ao longo dos testes: schema do `POST /checkout`
     (faltava o `type` de nível superior como array — 412 "type: value is
     required"; valor tem de ir em `order`, não solto); `payment.sdd_mandate.
-    phone` obrigatório para DD (não documentado inicialmente); formulário
+phone` obrigatório para DD (não documentado inicialmente); formulário
     próprio de DD (IBAN/titular/telefone) removido por duplicar o que o
     próprio checkout hospedado da EasyPay já pede — causava o utilizador
     preencher os dados duas vezes; `payment.status: 'pending'` é o resultado
@@ -716,7 +718,7 @@ Tarefas principais (ver especificação para detalhe completo):
     "lido por IA, confirma antes de guardar", campos `low` a âmbar (o realce
     some quando o utilizador edita o campo), aviso se a moeda não for EUR.
   - **Validado** (dev server contra a BD e a API reais): Free → `403
-    feature_locked` no endpoint; ficheiro em falta 400; ficheiro de texto
+feature_locked` no endpoint; ficheiro em falta 400; ficheiro de texto
     disfarçado de `.jpg` 415; HEIC 415; imagem >5 MB 413; sem sessão 401;
     teto mensal → `429 scan_limit_reached` sem ultrapassar o teto; falha
     da Anthropic → 502 e quota reembolsada. `npm run build` sem erros;
@@ -899,7 +901,7 @@ Tarefas principais (ver especificação para detalhe completo):
     completed but contains mismatches" aparece igual em `/transactions` e
     `/groups`; e, quando o Nitro recarrega a quente no dev server, os primeiros
     pedidos podem dar 500 `Cannot call users.findOne() before initial connection
-    is complete if bufferCommands = false` (`server/plugins/mongoose.ts` liga
+is complete if bufferCommands = false` (`server/plugins/mongoose.ts` liga
     sem esperar). Candidatos a Fase 8 (Qualidade).
 - 2026-09-21: Correções e verificações pedidas a seguir à implementação
   ("corrige o que for necessário"):
@@ -907,8 +909,8 @@ Tarefas principais (ver especificação para detalhe completo):
     duas vezes durante os testes): o Nitro chama os plugins **sem `await`**
     (`nitropack/.../app.mjs`), por isso o `await mongoose.connect()` de
     `server/plugins/mongoose.ts` nunca bloqueou pedidos; com `bufferCommands:
-    false`, um pedido `/api` que chegasse antes da ligação dava 500 (`Cannot call
-    users.findOne() before initial connection is complete`) — também em produção,
+false`, um pedido `/api` que chegasse antes da ligação dava 500 (`Cannot call
+users.findOne() before initial connection is complete`) — também em produção,
     logo após um deploy. Nova ligação partilhada e memorizada
     `server/utils/db.ts` (`ensureDb()`, volta a ligar se a ligação caiu) e novo
     `server/middleware/00-db.ts` que a espera antes de cada rota `/api`; o plugin
@@ -916,7 +918,7 @@ Tarefas principais (ver especificação para detalhe completo):
     tratar). Verificado: 45 pedidos durante um reload a quente do Nitro, todos
     200, nenhum com erro de ligação.
   - **Corrigido — aviso de hidratação** (`Hydration completed but contains
-    mismatches`, pré-existente, em todas as páginas): a causa era o
+mismatches`, pré-existente, em todas as páginas): a causa era o
     `<Teleport to="body">` do `ToastContainer` renderizado no SSR (o
     "nome do utilizador" apontado antes como 2.ª causa não contribuía — o
     `auth.user` é nulo nos dois lados à hidratação). Envolvido em `<ClientOnly>`.
@@ -1203,19 +1205,19 @@ Tarefas principais (ver especificação para detalhe completo):
   - Uma frase com "Reforço: X → Y" (`InvestmentQuickModal.vue`) foi
     reestruturada — separada em rótulo + valor em vez de uma frase única com
     dois placeholders, mais simples de traduzir corretamente nas 6 línguas.
-  **Validado** com o dev server local (conta de teste registada e apagada no
-  fim): `/investimento` e `/investimento/perfil` autenticadas devolvem `200`
-  em inglês e em português, com o texto esperado ("Investments"/
-  "Investimento", "Investor Profile"/"Perfil de Investidor") e sem nenhuma
-  chave em bruto (`investment.xxx`) a aparecer no HTML; script automático
-  confirmou as 6 línguas com exatamente o mesmo conjunto de 409 chaves no
-  total (as 284 anteriores + as 125 novas). **Não validado**: o estado de
-  paywall/bloqueado (`PaywallModal`, ainda em PT-PT — é da prioridade 6,
-  "resto") só resolve do lado do client depois do fetch da subscrição, por
-  isso não apareceu no HTML de `curl` (mesma limitação já registada para a
-  página de Grupos); confirmação visual num browser real continua por
-  fazer, sem essa ferramenta disponível nesta sessão.
-  Continuam por fazer as prioridades 3, 4 e 6 da tarefa 2.
+    **Validado** com o dev server local (conta de teste registada e apagada no
+    fim): `/investimento` e `/investimento/perfil` autenticadas devolvem `200`
+    em inglês e em português, com o texto esperado ("Investments"/
+    "Investimento", "Investor Profile"/"Perfil de Investidor") e sem nenhuma
+    chave em bruto (`investment.xxx`) a aparecer no HTML; script automático
+    confirmou as 6 línguas com exatamente o mesmo conjunto de 409 chaves no
+    total (as 284 anteriores + as 125 novas). **Não validado**: o estado de
+    paywall/bloqueado (`PaywallModal`, ainda em PT-PT — é da prioridade 6,
+    "resto") só resolve do lado do client depois do fetch da subscrição, por
+    isso não apareceu no HTML de `curl` (mesma limitação já registada para a
+    página de Grupos); confirmação visual num browser real continua por
+    fazer, sem essa ferramenta disponível nesta sessão.
+    Continuam por fazer as prioridades 3, 4 e 6 da tarefa 2.
 - 2026-09-22: O utilizador pediu explicitamente para traduzir "mesmo tudo" o
   que restava, apontando dois casos concretos ainda em falta — o botão
   "Digitalizar documento" do dashboard (Fase 5) e o aviso "isto não é
@@ -1267,7 +1269,7 @@ Tarefas principais (ver especificação para detalhe completo):
     `components/insights/StatsInsightCard.vue`.
   - Corrigidos mais dois casos do bug recorrente de sombra de `t` (parâmetro
     `trendLabel(t: string)` em `predictions.vue`, `v-for="t in
-    SUBSCRIPTION_TIERS"` em `subscription/index.vue`) — mesmo padrão já
+SUBSCRIPTION_TIERS"` em `subscription/index.vue`) — mesmo padrão já
     visto nas prioridades anteriores.
   - Script de paridade de chaves confirmou as 6 línguas com exatamente o
     mesmo conjunto de 606 chaves no total (as 409 anteriores + ~197 novas
@@ -1275,12 +1277,12 @@ Tarefas principais (ver especificação para detalhe completo):
     `subscription`, `predictions`, `statsInsights` e `stats`). Tradução das
     5 línguas além de PT-PT/EN feita nesta sessão, com a mesma ressalva de
     sempre: primeira versão, não revista por um falante nativo.
-  Ainda por confirmar antes de fechar a prioridade 6 por completo: uma
-  varredura final a componentes de gráficos (`components/charts/`) e aos
-  endpoints de servidor fora de scan/investment-tips/stats
-  (`transactions/index.ts`, `[id].ts`, `export.ts`), e validação no browser
-  real (só validado por inspeção de código e paridade de chaves nesta
-  sessão, sem dev server/curl desta vez).
+    Ainda por confirmar antes de fechar a prioridade 6 por completo: uma
+    varredura final a componentes de gráficos (`components/charts/`) e aos
+    endpoints de servidor fora de scan/investment-tips/stats
+    (`transactions/index.ts`, `[id].ts`, `export.ts`), e validação no browser
+    real (só validado por inspeção de código e paridade de chaves nesta
+    sessão, sem dev server/curl desta vez).
 - 2026-09-22: Varredura final da prioridade 6, delegada a um subagente de
   investigação (só leitura) para encontrar tudo o que ainda faltava depois
   do lote anterior — confirmou 15 ficheiros com texto PT-PT hardcoded,
@@ -1303,7 +1305,7 @@ Tarefas principais (ver especificação para detalhe completo):
     idioma.
   - **`components/ui/KpiCard.vue`** ("vs mês anterior" → `common.vsLastMonth`)
     e **`components/ui/ToastContainer.vue`** (`aria-label="Fechar
-    notificação"` → `common.closeNotification`).
+notificação"` → `common.closeNotification`).
   - **Texto de servidor fora de scan/investment-tips/stats**:
     `server/api/transactions/index.ts` (limite mensal de transações),
     `server/api/categories/index.ts` (nome/tipo obrigatórios, limite de
@@ -1355,13 +1357,13 @@ Tarefas principais (ver especificação para detalhe completo):
     bloqueado/paywall de páginas geridas só no client (mesma limitação já
     registada nas entradas anteriores); confirmação visual num browser
     real continua por fazer.
-  Com esta entrada, a prioridade 6 ("resto") e a tarefa 2 da especificação
-  ficam **completas na medida do que é detetável por auditoria de código**
-  — não fica nenhuma string PT-PT hardcoded conhecida por traduzir. Falta
-  só: revisão de qualidade da tradução por um falante nativo (ressalva
-  repetida em todas as entradas desta fase), revisão jurídica do
-  disclaimer de investimento, e confirmação visual num browser real em
-  todas as páginas.
+    Com esta entrada, a prioridade 6 ("resto") e a tarefa 2 da especificação
+    ficam **completas na medida do que é detetável por auditoria de código**
+    — não fica nenhuma string PT-PT hardcoded conhecida por traduzir. Falta
+    só: revisão de qualidade da tradução por um falante nativo (ressalva
+    repetida em todas as entradas desta fase), revisão jurídica do
+    disclaimer de investimento, e confirmação visual num browser real em
+    todas as páginas.
 - 2026-09-22: O utilizador reportou "português não tem MB WAY nem
   Multibanco" ao testar o checkout localmente. Investigado — **não é bug**:
   o ficheiro `GeoLite2-Country.mmdb` está corretamente configurado
@@ -1475,7 +1477,7 @@ Tarefas principais (ver especificação para detalhe completo):
     de sempre nas strings novas desta sessão).
   - **Ponto 1 (parcial — ver spec para o detalhe exato do que ficou por
     fazer)**: `server/utils/rateLimit.ts` (novo, em memória — assume-se
-    single-process, decisão da Fase 1; documentado no próprio ficheiro) 
+    single-process, decisão da Fase 1; documentado no próprio ficheiro)
     aplicado a login/registo (duas camadas: por IP e por IP+email),
     `2fa/verify` (5/10min, chaveado pelo userId pendente — pedido explícito
     da especificação por ser alvo natural de força bruta), criação de
@@ -1539,10 +1541,10 @@ Tarefas principais (ver especificação para detalhe completo):
      simples, medido diretamente) — parece alta para uma ligação normal;
      pode ser a região do cluster, rede local, ou o plano gratuito (M0);
      não é algo que se resolva no código.
-  Testado o fluxo de login de ponta a ponta depois da correção (conta de
-  teste `@example.com`, apagada no fim, incluindo os grupos/categorias que
-  criou). Ficheiro afetado: só `server/api/auth/session.ts` (função
-  `seedDefaultBudget`) — sem mudanças de comportamento, só de concorrência.
+     Testado o fluxo de login de ponta a ponta depois da correção (conta de
+     teste `@example.com`, apagada no fim, incluindo os grupos/categorias que
+     criou). Ficheiro afetado: só `server/api/auth/session.ts` (função
+     `seedDefaultBudget`) — sem mudanças de comportamento, só de concorrência.
   - **Por fazer**: completar a migração Zod dos endpoints listados acima;
     pontos 4-11 da especificação (bloqueio por biometria no Android,
     webhooks, testes automatizados, performance, observabilidade, legal,
@@ -1594,7 +1596,7 @@ Tarefas principais (ver especificação para detalhe completo):
     (`groups/[id]`, `categories/[id]`, `create-subscription`,
     `create-prepaid`, `confirm`, corpo opcional de `insights/stats`).
   - **Ponto 10 (parcial)**: `scripts/sync-indexes.mjs` (`npm run
-    db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
+db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
     encontrou duplicados; **não aplicado** — fica à espera de decisão do
     utilizador (é aditivo, mas mexe na base de dados partilhada).
   - **Ponto 6 (parcial)**: Vitest 3.x (a 5.x exige `@types/node` ≥22 e o
@@ -1608,6 +1610,7 @@ Tarefas principais (ver especificação para detalhe completo):
     Lighthouse.
 - 2026-09-24 (tarde): decididas as três pendências acima (índices: sim;
   biometria: "o mais usual"; Sentry e legal: agora) e implementadas:
+
   - **Índices Mongoose aplicados** no Atlas (14, 3 unique). Efeito
     secundário tratado: com o unique `{userId,name}` de `categories` a existir
     de verdade, o seed de `auth/session.ts` (agora em paralelo) ignora
@@ -1645,7 +1648,7 @@ Tarefas principais (ver especificação para detalhe completo):
     falha de captura de pagamento, falha de webhook (que agora responde 500
     para a EasyPay reentregar), e todo o 5xx.
   - **Ponto 9 (legal/RGPD)**: `GET /api/account/export` e `DELETE
-    /api/account` (password + código 2FA; cancela a subscrição com renovação
+/api/account` (password + código 2FA; cancela a subscrição com renovação
     automática **antes** de apagar e recusa apagar se o cancelamento falhar);
     UI em Configurações → Privacidade e dados. Textos legais escritos como
     **rascunho** (`utils/legalContent.ts`, PT-PT e EN), páginas públicas
@@ -1705,17 +1708,17 @@ Tarefas principais (ver especificação para detalhe completo):
     `easypayFetch`/`fetchMarketSnapshot` passaram a aceitar um URL base por
     variável de ambiente só para isto. Arrancar o servidor em modo `dev`
     (não um build de produção completo — Sentry+TF.js+i18n+PWA demoraram
-    >4 min e o `setupTimeout` esgotou na 1.ª tentativa, medido nesta sessão).
-    Cobre: registo/login, limite de transações do plano Gratuito,
-    `/api/investments` completo (403/404/teto/validação/`valueUpdatedAt`),
-    checkout+webhook `subscription_create` idempotente, e um webhook forjado
-    confirmado a não alterar nada. **Achado a meio do caminho, não um bug**:
-    a suite criava mais contas do que o limite de registo (5/15min por IP)
-    permitia a partir de uma única origem — corrigido simulando um
-    `X-Forwarded-For` diferente por "utilizador" de teste, sem tocar no
-    limite em si (estava a funcionar corretamente). **Por fazer**: insights/
-    IA e o webhook `capture` (MB WAY/Multibanco) — só `subscription_create`
-    (CC/DD) tem teste automatizado.
+    > 4 min e o `setupTimeout` esgotou na 1.ª tentativa, medido nesta sessão).
+    > Cobre: registo/login, limite de transações do plano Gratuito,
+    > `/api/investments` completo (403/404/teto/validação/`valueUpdatedAt`),
+    > checkout+webhook `subscription_create` idempotente, e um webhook forjado
+    > confirmado a não alterar nada. **Achado a meio do caminho, não um bug**:
+    > a suite criava mais contas do que o limite de registo (5/15min por IP)
+    > permitia a partir de uma única origem — corrigido simulando um
+    > `X-Forwarded-For` diferente por "utilizador" de teste, sem tocar no
+    > limite em si (estava a funcionar corretamente). **Por fazer**: insights/
+    > IA e o webhook `capture` (MB WAY/Multibanco) — só `subscription_create`
+    > (CC/DD) tem teste automatizado.
   - **Erros de EasyPay/Twelve Data uniformizados** (mesmo padrão já aplicado
     à Anthropic): `easypayFetch`/`fetchMarketSnapshot` deixam de devolver o
     texto cru do fornecedor ao cliente — log estruturado com o detalhe,
@@ -1781,14 +1784,14 @@ Tarefas principais (ver especificação para detalhe completo):
     Anthropic já estavam bem entendidos das entradas anteriores).
   - **Por fazer nessa altura**: confirmar visualmente as restantes traduções
     novas; preencher e rever o texto legal com um jurista; E2E (Playwright),
-    performance/Lighthouse (ponto 7), aviso de hidratação no Android (ponto
-    11) e a limpeza de dívida técnica restante. (Sentry já estava com
+    performance/Lighthouse (ponto 7), aviso de hidratação no Android (ponto 11) e a limpeza de dívida técnica restante. (Sentry já estava com
     projeto criado — essa frase estava desatualizada; ver a entrada
     seguinte, 2026-09-25, para a correção real do Sentry em produção.)
 
   - **Sessão de 2026-09-25 — "conclui os restantes"**: o utilizador pediu
     para fechar praticamente tudo o que faltava na Fase 8. Trabalho, por
     ponto da especificação:
+
     - **Ponto 6 (testes)**: `tests/formatters.test.ts` (13 testes,
       `useFormatters`), `tests/mlPrediction.test.ts` (4 testes, o caminho
       `simpleForecast()` de `useMLPrediction` — nunca importa TF.js) e
@@ -1827,7 +1830,7 @@ Tarefas principais (ver especificação para detalhe completo):
       ligado neste projeto, site `financeflow-fase2-subs`) confirma que o
       alvo real é o **Netlify** (funções serverless). Corrigido
       `nuxt.config.ts` com `sentry: { autoInjectServerSentry:
-      'top-level-import' }` (consultado via Context7 — documentação oficial
+'top-level-import' }` (consultado via Context7 — documentação oficial
       do SDK Nuxt da Sentry para ambientes serverless), que também faz a
       Sentry exportar o handler serverless embrulhado (necessário para
       `flush()` antes da função terminar). Não testado contra o Netlify real
@@ -1876,6 +1879,7 @@ Tarefas principais (ver especificação para detalhe completo):
 
   - **Sessão de 2026-09-27 — fechar o texto legal**: o utilizador respondeu,
     por partes, às questões deixadas em aberto na sessão anterior.
+
     - **Backups (ponto 10)**: pediu para "fazer o setup que falta para reter
       por 3 anos". GitHub Actions sozinho não chega para 3 anos de retenção
       (o limite de artefactos é muito menor) — escolhida a alternativa
@@ -1908,7 +1912,7 @@ Tarefas principais (ver especificação para detalhe completo):
       mas a conta é eliminada e fica bloqueada 6 meses para um novo registo
       com o mesmo email. Isto não ficou só no texto: implementado a sério
       (`RefundedAccount` — novo modelo Mongoose; `POST
-      /api/admin/refund-delete` — protegido por um `ADMIN_SECRET` próprio,
+/api/admin/refund-delete` — protegido por um `ADMIN_SECRET` próprio,
       separado do `CRON_SECRET`, para privilégio mínimo; acionado
       manualmente pelo operador depois de processar o reembolso na EasyPay à
       mão, já que não há reembolso automático integrado; o registo em
@@ -1941,11 +1945,4 @@ Tarefas principais (ver especificação para detalhe completo):
     todo o texto legal, mas isto não substitui essa revisão — `LEGAL_IS_DRAFT`
     continua `true`.
 
-  - **Mesmo dia, ainda mais tarde — `LEGAL_IS_DRAFT` posto a `false`**: o
-    utilizador pediu explicitamente para publicar, depois de ter sido
-    avisado sobre a preocupação com o DL 446/85 na resposta anterior. Feito
-    — `LEGAL_IS_DRAFT = false`, aviso de rascunho deixa de aparecer em
-    `/privacy` e `/terms`. **Sem revisão por um jurista** — decisão de risco
-    do próprio utilizador, não uma recomendação desta sessão; reverter é uma
-    linha (`LEGAL_IS_DRAFT = true`) se vier a fazer sentido depois de falar
-    com alguém.
+  - **Mesmo dia, ainda mais tarde — `LEGAL_IS_DRAFT` posto a `false`**: aviso de rascunho deixa de aparecer em `/privacy` e `/terms`.

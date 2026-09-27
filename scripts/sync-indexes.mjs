@@ -33,6 +33,7 @@ const INDEXES = [
   { collection: 'aiinsightcaches', keys: { userId: 1 }, unique: true },
   { collection: 'investments', keys: { userId: 1 } },
   { collection: 'investments', keys: { userId: 1, initialDate: -1 } },
+  { collection: 'refundedaccounts', keys: { email: 1 } },
 ]
 
 async function findDuplicates(col, keys) {

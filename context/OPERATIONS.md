@@ -32,23 +32,65 @@ MONGODB_URI=<uri-de-produção> node scripts/backup-mongo.mjs
 MONGODB_URI=<uri> node scripts/restore-mongo.mjs backups/<timestamp>
 ```
 
-**Por fazer, decisão do utilizador** (não é algo que se resolva só com
-código): escolher entre
-1. **Agendar** `scripts/backup-mongo.mjs` (ex. GitHub Actions com um cron
-   trigger e `secrets.MONGODB_URI` só de leitura, guardando o resultado como
-   artefacto do workflow — retenção por omissão de 90 dias) — grátis, mas
-   mais um componente para manter, e um restauro completo, não
-   point-in-time.
-2. **Subir para o tier M10** da Atlas (~57 USD/mês em 2026) e usar o
-   Continuous Cloud Backup nativo — sem manutenção, point-in-time recovery,
-   mas com custo mensal.
+**Decisão tomada (2026-09-27)**: agendar `scripts/backup-mongo.mjs` via
+GitHub Actions (`.github/workflows/backup.yml`, diariamente às 03:17 UTC),
+com upload para **Cloudflare R2** (compatível com S3, nível gratuito de
+10GB) em vez de guardar como artefacto do workflow — os artefactos do
+GitHub Actions não retêm ficheiros durante 3 anos (o limite é muito menor),
+e a Política de Privacidade (ponto 6) promete reter cópias de segurança até
+3 anos.
 
-Nenhuma das duas opções foi ativada nesta sessão — a primeira precisa de um
-`secrets.MONGODB_URI` no repositório GitHub (ação no GitHub, não no código);
-a segunda precisa de uma alteração de plano na Atlas (ação na consola da
-Atlas, com custo). Enquanto isto não acontecer, corre
-`node scripts/backup-mongo.mjs` manualmente de vez em quando, sobretudo antes
-de qualquer migração de schema (ver secção seguinte).
+**Passos que faltam no lado da conta (não é código, é configuração)**:
+1. Criar uma conta Cloudflare (grátis) e um bucket R2 (ex. `financeflow-backups`).
+2. Gerar um R2 API token (Cloudflare dashboard → R2 → Manage API tokens →
+   "Object Read & Write", restrito a esse bucket) — dá o Account ID, Access
+   Key ID e Secret Access Key.
+3. No bucket, em Settings → Object lifecycle rules, criar uma regra que
+   expira ("Delete objects") objetos com mais de **1095 dias** (3 anos) —
+   isto é o que torna a promessa "até 3 anos" da Política de Privacidade
+   verdadeira; sem esta regra os backups ficam para sempre (não é errado,
+   mas não corresponde ao que o texto diz).
+4. No repositório GitHub, em Settings → Secrets and variables → Actions,
+   criar os secrets `MONGODB_URI` (a ligação de **produção**, não a de
+   desenvolvimento), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+   `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
+
+Sem esses 5 secrets configurados, o workflow `backup.yml` corre mas falha
+(sem `MONGODB_URI` o script recusa-se a arrancar; sem as variáveis `R2_*` o
+script já não falha — só avisa e grava apenas localmente dentro do runner,
+que é destruído no fim, ou seja, sem efeito prático). Testado localmente
+apenas com o caminho local (sem R2) — o upload para R2 em si **não foi
+testado contra um bucket real** (não há credenciais Cloudflare
+disponíveis nesta sessão); a lógica é uma chamada `PutObjectCommand` direta
+do `@aws-sdk/client-s3` contra o endpoint `https://<account-id>.r2.cloudflarestorage.com`,
+o padrão documentado da própria Cloudflare para usar o SDK da AWS com R2.
+
+Continua válida a alternativa de subir para o tier **M10** da Atlas
+(~57 USD/mês em 2026) e usar o Continuous Cloud Backup nativo em vez desta
+solução — não escolhida por ter um custo mensal fixo bem mais alto do que
+R2 + Actions (ambos com níveis gratuitos suficientes para este volume).
+
+## Reembolso por livre resolução (14 dias) — como aplicar
+
+Os Termos de Serviço (ponto 4) prometem devolução total sem perguntas nos
+primeiros 14 dias, com a contrapartida de a conta ser eliminada e ficar
+bloqueada 6 meses para um novo registo com o mesmo email. Como não há
+reembolso automático via API da EasyPay integrado neste projeto, o fluxo é
+manual, feito pelo operador (tu):
+
+1. O pedido chega por email (dinismiguelcosta@gmail.com, conforme os Termos).
+2. Processas o reembolso manualmente no dashboard da EasyPay.
+3. Chamas o endpoint de administração para apagar a conta e aplicar o
+   bloqueação de 6 meses:
+   ```bash
+   curl -X POST https://<domínio-de-produção>/api/admin/refund-delete \
+     -H "content-type: application/json" \
+     -H "x-admin-secret: <o valor de ADMIN_SECRET>" \
+     -d '{"email":"cliente@exemplo.com"}'
+   ```
+   Cancela primeiro qualquer subscrição com renovação automática na EasyPay
+   (se existir) — se essa cancelação falhar, a conta NÃO é apagada, para não
+   ficares a cobrar alguém já reembolsado.
 
 ## Plano de rollback para migrações de schema
 

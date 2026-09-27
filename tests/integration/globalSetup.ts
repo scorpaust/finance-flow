@@ -25,6 +25,7 @@ export default async function setup() {
     SESSION_SECRET: 'test-session-secret-not-for-production-0000000000000000',
     TWO_FACTOR_ENCRYPTION_KEY: 'test-2fa-key-not-for-production-000000000000000000',
     CRON_SECRET: 'test-cron-secret',
+    ADMIN_SECRET: 'test-admin-secret',
     EASYPAY_ACCOUNT_ID: 'test-account',
     EASYPAY_API_KEY: 'test-key',
     EASYPAY_API_BASE_URL: stub.baseUrl,

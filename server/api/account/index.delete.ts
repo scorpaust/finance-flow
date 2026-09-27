@@ -1,20 +1,11 @@
 import { z } from 'zod'
-import {
-  User,
-  Category,
-  TransactionGroup,
-  Transaction,
-  Investment,
-  InvestmentTipsCache,
-  AiInsightCache,
-  DocumentScanUsage,
-} from '../../models'
+import { User } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import { validateBody } from '../../utils/validate'
 import { enforceRateLimit } from '../../utils/rateLimit'
 import { verifyPassword } from '../../utils/password'
 import { decryptSecret, verifyTotpCode, consumeBackupCode } from '../../utils/twoFactor'
-import { cancelSubscription } from '../../utils/easypay'
+import { deleteUserAccount } from '../../utils/accountDeletion'
 import { clearAppSession } from '../../utils/session'
 import { getServerLocale, serverT } from '../../utils/i18n'
 
@@ -53,26 +44,12 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const sub = user.subscription
-  if (sub?.billingMode === 'auto' && sub.easypaySubscriptionId && ['active', 'past_due'].includes(sub.status)) {
-    try {
-      await cancelSubscription(sub.easypaySubscriptionId)
-    } catch (e) {
-      console.error('[account] falha a cancelar a subscrição EasyPay antes de apagar a conta:', e)
-      throw createError({ statusCode: 502, message: serverT(locale, 'account.cancelSubscriptionFailed') })
-    }
+  try {
+    await deleteUserAccount(userId)
+  } catch (e) {
+    console.error('[account] falha a cancelar a subscrição EasyPay antes de apagar a conta:', e)
+    throw createError({ statusCode: 502, message: serverT(locale, 'account.cancelSubscriptionFailed') })
   }
-
-  await Promise.all([
-    Category.deleteMany({ userId }),
-    TransactionGroup.deleteMany({ userId }),
-    Transaction.deleteMany({ userId }),
-    Investment.deleteMany({ userId }),
-    AiInsightCache.deleteMany({ userId }),
-    DocumentScanUsage.deleteMany({ userId }),
-    InvestmentTipsCache.deleteOne({ _id: String(userId) }),
-  ])
-  await User.deleteOne({ _id: userId })
 
   clearAppSession(event)
   return { success: true }

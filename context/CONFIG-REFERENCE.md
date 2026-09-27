@@ -26,6 +26,7 @@
 | `EASYPAY_API_KEY` | ApiKey da conta EasyPay (server-side apenas) |
 | `CRON_SECRET` | Segredo partilhado com o cron externo que invoca `check-expirations` (header `x-cron-secret`) — mesma variável usada pelo cron de `market-snapshot` da Fase 3 |
 | `SUBSCRIPTION_RENEWAL_REMINDER_DAYS` | Nº de dias de antecedência para gerar a referência Multibanco / avisar de expiração |
+| `ADMIN_SECRET` | Fase 8, ponto 9 — segredo separado do `CRON_SECRET`, para `POST /api/admin/refund-delete` (header `x-admin-secret`). Só o operador o usa, manualmente, depois de processar um reembolso de livre resolução na EasyPay — ver `utils/legalContent.ts`, Termos ponto 4 |
 
 Confirmado via Context7 (`docs.easypay.pt`, guia de Webhooks): a EasyPay **não
 assina** os webhooks — a validação de autenticidade é feita consultando a API

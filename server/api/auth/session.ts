@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { User, Category, TransactionGroup } from '../../models'
+import { User, Category, TransactionGroup, RefundedAccount } from '../../models'
 import { DEFAULT_BUDGET_GROUPS, PERSONAL_FINANCE_CATEGORIES } from '../../../types'
 import { validateBody } from '../../utils/validate'
 import { enforceRateLimit } from '../../utils/rateLimit'
@@ -8,6 +8,9 @@ import { getServerLocale, serverT } from '../../utils/i18n'
 import { hashPassword, verifyPassword } from '../../utils/password'
 import { logEvent, hashIdentifier } from '../../utils/logger'
 import { LEGAL_UPDATED } from '../../../utils/legalContent'
+
+// Fase 8, ponto 9 — ver a verificação em RefundedAccount, mais abaixo.
+const REFUND_BLOCK_MS = 6 * 30 * 24 * 60 * 60 * 1000
 
 // Fase 8, ponto 1 — shape validado por Zod; as mensagens de negócio (email já
 // registado, password errada) continuam a vir de `serverT`, não do Zod, para
@@ -168,6 +171,14 @@ export default defineEventHandler(async (event) => {
     let user: any
 
     if (action === 'register') {
+      // Fase 8, ponto 9 — contrapartida da devolução total sem perguntas no
+      // direito de livre resolução (Termos, ponto 4): quem foi reembolsado
+      // não pode recriar a conta com o mesmo email nos 6 meses seguintes.
+      const refunded = await RefundedAccount.findOne({ email }).sort({ refundedAt: -1 }).lean()
+      if (refunded && Date.now() - new Date(refunded.refundedAt).getTime() < REFUND_BLOCK_MS) {
+        throw createError({ statusCode: 403, message: serverT(locale, 'auth.refundedAccountBlocked') })
+      }
+
       const existing = await User.findOne({ email }).select('+passwordHash')
       if (existing?.passwordHash) {
         throw createError({ statusCode: 409, message: serverT(locale, 'auth.accountAlreadyExists') })

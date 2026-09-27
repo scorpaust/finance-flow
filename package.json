@@ -54,6 +54,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2",
     "@nuxt/test-utils": "^3.23.0",

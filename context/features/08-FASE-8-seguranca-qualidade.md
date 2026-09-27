@@ -430,11 +430,29 @@ reais, em web e Android.
       resolução de litígios em linha (RLL/ODR), que foi encerrada em julho de
       2025 (a ligação que o utilizador colou é uma página de relocação); o
       texto colado sobre "texto obrigatório da plataforma RLL" estava
-      desatualizado e não foi usado. **Continua em rascunho**: retenção de
-      backups ("3 anos", suspeita de não corresponder à realidade do plano do
-      Atlas), transferências fora do EEE, valor proporcional em livre
-      resolução, RAL a que o prestador está vinculado e Livro de Reclamações
-      Eletrónico — tudo marcado `[REVER COM JURISTA]`
+      desatualizado e não foi usado.
+      **Fechado nesta sessão (2026-09-27)**: transferências fora do EEE
+      (linguagem genérica de salvaguardas RGPD, sem confirmar fornecedor a
+      fornecedor); RAL — Centro de Arbitragem de Conflitos de Consumo de
+      Lisboa (CACCL), morada/email/telefone reais, substitui o CNIACC
+      genérico; retenção de backups corrigida (ver ponto 10 — deixou de ser
+      uma promessa vazia, há agora um agendamento real, mesmo que a ativação
+      final dependa de o utilizador criar a conta Cloudflare); valor
+      proporcional em livre resolução — decisão de negócio do utilizador:
+      devolução total sem perguntas, com a conta eliminada e um bloqueio de
+      6 meses para um novo registo com o mesmo email como contrapartida
+      (**implementado em código**, não só no texto — `RefundedAccount`
+      model, `POST /api/admin/refund-delete` protegido por `ADMIN_SECRET`
+      próprio, verificação no registo em `auth/session.ts`; testado em
+      integração: 401 sem/com segredo errado, elimina com o segredo certo,
+      e um novo registo com o mesmo email é recusado). Livro de Reclamações
+      Eletrónico — obrigatório em Portugal, ainda por registar pelo
+      utilizador; texto e um link placeholder já em `pages/login.vue`
+      (rodapé), a trocar pelo link específico do comerciante depois do
+      registo em livroreclamacoes.pt. **Continua em rascunho, precisa
+      mesmo de jurista**: limites de responsabilidade e direitos imperativos
+      do consumidor (Termos, ponto 7) — o único ponto que não é uma questão
+      de factos, é redação jurídica
 - [x] Rever se dados financeiros sensíveis exigem medidas adicionais
       (encriptação em repouso, se aplicável ao plano de hosting)
       — ver `context/OPERATIONS.md` secção "Dados financeiros sensíveis —
@@ -455,10 +473,19 @@ reais, em web e Android.
       depender do binário `mongodump`, que não está instalado neste
       ambiente) — testado com um ciclo completo backup→apagar→restauro
       contra MongoDB em memória, nunca contra o Atlas real, confirmando que
-      `ObjectId`/`Date`/números voltam com o tipo original. **Por fazer,
-      decisão do utilizador**: agendar o script (GitHub Actions + secret) ou
-      subir para o M10 — nenhuma das duas ativada nesta sessão (a 1.ª precisa
-      de um secret no GitHub, a 2.ª de uma alteração de plano paga na Atlas)
+      `ObjectId`/`Date`/números voltam com o tipo original.
+      **Agendamento implementado** (2026-09-27): `.github/workflows/backup.yml`
+      (diário, `workflow_dispatch` também disponível) corre o script e envia
+      cada ficheiro para um bucket Cloudflare R2 via `@aws-sdk/client-s3`
+      (compatível com S3) — não como artefacto do GitHub Actions, que não
+      retém ficheiros durante os 3 anos prometidos na Política de Privacidade.
+      **Por fazer, ação do utilizador, fora do código**: criar a conta
+      Cloudflare + bucket R2, a regra de lifecycle de 1095 dias no bucket, e
+      os 5 secrets no GitHub (`MONGODB_URI` de produção +
+      `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET`)
+      — passos exatos em `context/OPERATIONS.md`. **Não testado** o upload
+      real para R2 (sem credenciais Cloudflare nesta sessão) — só o caminho
+      local, já testado em sessão anterior
 - [x] Plano de rollback para migrações de schema (ex. campo `subscription`)
       — ver `context/OPERATIONS.md`. O projeto usa migrações ad-hoc
       (`scripts/migrate-subscriptions.mjs`, `scripts/sync-indexes.mjs`), não

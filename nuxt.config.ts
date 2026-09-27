@@ -141,6 +141,9 @@ export default defineNuxtConfig({
     easypayApiKey: process.env.EASYPAY_API_KEY || '',
     subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '5',
     cronSecret: process.env.CRON_SECRET || '',
+    // Fase 8, ponto 9 — segredo separado do `cronSecret`, para o endpoint de
+    // administração manual (refund-delete.post.ts). Ver server/utils/cron.ts.
+    adminSecret: process.env.ADMIN_SECRET || '',
     // Fase 3 — Insights com IA (Anthropic + Twelve Data). Nunca em `public`: a
     // chave nunca pode chegar ao client. Ver context/features/03-FASE-3-insights-ia.md.
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',

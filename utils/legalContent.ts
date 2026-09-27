@@ -6,7 +6,7 @@
 // ser preenchidos com os dados reais do responsável pelo tratamento.
 // Enquanto LEGAL_IS_DRAFT for true, as páginas mostram um aviso visível.
 export const LEGAL_IS_DRAFT = true;
-export const LEGAL_UPDATED = "2026-09-24";
+export const LEGAL_UPDATED = "2026-09-27";
 
 export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
@@ -59,7 +59,7 @@ export const LEGAL_CONTENT: Content = {
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
             "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
             "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
-            "Alguns destes fornecedores podem tratar dados fora do Espaço Económico Europeu; nesses casos aplicam-se as salvaguardas previstas no RGPD [CONFIRMAR COM CADA FORNECEDOR: cláusulas contratuais-tipo / decisão de adequação].",
+            "Alguns destes fornecedores podem ter subprocessadores ou infraestrutura fora do Espaço Económico Europeu; nesses casos aplicam-se as salvaguardas previstas no RGPD, nomeadamente as cláusulas contratuais-tipo aprovadas pela Comissão Europeia.",
           ],
         },
         {
@@ -145,7 +145,7 @@ export const LEGAL_CONTENT: Content = {
             "Anthropic — provider of the AI model used for the features described in section 5.",
             "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
             "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",
-            "Some providers may process data outside the European Economic Area; in that case the safeguards required by the GDPR apply [CONFIRM WITH EACH PROVIDER: standard contractual clauses / adequacy decision].",
+            "Some of these providers may have subprocessors or infrastructure outside the European Economic Area; in that case the safeguards required by the GDPR apply, in particular the European Commission's Standard Contractual Clauses.",
           ],
         },
         {
@@ -225,7 +225,7 @@ export const LEGAL_CONTENT: Content = {
             "Existe um plano Gratuito com limites e planos pagos (Pro e Premium) com mais funcionalidades, ao preço indicado na app no momento da subscrição. Os pagamentos são processados pela EasyPay.",
             "Cartão e débito direto: subscrição com renovação automática até a cancelares (Definições → Subscrição); mantém o acesso até ao fim do período já pago.",
             "MB WAY e Multibanco: pagamento único por um período fixo (1, 3, 6 ou 12 meses), sem renovação automática; o acesso termina no fim do período pago, a menos que voltes a pagar. Uma referência por pagar não dá acesso ao plano.",
-            "Livre resolução e reembolsos: se és consumidor, podes resolver o contrato no prazo de 14 dias a contar da sua celebração, sem indicar qualquer motivo, contactando-nos em dinismiguelcosta@gmail.com. Reembolsamos o valor pago no prazo máximo de 14 dias a contar do momento em que tomarmos conhecimento da tua decisão, pelo mesmo meio de pagamento usado na compra sempre que possível. Se o serviço não funcionar de acordo com o acordado, tens direito à reposição da conformidade e, se esta for impossível ou desproporcionada, à redução do preço ou à resolução do contrato com reembolso, nos termos da lei. [REVER COM JURISTA — eventual valor proporcional pelo serviço já usado durante o prazo de 14 dias].",
+            "Livre resolução e reembolsos: se és consumidor, podes resolver o contrato no prazo de 14 dias a contar da sua celebração, sem indicar qualquer motivo, contactando-nos em dinismiguelcosta@gmail.com. Não deduzimos qualquer valor pelo período de serviço já usado nesse prazo: reembolsamos a totalidade do valor pago, no prazo máximo de 14 dias a contar do momento em que tomarmos conhecimento da tua decisão, pelo mesmo meio de pagamento usado na compra sempre que possível. Como contrapartida do reembolso total, a tua conta é eliminada e não podes criar uma nova conta com o mesmo email nos 6 meses seguintes; este bloqueio aplica-se só a este caso, não a uma eliminação de conta noutras circunstâncias (ver ponto 8). Se o serviço não funcionar de acordo com o acordado, tens direito à reposição da conformidade e, se esta for impossível ou desproporcionada, à redução do preço ou à resolução do contrato com reembolso, nos termos da lei.",
           ],
         },
         {
@@ -250,15 +250,16 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "8. Cancelamento e encerramento da conta",
           p: [
-            "Podes cancelar a subscrição e eliminar a tua conta a qualquer momento nas Definições; a eliminação apaga os teus dados (ver Política de Privacidade). Podemos suspender contas em caso de violação destes termos ou de utilização abusiva.",
+            "Podes cancelar a subscrição e eliminar a tua conta a qualquer momento nas Definições; a eliminação apaga os teus dados (ver Política de Privacidade) e não impede a criação de uma nova conta. A única exceção é a eliminação resultante do exercício do direito de livre resolução (ponto 4), que tem um bloqueio de 6 meses associado. Podemos suspender contas em caso de violação destes termos ou de utilização abusiva.",
           ],
         },
         {
           h: "9. Alterações, lei aplicável e litígios",
           p: [
-            "Podemos alterar estes termos e avisamos-te na app antes de as alterações relevantes entrarem em vigor. Lei aplicável: estes termos e qualquer litígio decorrente da utilização da app regem-se pela lei portuguesa; se és consumidor residente noutro Estado-Membro da União Europeia, esta escolha não afasta a proteção das regras imperativas do teu país de residência. Foro: em caso de litígio judicial, como consumidor podes propor a ação nos tribunais portugueses ou nos tribunais do Estado-Membro da União Europeia onde resides. Resolução alternativa de litígios: em caso de litígio de consumo, podes recorrer a uma entidade de resolução alternativa de litígios de consumo, por exemplo o CNIACC – Centro Nacional de Informação e Arbitragem de Conflitos de Consumo (www.cniacc.pt) ou o centro de arbitragem da tua área de residência. [REVER COM JURISTA — entidades de RAL a que o prestador está vinculado (Lei n.º 144/2015) e obrigação de Livro de Reclamações Eletrónico]. Última atualização: " +
-              LEGAL_UPDATED +
-              ".",
+            "Podemos alterar estes termos e avisamos-te na app antes de as alterações relevantes entrarem em vigor. Lei aplicável: estes termos e qualquer litígio decorrente da utilização da app regem-se pela lei portuguesa; se és consumidor residente noutro Estado-Membro da União Europeia, esta escolha não afasta a proteção das regras imperativas do teu país de residência. Foro: em caso de litígio judicial, como consumidor podes propor a ação nos tribunais portugueses ou nos tribunais do Estado-Membro da União Europeia onde resides.",
+            "Resolução alternativa de litígios: nos termos da Lei n.º 144/2015, em caso de litígio de consumo que não consigamos resolver diretamente contigo, podes recorrer ao Centro de Arbitragem de Conflitos de Consumo de Lisboa (CACCL) — Rua dos Douradores, n.º 112, 2.º, 1100-207 Lisboa; e-mail juridico@centroarbitragemlisboa.pt; telefone (+351) 218 80 70 30; www.centroarbitragemlisboa.pt — ou ao centro de arbitragem da tua área de residência.",
+            "Livro de Reclamações Eletrónico: nos termos da lei portuguesa, disponibilizamos um Livro de Reclamações Eletrónico, acessível a partir do link no rodapé da página de acesso.",
+            "Última atualização: " + LEGAL_UPDATED + ".",
           ],
         },
       ],
@@ -291,7 +292,7 @@ export const LEGAL_CONTENT: Content = {
             "There is a Free plan with limits and paid plans (Pro and Premium) with more features, at the price shown in the app when you subscribe. Payments are processed by EasyPay.",
             "Card and direct debit: subscription that renews automatically until you cancel it (Settings → Subscription); you keep access until the end of the period already paid.",
             "MB WAY and Multibanco: a one-off payment for a fixed period (1, 3, 6 or 12 months), with no automatic renewal; access ends at the end of the paid period unless you pay again. An unpaid reference does not grant access to the plan.",
-            "Right of withdrawal and refunds: if you are a consumer, you may withdraw from the contract within 14 days of its conclusion, without giving any reason, by contacting us at dinismiguelcosta@gmail.com. We will refund the amount paid within 14 days of learning of your decision, using the same payment method as the purchase where possible. If the service does not work as agreed, you are entitled to have it brought into conformity and, where that is impossible or disproportionate, to a price reduction or to terminate the contract with a refund, as provided by law. [REVIEW WITH A LAWYER — any proportional amount for the service already used during the 14-day period].",
+            "Right of withdrawal and refunds: if you are a consumer, you may withdraw from the contract within 14 days of its conclusion, without giving any reason, by contacting us at dinismiguelcosta@gmail.com. We do not deduct any amount for the service already used during that period: we refund the full amount paid, within 14 days of learning of your decision, using the same payment method as the purchase where possible. In exchange for the full refund, your account is deleted and you cannot create a new account with the same email for the following 6 months; this block only applies to this case, not to account deletion in other circumstances (see section 8). If the service does not work as agreed, you are entitled to have it brought into conformity and, where that is impossible or disproportionate, to a price reduction or to terminate the contract with a refund, as provided by law.",
           ],
         },
         {
@@ -316,15 +317,16 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "8. Cancellation and account closure",
           p: [
-            "You can cancel your subscription and delete your account at any time in Settings; deletion erases your data (see the Privacy Policy). We may suspend accounts that breach these terms or are used abusively.",
+            "You can cancel your subscription and delete your account at any time in Settings; deletion erases your data (see the Privacy Policy) and does not prevent creating a new account. The only exception is deletion resulting from exercising the right of withdrawal (section 4), which carries a 6-month block. We may suspend accounts that breach these terms or are used abusively.",
           ],
         },
         {
           h: "9. Changes, governing law and disputes",
           p: [
-            "We may change these terms and will tell you in the app before material changes take effect. Governing law: these terms and any dispute arising from the use of the app are governed by Portuguese law; if you are a consumer resident in another EU Member State, this choice does not remove the protection of the mandatory rules of your country of residence. Jurisdiction: in case of court proceedings, as a consumer you may bring the action before the Portuguese courts or before the courts of the EU Member State where you live. Alternative dispute resolution: in a consumer dispute you may turn to an alternative consumer dispute-resolution body, for example CNIACC – the Portuguese National Consumer Dispute Information and Arbitration Centre (www.cniacc.pt) or the arbitration centre for your area of residence. [REVIEW WITH A LAWYER — ADR bodies the provider is bound to (Law 144/2015) and any electronic complaints-book obligation]. Last updated: " +
-              LEGAL_UPDATED +
-              ".",
+            "We may change these terms and will tell you in the app before material changes take effect. Governing law: these terms and any dispute arising from the use of the app are governed by Portuguese law; if you are a consumer resident in another EU Member State, this choice does not remove the protection of the mandatory rules of your country of residence. Jurisdiction: in case of court proceedings, as a consumer you may bring the action before the Portuguese courts or before the courts of the EU Member State where you live.",
+            "Alternative dispute resolution: under Portuguese Law 144/2015, in a consumer dispute we cannot resolve directly with you, you may turn to the Lisbon Consumer Conflict Arbitration Centre (Centro de Arbitragem de Conflitos de Consumo de Lisboa, CACCL) — Rua dos Douradores, n.º 112, 2.º, 1100-207 Lisbon, Portugal; email juridico@centroarbitragemlisboa.pt; phone (+351) 218 80 70 30; www.centroarbitragemlisboa.pt — or the arbitration centre for your area of residence.",
+            "Electronic Complaints Book: as required by Portuguese law, we provide an Electronic Complaints Book, accessible from the link in the footer of the sign-in page.",
+            "Last updated: " + LEGAL_UPDATED + ".",
           ],
         },
       ],

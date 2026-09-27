@@ -400,3 +400,25 @@ const InvestmentTipsCacheSchema = new Schema<IInvestmentTipsCache>({
 export const InvestmentTipsCache: Model<IInvestmentTipsCache> =
   mongoose.models.InvestmentTipsCache ||
   mongoose.model<IInvestmentTipsCache>('InvestmentTipsCache', InvestmentTipsCacheSchema)
+
+// ─── REFUNDED ACCOUNT ────────────────────────────────────────────────────────
+// Fase 8, ponto 9 — quem exerce o direito de livre resolução (reembolso total
+// nos primeiros 14 dias, ver utils/legalContent.ts) tem a conta eliminada e
+// fica impedido de criar uma nova conta com o mesmo email durante 6 meses
+// (contrapartida documentada nos Termos, ponto 4) — sem isto, o reembolso
+// total sem perguntas seria trivial de repetir indefinidamente com a mesma
+// conta. Só criado por server/api/admin/refund-delete.post.ts (o operador,
+// depois de processar o reembolso na EasyPay manualmente — não há reembolso
+// automático), nunca pelo próprio utilizador.
+export interface IRefundedAccount extends Document {
+  email: string
+  refundedAt: Date
+}
+
+const RefundedAccountSchema = new Schema<IRefundedAccount>({
+  email:      { type: String, required: true, lowercase: true, index: true },
+  refundedAt: { type: Date, required: true },
+})
+export const RefundedAccount: Model<IRefundedAccount> =
+  mongoose.models.RefundedAccount ||
+  mongoose.model<IRefundedAccount>('RefundedAccount', RefundedAccountSchema)

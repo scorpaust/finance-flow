@@ -1873,3 +1873,55 @@ Tarefas principais (ver especificação para detalhe completo):
       real de backups/decisão de subir a Atlas de tier, Lighthouse/bundle
       (bloqueado pelo erro de build), teste em Android de gama baixa
       (precisa do telemóvel físico).
+
+  - **Sessão de 2026-09-27 — fechar o texto legal**: o utilizador respondeu,
+    por partes, às questões deixadas em aberto na sessão anterior.
+    - **Backups (ponto 10)**: pediu para "fazer o setup que falta para reter
+      por 3 anos". GitHub Actions sozinho não chega para 3 anos de retenção
+      (o limite de artefactos é muito menor) — escolhida a alternativa
+      Cloudflare R2 (nível gratuito). Implementado:
+      `scripts/backup-mongo.mjs` agora também envia cada ficheiro EJSON para
+      um bucket R2 via `@aws-sdk/client-s3` (API compatível com S3) quando as
+      variáveis `R2_*` existem, sem quebrar o caminho só-local que já
+      funcionava; `.github/workflows/backup.yml` (novo, cron diário
+      03:17 UTC). A retenção de 3 anos em si fica a cargo de uma regra de
+      lifecycle no próprio bucket R2 (o script não apaga nada — mais simples
+      e mais seguro do que reimplementar essa lógica). **Por fazer, fora do
+      código**: o utilizador ainda tem de criar a conta Cloudflare, o bucket,
+      a regra de lifecycle, e os 5 secrets no GitHub — passos exatos em
+      `context/OPERATIONS.md`. Upload real para R2 não testado (sem
+      credenciais nesta sessão).
+    - **Transferências fora do EEE (ponto 9)**: pediu a "descrição genérica"
+      — trocado o `[CONFIRMAR COM CADA FORNECEDOR]` por uma frase genérica
+      sobre cláusulas contratuais-tipo da Comissão Europeia, sem confirmar
+      fornecedor a fornecedor.
+    - **Livro de Reclamações Eletrónico (ponto 9)**: obrigatório em Portugal
+      — o utilizador confirmou que vai configurar, pediu só um placeholder.
+      Acrescentado ao rodapé de `pages/login.vue` (link genérico para
+      livroreclamacoes.pt, comentário a marcar para trocar pelo link
+      específico do comerciante) e uma frase nos Termos a referenciá-lo.
+    - **RAL (ponto 9)**: o CNIACC genérico do rascunho foi substituído pelo
+      Centro de Arbitragem de Conflitos de Consumo de Lisboa (CACCL), com
+      morada/email/telefone reais que o utilizador forneceu.
+    - **Valor proporcional em livre resolução (ponto 9)**: decisão de
+      negócio do utilizador — devolução total sem perguntas nos 14 dias,
+      mas a conta é eliminada e fica bloqueada 6 meses para um novo registo
+      com o mesmo email. Isto não ficou só no texto: implementado a sério
+      (`RefundedAccount` — novo modelo Mongoose; `POST
+      /api/admin/refund-delete` — protegido por um `ADMIN_SECRET` próprio,
+      separado do `CRON_SECRET`, para privilégio mínimo; acionado
+      manualmente pelo operador depois de processar o reembolso na EasyPay à
+      mão, já que não há reembolso automático integrado; o registo em
+      `auth/session.ts` passou a recusar um email com um `RefundedAccount`
+      dos últimos 6 meses). A lógica de eliminação de conta (cancelar
+      auto-renovação na EasyPay antes de apagar, apagar todos os dados
+      associados) foi extraída para `server/utils/accountDeletion.ts`,
+      partilhada entre o endpoint de auto-serviço (`DELETE /api/account`) e
+      este novo endpoint de admin — a mesma garantia "não apaga se a
+      cancelação na EasyPay falhar" vale para os dois. Testado em integração
+      (18/18 no total): 401 sem segredo/com segredo errado, elimina com o
+      certo, e confirma que um novo registo com o mesmo email é recusado.
+    - **Continua por fazer**: limites de responsabilidade e direitos
+      imperativos do consumidor (Termos, ponto 7) — o único item que não é
+      uma questão de factos que o utilizador pudesse responder, precisa
+      mesmo de um jurista para a redação.

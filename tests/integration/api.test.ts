@@ -544,3 +544,42 @@ describe('insights de IA (Anthropic simulada)', () => {
     expect(investment.status).toBe(403)
   })
 })
+
+describe('reembolso por livre resolução — eliminação + bloqueio de 6 meses', () => {
+  it('recusa sem o segredo de admin, apaga a conta com o segredo certo, e bloqueia um novo registo com o mesmo email', async () => {
+    const email = uniqueEmail('refund')
+    await register(email)
+
+    const noSecret = await fetch('/api/admin/refund-delete', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    expect(noSecret.status).toBe(401)
+
+    const wrongSecret = await fetch('/api/admin/refund-delete', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-admin-secret': 'not-the-real-secret' },
+      body: JSON.stringify({ email }),
+    })
+    expect(wrongSecret.status).toBe(401)
+
+    const userBefore = await User.findOne({ email })
+    expect(userBefore).not.toBeNull()
+
+    const ok = await fetch('/api/admin/refund-delete', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-admin-secret': env.ADMIN_SECRET },
+      body: JSON.stringify({ email }),
+    })
+    expect(ok.status).toBe(200)
+
+    const userAfter = await User.findOne({ email })
+    expect(userAfter).toBeNull()
+
+    // Tentar registar de novo com o mesmo email, dentro dos 6 meses — recusado.
+    const { status, body } = await register(email)
+    expect(status).toBe(403)
+    expect(body.message).toMatch(/reembols|refund/i)
+  })
+})

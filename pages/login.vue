@@ -191,6 +191,11 @@
         <p v-if="step === 'credentials'" class="text-center text-white/40 text-xs mt-2 space-x-3">
           <NuxtLink to="/terms" class="hover:text-white/70 underline">{{ t('legal.terms') }}</NuxtLink>
           <NuxtLink to="/privacy" class="hover:text-white/70 underline">{{ t('legal.privacy') }}</NuxtLink>
+          <!-- Fase 8, ponto 9 — Livro de Reclamações Eletrónico, obrigatório
+               em Portugal para quem vende a consumidores online. Placeholder
+               até o registo em livroreclamacoes.pt estar feito: troca o href
+               pelo link específico do comerciante que esse registo devolve. -->
+          <a href="https://www.livroreclamacoes.pt/Inicio/" target="_blank" rel="noopener" class="hover:text-white/70 underline">{{ t('legal.complaintsBook') }}</a>
         </p>
       </div>
     </div>

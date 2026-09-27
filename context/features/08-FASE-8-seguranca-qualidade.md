@@ -393,16 +393,18 @@ reais, em web e Android.
 ### 9. Conformidade legal
 - [ ] Política de privacidade e termos de serviço (obrigatórios para Play
       Store e para cobrança de subscrições)
-      — **rascunho escrito, NÃO publicável ainda**: `utils/legalContent.ts`
+      — **texto completo, mas continua NÃO publicável**: `utils/legalContent.ts`
       (PT-PT e EN; os outros 4 idiomas mostram EN com nota), páginas públicas
       `/privacy` e `/terms` ligadas no login e nas Configurações, aviso de
       rascunho visível enquanto `LEGAL_IS_DRAFT`. Escrito a partir do que o
       código realmente faz (Atlas, EasyPay, Anthropic, Twelve Data, Sentry,
-      cookies). **Tem campos `[ENTRE PARÊNTESIS RETOS]` por preencher**
-      (responsável pelo tratamento, contacto, prazo dos backups, livre
-      resolução/reembolsos, foro, salvaguardas de transferências fora do EEE)
-      e **tem de ser revisto por um jurista** antes de pôr
-      `LEGAL_IS_DRAFT = false`
+      cookies). **Já não tem nenhum campo `[ENTRE PARÊNTESIS RETOS]` por
+      preencher** (todos fechados entre 2026-09-24 e 2026-09-27 — ver as
+      entradas de histórico correspondentes), mas **continua a precisar de
+      revisão por um jurista** antes de pôr `LEGAL_IS_DRAFT = false`,
+      sobretudo a cláusula de limitação de responsabilidade (ponto 7 dos
+      Termos) — tem uma referência ao DL 446/85 que pode estar a citar essa
+      lei no sentido errado (ver a entrada de 2026-09-27 mais abaixo)
 - [x] Checklist RGPD: base legal para dados pessoais, exportação de dados do
       utilizador, eliminação de conta e dados associados — exportação:
       `GET /api/account/export` (sem hash da password nem segredos 2FA);
@@ -449,10 +451,24 @@ reais, em web e Android.
       Eletrónico — obrigatório em Portugal, ainda por registar pelo
       utilizador; texto e um link placeholder já em `pages/login.vue`
       (rodapé), a trocar pelo link específico do comerciante depois do
-      registo em livroreclamacoes.pt. **Continua em rascunho, precisa
-      mesmo de jurista**: limites de responsabilidade e direitos imperativos
-      do consumidor (Termos, ponto 7) — o único ponto que não é uma questão
-      de factos, é redação jurídica
+      registo em livroreclamacoes.pt.
+      **Limitação de responsabilidade (Termos, ponto 7) preenchida
+      (2026-09-27)**: texto fornecido pelo utilizador (5 cláusulas — isenção
+      "tal como está", exclusão de aconselhamento financeiro, remissão para
+      o DL 446/85 e Código Civil para responsabilidade limitada a dolo/culpa
+      grave, exclusão de danos indiretos, e o teto de responsabilidade em 12
+      meses de subscrição paga ou 50 € no plano Gratuito). Acrescentada por
+      iniciativa própria uma frase de salvaguarda no fim ("nada nesta
+      cláusula limita direitos imperativos, nomeadamente os do ponto 4") —
+      mitiga mas não elimina uma preocupação por confirmar: o DL 446/85 é
+      mais conhecido por **proibir** cláusulas de exclusão/limitação de
+      responsabilidade em contratos de consumo (cláusulas contratuais gerais
+      não negociadas individualmente) do que por as autorizar — citá-lo como
+      fundamento para limitar a responsabilidade pode estar a apontar na
+      direção errada. **Nenhum marcador `[ENTRE PARÊNTESIS]`/`[REVER COM
+      JURISTA]` continua no texto** — mas isto não substitui a revisão por um
+      jurista prometida em `LEGAL_IS_DRAFT`, precisamente por causa deste
+      ponto
 - [x] Rever se dados financeiros sensíveis exigem medidas adicionais
       (encriptação em repouso, se aplicável ao plano de hosting)
       — ver `context/OPERATIONS.md` secção "Dados financeiros sensíveis —

@@ -1921,7 +1921,22 @@ Tarefas principais (ver especificação para detalhe completo):
       cancelação na EasyPay falhar" vale para os dois. Testado em integração
       (18/18 no total): 401 sem segredo/com segredo errado, elimina com o
       certo, e confirma que um novo registo com o mesmo email é recusado.
-    - **Continua por fazer**: limites de responsabilidade e direitos
-      imperativos do consumidor (Termos, ponto 7) — o único item que não é
-      uma questão de factos que o utilizador pudesse responder, precisa
-      mesmo de um jurista para a redação.
+    - **Continua por fazer nessa altura**: limites de responsabilidade e
+      direitos imperativos do consumidor (Termos, ponto 7).
+
+  - **Mesmo dia, mais tarde — limitação de responsabilidade fechada**: o
+    utilizador forneceu o texto da cláusula (5 pontos: isenção "tal como
+    está", exclusão de aconselhamento financeiro, remissão para o DL 446/85
+    e Código Civil, exclusão de danos indiretos, teto de responsabilidade em
+    12 meses de subscrição paga ou 50 € no Gratuito). Inserido em
+    `utils/legalContent.ts` (PT-PT e EN), com uma frase de salvaguarda
+    acrescentada por iniciativa própria a dizer que nada na cláusula limita
+    direitos imperativos (nomeadamente o de livre resolução do ponto 4).
+    **Preocupação levantada, não resolvida**: o DL 446/85 (cláusulas
+    contratuais gerais) é mais conhecido por proibir este tipo de cláusula
+    de limitação de responsabilidade em contratos de consumo do que por a
+    autorizar — citá-lo como fundamento pode estar invertido. Não é algo que
+    desse para confirmar sozinho nesta sessão; fica marcado para a revisão
+    jurídica. Já não há nenhum marcador `[ENTRE PARÊNTESIS]` por preencher em
+    todo o texto legal, mas isto não substitui essa revisão — `LEGAL_IS_DRAFT`
+    continua `true`.

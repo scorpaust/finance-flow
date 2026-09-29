@@ -57,8 +57,14 @@ pagamentos e investimentos). **Email de contacto**: o publicado nos Termos.
 
 ### Imagens
 
-- Ícone 512×512 PNG: exportar de `assets/icon-only.png` (logótipo da Fase 4).
-- Imagem de destaque 1024×500: por criar.
+Geradas por `node scripts/store-assets.mjs` a partir de `assets/icon-only.svg`
+(logótipo da Fase 4) — voltar a correr se o logótipo mudar:
+
+- **Ícone da app** 512×512, PNG 32 bits: `assets/store/play-icon-512.png` —
+  quadrado, sem cantos arredondados (a Play Store aplica a sua máscara).
+- **Gráfico de funcionalidades** 1024×500, PNG 24 bits sem transparência:
+  `assets/store/feature-graphic-pt-PT.png` (ficha PT-PT) e
+  `assets/store/feature-graphic-en.png` (ficha EN).
 - Capturas de ecrã: pelo menos 2 de telemóvel e 2 de tablet (7" e 10"). A
   gerar a partir da app em produção com uma conta demo com dados de exemplo
   (nunca dados reais).

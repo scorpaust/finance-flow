@@ -1,112 +1,96 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/08-FASE-8-seguranca-qualidade.md -->
+<!-- Ver especificação completa em context/features/09-FASE-9-publicacao.md -->
 
 ## Estado
 
-Em progresso — branch `feature/fase-8-seguranca-qualidade` criado a partir de
-`main` em 2026-09-22. Âmbito alargado ao longo da sessão para cobrir
-praticamente toda a especificação (pontos 1-11 e os critérios de aceitação),
-a pedido explícito do utilizador ("conclui os restantes"). Ver histórico
-completo abaixo para o detalhe de cada ponto; resumo do que falta
-genuinamente (não é código que se resolva sozinho):
-
-- **Ponto 7 (Performance)**: Lighthouse e revisão de bundle por fazer — um
-  `npm run build` de produção falhou com um erro ENOENT não investigado a
-  fundo; teste em dispositivo Android de gama baixa precisa do telemóvel
-  físico do utilizador
-- **Ponto 9 (Legal)**: o texto ainda tem campos `[REVER COM JURISTA]` — precisa
-  de um jurista real, não é código
-- **Ponto 10 (Dados)**: backups documentados e com script pronto, mas não
-  agendados — precisa de uma decisão do utilizador (GitHub Actions + secret,
-  ou subir a Atlas para o tier M10 pago) e da ação correspondente fora do
-  código
-- Critério de aceitação "Lighthouse ≥ 90" e "política de privacidade
-  publicada": dependem dos dois pontos acima
+Em progresso — branch `feature/fase-9-publicacao` criado a partir de `main`
+em 2026-09-29. Âmbito pedido pelo utilizador: responder a todas as
+pendências (as da especificação e as herdadas da Fase 8, ver Notas).
 
 ## Objetivos
 
-FASE 8 — Segurança, Qualidade e Preparação para Produção. Não adiciona
-funcionalidades novas — endurece o que já existe antes da Fase 9
-(publicação), para deixar a aplicação pronta para expor a utilizadores reais,
-com pagamentos reais, em web e Android.
+FASE 9 — Publicação (Google Play + Deploy Web de Produção). Última fase antes
+de utilizadores reais: app publicada (pelo menos em faixa de teste interno)
+na Google Play Store e versão web em produção com HTTPS, ambas ligadas a
+billing real (ou sandbox validado, consoante o momento de lançamento decidido
+pelo dono do produto).
 
-Ler `context/features/08-FASE-8-seguranca-qualidade.md` para a especificação
-completa (10 tarefas, critérios de aceitação).
+Ler `context/features/09-FASE-9-publicacao.md` para a especificação completa
+(7 tarefas, critérios de aceitação).
 
 Tarefas principais (ver especificação para detalhe completo):
 
-1. Validação e segurança de input — schema Zod em todos os endpoints
-   `server/api/**`, uniformizar erros da Anthropic para nunca expor o corpo
-   da resposta do fornecedor ao client, reforçar sanitização de IDs, rate
-   limiting em endpoints sensíveis (login, registo, checkout, webhooks,
-   insights de IA)
-2. Sessão e cookies em produção — **crítico**: assinar a sessão e remover a
-   autenticação por header `x-user-id` (hoje `requireAuth` aceita esse
-   header em claro, sem assinatura, como alternativa ao cookie `userId`);
-   cookies `secure`/`sameSite`/expiração; CORS de produção; segredos só por
-   variável de ambiente
-3. Autenticação de dois fatores (2FA) — opcional, só por app autenticadora
-   (TOTP: Google Authenticator/Authy/1Password via `otpauth`/`speakeasy` +
-   `qrcode`); email e SMS ficaram deliberadamente fora de âmbito (o projeto
-   não tem infraestrutura de envio de nenhum dos dois); inclui códigos de
-   recuperação de uso único e rate limiting dedicado no endpoint de
-   verificação do código
-4. Webhooks — confirmar que todos os handlers da EasyPay (que não assina
-   webhooks) verificam a autenticidade consultando a API de volta pelo `id`
-   do recurso, e que eventos repetidos são idempotentes
-5. Testes automatizados — unit (Vitest), integração (auth, transactions,
-   subscription, insights/IA com mocks, `/api/investments`) e E2E
-   (Playwright) do fluxo principal e da internacionalização (Fase 7)
-6. Performance — Lighthouse web + auditoria Android, lazy-load do
-   TensorFlow.js, code-splitting, teste em dispositivo Android de gama baixa
-7. Observabilidade — Sentry (client + server), logging estruturado de
-   eventos críticos
-8. Conformidade legal — política de privacidade, termos de serviço,
-   checklist RGPD
-9. Estratégia de dados — backups do MongoDB, plano de rollback de schema,
-   criar os índices Mongoose que nunca chegaram a existir por causa do
-   `bufferCommands: false`
-10. Dívida técnica conhecida — aviso de hidratação num `<span>` visto só na
-    app Android, origem por identificar
+1. Assinatura e build Android — reverter `usesCleartextTraffic`, keystore de
+   produção (fora do repositório, com processo de backup documentado), `.aab`
+   assinado, política de `versionCode`/`versionName`
+2. Ficha da Google Play Console — textos, categoria Finanças, screenshots
+   (telemóvel e tablet), ícone, banner, classificação de conteúdo, link da
+   política de privacidade
+3. Programa de pagamentos externos (Google Play / EEE) — confirmar aprovação
+   da inscrição submetida na Fase 2, requisitos do programa e taxas atuais
+4. Faixas de lançamento — testes internos primeiro, validação em
+   dispositivo real, depois produção com rollout percentual
+5. Deploy web de produção — hosting, domínio próprio + HTTPS, variáveis de
+   ambiente de produção (`EASYPAY_ENV=production`), webhook EasyPay a
+   apontar para produção
+6. Pré-condições de produto e legais — `INVESTMENT_TIPS_INCLUDE_PORTFOLIO`
+   fica `false` salvo validação jurídica; conta Anthropic com créditos e
+   limite de gasto
+7. Verificação pós-lançamento — Sentry/logs nas primeiras 48h, subscrição
+   real refletida no tier, mesmo estado de subscrição em Android e web
 
 ## Notas
 
-- O ponto 2 (assinar a sessão, remover `x-user-id`) é o item mais crítico
-  desta fase — foi usado em testes manuais de várias fases anteriores, por
-  isso convém confirmar que nenhum script/endpoint ainda depende dele antes
-  de o remover.
-- 2FA (ponto 3) ficou deliberadamente restrito a app autenticadora (TOTP) por
-  pedido explícito do utilizador — email e SMS foram considerados e
-  descartados por exigirem infraestrutura de envio que o projeto não tem
-  hoje; não reabrir sem pedido explícito.
-- Pendências transversais herdadas de fases anteriores que esta fase deve
-  resolver: ⚠️ **BLOQUEADOR antes de produção** —
-  `android/app/src/main/AndroidManifest.xml` tem
-  `android:usesCleartextTraffic="true"` (ligado para testar via USB, reverter
-  para `"false"` antes de qualquer build de release — a especificação
-  original deixa esta reversão para a Fase 9, confirmar se ainda faz
-  sentido); índices `unique` do Mongoose nunca criados (ponto 9); `requireAuth`
-  autentica por cookie `userId` **ou** header `x-user-id` em claro (ponto 2).
-- Testar sempre em pelo menos mobile (emulador/dispositivo Android) e desktop
-  (janela larga), incluindo tablet/ultra-wide — ver `AGENT-RULES.md` ("Testes
-  manuais mínimos").
+Estado verificado no código a 2026-09-29, antes de começar:
+
+- ⚠️ **Bloqueador de release**: `android/app/src/main/AndroidManifest.xml`
+  continua com `android:usesCleartextTraffic="true"` (tarefa 1).
+- `capacitor.config.ts`: sem `CAPACITOR_SERVER_URL`, `server.url` cai em
+  `https://financeflow.example.com` — **placeholder**, tem de passar a ser o
+  domínio real de produção; `cleartext`/`allowMixedContent` já só ligam com
+  essa variável definida (o build de release não a pode ter). O APK instalado
+  no telemóvel de testes aponta para um IP da LAN (ver histórico de
+  2026-09-24).
+- `android/app/build.gradle`: `applicationId com.financeflow.app`,
+  `versionCode 1`, `versionName "1.0"`, **sem `signingConfig` de release**.
+- Hosting: o projeto já está ligado ao Netlify (`.netlify/`, site
+  `financeflow-fase2-subs`, preset `netlify-legacy`, confirmado na Fase 8) —
+  falta decidir se é esse o alvo final e documentá-lo em
+  `CONFIG-REFERENCE.md` (tarefa 5). Rate limiting já está no MongoDB e o IP do
+  cliente vem de `x-nf-client-connection-ip` (compatível com serverless).
+- `.env.example` tem `EASYPAY_ENV=test` e
+  `INVESTMENT_TIPS_INCLUDE_PORTFOLIO=false` — os valores de produção vivem
+  no painel do hosting, nunca no repositório.
+- Herdado da Fase 8, a tratar aqui:
+  - **CSP** (Content-Security-Policy) deixada de fora de propósito — afinar
+    com o domínio de produção, sem partir o iframe de checkout da EasyPay,
+    as Google Fonts e o Sentry (`nuxt.config.ts` → `routeRules`).
+  - O job `check-expirations` e o `market-snapshot` precisam de um cron
+    externo real com `CRON_SECRET` (nada os agenda hoje).
+  - Backups: bucket R2 + regra de lifecycle + secrets do GitHub por criar
+    (passos em `context/OPERATIONS.md`).
+  - Livro de Reclamações: trocar o link genérico de `pages/login.vue` pelo
+    link específico do comerciante.
+  - Texto legal publicado sem revisão jurídica (decisão do utilizador).
+  - Lighthouse e teste em Android de gama baixa nunca feitos.
+  - 54 erros de tipos pré-existentes (o CI mostra-os, não falha).
+- Muitos passos desta fase são fora do código (Play Console, keystore, DNS,
+  contas de fornecedores) — o agente prepara e documenta; as ações nas
+  contas são do utilizador. Parar e perguntar em decisões de negócio
+  (domínio, momento de lançamento, billing real vs sandbox).
+- Testar sempre em pelo menos mobile (dispositivo Android real) e desktop,
+  incluindo tablet/ultra-wide — ver `AGENT-RULES.md`.
 
 ## Critérios de aceitação
 
-- Suite de testes (unit + integração + e2e principal) corre em CI e passa
-- Nenhum segredo no repositório; `.env.example` atualizado e completo
-- A sessão é assinada e o header `x-user-id` já não autentica nada (testado
-  com um `_id` válido de outro utilizador)
-- Um utilizador consegue ativar 2FA (TOTP), fazer login com o segundo fator,
-  e recuperar o acesso com um código de recuperação caso perca o dispositivo
-- Nenhum endpoint devolve ao client o corpo de um erro de um fornecedor
-  externo (Anthropic, EasyPay, Twelve Data)
-- Webhooks validam assinatura e são idempotentes (testado com reenvio de
-  evento)
-- Lighthouse web ≥ 90 em Performance e Acessibilidade (ou justificação
-  documentada dos itens não atingidos)
-- Política de privacidade e termos de serviço publicados e linkados na app
+- App publicada em faixa de teste interno da Play Store, instalável e
+  funcional em dispositivo real
+- Versão web em produção, acessível via HTTPS, sem erros de configuração de
+  ambiente
+- Subscrição feita numa plataforma reflete-se corretamente também na outra,
+  para o mesmo utilizador
+- Plano de rollout e contacto/processo de rollback documentado
 
 ## Histórico
 
@@ -2069,3 +2053,14 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
         tinha a password fixa `password123` da conta demo — perigoso se o seed
         correr contra uma base de dados real; agora vem de `DEMO_PASSWORD` ou é
         gerada e mostrada no fim (documentado em `CONFIG-REFERENCE.md`).
+- 2026-09-29: FASE 8 (Segurança, Qualidade e Preparação para Produção)
+  concluída — branch `feature/fase-8-seguranca-qualidade` mergeado em `main`
+  (merge `ded5b43`), seguido de duas correções diretas em `main` (`520c2ba`,
+  `12c27fe`: E2E no CI, ecrã de carregamento no login, segredos de teste).
+  O utilizador fez o push e respondeu "tudo ok" (não vi o resultado do CI
+  diretamente). Ficaram por fazer, fora do código ou
+  adiados de propósito: CSP, Lighthouse, teste em Android de gama baixa,
+  agendamento real de backups e crons, revisão jurídica do texto legal.
+- 2026-09-29: Definida como funcionalidade atual — FASE 9 (Publicação: Google
+  Play + Deploy Web de Produção), especificação em
+  `context/features/09-FASE-9-publicacao.md`. Estado inicial: não iniciada.

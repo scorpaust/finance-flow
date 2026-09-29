@@ -11,8 +11,13 @@
 // Context7 (@anthropic-ai/sdk-typescript, helpers.md): `output_config.format`
 // do tipo `{ type: 'json_schema', schema }` e header
 // `anthropic-beta: structured-outputs-2025-12-15` em `/v1/messages?beta=true`.
+import { logEvent } from './logger'
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages?beta=true'
+// Fase 8, ponto 6 — URL configurável só para os testes de integração
+// apontarem a um servidor simulado local em vez da Anthropic real (nunca
+// chamadas reais nos testes, custam dinheiro). Em produção/dev normal,
+// `ANTHROPIC_API_BASE_URL` nunca é definida e usa-se sempre o valor real.
+const ANTHROPIC_API_URL = `${process.env.ANTHROPIC_API_BASE_URL || 'https://api.anthropic.com'}/v1/messages?beta=true`
 const ANTHROPIC_VERSION = '2023-06-01'
 const STRUCTURED_OUTPUTS_BETA = 'structured-outputs-2025-12-15'
 const MODEL = 'claude-haiku-4-5'
@@ -66,9 +71,20 @@ async function requestStructuredJson<T>(opts: {
     }),
   })
 
+  // Fase 8, ponto 1 — uniformização dos erros da Anthropic: o detalhe cru
+  // (que pode incluir texto do tipo "credit balance is too low") fica só no
+  // log do servidor; o client recebe sempre a mesma mensagem genérica,
+  // qualquer que seja o endpoint chamador (antes disto, só
+  // transactions/scan.post.ts escondia o detalhe — os outros dois
+  // deixavam-no passar). Tratado como falha de infraestrutura/fornecedor
+  // externo, não como erro de UI — por isso não passa por serverT (mesmo
+  // critério já usado para "ANTHROPIC_API_KEY em falta" etc.).
+  const GENERIC_UPSTREAM_MESSAGE = 'AI service is temporarily unavailable — please try again shortly'
+
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    throw createError({ statusCode: 502, message: `Erro Anthropic (${res.status}): ${detail.slice(0, 500)}` })
+    logEvent('error', 'anthropic.http_error', { status: res.status, detail: detail.slice(0, 500) })
+    throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 
   const data = (await res.json()) as {
@@ -77,7 +93,8 @@ async function requestStructuredJson<T>(opts: {
   }
   const textBlock = data.content?.find((b) => b.type === 'text')
   if (!textBlock?.text) {
-    throw createError({ statusCode: 502, message: 'Resposta da Anthropic sem conteúdo de texto' })
+    logEvent('error', 'anthropic.no_text_block', { blockTypes: data.content?.map((b) => b.type) })
+    throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 
   try {
@@ -86,7 +103,9 @@ async function requestStructuredJson<T>(opts: {
       usage: data.usage || { input_tokens: 0, output_tokens: 0 },
     }
   } catch {
-    throw createError({ statusCode: 502, message: 'Resposta da Anthropic não é JSON válido' })
+    // Só o tamanho: o texto é a extração do documento/dados financeiros do utilizador.
+    logEvent('error', 'anthropic.invalid_json', { length: textBlock.text.length })
+    throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 }
 

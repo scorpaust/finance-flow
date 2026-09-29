@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="modal-overlay" @click.self="$emit('close')">
+    <div class="modal-overlay" data-testid="paywall-modal" @click.self="$emit('close')">
       <div class="modal-content max-w-md w-full text-center" @click.stop>
         <div class="w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4">
           <Lock class="w-6 h-6 text-brand-400" />

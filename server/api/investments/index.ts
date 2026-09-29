@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'POST') {
-    const fields = parseInvestmentCreate(locale, await readBody(event))
+    const fields = await parseInvestmentCreate(event, locale)
 
     // Teto fixo de segurança (não é um limite de plano).
     const count = await Investment.countDocuments({ userId })

@@ -18,7 +18,7 @@
             :style="{ animationDelay: (i - 1) * 0.15 + 's' }"
           />
         </div>
-        <p class="text-white/30 text-sm font-medium">A carregar...</p>
+        <p class="text-white/30 text-sm font-medium">{{ $t('common.loading') }}</p>
       </div>
     </div>
 
@@ -26,12 +26,18 @@
       <NuxtPage />
     </NuxtLayout>
     <ToastContainer />
+    <AppLockOverlay />
   </div>
 </template>
 
 <script setup lang="ts">
 const auth = useAuthStore()
+const appLock = useAppLockStore()
 
-// Fetch session on client mount
-onMounted(() => auth.fetchSession())
+// A sessão é carregada por plugins/init.client.ts antes da 1.ª navegação; o
+// bloqueio biométrico inicia-se só aqui (nunca no SSR/hidratação — ver
+// stores/appLock.ts).
+onMounted(() => {
+  appLock.init()
+})
 </script>

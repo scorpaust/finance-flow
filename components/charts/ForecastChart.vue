@@ -9,6 +9,7 @@
 </template>
 <script setup lang="ts">
 import { Line } from 'vue-chartjs'
+import '~/utils/chartjs'
 const props = defineProps<{
   historical: Array<{ month: string; income: number; expense: number }>
   forecasts:  Array<{ month: string; income: { value: number }; expense: { value: number } }>

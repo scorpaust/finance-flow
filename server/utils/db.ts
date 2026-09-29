@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { logEvent } from './logger'
 
 // Ligação ao MongoDB partilhada e memorizada. O Nitro chama os plugins SEM
 // `await` (nitropack/dist/runtime/internal/app.mjs), por isso o `await
@@ -19,10 +20,10 @@ export async function ensureDb(): Promise<void> {
     const config = useRuntimeConfig()
     connecting = mongoose
       .connect(config.mongodbUri, { dbName: 'financeflow', bufferCommands: false })
-      .then(() => console.log('✅ MongoDB connected successfully'))
+      .then(() => logEvent('info', 'db.connected'))
       .catch((error) => {
         connecting = null // deixa o pedido seguinte tentar de novo
-        console.error('❌ MongoDB connection failed:', error)
+        logEvent('error', 'db.connection_failed', { message: String(error?.message || error) })
         throw error
       })
   }

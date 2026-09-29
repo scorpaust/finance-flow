@@ -3,7 +3,7 @@
     <!-- Greeting -->
     <div class="flex items-start justify-between flex-wrap gap-4">
       <div>
-        <h2 class="font-display font-bold text-2xl sm:text-3xl text-white">
+        <h2 class="font-display font-bold text-2xl sm:text-3xl text-white" data-testid="dashboard-greeting">
           {{ greeting }}, <span class="gradient-text">{{ firstName }}</span> 👋
         </h2>
         <p class="text-white/40 mt-1 text-sm">{{ t('dashboard.subtitle') }}</p>
@@ -17,6 +17,7 @@
         <button
           class="btn-primary text-sm py-2 px-4 flex items-center gap-2"
           type="button"
+          data-testid="dashboard-new-transaction"
           @click="showModal = true"
         >
           <Plus class="w-4 h-4" />
@@ -381,8 +382,15 @@ const editTx = ref<Transaction | null>(null)
 const scanPrefill = ref<DocumentScanResult | null>(null)
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Utilizador')
+// Fase 8, ponto 11 — "Hydration text content mismatch" visto no Android:
+// `new Date()` chamado dentro do computed corria uma vez no servidor (SSR) e
+// outra vez no cliente (hidratação), com resultados diferentes sempre que a
+// hora mudasse de escalão entre as duas (ou o fuso horário do servidor não
+// coincidisse com o do telemóvel). `useState` fixa o valor calculado no
+// servidor e reutiliza-o na hidratação — só muda numa navegação nova.
+const greetingHour = useState('dashboard-greeting-hour', () => new Date().getHours())
 const greeting = computed(() => {
-  const h = new Date().getHours()
+  const h = greetingHour.value
   if (h < 12) return t('dashboard.greetingMorning')
   if (h < 18) return t('dashboard.greetingAfternoon')
   return t('dashboard.greetingEvening')

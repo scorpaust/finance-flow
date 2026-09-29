@@ -29,13 +29,14 @@
           </div>
           <h1 class="font-display font-bold text-3xl text-white mb-2">FinanceFlow</h1>
           <p class="text-white/50 text-sm leading-relaxed">
-            {{ mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle') }}
+            {{ step === 'twoFactor' ? t('auth.twoFactorSubtitle') : mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle') }}
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-1 bg-surface-700/50 rounded-2xl p-1 mb-6">
+        <div v-if="step === 'credentials'" class="grid grid-cols-2 gap-1 bg-surface-700/50 rounded-2xl p-1 mb-6">
           <button
             type="button"
+            data-testid="login-tab-login"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'login' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('login')"
@@ -44,6 +45,7 @@
           </button>
           <button
             type="button"
+            data-testid="login-tab-register"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'register' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
             @click="setMode('register')"
@@ -52,7 +54,7 @@
           </button>
         </div>
 
-        <form class="space-y-4" @submit.prevent="submit">
+        <form v-if="step === 'credentials'" class="space-y-4" @submit.prevent="submit">
           <div v-if="mode === 'register'">
             <label class="form-label">{{ t('auth.nameLabel') }}</label>
             <div class="relative">
@@ -60,6 +62,7 @@
               <input
                 v-model="form.name"
                 type="text"
+                data-testid="login-name"
                 class="form-input pl-9"
                 autocomplete="name"
                 :placeholder="t('auth.namePlaceholder')"
@@ -74,6 +77,7 @@
               <input
                 v-model="form.email"
                 type="email"
+                data-testid="login-email"
                 class="form-input pl-9"
                 autocomplete="email"
                 placeholder="nome@email.com"
@@ -89,12 +93,73 @@
               <input
                 v-model="form.password"
                 type="password"
+                data-testid="login-password"
                 class="form-input pl-9"
                 :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
                 :placeholder="t('auth.passwordPlaceholder')"
                 required
               />
             </div>
+          </div>
+
+          <!-- Aceitação explícita: desmarcada por omissão e obrigatória (validada
+               também no servidor). Só no registo. -->
+          <label v-if="mode === 'register'" class="flex items-start gap-3 cursor-pointer">
+            <input
+              v-model="form.acceptTerms"
+              type="checkbox"
+              data-testid="login-accept-terms"
+              class="mt-0.5 w-4 h-4 shrink-0 accent-brand-500"
+              required
+            />
+            <i18n-t keypath="auth.acceptTerms" tag="span" class="text-white/60 text-xs leading-relaxed">
+              <template #terms>
+                <NuxtLink to="/terms" target="_blank" class="underline hover:text-white">{{ t('legal.terms') }}</NuxtLink>
+              </template>
+              <template #privacy>
+                <NuxtLink to="/privacy" target="_blank" class="underline hover:text-white">{{ t('legal.privacy') }}</NuxtLink>
+              </template>
+            </i18n-t>
+          </label>
+
+          <div
+            v-if="errorMessage"
+            class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
+          >
+            <AlertCircle class="w-4 h-4 shrink-0" />
+            {{ errorMessage }}
+          </div>
+
+          <button
+            :disabled="loading"
+            data-testid="login-submit"
+            class="btn-primary w-full flex items-center justify-center gap-2"
+            type="submit"
+          >
+            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+            <LogIn v-else class="w-4 h-4" />
+            {{ loading ? t('auth.submitting') : mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister') }}
+          </button>
+        </form>
+
+        <!-- Fase 8, ponto 3 — segundo passo do login quando a conta tem 2FA ativo -->
+        <form v-else class="space-y-4" @submit.prevent="submitTwoFactor">
+          <div>
+            <label class="form-label">{{ t('auth.twoFactorCodeLabel') }}</label>
+            <div class="relative">
+              <ShieldCheck class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input
+                v-model="twoFactorCode"
+                type="text"
+                inputmode="text"
+                autocomplete="one-time-code"
+                class="form-input pl-9 tracking-widest"
+                :placeholder="t('auth.twoFactorCodePlaceholder')"
+                autofocus
+                required
+              />
+            </div>
+            <p class="text-white/30 text-xs mt-2">{{ t('auth.twoFactorHint') }}</p>
           </div>
 
           <div
@@ -111,13 +176,26 @@
             type="submit"
           >
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
-            <LogIn v-else class="w-4 h-4" />
-            {{ loading ? t('auth.submitting') : mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister') }}
+            <ShieldCheck v-else class="w-4 h-4" />
+            {{ loading ? t('auth.submitting') : t('auth.twoFactorSubmit') }}
+          </button>
+
+          <button type="button" class="text-white/40 text-xs w-full text-center hover:text-white/60 transition-colors" @click="cancelTwoFactor">
+            {{ t('auth.twoFactorBackButton') }}
           </button>
         </form>
 
-        <p class="text-center text-white/25 text-xs mt-5">
+        <p v-if="step === 'credentials'" class="text-center text-white/25 text-xs mt-5">
           {{ t('auth.footerNote') }}
+        </p>
+        <p v-if="step === 'credentials'" class="text-center text-white/40 text-xs mt-2 space-x-3">
+          <NuxtLink to="/terms" class="hover:text-white/70 underline">{{ t('legal.terms') }}</NuxtLink>
+          <NuxtLink to="/privacy" class="hover:text-white/70 underline">{{ t('legal.privacy') }}</NuxtLink>
+          <!-- Fase 8, ponto 9 — Livro de Reclamações Eletrónico, obrigatório
+               em Portugal para quem vende a consumidores online. Placeholder
+               até o registo em livroreclamacoes.pt estar feito: troca o href
+               pelo link específico do comerciante que esse registo devolve. -->
+          <a href="https://www.livroreclamacoes.pt/Inicio/" target="_blank" rel="noopener" class="hover:text-white/70 underline">{{ t('legal.complaintsBook') }}</a>
         </p>
       </div>
     </div>
@@ -125,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, Loader2, Lock, LogIn, LogOut, Mail, User } from 'lucide-vue-next'
+import { AlertCircle, Loader2, Lock, LogIn, LogOut, Mail, ShieldCheck, User } from 'lucide-vue-next'
 
 definePageMeta({ layout: false })
 
@@ -135,12 +213,26 @@ const { t } = useI18n()
 const loading = ref(false)
 const errorMessage = ref('')
 const mode = ref<'login' | 'register'>('login')
+const step = ref<'credentials' | 'twoFactor'>('credentials')
+const twoFactorCode = ref('')
 
 const form = reactive({
   name: '',
   email: '',
   password: '',
+  acceptTerms: false,
 })
+
+// Quem já tem sessão válida não deve ficar parado no ecrã de login (acontecia
+// quando a página recarregava a meio da navegação para o dashboard — ex. o
+// Vite a reotimizar dependências em dev — e só aparecia "Terminar sessão").
+watch(
+  () => [auth.isAuthenticated, auth.loading] as const,
+  ([authenticated, isLoading]) => {
+    if (authenticated && !isLoading && step.value === 'credentials') navigateTo('/')
+  },
+  { immediate: true }
+)
 
 const particles = Array.from({ length: 18 }, (_, i) => {
   const seed = i + 1
@@ -170,21 +262,53 @@ async function submit() {
         name: form.name,
         email: form.email,
         password: form.password,
+        acceptTerms: form.acceptTerms,
       })
       toast.success(t('auth.toastAccountCreated'))
-    } else {
-      await auth.signInWithPassword({
-        email: form.email,
-        password: form.password,
-      })
-      toast.success(t('auth.toastSignedIn'))
+      await navigateTo('/')
+      return
     }
 
+    const result = await auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
+    })
+
+    if (result.twoFactorRequired) {
+      step.value = 'twoFactor'
+      return
+    }
+
+    toast.success(t('auth.toastSignedIn'))
     await navigateTo('/')
   } catch (error: any) {
     errorMessage.value = error?.data?.message || t('auth.errorGeneric')
   } finally {
     loading.value = false
   }
+}
+
+async function submitTwoFactor() {
+  if (loading.value) return
+
+  errorMessage.value = ''
+  loading.value = true
+
+  try {
+    await auth.verifyTwoFactor(twoFactorCode.value.trim())
+    toast.success(t('auth.toastSignedIn'))
+    await navigateTo('/')
+  } catch (error: any) {
+    errorMessage.value = error?.data?.message || t('auth.errorGeneric')
+  } finally {
+    loading.value = false
+  }
+}
+
+function cancelTwoFactor() {
+  step.value = 'credentials'
+  twoFactorCode.value = ''
+  errorMessage.value = ''
+  form.password = ''
 }
 </script>

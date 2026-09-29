@@ -1,20 +1,25 @@
 import mongoose from 'mongoose'
 import { Transaction } from '../../models'
+import { z } from 'zod'
 import { requireAuth } from '../../utils/auth'
+import { validateQuery } from '../../utils/validate'
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
+const StatsCategoriesQuerySchema = z.object({
+  type: z.enum(['all', 'income', 'expense']).catch('all'),
+  startDate: z.string().regex(DATE_ONLY).optional().catch(undefined),
+  endDate: z.string().regex(DATE_ONLY).optional().catch(undefined),
+  months: z.coerce.number().int().min(1).max(60).optional().catch(undefined),
+})
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  const query = getQuery(event) as {
-    type?: string
-    startDate?: string
-    endDate?: string
-    months?: string
-  }
+  const query = await validateQuery(event, StatsCategoriesQuerySchema)
 
   const uid = new mongoose.Types.ObjectId(userId)
   const filter: Record<string, any> = { userId: uid }
 
-  if (query.type && query.type !== 'all') filter.type = query.type
+  if (query.type !== 'all') filter.type = query.type
 
   if (query.startDate || query.endDate) {
     filter.date = {}
@@ -22,7 +27,7 @@ export default defineEventHandler(async (event) => {
     if (query.endDate) filter.date.$lte = new Date(query.endDate + 'T23:59:59.999Z')
   } else if (query.months) {
     const start = new Date()
-    start.setMonth(start.getMonth() - parseInt(query.months))
+    start.setMonth(start.getMonth() - query.months)
     start.setDate(1)
     filter.date = { $gte: start }
   }

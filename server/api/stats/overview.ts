@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
+import { readMonthsQuery } from '../../utils/queryFilters'
 import { Transaction, TransactionGroup } from '../../models'
 import { requireAuth } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  const query = getQuery(event) as { months?: string }
-  const months = parseInt(query.months || '12')
+  const months = await readMonthsQuery(event, 12)
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)

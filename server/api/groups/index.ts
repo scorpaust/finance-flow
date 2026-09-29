@@ -1,6 +1,17 @@
 import mongoose from 'mongoose'
+import { z } from 'zod'
 import { TransactionGroup, Transaction } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
+import { validateBody } from '../../utils/validate'
+
+const GroupCreateSchema = z.object({
+  name: z.string().trim().min(1, 'groups.nameRequired'),
+  description: z.string().trim().optional(),
+  color: z.string().trim().optional(),
+  monthlyLimit: z.union([z.number(), z.string()]).optional(),
+  weeklyLimit: z.union([z.number(), z.string()]).optional(),
+  alertThreshold: z.union([z.number(), z.string()]).optional(),
+})
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'groups')
@@ -41,9 +52,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'POST') {
-    const body = await readBody(event)
-    const { name, description, color, monthlyLimit, weeklyLimit, alertThreshold } = body
-    if (!name) throw createError({ statusCode: 400, message: 'Name required' })
+    const { name, description, color, monthlyLimit, weeklyLimit, alertThreshold } = await validateBody(event, GroupCreateSchema)
 
     const group = await TransactionGroup.create({
       userId,

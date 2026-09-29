@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { readMonthsQuery } from '../../utils/queryFilters'
 import { Transaction } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 
@@ -57,8 +58,7 @@ function histogram(amounts: number[]) {
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'statsAdvanced')
-  const query = getQuery(event) as { months?: string }
-  const months = parseInt(query.months || '6')
+  const months = await readMonthsQuery(event, 6)
 
   const uid = new mongoose.Types.ObjectId(userId)
   const start = new Date()

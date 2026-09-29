@@ -10,7 +10,14 @@
 // GET /quote, símbolos separados por vírgula num único pedido — resposta
 // passa a ser um objeto chaveado por símbolo em vez de um único quote.
 
-const TWELVE_DATA_API_URL = 'https://api.twelvedata.com/quote'
+import { logEvent } from './logger'
+
+// Fase 8, ponto 6 — URL configurável só para os testes de integração.
+const TWELVE_DATA_API_URL = `${process.env.TWELVE_DATA_API_BASE_URL || 'https://api.twelvedata.com'}/quote`
+// Mesmo tratamento da EasyPay/Anthropic — detalhe cru só no log estruturado.
+// Só o cron de market-snapshot chama isto (nunca um pedido de utilizador),
+// mas uniformiza-se na mesma para não haver uma regra diferente por fornecedor.
+const TWELVE_DATA_GENERIC_MESSAGE = 'Market data provider is temporarily unavailable — please try again shortly'
 
 // Índices globais principais como contexto geral de mercado, não recomendação
 // de ativos específicos. Os símbolos "puros" de índice (ex. SPX, IXIC,
@@ -53,15 +60,19 @@ export async function fetchMarketSnapshot(): Promise<MarketIndexQuote[]> {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    throw createError({ statusCode: 502, message: `Erro Twelve Data (${res.status}): ${detail.slice(0, 500)}` })
+    logEvent('error', 'market.twelvedata_upstream_error', { status: res.status, detail: detail.slice(0, 2000) })
+    throw createError({ statusCode: 502, message: TWELVE_DATA_GENERIC_MESSAGE, data: { error: 'twelvedata_upstream_error' } })
   }
 
   const data = (await res.json()) as Record<string, TwelveDataQuote> | TwelveDataQuote
 
   // Um único símbolo devolve o quote diretamente; vários símbolos devolvem um
-  // objeto chaveado por símbolo.
+  // objeto chaveado por símbolo. `'symbol' in data` não elimina o ramo
+  // `Record<string, TwelveDataQuote>` da união (um índice de assinatura por
+  // string aceita a chave "symbol" estruturalmente) — sem o cast explícito,
+  // `data.symbol` fica com um tipo de união inválido como chave computada.
   const quotesBySymbol: Record<string, TwelveDataQuote> =
-    'symbol' in data ? { [data.symbol]: data } : data
+    'symbol' in data ? { [(data as TwelveDataQuote).symbol]: data as TwelveDataQuote } : data
 
   return TRACKED_INDICES.map((tracked) => {
     const quote = quotesBySymbol[tracked.symbol]

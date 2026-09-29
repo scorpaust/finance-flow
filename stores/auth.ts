@@ -5,6 +5,7 @@ interface User {
   name: string
   email: string
   image?: string
+  twoFactorEnabled?: boolean
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -17,40 +18,80 @@ export const useAuthStore = defineStore('auth', () => {
   const loading  = ref(true)
   const _fetched = ref(false)   // reactive so middleware can watch it
 
-  async function fetchSession() {
-    // Guard: only fetch once per app lifecycle
-    if (_fetched.value) return
+  // Chamadas concorrentes (plugin de arranque, middleware, login) partilham o
+  // mesmo pedido em voo. Antes, a 2.ª chamada via `_fetched` já a true e
+  // devolvia logo, com `user` ainda null — o chamador concluía "sem sessão".
+  let inFlight: Promise<void> | null = null
 
-    loading.value  = true
-    _fetched.value = true          // mark immediately to prevent races
-    try {
-      const data = await $fetch<{ user: User | null }>('/api/auth/session')
-      user.value = data.user
-    } catch {
-      user.value = null
-    } finally {
-      loading.value = false
-    }
+  function fetchSession(): Promise<void> {
+    if (_fetched.value) return Promise.resolve()
+    if (!inFlight) inFlight = doFetchSession().finally(() => { inFlight = null })
+    return inFlight
   }
 
+  async function doFetchSession() {
+    loading.value = true
+    // GET /api/auth/session responde SEMPRE 200 (`{ user: null }` quando não há
+    // sessão) — por isso um erro aqui é rede ou servidor indisponível (ex. o
+    // servidor a reiniciar, um corte de Wi-Fi no telemóvel), nunca "sem
+    // sessão". Tratá-lo como logout mandava um utilizador com sessão válida
+    // para o login. Tenta algumas vezes antes de desistir.
+    const attempts = 6
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const data = (await $fetch('/api/auth/session')) as { user: User | null }
+        user.value = data.user
+        _fetched.value = true
+        loading.value = false
+        return
+      } catch {
+        if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 1500))
+      }
+    }
+    // Continua sem resposta: mostra o login, mas deixa a próxima navegação
+    // tentar de novo em vez de ficar marcado como "já verificado".
+    user.value = null
+    loading.value = false
+  }
+
+  // Fase 8, ponto 3 — quando a conta tem 2FA ativo, o servidor não devolve
+  // `user` nenhum, só `{ twoFactorRequired: true }` (sessão ainda não
+  // concedida). O componente de login trata isto como um passo extra antes
+  // de navegar para o dashboard — ver pages/login.vue.
   async function signInWithPassword(payload: { email: string; password: string }) {
-    const data = await $fetch<{ user: User }>('/api/auth/session', {
+    const data = (await $fetch('/api/auth/session', {
       method: 'POST',
       body: { ...payload, action: 'login' },
-    })
+    })) as { user?: User; twoFactorRequired?: boolean }
+    if (data.twoFactorRequired) return { twoFactorRequired: true as const }
+
+    user.value     = data.user!
+    _fetched.value = true
+    return { twoFactorRequired: false as const, user: data.user! }
+  }
+
+  async function verifyTwoFactor(code: string) {
+    const data = (await $fetch('/api/auth/2fa/verify', {
+      method: 'POST',
+      body: { code },
+    })) as { user: User }
     user.value     = data.user
     _fetched.value = true
     return data.user
   }
 
-  async function registerWithPassword(payload: { name: string; email: string; password: string }) {
-    const data = await $fetch<{ user: User }>('/api/auth/session', {
+  async function registerWithPassword(payload: { name: string; email: string; password: string; acceptTerms: boolean }) {
+    const data = (await $fetch('/api/auth/session', {
       method: 'POST',
       body: { ...payload, action: 'register' },
-    })
+    })) as { user: User }
     user.value     = data.user
     _fetched.value = true
     return data.user
+  }
+
+  function setTwoFactorEnabled(enabled: boolean) {
+    if (user.value) user.value.twoFactorEnabled = enabled
   }
 
   async function signOut() {
@@ -68,6 +109,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     fetchSession,
     signInWithPassword,
+    verifyTwoFactor,
+    setTwoFactorEnabled,
     registerWithPassword,
     signOut,
   }

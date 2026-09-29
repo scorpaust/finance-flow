@@ -106,14 +106,9 @@ npm run migrate:subscriptions
 
 ## 🔐 Autenticação
 
-A app usa autenticação **local** — sem OAuth externo. Regista uma conta diretamente no ecrã de login com nome, email e password (mínimo 8 caracteres). A password é guardada em hash com `scrypt` e a sessão é mantida via cookie `httpOnly`.
+A app usa autenticação **local** — sem OAuth externo. Regista uma conta diretamente no ecrã de login com nome, email e password (mínimo 8 caracteres). A password é guardada em hash com `scrypt` e a sessão é mantida via um cookie `httpOnly` assinado (HMAC, `SESSION_SECRET` — ver `server/utils/session.ts`); o antigo header `x-user-id` em claro foi removido (Fase 8, ponto 2).
 
-> ⚠️ **Limitação conhecida, a resolver antes de produção (Fase 8)**: o cookie de
-> sessão (`userId`) contém o `_id` do utilizador **em claro, sem assinatura**, e
-> `requireAuth` aceita também o header `x-user-id` com o mesmo valor. Quem
-> conhecer ou adivinhar um `_id` consegue agir como esse utilizador. Foi útil
-> para testar os endpoints à mão, mas não pode chegar a produção — ver
-> [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md).
+Suporta opcionalmente autenticação de dois fatores (2FA) por app autenticadora (TOTP — Google Authenticator, Authy, 1Password, etc.), ativável nas Configurações. Ver `server/utils/twoFactor.ts` e [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md) (ponto 3).
 
 ---
 
@@ -161,10 +156,10 @@ financeflow/
 │   ├── investimento/           ← Portfolio + perfil de investidor + dicas educativas IA (Premium)
 │   └── settings/               ← Perfil + gestão de categorias (inclui seletor de idioma)
 ├── plugins/
-│   ├── chartjs.client.ts             ← Registo global Chart.js (dark theme)
 │   ├── init.client.ts                ← Init auth store
 │   ├── locale.ts                     ← Deteção/persistência manual do idioma (cookie
 │   │                                    `financeflow_locale`) — ver nota em Internacionalização
+│   ├── pwa-update.client.ts          ← Aviso de nova versão/offline do PWA
 │   └── capacitor-back-button.client.ts ← Botão "voltar" Android
 ├── server/
 │   ├── api/
@@ -190,6 +185,9 @@ financeflow/
 │   │                          espera por plugins — ver utils/db.ts)
 │   └── utils/
 │       ├── auth.ts              ← requireAuth, sanitizeId
+│       ├── queryFilters.ts      ← filtros de query validados (transações, `months`)
+│       ├── defaultCategories.ts ← categorias genéricas iniciais (no idioma do registo)
+│       ├── logger.ts            ← logEvent: log estruturado JSON, sem dados pessoais
 │       ├── requireFeature.ts    ← enforcement server-side por tier (403 se bloqueado)
 │       ├── easypay.ts           ← wrapper Checkout API (Cartão/DD/MB WAY/Multibanco)
 │       ├── subscriptionSync.ts  ← lógica partilhada webhook + confirmação client-side
@@ -212,6 +210,7 @@ financeflow/
 ├── shared/paymentMethods.ts    ← Tabela país → métodos de pagamento pré-pagos disponíveis
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
+├── utils/chartjs.ts            ← Registo do Chart.js (importado só pelos gráficos)
 ├── scripts/
 │   ├── seed.mjs                    ← 12 meses de dados de teste
 │   └── migrate-subscriptions.mjs   ← dá tier 'free' a utilizadores pré-Fase-2

@@ -21,7 +21,9 @@
     "both": "Both",
     "viewPlans": "View plans",
     "vsLastMonth": "vs last month",
-    "closeNotification": "Close notification"
+    "closeNotification": "Close notification",
+    "updateAvailable": "New version available — updating...",
+    "offlineReady": "App ready to work offline"
   },
   "nav": {
     "home": "Dashboard",
@@ -61,7 +63,14 @@
     "signOut": "Sign out",
     "toastAccountCreated": "Account created",
     "toastSignedIn": "Signed in",
-    "errorGeneric": "Authentication error"
+    "errorGeneric": "Authentication error",
+    "twoFactorSubtitle": "Enter the code from your authenticator app",
+    "twoFactorCodeLabel": "Verification code",
+    "twoFactorCodePlaceholder": "6-digit code",
+    "twoFactorHint": "Lost access to your device? You can also use one of your recovery codes.",
+    "twoFactorSubmit": "Verify",
+    "twoFactorBackButton": "Back to sign in",
+    "acceptTerms": "I have read and accept the {terms} and the {privacy}."
   },
   "dashboard": {
     "greetingMorning": "Good morning",
@@ -135,6 +144,30 @@
       "description": "Interface language — does not affect the payment methods available, which depend on your detected country.",
       "label": "App language"
     },
+    "twoFactor": {
+      "title": "Two-factor authentication",
+      "description": "Add an extra verification step at sign-in using an authenticator app (Google Authenticator, Authy, 1Password, etc.).",
+      "statusEnabled": "Enabled",
+      "statusDisabled": "Disabled",
+      "enableButton": "Enable 2FA",
+      "disableButton": "Disable",
+      "setupTitle": "Set up two-factor authentication",
+      "setupInstructions": "Scan this QR code with your authenticator app, then enter the 6-digit code it shows to confirm.",
+      "secretLabel": "Can't scan it? Enter this code manually",
+      "codeLabel": "Confirmation code",
+      "codePlaceholder": "6-digit code",
+      "confirmButton": "Confirm and activate",
+      "backupCodesWarning": "Save these recovery codes somewhere safe — each one can be used once if you lose access to your authenticator app. They won't be shown again.",
+      "backupCodesDoneButton": "I've saved my codes",
+      "disableTitle": "Disable two-factor authentication",
+      "disablePasswordLabel": "Current password",
+      "disableCodeLabel": "Verification code",
+      "disableCodePlaceholder": "6-digit code or recovery code",
+      "disableConfirmButton": "Disable",
+      "toastEnabled": "Two-factor authentication enabled",
+      "toastDisabled": "Two-factor authentication disabled",
+      "errorGeneric": "Something went wrong — try again"
+    },
     "title": "Settings",
     "subtitle": "Manage categories, groups and preferences",
     "profileTitle": "Profile",
@@ -163,7 +196,28 @@
     "toastCategoryCreated": "Category created!",
     "toastCategoryCreateError": "Error creating category",
     "toastCategoryDeleted": "Category deleted",
-    "toastCategoryDeleteError": "Error deleting category"
+    "toastCategoryDeleteError": "Error deleting category",
+    "biometric": {
+      "title": "Biometric lock",
+      "description": "Asks for fingerprint or face recognition when the app opens and when it returns from the background (after 1 minute).",
+      "enable": "Enable",
+      "toastEnabled": "Biometric lock enabled",
+      "unavailable": "Biometrics unavailable right now. Make sure you have a fingerprint or face enrolled in Android Settings.",
+      "retry": "Check again",
+      "statusEnabled": "Lock on",
+      "statusDisabled": "Lock off",
+      "disable": "Turn lock off"
+    },
+    "account": {
+      "title": "Privacy and data",
+      "description": "Download a copy of your data, or delete your account and everything associated with it.",
+      "export": "Export my data",
+      "delete": "Delete account",
+      "deleteTitle": "Delete account",
+      "deleteWarning": "This permanently deletes your account, transactions, categories, groups and investments. It cannot be undone. A subscription with automatic renewal is cancelled first.",
+      "deleteConfirm": "Delete forever",
+      "errorGeneric": "Something went wrong — try again"
+    }
   },
   "transactionModal": {
     "editTitle": "Edit Transaction",
@@ -680,5 +734,20 @@
     "median": "Median",
     "q1q3": "Q1–Q3",
     "minMax": "Min–Max"
+  },
+  "appLock": {
+    "title": "App locked",
+    "subtitle": "Confirm your identity to continue",
+    "unlock": "Unlock",
+    "signOut": "Sign out",
+    "reason": "Unlock FinanceFlow"
+  },
+  "legal": {
+    "back": "Back",
+    "draftNotice": "Draft — this text has not yet been reviewed by a lawyer and has fields still to fill in.",
+    "englishOnly": "This document is only available in Portuguese and English; showing the English version.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "complaintsBook": "Electronic Complaints Book"
   }
 }

@@ -21,7 +21,9 @@
     "both": "Entrambi",
     "viewPlans": "Vedi i piani",
     "vsLastMonth": "vs mese precedente",
-    "closeNotification": "Chiudi notifica"
+    "closeNotification": "Chiudi notifica",
+    "updateAvailable": "Nuova versione disponibile — aggiornamento in corso...",
+    "offlineReady": "App pronta per l'uso offline"
   },
   "nav": {
     "home": "Dashboard",
@@ -61,7 +63,14 @@
     "signOut": "Esci dall'account",
     "toastAccountCreated": "Account creato",
     "toastSignedIn": "Accesso effettuato",
-    "errorGeneric": "Errore di autenticazione"
+    "errorGeneric": "Errore di autenticazione",
+    "twoFactorSubtitle": "Inserisci il codice della tua app di autenticazione",
+    "twoFactorCodeLabel": "Codice di verifica",
+    "twoFactorCodePlaceholder": "Codice a 6 cifre",
+    "twoFactorHint": "Hai perso l'accesso al dispositivo? Puoi anche usare uno dei tuoi codici di recupero.",
+    "twoFactorSubmit": "Verifica",
+    "twoFactorBackButton": "Torna all'accesso",
+    "acceptTerms": "Ho letto e accetto i {terms} e l'{privacy}."
   },
   "dashboard": {
     "greetingMorning": "Buongiorno",
@@ -135,6 +144,30 @@
       "description": "Lingua dell'interfaccia — non influisce sui metodi di pagamento disponibili, che dipendono dal paese rilevato.",
       "label": "Lingua dell'app"
     },
+    "twoFactor": {
+      "title": "Autenticazione a due fattori",
+      "description": "Aggiunge un passaggio di verifica in più all'accesso tramite un'app di autenticazione (Google Authenticator, Authy, 1Password, ecc.).",
+      "statusEnabled": "Attiva",
+      "statusDisabled": "Disattivata",
+      "enableButton": "Attiva 2FA",
+      "disableButton": "Disattiva",
+      "setupTitle": "Configura l'autenticazione a due fattori",
+      "setupInstructions": "Scansiona questo codice QR con la tua app di autenticazione, poi inserisci il codice a 6 cifre mostrato per confermare.",
+      "secretLabel": "Non riesci a scansionare? Inserisci questo codice manualmente",
+      "codeLabel": "Codice di conferma",
+      "codePlaceholder": "Codice a 6 cifre",
+      "confirmButton": "Conferma e attiva",
+      "backupCodesWarning": "Conserva questi codici di recupero in un posto sicuro — ognuno può essere usato una volta se perdi l'accesso alla tua app di autenticazione. Non verranno mostrati di nuovo.",
+      "backupCodesDoneButton": "Ho salvato i miei codici",
+      "disableTitle": "Disattiva l'autenticazione a due fattori",
+      "disablePasswordLabel": "Password attuale",
+      "disableCodeLabel": "Codice di verifica",
+      "disableCodePlaceholder": "Codice a 6 cifre o codice di recupero",
+      "disableConfirmButton": "Disattiva",
+      "toastEnabled": "Autenticazione a due fattori attivata",
+      "toastDisabled": "Autenticazione a due fattori disattivata",
+      "errorGeneric": "Qualcosa è andato storto — riprova"
+    },
     "title": "Impostazioni",
     "subtitle": "Gestisci categorie, gruppi e preferenze",
     "profileTitle": "Profilo",
@@ -163,7 +196,28 @@
     "toastCategoryCreated": "Categoria creata!",
     "toastCategoryCreateError": "Errore durante la creazione",
     "toastCategoryDeleted": "Categoria eliminata",
-    "toastCategoryDeleteError": "Errore durante l'eliminazione"
+    "toastCategoryDeleteError": "Errore durante l'eliminazione",
+    "biometric": {
+      "title": "Blocco biometrico",
+      "description": "Richiede l'impronta digitale o il riconoscimento facciale all'apertura dell'app e al ritorno dallo sfondo (dopo 1 minuto).",
+      "enable": "Attiva",
+      "toastEnabled": "Blocco biometrico attivato",
+      "unavailable": "Biometria non disponibile al momento. Verifica di avere un'impronta o un volto registrato nelle Impostazioni di Android.",
+      "retry": "Ricontrolla",
+      "statusEnabled": "Blocco attivo",
+      "statusDisabled": "Blocco disattivato",
+      "disable": "Disattiva il blocco"
+    },
+    "account": {
+      "title": "Privacy e dati",
+      "description": "Scarica una copia dei tuoi dati oppure elimina il tuo account e tutto ciò che vi è associato.",
+      "export": "Esporta i miei dati",
+      "delete": "Elimina account",
+      "deleteTitle": "Elimina account",
+      "deleteWarning": "Questo elimina in modo permanente il tuo account, le transazioni, le categorie, i gruppi e gli investimenti. Non può essere annullato. Un abbonamento con rinnovo automatico viene prima annullato.",
+      "deleteConfirm": "Elimina per sempre",
+      "errorGeneric": "Qualcosa è andato storto — riprova"
+    }
   },
   "transactionModal": {
     "editTitle": "Modifica transazione",
@@ -680,5 +734,19 @@
     "median": "Mediana",
     "q1q3": "Q1–Q3",
     "minMax": "Min–Max"
+  },
+  "appLock": {
+    "title": "App bloccata",
+    "subtitle": "Conferma la tua identità per continuare",
+    "unlock": "Sblocca",
+    "signOut": "Esci",
+    "reason": "Sblocca FinanceFlow"
+  },
+  "legal": {
+    "back": "Indietro",
+    "draftNotice": "Bozza — questo testo non è ancora stato rivisto da un giurista e contiene campi da completare.",
+    "englishOnly": "Questo documento è disponibile solo in portoghese e inglese; viene mostrata la versione inglese.",
+    "terms": "Termini di servizio",
+    "privacy": "Informativa sulla privacy"
   }
 }

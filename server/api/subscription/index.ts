@@ -1,6 +1,7 @@
 import { User } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import type { IUserSubscription } from '../../models'
+import { effectiveTier } from '../../../shared/features'
 
 const DEFAULT_SUBSCRIPTION: IUserSubscription = {
   tier: 'free',
@@ -27,5 +28,7 @@ export default defineEventHandler(async (event) => {
     ? Math.ceil((new Date(subscription.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
 
-  return { subscription, daysUntilExpiry }
+  // O client decide a UI a partir de `subscription.tier` — tem de bater com o que
+  // o servidor realmente aplica (ver effectiveTier em shared/features.ts).
+  return { subscription: { ...subscription, tier: effectiveTier(subscription) }, daysUntilExpiry }
 })

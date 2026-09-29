@@ -60,6 +60,35 @@ export function requiredTierFor(feature: FeatureKey): SubscriptionTier {
   return FEATURE_MATRIX[feature]
 }
 
+// Fase 8, ponto 5 — o plano que o utilizador REALMENTE pode usar agora. Antes,
+// o servidor lia só `subscription.tier`, e `syncSinglePayment` grava o `tier`
+// logo ao criar uma referência Multibanco/MB WAY ainda por pagar
+// (`status: 'pending'`) — quem criasse a referência e não pagasse ficava com
+// acesso completo. Regras:
+//  - `active`: o tier, exceto pré-pagos (MB WAY/Multibanco) já fora do período
+//    pago — o cron de expiração não corre em nenhum lado por agora, por isso a
+//    data tem de ser verificada aqui, em tempo real. Auto-renovação (CC/DD)
+//    confia no `status` (a renovação estende o período fora deste controlo).
+//  - `canceled`/`past_due`: mantém o tier só até ao fim do período pago.
+//  - `pending`/`expired`/qualquer outro: gratuito.
+export interface SubscriptionLike {
+  tier?: SubscriptionTier
+  status?: string
+  billingMode?: string
+  currentPeriodEnd?: Date | string | null
+}
+
+export function effectiveTier(sub: SubscriptionLike | null | undefined, now: Date = new Date()): SubscriptionTier {
+  if (!sub?.tier || sub.tier === 'free') return 'free'
+  const end = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : null
+  const stillPaid = end !== null && end > now.getTime()
+  const prepaid = sub.billingMode === 'push_confirm' || sub.billingMode === 'manual_reference'
+
+  if (sub.status === 'active') return prepaid && !stillPaid ? 'free' : sub.tier
+  if (sub.status === 'canceled' || sub.status === 'past_due') return stillPaid ? sub.tier : 'free'
+  return 'free'
+}
+
 // Limites numéricos (null = ilimitado) — não são on/off como hasFeature, por isso
 // vivem à parte da FEATURE_MATRIX.
 export interface TierLimits {

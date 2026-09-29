@@ -10,6 +10,7 @@
 </template>
 <script setup lang="ts">
 import { Line } from 'vue-chartjs'
+import '~/utils/chartjs'
 const props = defineProps<{
   data: Array<{ month: string; income: number; expense: number; balance: number }>
   loading?: boolean

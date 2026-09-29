@@ -206,8 +206,12 @@ function isActive(path: string) {
 }
 
 const currentTitle = computed(() => navItems.value.find(n => isActive(n.path))?.label || 'FinanceFlow')
+// Fase 8, ponto 11 — mesma correção do "Hydration text content mismatch" de
+// pages/index.vue: `new Date()` fixado com useState para o servidor e o
+// cliente concordarem sempre no mesmo dia na hidratação.
+const currentDateBase = useState('layout-current-date', () => new Date().toISOString())
 const currentDate  = computed(() =>
-  format(new Date(), locale.value === 'pt-PT' ? "EEEE, dd 'de' MMMM" : 'EEEE, dd MMMM', { locale: dateFnsLocale.value })
+  format(new Date(currentDateBase.value), locale.value === 'pt-PT' ? "EEEE, dd 'de' MMMM" : 'EEEE, dd MMMM', { locale: dateFnsLocale.value })
 )
 
 async function onSaved() {

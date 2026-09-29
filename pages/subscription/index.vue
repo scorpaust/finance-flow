@@ -90,10 +90,11 @@
     <div v-if="selectedTier !== 'free' && selectedTier !== currentTier" class="glass-card rounded-3xl p-6 space-y-5">
       <div>
         <label class="form-label">{{ t('subscription.paymentMethodLabel') }}</label>
-        <div class="grid grid-cols-2 gap-2 mt-1.5">
+        <div class="grid grid-cols-2 gap-2 mt-1.5" data-testid="subscription-methods">
           <button
             v-for="m in METHODS"
             :key="m.value"
+            :data-testid="`subscription-method-${m.value}`"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="selectedMethod === m.value ? 'bg-brand-600 text-white' : 'bg-surface-700/50 text-white/50 hover:text-white'"
             type="button"
@@ -312,8 +313,7 @@ async function beginCheckout() {
       // Fase 7 — o SDK da EasyPay só suporta "en", "pt_PT" e "es_ES"
       // (confirmado via Context7, docs.easypay.pt); fr/de/it caem em inglês.
       language: EASYPAY_LANGUAGE[locale.value] || 'en',
-      onSuccess: async (checkoutInfo: unknown) => {
-        console.log('[EasyPay] onSuccess checkoutInfo:', checkoutInfo)
+      onSuccess: async () => {
         // Não fecha o painel já — o formulário da EasyPay às vezes mostra a
         // entidade/referência Multibanco no próprio ecrã final, e fechar de
         // imediato não dava tempo de ler (reportado em sandbox, 2026-09-19).
@@ -331,13 +331,12 @@ async function beginCheckout() {
         // leitura diretos em sandbox). Mesma lógica idempotente dos dois
         // lados (ver server/utils/subscriptionSync.ts).
         try {
-          const r = await $fetch('/api/subscription/easypay/confirm', {
+          await $fetch('/api/subscription/easypay/confirm', {
             method: 'POST',
             body: { checkoutId: manifest.id },
           })
-          console.log('[EasyPay] confirm respondeu:', r)
-        } catch (e) {
-          console.error('[EasyPay] confirm falhou:', e)
+        } catch {
+          // Sem efeito visível: o webhook e o polling abaixo acabam por confirmar.
         }
 
         submitting.value = false
@@ -370,8 +369,16 @@ async function beginCheckout() {
   }
 }
 
+// Pára o polling e desmonta o checkout ao sair da página (antes o polling
+// continuava a fazer pedidos em segundo plano até 30 s).
+let disposed = false
+onBeforeUnmount(() => {
+  disposed = true
+  checkoutInstance?.unmount()
+})
+
 async function pollUntilConfirmed() {
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 15 && !disposed; i++) {
     await sub.refresh()
     if (sub.tier.value === selectedTier.value) {
       toast.success(t('subscription.toastPaymentConfirmedCelebrate'))

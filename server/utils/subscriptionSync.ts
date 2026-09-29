@@ -1,4 +1,5 @@
 import { User } from '../models'
+import { logEvent } from './logger'
 import { decodeMerchantKey, getSubscriptionResource, getSingle, getCheckoutStatus, type EasyPayResource } from './easypay'
 
 // O `id` que confirmamos nem sempre é claramente "o id da subscrição" vs. "o
@@ -18,9 +19,15 @@ async function fetchResourceLenient(
   try {
     return await specificFetch(resourceId)
   } catch (e) {
-    console.warn('[EasyPay] endpoint específico falhou, a tentar /single/{id} como fallback:', e)
+    logEvent('warn', 'easypay.specific_fetch_failed', { resourceId, message: errorMessage(e) })
     return await getSingle(resourceId)
   }
+}
+
+// Só a mensagem — um erro do fetch à EasyPay pode trazer o corpo da resposta
+// (nome, email e telefone do cliente), que não pode ir para o log.
+function errorMessage(e: unknown): string {
+  return String((e as Error)?.message || e).slice(0, 300)
 }
 
 function isSuccessResource(resource: EasyPayResource): boolean {
@@ -45,7 +52,7 @@ async function pollPaymentResult(paymentId: string, attempts = 6, delayMs = 2000
         return status
       }
     } catch (e) {
-      console.warn('[EasyPay] pollPaymentResult: erro a consultar o pagamento:', e)
+      logEvent('warn', 'easypay.poll_failed', { paymentId, message: errorMessage(e) })
     }
   }
   return null
@@ -69,22 +76,42 @@ function addMonths(date: Date, months: number): Date {
   return d
 }
 
+const FAILURE_STATUSES = ['failed', 'failure', 'declined', 'refused', 'error', 'canceled', 'cancelled', 'expired']
+const MAX_APPLIED_IDS = 20
+
+// Fase 8, ponto 5 — idempotência. As três funções de sincronização escreviam
+// `currentPeriodEnd = agora + período` a CADA chamada, por isso repetir um
+// webhook (ou chamar /easypay/confirm outra vez com um checkout antigo — é um
+// endpoint de utilizador) estendia o período de graça indefinidamente, ou
+// reativava uma subscrição já cancelada/expirada, sem novo pagamento. Cada id
+// de pagamento só pode ser aplicado uma vez por conta.
+async function getAppliedIds(userId: string): Promise<string[]> {
+  const user = await User.findById(userId).select('subscription.appliedPaymentIds').lean<{ subscription?: { appliedPaymentIds?: string[] } }>()
+  return user?.subscription?.appliedPaymentIds || []
+}
+
+function withApplied(applied: string[], id: string): string[] {
+  return [...applied.filter((x) => x !== id), id].slice(-MAX_APPLIED_IDS)
+}
+
 export async function syncSubscriptionCreate(resourceId: string): Promise<void> {
   const resource = await fetchResourceLenient(getSubscriptionResource, resourceId)
-  console.log('[EasyPay] syncSubscriptionCreate resource:', resource)
   if (!isSuccessResource(resource)) {
-    console.warn('[EasyPay] syncSubscriptionCreate: resource não tem estado de sucesso, a ignorar')
+    logEvent('warn', 'easypay.subscription_not_successful', { resourceId, status: resource.status || resource.payment_status })
     return
   }
 
   const key = resource.key || resource.customer?.key
   const decoded = key ? decodeMerchantKey(key) : null
   if (!decoded) {
-    console.warn('[EasyPay] syncSubscriptionCreate: sem key decodificável no resource (key:', key, ')')
+    logEvent('warn', 'easypay.undecodable_key', { resourceId, source: 'subscription' })
     return
   }
 
   const paymentMethod = decoded.paymentMethod === 'dd' ? 'dd' : 'cc'
+
+  const applied = await getAppliedIds(decoded.userId)
+  if (applied.includes(resourceId)) return
 
   await User.findByIdAndUpdate(decoded.userId, {
     subscription: {
@@ -96,6 +123,7 @@ export async function syncSubscriptionCreate(resourceId: string): Promise<void> 
       autoRenew: true,
       currentPeriodEnd: addMonths(new Date(), 1),
       easypaySubscriptionId: resourceId,
+      appliedPaymentIds: withApplied(applied, resourceId),
     },
   })
 }
@@ -115,9 +143,8 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   try {
     resource = await getSingle(paymentId)
   } catch (e) {
-    console.warn('[EasyPay] syncSinglePayment: falha ao consultar o pagamento:', e)
+    logEvent('warn', 'easypay.single_fetch_failed', { paymentId, message: errorMessage(e) })
   }
-  console.log('[EasyPay] syncSinglePayment resource:', resource)
 
   const method = typeof resource?.method === 'object' ? resource.method : undefined
   let status = resource?.status || resource?.payment_status || method?.status
@@ -128,11 +155,17 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   // resolvido; só recorre a polling se não vier.
   if (paymentMethod === 'mbway' && (!status || status === 'pending' || status === 'waiting')) {
     const polled = await pollPaymentResult(paymentId)
-    console.log('[EasyPay] syncSinglePayment (mbway): estado final após polling:', polled)
     if (polled) status = polled
   }
 
   const isPaid = typeof status === 'string' && SUCCESS_STATUSES.includes(status)
+
+  // Só um pagamento CONFIRMADO fica registado como aplicado; enquanto está
+  // 'pending' (Multibanco por pagar) pode voltar a passar por aqui, e o
+  // `effectiveTier` (shared/features.ts) garante que 'pending' não dá acesso.
+  const applied = await getAppliedIds(decoded.userId)
+  if (applied.includes(paymentId)) return
+  const activeNow = paymentMethod !== 'multibanco' && isPaid
 
   // currentPeriodEnd calculado já a partir de agora (não de quando o
   // pagamento for confirmado) — evita ter de guardar o periodMonths à parte
@@ -141,7 +174,8 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   await User.findByIdAndUpdate(decoded.userId, {
     subscription: {
       tier: decoded.tier,
-      status: paymentMethod === 'multibanco' ? 'pending' : isPaid ? 'active' : 'pending',
+      status: activeNow ? 'active' : 'pending',
+      appliedPaymentIds: activeNow ? withApplied(applied, paymentId) : applied,
       provider: 'easypay',
       paymentMethod,
       billingMode,
@@ -176,6 +210,7 @@ export async function checkPendingPayment(userId: string): Promise<{ status: str
 
   if (typeof status === 'string' && SUCCESS_STATUSES.includes(status)) {
     sub.status = 'active'
+    sub.appliedPaymentIds = withApplied(sub.appliedPaymentIds || [], sub.easypaySubscriptionId)
     if (sub.billingMode === 'manual_reference') {
       sub.multibancoEntity = undefined
       sub.multibancoReference = undefined
@@ -197,15 +232,21 @@ export async function checkPendingPayment(userId: string): Promise<{ status: str
 // billingModes: deteta cc/dd (auto, recorrente) vs. mbway/multibanco
 // (pagamento único por período fixo) a partir do paymentMethod que nós
 // próprios codificámos na `key`.
-export async function syncFromCheckout(checkoutId: string): Promise<void> {
+export async function syncFromCheckout(checkoutId: string, expectedUserId?: string): Promise<void> {
   const checkout = await getCheckoutStatus(checkoutId)
-  console.log('[EasyPay] syncFromCheckout resposta:', checkout)
 
   const key = checkout.payment?.key
   const decoded = key ? decodeMerchantKey(key) : null
   if (!decoded) {
-    console.warn('[EasyPay] syncFromCheckout: sem key decodificável (payment.key:', key, ')')
+    logEvent('warn', 'easypay.undecodable_key', { checkoutId, source: 'checkout' })
     return
+  }
+
+  // Fase 8, ponto 5 — este caminho é chamado por um utilizador autenticado
+  // com um `checkoutId` que ele próprio envia: só pode aplicar checkouts da
+  // sua própria conta (a `key` vem confirmada pela API, não do pedido).
+  if (expectedUserId && decoded.userId !== expectedUserId) {
+    throw createError({ statusCode: 403, message: 'Forbidden' })
   }
 
   const paymentId = checkout.payment?.id || checkoutId
@@ -220,9 +261,11 @@ export async function syncFromCheckout(checkoutId: string): Promise<void> {
       typeof paymentStatus === 'string' &&
       (SUCCESS_STATUSES.includes(paymentStatus) || (decoded.paymentMethod === 'dd' && paymentStatus === 'pending'))
     if (!statusOk) {
-      console.warn('[EasyPay] syncFromCheckout: payment.status não é aceitável:', paymentStatus)
+      logEvent('warn', 'easypay.checkout_status_rejected', { checkoutId, status: paymentStatus })
       return
     }
+    const applied = await getAppliedIds(decoded.userId)
+    if (applied.includes(paymentId)) return
     await User.findByIdAndUpdate(decoded.userId, {
       subscription: {
         tier: decoded.tier,
@@ -233,6 +276,7 @@ export async function syncFromCheckout(checkoutId: string): Promise<void> {
         autoRenew: true,
         currentPeriodEnd: addMonths(new Date(), 1),
         easypaySubscriptionId: paymentId,
+        appliedPaymentIds: withApplied(applied, paymentId),
       },
     })
     return
@@ -243,23 +287,46 @@ export async function syncFromCheckout(checkoutId: string): Promise<void> {
 
 // Confirmação (ou falha) de um pagamento MB WAY/Multibanco via webhook
 // (evento "capture") — caminho de produção, complementar ao confirm.post.ts.
-export async function syncCapture(resourceId: string, status: string): Promise<void> {
+// Fase 8, ponto 5 — o resultado (sucesso/falha) vem do recurso CONFIRMADO na
+// API EasyPay, nunca do `status` do corpo do webhook (não assinado): antes, um
+// POST forjado com `status: 'success'` e o id de uma referência Multibanco por
+// pagar ativava o plano sem pagamento, e `status: 'failure'` colocava a conta
+// de qualquer pessoa em `past_due`. Estados ainda pendentes não fazem nada.
+export async function syncCapture(resourceId: string): Promise<void> {
   const resource = await getSingle(resourceId)
   const key = resource.key || resource.customer?.key
   const decoded = key ? decodeMerchantKey(key) : null
   if (!decoded) return
 
-  if (status !== 'success') {
-    await User.findOneAndUpdate({ _id: decoded.userId }, { 'subscription.status': 'past_due' })
+  const method = typeof resource.method === 'object' ? resource.method : undefined
+  const status = resource.status || resource.payment_status || method?.status
+  const paid = typeof status === 'string' && SUCCESS_STATUSES.includes(status)
+  const failed = typeof status === 'string' && FAILURE_STATUSES.includes(status)
+  if (!paid && !failed) return
+
+  const user = await User.findById(decoded.userId)
+  if (!user) return
+  const sub = user.subscription
+  const applied: string[] = sub.appliedPaymentIds || []
+  if (applied.includes(resourceId)) return
+
+  if (failed) {
+    logEvent('warn', 'payment.capture_failed', { userId: String(user._id), paymentId: resourceId, status })
+    // Uma falha só rebaixa quem estava mesmo a pagar este pedido.
+    if (sub.easypaySubscriptionId === resourceId) {
+      sub.status = 'past_due'
+      await user.save()
+    }
     return
   }
 
-  const paymentMethod = decoded.paymentMethod === 'multibanco' ? 'multibanco' : 'mbway'
-
-  await User.findByIdAndUpdate(decoded.userId, {
-    'subscription.tier': decoded.tier,
-    'subscription.status': 'active',
-    'subscription.paymentMethod': paymentMethod,
-    'subscription.currentPeriodEnd': addMonths(new Date(), decoded.periodMonths || 1),
-  })
+  const prepaid = sub.billingMode === 'push_confirm' || sub.billingMode === 'manual_reference'
+  sub.tier = decoded.tier
+  sub.status = 'active'
+  sub.currentPeriodEnd = addMonths(new Date(), decoded.periodMonths || 1)
+  if (prepaid) {
+    sub.paymentMethod = decoded.paymentMethod === 'multibanco' ? 'multibanco' : 'mbway'
+  }
+  sub.appliedPaymentIds = withApplied(applied, resourceId)
+  await user.save()
 }

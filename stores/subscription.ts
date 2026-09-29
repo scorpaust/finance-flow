@@ -37,10 +37,10 @@ export const useSubscriptionStore = defineStore('subscription', () => {
   async function refresh() {
     isLoading.value = true
     try {
-      const data = await $fetch<{
+      const data = (await $fetch('/api/subscription')) as {
         subscription: SubscriptionState
         daysUntilExpiry: number | null
-      }>('/api/subscription')
+      }
       subscription.value = data.subscription
       daysUntilExpiry.value = data.daysUntilExpiry
     } catch {
@@ -67,6 +67,9 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     () =>
       (subscription.value.billingMode === 'manual_reference' || subscription.value.billingMode === 'push_confirm') &&
       daysUntilExpiry.value !== null &&
+      // >= 0: depois de expirar o plano já é gratuito (ver effectiveTier); antes,
+      // `<= 7` incluía negativos e a faixa mostrava "expira em -1 dias".
+      daysUntilExpiry.value >= 0 &&
       daysUntilExpiry.value <= 7
   )
 

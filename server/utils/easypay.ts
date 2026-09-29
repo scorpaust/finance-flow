@@ -4,11 +4,25 @@
 // Documentação consultada via Context7 (/websites/easypay_pt).
 
 import type { CheckoutManifest } from '@easypaypt/checkout-sdk'
+import { logEvent } from './logger'
 
+// Fase 8 — o mesmo tratamento já aplicado à Anthropic
+// (server/utils/anthropic.ts): o detalhe cru da EasyPay (que pode incluir
+// texto interno do fornecedor) fica só no log estruturado; quem chama nunca
+// vê mais do que "algo correu mal com o pagamento". Nenhum código neste
+// projeto decide o que fazer a seguir a partir do texto da mensagem (só
+// alguns sítios apanham a exceção e tentam outro caminho, ou registam um
+// aviso) — confirmado por grep antes desta alteração.
+const EASYPAY_GENERIC_MESSAGE = 'Payment provider is temporarily unavailable — please try again shortly'
+
+// Fase 8, ponto 6 — `EASYPAY_API_BASE_URL` só existe nos testes de
+// integração, para apontar a um servidor simulado local (nunca EasyPay real
+// nos testes). Sem essa variável, o comportamento é exatamente o de sempre.
 const EASYPAY_API_BASE = () =>
-  useRuntimeConfig().easypayEnv === 'production'
+  process.env.EASYPAY_API_BASE_URL ||
+  (useRuntimeConfig().easypayEnv === 'production'
     ? 'https://api.easypay.pt/2.0'
-    : 'https://api.test.easypay.pt/2.0'
+    : 'https://api.test.easypay.pt/2.0')
 
 async function easypayFetch<T>(
   path: string,
@@ -34,10 +48,16 @@ async function easypayFetch<T>(
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    throw createError({ statusCode: 502, message: `Erro EasyPay (${res.status}): ${detail.slice(0, 500)}` })
+    logEvent('error', 'payment.easypay_upstream_error', { status: res.status, path, detail: detail.slice(0, 2000) })
+    throw createError({ statusCode: 502, message: EASYPAY_GENERIC_MESSAGE, data: { error: 'easypay_upstream_error' } })
   }
 
-  return (await res.json()) as T
+  // Respostas sem corpo são sucesso (ex. `DELETE /subscription/{id}` devolve
+  // 204): tentar `res.json()` numa resposta vazia rebentava DEPOIS de a
+  // EasyPay já ter executado a operação, deixando o estado local
+  // dessincronizado do da EasyPay.
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 // A EasyPay deixa-nos encodar o nosso próprio identificador no pagamento
@@ -173,7 +193,7 @@ export interface EasyPayResource {
   key?: string
   status?: string
   payment_status?: string
-  method?: { type?: string; entity?: string; reference?: string; expiration_date?: string } | string
+  method?: { type?: string; status?: string; entity?: string; reference?: string; expiration_date?: string } | string
   customer?: { key?: string; email?: string; name?: string }
   subscription_id?: string
   frequent_id?: string
@@ -185,7 +205,11 @@ export async function getSingle(id: string): Promise<EasyPayResource> {
 }
 
 export async function getSubscriptionResource(id: string): Promise<EasyPayResource> {
-  return easypayFetch<EasyPayResource>(`/subscriptions/${id}`)
+  // Caminho SINGULAR (`/subscription/{id}`, confirmado na documentação oficial
+  // e contra a sandbox em 2026-09-24). Durante a Fase 2 usou-se o plural
+  // (`/subscriptions/{id}`), que devolve "404 page not found" — foi isso, e não
+  // o id, que fazia o endpoint "não bater certo" nos testes de sandbox.
+  return easypayFetch<EasyPayResource>(`/subscription/${id}`)
 }
 
 // Verificação pelo id do **checkout** (o que o nosso servidor recebeu ao
@@ -210,5 +234,7 @@ export async function getCheckoutStatus(checkoutId: string): Promise<EasyPayChec
 // ─── Subscription nativa (CC/DD) ──────────────────────────────────────────────
 
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
-  await easypayFetch<unknown>(`/subscriptions/${subscriptionId}`, { method: 'DELETE' })
+  // `DELETE /subscription/{id}` (singular) — o plural dava 404 e o botão
+  // "cancelar renovação automática" falhava sempre com 502.
+  await easypayFetch<unknown>(`/subscription/${subscriptionId}`, { method: 'DELETE' })
 }

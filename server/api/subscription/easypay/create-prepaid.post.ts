@@ -5,6 +5,10 @@ import { TIER_PRICE_EUR } from '../../../../shared/features'
 import { isPrepaidMethodAvailable } from '../../../../shared/paymentMethods'
 import { User } from '../../../models'
 import { getServerLocale, serverT } from '../../../utils/i18n'
+import { enforceRateLimit } from '../../../utils/rateLimit'
+import { z } from 'zod'
+import { validateBody } from '../../../utils/validate'
+import { assertNoActiveAutoRenew } from '../../../utils/subscriptionGuard'
 
 const VALID_PERIODS = [1, 3, 6, 12] as const
 type Period = (typeof VALID_PERIODS)[number]
@@ -19,19 +23,20 @@ type Period = (typeof VALID_PERIODS)[number]
 // tendo de voltar a esta página para renovar manualmente.
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
+  await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
-  const body = await readBody<{ tier?: 'pro' | 'premium'; method?: 'mbway' | 'multibanco'; periodMonths?: Period }>(event)
-  const { tier, method, periodMonths } = body
+  const { tier, method, periodMonths } = await validateBody(
+    event,
+    z.object({
+      tier: z.enum(['pro', 'premium'], 'subscriptionApi.invalidTier'),
+      method: z.enum(['mbway', 'multibanco'], 'subscriptionApi.invalidMethodPrepaid'),
+      periodMonths: z
+        .number('subscriptionApi.invalidPeriod')
+        .refine((v): v is Period => (VALID_PERIODS as readonly number[]).includes(v), 'subscriptionApi.invalidPeriod'),
+    })
+  )
 
-  if (tier !== 'pro' && tier !== 'premium') {
-    throw createError({ statusCode: 400, message: serverT(locale, 'subscriptionApi.invalidTier') })
-  }
-  if (method !== 'mbway' && method !== 'multibanco') {
-    throw createError({ statusCode: 400, message: serverT(locale, 'subscriptionApi.invalidMethodPrepaid') })
-  }
-  if (!periodMonths || !VALID_PERIODS.includes(periodMonths)) {
-    throw createError({ statusCode: 400, message: serverT(locale, 'subscriptionApi.invalidPeriod') })
-  }
+  await assertNoActiveAutoRenew(event, userId)
 
   // Fase 7, tarefa 4 — nunca confiar só na UI a esconder o separador
   // MB WAY/Multibanco: o país vem da geolocalização do IP do pedido, não de

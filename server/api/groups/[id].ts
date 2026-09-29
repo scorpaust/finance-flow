@@ -1,7 +1,18 @@
 import mongoose from 'mongoose'
+import { z } from 'zod'
 import { Category, TransactionGroup, Transaction } from '../../models'
 import { sanitizeId } from '../../utils/auth'
 import { requireFeature } from '../../utils/requireFeature'
+import { validateBody } from '../../utils/validate'
+
+const GroupUpdateSchema = z.object({
+  name: z.string().trim().min(1, 'groups.nameRequired').optional(),
+  description: z.string().trim().optional(),
+  color: z.string().trim().optional(),
+  monthlyLimit: z.union([z.number(), z.string()]).optional(),
+  weeklyLimit: z.union([z.number(), z.string()]).optional(),
+  alertThreshold: z.union([z.number(), z.string()]).optional(),
+})
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'groups')
@@ -46,8 +57,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'PUT') {
-    const body = await readBody(event)
-    const { name, description, color, monthlyLimit, weeklyLimit, alertThreshold } = body
+    const { name, description, color, monthlyLimit, weeklyLimit, alertThreshold } = await validateBody(event, GroupUpdateSchema)
     if (name !== undefined) group.name = name.trim()
     if (description !== undefined) group.description = description?.trim()
     if (color !== undefined) group.color = color

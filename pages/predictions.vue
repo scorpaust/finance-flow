@@ -26,6 +26,7 @@
       </button>
       <button
         :disabled="isTraining"
+        data-testid="predictions-run"
         class="btn-primary text-sm flex items-center gap-2"
         @click="runPrediction"
       >
@@ -98,7 +99,7 @@
     <!-- Results -->
     <template v-if="result && !isTraining">
       <!-- Forecast cards -->
-      <div>
+      <div data-testid="predictions-result">
         <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
           <TrendingUp class="w-4 h-4 text-brand-400" />
           {{ t('predictions.forecastTitle', { months: result.forecasts.length }) }}

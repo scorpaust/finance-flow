@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   if (!doc) throw createError({ statusCode: 404, message: serverT(locale, 'investments.notFound') })
 
   if (method === 'PUT') {
-    const changes = parseInvestmentUpdate(locale, await readBody(event))
+    const changes = await parseInvestmentUpdate(event, locale)
 
     // valueUpdatedAt só muda quando a Situação muda (editar só o nome não conta).
     const valueChanged = changes.currentValue !== undefined && changes.currentValue !== doc.currentValue

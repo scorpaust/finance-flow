@@ -1,3 +1,5 @@
+import { z } from 'zod'
+import { validateBody } from '../../../utils/validate'
 import { requireAuth } from '../../../utils/auth'
 import { syncFromCheckout } from '../../../utils/subscriptionSync'
 import { User } from '../../../models'
@@ -17,13 +19,9 @@ import { User } from '../../../models'
 // pela própria API EasyPay. `requireAuth` só exige sessão válida.
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  const body = await readBody<{ checkoutId?: string }>(event)
+  const { checkoutId } = await validateBody(event, z.object({ checkoutId: z.string().trim().min(1).max(200) }))
 
-  if (!body?.checkoutId) {
-    throw createError({ statusCode: 400, message: '"checkoutId" é obrigatório' })
-  }
-
-  await syncFromCheckout(body.checkoutId)
+  await syncFromCheckout(checkoutId, userId)
 
   const user = await User.findById(userId).select('subscription').lean()
   return { subscription: user?.subscription }

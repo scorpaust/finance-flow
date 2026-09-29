@@ -21,7 +21,9 @@
     "both": "Beides",
     "viewPlans": "Pläne ansehen",
     "vsLastMonth": "vs. Vormonat",
-    "closeNotification": "Benachrichtigung schließen"
+    "closeNotification": "Benachrichtigung schließen",
+    "updateAvailable": "Neue Version verfügbar — wird aktualisiert...",
+    "offlineReady": "App ist offline einsatzbereit"
   },
   "nav": {
     "home": "Übersicht",
@@ -61,7 +63,14 @@
     "signOut": "Abmelden",
     "toastAccountCreated": "Konto erstellt",
     "toastSignedIn": "Angemeldet",
-    "errorGeneric": "Authentifizierungsfehler"
+    "errorGeneric": "Authentifizierungsfehler",
+    "twoFactorSubtitle": "Gib den Code aus deiner Authenticator-App ein",
+    "twoFactorCodeLabel": "Bestätigungscode",
+    "twoFactorCodePlaceholder": "6-stelliger Code",
+    "twoFactorHint": "Kein Zugriff mehr auf dein Gerät? Du kannst auch einen deiner Wiederherstellungscodes verwenden.",
+    "twoFactorSubmit": "Bestätigen",
+    "twoFactorBackButton": "Zurück zur Anmeldung",
+    "acceptTerms": "Ich habe die {terms} und die {privacy} gelesen und akzeptiere sie."
   },
   "dashboard": {
     "greetingMorning": "Guten Morgen",
@@ -135,6 +144,30 @@
       "description": "Sprache der Oberfläche — betrifft nicht die verfügbaren Zahlungsmethoden, die vom erkannten Land abhängen.",
       "label": "App-Sprache"
     },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "description": "Fügt beim Anmelden einen zusätzlichen Verifizierungsschritt über eine Authenticator-App hinzu (Google Authenticator, Authy, 1Password usw.).",
+      "statusEnabled": "Aktiviert",
+      "statusDisabled": "Deaktiviert",
+      "enableButton": "2FA aktivieren",
+      "disableButton": "Deaktivieren",
+      "setupTitle": "Zwei-Faktor-Authentifizierung einrichten",
+      "setupInstructions": "Scanne diesen QR-Code mit deiner Authenticator-App und gib zur Bestätigung den angezeigten 6-stelligen Code ein.",
+      "secretLabel": "Kannst du nicht scannen? Gib diesen Code manuell ein",
+      "codeLabel": "Bestätigungscode",
+      "codePlaceholder": "6-stelliger Code",
+      "confirmButton": "Bestätigen und aktivieren",
+      "backupCodesWarning": "Bewahre diese Wiederherstellungscodes sicher auf — jeder kann einmal verwendet werden, falls du den Zugriff auf deine Authenticator-App verlierst. Sie werden nicht erneut angezeigt.",
+      "backupCodesDoneButton": "Ich habe meine Codes gespeichert",
+      "disableTitle": "Zwei-Faktor-Authentifizierung deaktivieren",
+      "disablePasswordLabel": "Aktuelles Passwort",
+      "disableCodeLabel": "Bestätigungscode",
+      "disableCodePlaceholder": "6-stelliger Code oder Wiederherstellungscode",
+      "disableConfirmButton": "Deaktivieren",
+      "toastEnabled": "Zwei-Faktor-Authentifizierung aktiviert",
+      "toastDisabled": "Zwei-Faktor-Authentifizierung deaktiviert",
+      "errorGeneric": "Etwas ist schiefgelaufen — versuche es erneut"
+    },
     "title": "Einstellungen",
     "subtitle": "Kategorien, Gruppen und Präferenzen verwalten",
     "profileTitle": "Profil",
@@ -163,7 +196,28 @@
     "toastCategoryCreated": "Kategorie erstellt!",
     "toastCategoryCreateError": "Fehler beim Erstellen",
     "toastCategoryDeleted": "Kategorie gelöscht",
-    "toastCategoryDeleteError": "Fehler beim Löschen"
+    "toastCategoryDeleteError": "Fehler beim Löschen",
+    "biometric": {
+      "title": "Biometrische Sperre",
+      "description": "Fragt beim Öffnen der App und nach der Rückkehr aus dem Hintergrund (nach 1 Minute) nach Fingerabdruck oder Gesichtserkennung.",
+      "enable": "Aktivieren",
+      "toastEnabled": "Biometrische Sperre aktiviert",
+      "unavailable": "Biometrie derzeit nicht verfügbar. Prüfe, ob in den Android-Einstellungen ein Fingerabdruck oder Gesicht hinterlegt ist.",
+      "retry": "Erneut prüfen",
+      "statusEnabled": "Sperre aktiv",
+      "statusDisabled": "Sperre aus",
+      "disable": "Sperre ausschalten"
+    },
+    "account": {
+      "title": "Datenschutz und Daten",
+      "description": "Lade eine Kopie deiner Daten herunter oder lösche dein Konto samt allem, was dazugehört.",
+      "export": "Meine Daten exportieren",
+      "delete": "Konto löschen",
+      "deleteTitle": "Konto löschen",
+      "deleteWarning": "Dadurch werden dein Konto, deine Transaktionen, Kategorien, Gruppen und Investitionen dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden. Ein Abonnement mit automatischer Verlängerung wird zuvor gekündigt.",
+      "deleteConfirm": "Endgültig löschen",
+      "errorGeneric": "Etwas ist schiefgelaufen — versuche es erneut"
+    }
   },
   "transactionModal": {
     "editTitle": "Transaktion bearbeiten",
@@ -680,5 +734,19 @@
     "median": "Median",
     "q1q3": "Q1–Q3",
     "minMax": "Min–Max"
+  },
+  "appLock": {
+    "title": "App gesperrt",
+    "subtitle": "Bestätige deine Identität, um fortzufahren",
+    "unlock": "Entsperren",
+    "signOut": "Abmelden",
+    "reason": "FinanceFlow entsperren"
+  },
+  "legal": {
+    "back": "Zurück",
+    "draftNotice": "Entwurf — dieser Text wurde noch nicht von einem Juristen geprüft und enthält noch auszufüllende Felder.",
+    "englishOnly": "Dieses Dokument ist nur auf Portugiesisch und Englisch verfügbar; die englische Version wird angezeigt.",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutzerklärung"
   }
 }

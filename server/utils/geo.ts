@@ -23,6 +23,8 @@
 import { Reader, AddressNotFoundError, ValueError } from '@maxmind/geoip2-node'
 import type { ReaderModel, Country } from '@maxmind/geoip2-node'
 import type { H3Event } from 'h3'
+import { getClientIp } from './clientIp'
+import { logEvent } from './logger'
 
 let readerPromise: Promise<ReaderModel | null> | null = null
 
@@ -36,7 +38,7 @@ function getReader(): Promise<ReaderModel | null> {
   }
 
   readerPromise = Reader.open(dbPath).catch((error) => {
-    console.error('[geo] Falha a abrir GeoLite2-Country.mmdb em', dbPath, error)
+    logEvent('error', 'geo.db_open_failed', { dbPath, message: String((error as Error)?.message || error) })
     return null
   })
   return readerPromise
@@ -56,16 +58,14 @@ export async function lookupCountry(ip: string | undefined | null): Promise<stri
     return response.country?.isoCode || null
   } catch (error) {
     if (error instanceof AddressNotFoundError || error instanceof ValueError) return null
-    console.error('[geo] Erro inesperado no lookup de', ip, error)
+    // Sem o IP no log — é um dado pessoal.
+    logEvent('error', 'geo.lookup_failed', { message: String((error as Error)?.message || error) })
     return null
   }
 }
 
-// `x-forwarded-for` pode trazer uma lista "cliente, proxy1, proxy2" — o
-// primeiro é o IP original do pedido. Sem proxy à frente (dev local), cai no
-// IP direto da ligação.
+// Ver server/utils/clientIp.ts — nunca o 1.º valor de `x-forwarded-for`
+// (controlado pelo cliente).
 export function getRequestIp(event: H3Event): string | undefined {
-  const forwarded = getHeader(event, 'x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  return getRequestIP(event, { xForwardedFor: false }) || undefined
+  return getClientIp(event)
 }

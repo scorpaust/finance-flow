@@ -1,0 +1,39 @@
+name: Backup MongoDB
+
+on:
+  schedule:
+    # 03:17 UTC todos os dias — fora de hora, evita coincidir com picos de
+    # utilização e com outros crons à hora certa.
+    - cron: '17 3 * * *'
+  workflow_dispatch: {}
+
+# Fase 8, ponto 10 — o tier M0 (gratuito) da Atlas usado em produção não tem
+# nenhum backup gerido (só a partir do M10, pago) — ver context/OPERATIONS.md.
+# Este workflow corre scripts/backup-mongo.mjs contra a BD de produção e
+# envia o resultado para Cloudflare R2 (retenção de 3 anos configurada como
+# regra de lifecycle no próprio bucket, não aqui).
+#
+# Segredos necessários neste repositório (Settings → Secrets and variables →
+# Actions), nenhum tem valor por omissão:
+#   MONGODB_URI          — a ligação de PRODUÇÃO (não a de desenvolvimento)
+#   R2_ACCOUNT_ID         )
+#   R2_ACCESS_KEY_ID      ) da conta Cloudflare, com um bucket R2 já criado
+#   R2_SECRET_ACCESS_KEY  )
+#   R2_BUCKET             )
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node scripts/backup-mongo.mjs
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

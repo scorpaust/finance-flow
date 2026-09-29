@@ -11,6 +11,11 @@
 
 <script setup lang="ts">
 import { Chart } from 'vue-chartjs'
+import '~/utils/chartjs'
+import { Chart as ChartJS } from 'chart.js'
+import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot'
+
+ChartJS.register(BoxPlotController, BoxAndWiskers)
 
 interface CategoryBoxStats {
   name: string

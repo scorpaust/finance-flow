@@ -75,6 +75,7 @@
             <input
               v-model="form.description"
               type="text"
+              data-testid="tx-description"
               class="form-input"
               :class="flagged.description ? 'scan-low' : ''"
               @input="flagged.description = false"
@@ -95,6 +96,7 @@
                   type="number"
                   step="0.01"
                   min="0.01"
+                  data-testid="tx-amount"
                   class="form-input pl-8"
                   :class="flagged.amount ? 'scan-low' : ''"
                   placeholder="0,00"
@@ -195,7 +197,7 @@
               {{ t('transactionModal.loadingCategories') }}
             </div>
 
-            <select v-else v-model="form.categoryId" class="form-select" required>
+            <select v-else v-model="form.categoryId" data-testid="tx-category" class="form-select" required>
               <option value="" disabled>{{ t('transactionModal.categoryPlaceholder') }}</option>
               <optgroup v-if="incomeOptions.length && form.type === 'income'" :label="t('transactionModal.incomeGroupLabel')">
                 <option
@@ -275,6 +277,7 @@
             </button>
             <button
               type="submit"
+              data-testid="tx-submit"
               :disabled="saving || loadingCats"
               class="flex-1 py-3 rounded-2xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
               :class="form.type === 'income'

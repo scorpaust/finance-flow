@@ -16,10 +16,28 @@ export default defineNuxtConfig({
     ['@pinia/nuxt', { storesDirs: ['./stores/**'] }],
     '@vueuse/nuxt',
     '@vite-pwa/nuxt',
-    '@nuxt/image',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
+    // Fase 8, ponto 8 — monitorização de erros. Só carrega com SENTRY_DSN
+    // definido: sem DSN a app não instrumenta nem envia nada (dev/testes
+    // nunca poluem o projeto Sentry, e um DSN em falta nunca parte o build).
+    ...(process.env.SENTRY_DSN ? ['@sentry/nuxt/module'] : []),
   ],
+
+  // Fase 8, ponto 8 — o alvo de deploy real é o Netlify (Nitro gera funções
+  // serverless, confirmado pelo preset `netlify-legacy` detetado a partir de
+  // .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
+  // uma versão anterior desta nota presumia sem confirmar). Num serverless o
+  // CLI flag `--import` não é aplicável (não há um comando de arranque
+  // nosso a controlar) — `autoInjectServerSentry: 'top-level-import'` injeta
+  // a configuração do Sentry no topo do ficheiro de entrada do Nitro durante
+  // o build, e o próprio módulo volta a exportar o handler serverless
+  // embrulhado (necessário para a Sentry conseguir fazer `flush()` antes de
+  // a função terminar — sem isto, eventos capturados podem perder-se quando
+  // o processo é morto logo após responder). Ver context/OPERATIONS.md.
+  sentry: {
+    autoInjectServerSentry: 'top-level-import',
+  },
 
   // Fase 7 — Internacionalização. `strategy: 'no_prefix'` porque a app não
   // tem (nem precisa de) rotas prefixadas por idioma (`/en/transacoes`) — o
@@ -89,8 +107,18 @@ export default defineNuxtConfig({
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'google-fonts-stylesheets' },
+        },
+        // Os ficheiros de fonte em si (antes nunca ficavam em cache offline).
+        {
+          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
           handler: 'CacheFirst',
-          options: { cacheName: 'google-fonts-cache' },
+          options: {
+            cacheName: 'google-fonts-webfonts',
+            cacheableResponse: { statuses: [0, 200] },
+            expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+          },
         },
       ],
     },
@@ -107,12 +135,24 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow',
+    // Fase 8, ponto 2 — assina o cookie de sessão (server/utils/session.ts).
+    // Sem valor por omissão de propósito: sem isto, TODAS as sessões seriam
+    // inválidas (falha alto e cedo, em vez de assinar com um segredo
+    // previsível/partilhado entre instalações).
+    sessionSecret: process.env.SESSION_SECRET || '',
+    // Fase 8, ponto 3 — chave de encriptação dos segredos TOTP em repouso
+    // (server/utils/twoFactor.ts). Também sem default: nunca deve ser
+    // previsível.
+    twoFactorEncryptionKey: process.env.TWO_FACTOR_ENCRYPTION_KEY || '',
     // Fase 2 — Subscrições (EasyPay: CC/DD, MB WAY, Multibanco). Ver context/CONFIG-REFERENCE.md.
     easypayEnv: process.env.EASYPAY_ENV || 'test',
     easypayAccountId: process.env.EASYPAY_ACCOUNT_ID || '',
     easypayApiKey: process.env.EASYPAY_API_KEY || '',
     subscriptionRenewalReminderDays: process.env.SUBSCRIPTION_RENEWAL_REMINDER_DAYS || '5',
     cronSecret: process.env.CRON_SECRET || '',
+    // Fase 8, ponto 9 — segredo separado do `cronSecret`, para o endpoint de
+    // administração manual (refund-delete.post.ts). Ver server/utils/cron.ts.
+    adminSecret: process.env.ADMIN_SECRET || '',
     // Fase 3 — Insights com IA (Anthropic + Twelve Data). Nunca em `public`: a
     // chave nunca pode chegar ao client. Ver context/features/03-FASE-3-insights-ia.md.
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
@@ -127,6 +167,8 @@ export default defineNuxtConfig({
     // devolve sempre `null` (país desconhecido) em vez de rebentar.
     geoliteDbPath: process.env.GEOLITE2_DB_PATH || '',
     public: {
+      // O DSN do Sentry é público por desenho (vai no bundle do client).
+      sentryDsn: process.env.SENTRY_DSN || '',
       appUrl: process.env.APP_URL || 'http://localhost:3000',
       // Passado ao @easypaypt/checkout-sdk (opção `testing`) — não é secreto,
       // só diz ao SDK client-side qual API da EasyPay usar.
@@ -143,14 +185,41 @@ export default defineNuxtConfig({
     },
   },
 
-  nitro: {
-    plugins: ['~/server/plugins/mongoose.ts'],
+  // server/plugins/ é carregado automaticamente pelo Nitro (antes o
+  // mongoose.ts estava também listado aqui e registava-se duas vezes).
+  //
+  // Cabeçalhos de segurança em todas as respostas. Sem CSP de propósito: o
+  // SDK de checkout da EasyPay, as Google Fonts e o Sentry carregam recursos
+  // de domínios terceiros — uma CSP mal afinada partia o pagamento; fica para
+  // quando houver o domínio de produção para validar (Fase 9).
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        // Sem `payment`: o iframe de checkout da EasyPay pode precisar dele.
+        'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
+        // Ignorado pelos browsers em http:// (dev local); só tem efeito em HTTPS.
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+    },
+    // Respostas da API são por utilizador: nunca em caches partilhadas.
+    '/api/**': { headers: { 'Cache-Control': 'no-store' } },
   },
 
   // TF.js is browser-only — pre-bundle for fast dynamic import, exclude from SSR
   vite: {
     optimizeDeps: {
-      include: ['@tensorflow/tfjs'],
+      // Os módulos do Capacitor são importados dinamicamente (só correm em
+      // nativo) — sem isto o Vite só os descobre na primeira utilização, o que
+      // reotimiza e recarrega a página a meio (ver stores/appLock.ts). O SDK
+      // de checkout da EasyPay tem o mesmo problema — reproduzido nesta
+      // sessão por um teste E2E (Playwright) que abriu a página de
+      // subscrição pela 1.ª vez a meio de um fluxo: o Vite reotimizou e
+      // recarregou a página, perdendo o estado do formulário nessa página.
+      // Só acontece em `nuxt dev` (produção pré-empacota tudo à partida).
+      include: ['@tensorflow/tfjs', '@capacitor/core', '@capacitor/app', '@easypaypt/checkout-sdk'],
     },
     ssr: {
       noExternal: ['chart.js'],
@@ -173,9 +242,12 @@ export default defineNuxtConfig({
       title: 'FinanceFlow',
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        // Só os pesos realmente usados (Tailwind font-normal…font-bold);
+        // 300/800/900 não aparecem em lado nenhum e eram descarregados à mesma.
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap',
         },
         // Mesmo logótipo do ícone Android/manifest PWA (Fase 4, tarefa 6) —
         // sem isto o browser não tinha favicon explícito nenhum.

@@ -1,5 +1,8 @@
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  // Desligadas quando a app corre pela infraestrutura de testes/capturas
+  // (scripts/e2e-server.mjs define E2E_PORT): o botão flutuante das devtools
+  // aparecia nas capturas da Play Store e pode tapar elementos nos testes.
+  devtools: { enabled: !process.env.E2E_PORT },
 
   // O Nuxt regenera a app a cada ficheiro criado/apagado dentro do projeto. Um
   // `gradlew assembleDebug` ou `cap sync` mexe em milhares de ficheiros em

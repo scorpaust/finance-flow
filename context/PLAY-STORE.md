@@ -65,9 +65,18 @@ Geradas por `node scripts/store-assets.mjs` a partir de `assets/icon-only.svg`
 - **Gráfico de funcionalidades** 1024×500, PNG 24 bits sem transparência:
   `assets/store/feature-graphic-pt-PT.png` (ficha PT-PT) e
   `assets/store/feature-graphic-en.png` (ficha EN).
-- Capturas de ecrã: pelo menos 2 de telemóvel e 2 de tablet (7" e 10"). A
-  gerar a partir da app em produção com uma conta demo com dados de exemplo
-  (nunca dados reais).
+- **Capturas de ecrã** — `assets/store/screenshots/`, geradas por
+  `npm run store:screenshots` (`store-screenshots/store.spec.ts`: servidor
+  de testes com MongoDB em memória, conta Premium "Ana"/`ana@exemplo.pt` e
+  dados de exemplo genéricos, PT-PT). Os mesmos 4 ecrãs (painel, transações,
+  estatísticas, investimentos) em cada secção da Play Console:
+
+  | Secção | Ficheiros | Tamanho |
+  |---|---|---|
+  | Telemóvel (2–8; 4+ com ≥1080 px para a promoção) | `phone-*.png` | 1080×1920 (9:16) |
+  | Tablet de 7" | `tablet7-*.png` | 1224×2176 (9:16) |
+  | Tablet de 10" (lados ≥1080 px) | `tablet10-*.png` | 2560×1440 (16:9) |
+  | Chromebook (4–8, lados ≥1080 px) | `chromebook-*.png` | 1920×1080 (16:9) |
 
 ## 2. Classificação de conteúdo (questionário IARC)
 

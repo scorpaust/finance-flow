@@ -39,7 +39,7 @@ if (!looksLocal && !FORCE) {
 }
 
 async function main() {
-  await mongoose.connect(URI, { dbName: 'financeflow' })
+  await mongoose.connect(URI, { dbName: process.env.MONGODB_DB_NAME || 'financeflow' })
   const db = mongoose.connection.db
   const { EJSON } = mongoose.mongo.BSON
 

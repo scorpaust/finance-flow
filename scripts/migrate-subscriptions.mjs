@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({}, { strict: false })
 const User = mongoose.model('User', UserSchema)
 
 async function main() {
-  await mongoose.connect(URI, { dbName: 'financeflow' })
+  await mongoose.connect(URI, { dbName: process.env.MONGODB_DB_NAME || 'financeflow' })
 
   const result = await User.updateMany(
     { subscription: { $exists: false } },

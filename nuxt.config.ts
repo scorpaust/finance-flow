@@ -138,6 +138,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow',
+    // Fase 9 — produção e desenvolvimento no mesmo cluster Atlas, em bases
+    // separadas (decisão de 2026-09-30): produção usa `financeflow-prod`.
+    mongodbDbName: process.env.MONGODB_DB_NAME || 'financeflow',
     // Fase 8, ponto 2 — assina o cookie de sessão (server/utils/session.ts).
     // Sem valor por omissão de propósito: sem isto, TODAS as sessões seriam
     // inválidas (falha alto e cedo, em vez de assinar com um segredo

@@ -51,7 +51,7 @@ async function findDuplicates(col, keys, sparse) {
     .toArray()
 }
 
-await mongoose.connect(URI, { dbName: 'financeflow' })
+await mongoose.connect(URI, { dbName: process.env.MONGODB_DB_NAME || 'financeflow' })
 const db = mongoose.connection.db
 let problems = 0
 

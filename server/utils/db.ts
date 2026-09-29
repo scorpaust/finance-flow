@@ -19,7 +19,7 @@ export async function ensureDb(): Promise<void> {
   if (!connecting) {
     const config = useRuntimeConfig()
     connecting = mongoose
-      .connect(config.mongodbUri, { dbName: 'financeflow', bufferCommands: false })
+      .connect(config.mongodbUri, { dbName: config.mongodbDbName, bufferCommands: false })
       .then(() => logEvent('info', 'db.connected'))
       .catch((error) => {
         connecting = null // deixa o pedido seguinte tentar de novo

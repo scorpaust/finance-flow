@@ -33,6 +33,8 @@ jobs:
       - run: node scripts/backup-mongo.mjs
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          # Base de produção (a de desenvolvimento, no mesmo cluster, é `financeflow`).
+          MONGODB_DB_NAME: financeflow-prod
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

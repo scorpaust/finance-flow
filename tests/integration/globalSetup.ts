@@ -1,6 +1,6 @@
 import { writeFileSync, unlinkSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, generateKeyPairSync } from 'node:crypto'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { startStubProviders } from './stubProviders'
 
@@ -20,6 +20,14 @@ export default async function setup() {
   // avariado, só lento a arrancar sob carga (ver scripts/e2e-server.mjs).
   const mongo = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } })
   const stub = await startStubProviders()
+  // Fase 9 — conta de serviço Google só de teste (chave gerada a cada execução);
+  // o token OAuth e a Google Play Developer API são o servidor simulado.
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const googleServiceAccount = JSON.stringify({
+    client_email: 'reporter@test.iam.gserviceaccount.com',
+    private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    token_uri: `${stub.baseUrl}/oauth/token`,
+  })
 
   const env = {
     MONGODB_URI: mongo.getUri(),
@@ -35,6 +43,8 @@ export default async function setup() {
     ANTHROPIC_API_BASE_URL: stub.baseUrl,
     TWELVE_DATA_API_KEY: 'test-key',
     TWELVE_DATA_API_BASE_URL: stub.baseUrl,
+    GOOGLE_PLAY_SERVICE_ACCOUNT: googleServiceAccount,
+    GOOGLE_PLAY_API_BASE_URL: stub.baseUrl,
     NODE_ENV: 'test',
     STUB_PROVIDERS_URL: stub.baseUrl,
   }

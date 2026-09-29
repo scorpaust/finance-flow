@@ -141,6 +141,9 @@ em `context/OPERATIONS.md` ("Deploy web").
 | `CRON_SECRET` | Netlify + secret do GitHub | O mesmo valor nos dois — `.github/workflows/cron.yml` chama `check-expirations` e `market-snapshot` |
 | `CAPACITOR_SERVER_URL` | Só na máquina de desenvolvimento | Aponta a app Android para um dev server (`http://…`) — **nunca definida num build de release** |
 | `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | CI (opcional) | Alternativa a `android/keystore.properties` para assinar o release — ver `OPERATIONS.md`, "Keystore Android" |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT` | Netlify | JSON (texto ou base64) da conta de serviço com acesso à app na Play Console — reporta as compras da app Android à Google (alternative billing only, `server/utils/googlePlayBilling.ts`). Sem ele os reportes ficam na fila |
+| `GOOGLE_PLAY_PACKAGE_NAME` | Netlify (opcional) | Por omissão `com.financeflow.app` |
+| `BILLING_VAT_RATE` | Netlify (opcional) | IVA incluído nos preços, em fração (0.23 = 23%). Por omissão `0` — operador isento (art. 53.º CIVA, 2026-09-29); mudar se o regime mudar |
 
 **Geolocalização em produção**: no Netlify o país vem dos cabeçalhos de
 geolocalização do próprio Netlify (`x-country` / `x-nf-geo`,

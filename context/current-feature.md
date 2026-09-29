@@ -20,12 +20,13 @@ agendados, geolocalização em produção, CSP (Report-Only), plano de rollout e
 rollback, keystore documentada, ficha/declarações da Play Store, dívida de
 tipos (54 → 0, CI passa a falhar com erros de tipos).
 
-**Por decidir pelo utilizador**:
-- ⚠️ **Faturação Android** — o programa da especificação já não se aplica
-  ao nosso caso; ver `context/PLAY-STORE.md`, secção 5.
+**Faturação Android**: decidido *alternative billing only* (EasyPay dentro
+da app, reportado à Google) e implementado — ver `context/PLAY-STORE.md`,
+secção 5. IVA reportado 0 (operador isento, art. 53.º CIVA).
 
-**Por fazer pelo utilizador** (fora do código): criar a keystore e o
-`android/keystore.properties`; variáveis de ambiente e primeiro deploy no
+**Por fazer pelo utilizador** (fora do código): inscrição no *alternative
+billing only* + conta de serviço Google (`GOOGLE_PLAY_SERVICE_ACCOUNT`) +
+license testers; criar a keystore e o `android/keystore.properties`; variáveis de ambiente e primeiro deploy no
 Netlify; `npm run db:sync-indexes` em produção; webhook EasyPay a apontar
 para produção; secrets `APP_URL`/`CRON_SECRET` no GitHub; conta Play Console
 e ficha; conta Anthropic com créditos e limite de gasto; link próprio do
@@ -2148,3 +2149,43 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
     templates sem import. Corrigidos também 5 erros reais (tipos de grupos,
     ordenação de transações, ObjectId). `error.vue` traduzido (tinha texto
     fixo em PT). O CI passa a falhar com erros de tipos. `vue-tsc` 3.
+  - Testes antes do commit desta parte: unitários 46/46, integração 23/23,
+    E2E 3/3.
+
+- 2026-09-29 (continuação): **faturação Android — alternative billing only**
+  (decisão do utilizador, entre 4 opções apresentadas: Android sem compras,
+  alternative billing, Google Play Billing, decidir mais tarde). IVA: o
+  operador está isento (art. 53.º CIVA) → imposto reportado 0, configurável
+  em `BILLING_VAT_RATE`. APIs confirmadas nas páginas oficiais da Google
+  (Play Billing Library 9.1.0 — as funções de alternative billing only
+  continuam na 9.x; `externalTransactions.create`/`:refund`, `priceMicros`,
+  `userTaxAddress.regionCode`, scope `androidpublisher`) e do Capacitor
+  (plugin local registado em `MainActivity`).
+
+  - **Nativo**: `AlternativeBillingPlugin.java` — `prepare()` liga à Google,
+    confirma a disponibilidade, mostra o ecrã informativo e devolve o token.
+    Compila (Gradle, JDK 21). **Não testado num dispositivo** — só funciona
+    com a app instalada pela Play Store e a inscrição aprovada.
+  - **Web**: `useAlternativeBilling()`; `pages/subscription/index.vue` envia
+    `googlePlayToken` na criação do checkout; sem o programa disponível a
+    app Android não deixa comprar (mensagem nas 6 línguas).
+  - **Servidor**: `server/utils/googlePlayBilling.ts` + modelo
+    `GooglePlayTransaction` (fila: awaiting_payment → pending → reported /
+    failed / expired / refunded). Ligado a `subscriptionSync.ts` em todos os
+    caminhos de confirmação (confirm, webhooks subscription_create/capture,
+    verificação manual), sempre num `try/catch` — uma falha da Google nunca
+    trava a ativação do plano. Renovações de cartão/débito direto reportadas
+    como `recurringTransaction` com `initialExternalTransactionId`; a 1.ª
+    cobrança do débito direto completa a transação inicial; salvaguarda de
+    20 dias contra uma 1.ª cobrança por cartão contada como renovação.
+    MB WAY/Multibanco como `PREPAID`. OAuth da conta de serviço com JWT
+    RS256 via `node:crypto` (sem dependências novas). Cron de hora a hora
+    (`/api/billing/google-play/process-queue`) repete falhas e recupera
+    checkouts sem confirmação via estado do checkout na EasyPay. Reembolso
+    de livre resolução reportado à Google em `admin/refund-delete`; os
+    registos de faturação não são apagados com a conta.
+  - **Política de Privacidade**: Google (só compras na app: valor, data,
+    país, id da transação) e **Netlify** (alojamento — faltava) acrescentados
+    aos destinatários.
+  - **Testes**: integração 28/28 (5 novos, com a Google simulada: token e
+    renovação, PREPAID, compra no site sem reporte, falha + cron, reembolso).

@@ -131,4 +131,33 @@ only**:
 Fontes: [Alternative billing APIs](https://developer.android.com/google/play/billing/alternative),
 [About the program (Japão)](https://developer.android.com/google/play/billing/externalpaymentlinks).
 
-**Decisão pendente do utilizador** — ver `context/current-feature.md`.
+**Decisão do utilizador (2026-09-29): alternative billing only.** Implementado:
+
+- **App (nativo)**: `AlternativeBillingPlugin.java` (Play Billing Library
+  9.1.0) — antes de cada compra confirma a disponibilidade, mostra o ecrã
+  informativo da Google e obtém o token; `composables/useAlternativeBilling.ts`
+  + `pages/subscription/index.vue`. Sem o programa disponível (fora do EEE,
+  sem inscrição aprovada), a app Android **não deixa comprar** e mostra
+  `subscription.androidBillingUnavailable`. No browser nada muda.
+- **Servidor**: `server/utils/googlePlayBilling.ts` + coleção
+  `GooglePlayTransaction` — reporta a transação inicial (com o token), as
+  renovações mensais de cartão/débito direto (mesma série) e os pagamentos
+  MB WAY/Multibanco (`PREPAID`); reembolsos de livre resolução reportados em
+  `admin/refund-delete`. Fila com novas tentativas de hora a hora
+  (`/api/billing/google-play/process-queue`, `.github/workflows/cron.yml`).
+  Compras feitas no site não se reportam. IVA reportado: 0 (isenção, art.
+  53.º CIVA — `BILLING_VAT_RATE`).
+- **Testes**: 5 testes de integração com a Google simulada (token, renovação,
+  PREPAID, compra no site sem reporte, falha + nova tentativa, reembolso).
+
+**Passos do utilizador** (fora do código):
+1. Inscrever a app no programa *alternative billing only* (formulário da
+   Google) e ativá-lo para Portugal/EEE na Play Console.
+2. Criar uma conta de serviço no Google Cloud, dar-lhe acesso à app na Play
+   Console (Utilizadores e permissões → "Ver dados financeiros" e "Gerir
+   encomendas") e guardar o JSON em `GOOGLE_PLAY_SERVICE_ACCOUNT` no Netlify.
+3. Adicionar os testadores internos como *license testers* — as transações
+   deles chegam à Google marcadas como teste.
+4. Vigiar o estado `failed` na coleção `GooglePlayTransaction` (o cron regista
+   `google_play.failed_transactions` no log) — são transações que a Google
+   recusou e que têm de ser reportadas à mão.

@@ -8,15 +8,18 @@ on:
     # Snapshot diário dos índices de mercado para as dicas de investimento
     # (Fase 3) — 22:41 UTC, dias úteis, depois do fecho dos mercados dos EUA.
     - cron: '41 22 * * 1-5'
+    # Fila de reportes à Google Play (compras na app Android, alternative
+    # billing only) — de hora a hora; a Google exige o reporte em até 24 h.
+    - cron: '7 * * * *'
   workflow_dispatch:
     inputs:
       job:
         description: 'Qual correr à mão'
         type: choice
-        options: [check-expirations, market-snapshot]
+        options: [check-expirations, market-snapshot, google-play-queue]
         default: check-expirations
 
-# Fase 9 — até aqui nada agendava estes dois endpoints (ver histórico da Fase 8).
+# Fase 9 — até aqui nada agendava estes endpoints (ver histórico da Fase 8).
 # Chamam a app de produção com o header `x-cron-secret`
 # (server/utils/cron.ts). Segredos necessários neste repositório
 # (Settings → Secrets and variables → Actions):
@@ -35,12 +38,15 @@ jobs:
             job="${{ inputs.job }}"
           elif [ "${{ github.event.schedule }}" = "23 4 * * *" ]; then
             job="check-expirations"
+          elif [ "${{ github.event.schedule }}" = "7 * * * *" ]; then
+            job="google-play-queue"
           else
             job="market-snapshot"
           fi
           case "$job" in
             check-expirations) echo "path=/api/subscription/check-expirations" >> "$GITHUB_OUTPUT" ;;
             market-snapshot)   echo "path=/api/insights/market-snapshot" >> "$GITHUB_OUTPUT" ;;
+            google-play-queue) echo "path=/api/billing/google-play/process-queue" >> "$GITHUB_OUTPUT" ;;
           esac
       - name: Chamar a app
         env:

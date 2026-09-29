@@ -4,6 +4,7 @@ import { requireAdminSecret } from '../../utils/cron'
 import { validateBody } from '../../utils/validate'
 import { deleteUserAccount } from '../../utils/accountDeletion'
 import { logEvent, hashIdentifier } from '../../utils/logger'
+import { refundRecentForUser } from '../../utils/googlePlayBilling'
 
 const RefundDeleteSchema = z.object({ email: z.string().email() })
 
@@ -24,6 +25,10 @@ export default defineEventHandler(async (event) => {
   if (!user) throw createError({ statusCode: 404, message: 'User not found' })
 
   const userId = String(user._id)
+  // Fase 9 — se a compra foi feita na app Android, o reembolso também tem de
+  // ser reportado à Google (alternative billing only). Os registos dessas
+  // transações não são apagados com a conta (são registos de faturação).
+  const googlePlayRefundsPending = await refundRecentForUser(userId)
   try {
     await deleteUserAccount(userId)
   } catch (e) {
@@ -34,5 +39,6 @@ export default defineEventHandler(async (event) => {
   await RefundedAccount.create({ email, refundedAt: new Date() })
   logEvent('warn', 'admin.refund_delete', { account: hashIdentifier(email) }, event)
 
-  return { success: true }
+  // > 0: reembolsos por reportar à Google — tratar à mão na Play Console.
+  return { success: true, googlePlayRefundsPending }
 })

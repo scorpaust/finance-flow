@@ -3,7 +3,7 @@ import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
-import { User, Category, Transaction, TransactionGroup, Investment } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, GooglePlayTransaction } from '../../server/models/index'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
 function anthropicTextResponse(data: unknown) {
@@ -691,3 +691,175 @@ describe('reembolso por livre resolução — eliminação + bloqueio de 6 meses
     expect(body.message).toMatch(/reembols|refund/i)
   })
 })
+
+describe('Google Play — alternative billing only (compras na app Android)', () => {
+  const TOKEN = 'token-da-play-billing-library'
+
+  async function startAndroidCheckout(cookie: string, checkoutId: string, body: Record<string, unknown>, path = 'create-subscription') {
+    await stub.setEasyPayResponse('POST', '/checkout', { id: checkoutId, session: 'sess', config: {} })
+    const res = await fetch(`/api/subscription/easypay/${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ ...body, googlePlayToken: TOKEN }),
+    })
+    expect(res.status).toBe(200)
+  }
+
+  const googleReports = async () =>
+    (await stub.requests()).filter((r) => r.path.startsWith('/androidpublisher/') && r.method === 'POST')
+
+  it('uma subscrição por cartão feita na app é reportada à Google com o token, e a renovação na mesma série', async () => {
+    const email = uniqueEmail('gp-cc')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
+
+    await startAndroidCheckout(cookie, 'chk-gp-cc', { tier: 'pro', method: 'cc' })
+    const awaiting = await GooglePlayTransaction.findOne({ checkoutId: 'chk-gp-cc' })
+    expect(awaiting?.status).toBe('awaiting_payment')
+
+    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-cc', { id: 'chk-gp-cc', payment: { id: 'pay-gp-cc', status: 'success', key } })
+    const confirm = await fetch('/api/subscription/easypay/confirm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ checkoutId: 'chk-gp-cc' }),
+    })
+    expect(confirm.status).toBe(200)
+
+    const [initial] = await googleReports()
+    expect(initial.path).toBe('/androidpublisher/v3/applications/com.financeflow.app/externalTransactions')
+    expect(initial.query).toBe('externalTransactionId=ff-pay-gp-cc')
+    expect(initial.authorization).toBe('Bearer stub-google-token')
+    expect(initial.body.recurringTransaction).toEqual({
+      externalTransactionToken: TOKEN,
+      externalSubscription: { subscriptionType: 'RECURRING' },
+    })
+    // 5,00 € (Pro), IVA 0 (isenção, BILLING_VAT_RATE por omissão), país desconhecido em teste → PT.
+    expect(initial.body.originalPreTaxAmount).toEqual({ currency: 'EUR', priceMicros: '5000000' })
+    expect(initial.body.originalTaxAmount).toEqual({ currency: 'EUR', priceMicros: '0' })
+    expect(initial.body.userTaxAddress).toEqual({ regionCode: 'PT' })
+    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-cc' }))?.status).toBe('reported')
+
+    // Renovação um mês depois, pelo webhook da EasyPay.
+    await GooglePlayTransaction.updateOne({ paymentId: 'pay-gp-cc' }, { transactionTime: new Date(Date.now() - 31 * 864e5) })
+    await stub.setEasyPayResponse('GET', '/single/renov-gp-cc', { id: 'renov-gp-cc', status: 'success', key })
+    const webhook = await fetch('/api/subscription/easypay/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: 'renov-gp-cc', type: 'subscription_capture' }),
+    })
+    expect(webhook.status).toBe(200)
+
+    const reports = await googleReports()
+    expect(reports).toHaveLength(2)
+    expect(reports[1].query).toBe('externalTransactionId=ff-renov-gp-cc')
+    expect(reports[1].body.recurringTransaction).toEqual({
+      initialExternalTransactionId: 'ff-pay-gp-cc',
+      externalSubscription: { subscriptionType: 'RECURRING' },
+    })
+  })
+
+  it('MB WAY pré-pago feito na app é reportado como PREPAID pelo valor do período', async () => {
+    const email = uniqueEmail('gp-mbway')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const key = encodeMerchantKey(String(user!._id), 'premium', 'mbway', 3)
+
+    // Sem GeoLite2 nem Netlify em teste o país é desconhecido e o servidor
+    // recusa métodos pré-pagos — o documento de espera cria-se diretamente,
+    // como faria o create-prepaid para um utilizador em Portugal.
+    await GooglePlayTransaction.create({
+      userId: user!._id, kind: 'initial', status: 'awaiting_payment', token: TOKEN, checkoutId: 'chk-gp-mbw',
+      tier: 'premium', method: 'mbway', periodMonths: 3, amountCents: 3897, regionCode: 'PT',
+    })
+    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-mbw', { id: 'chk-gp-mbw', payment: { id: 'pay-gp-mbw', status: 'success', key } })
+    await stub.setEasyPayResponse('GET', '/single/pay-gp-mbw', { id: 'pay-gp-mbw', status: 'paid', key })
+    const confirm = await fetch('/api/subscription/easypay/confirm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ checkoutId: 'chk-gp-mbw' }),
+    })
+    expect(confirm.status).toBe(200)
+
+    const [report] = await googleReports()
+    expect(report.body.recurringTransaction.externalSubscription).toEqual({ subscriptionType: 'PREPAID' })
+    expect(report.body.originalPreTaxAmount.priceMicros).toBe('38970000')
+  })
+
+  it('uma compra feita no site (sem token) não é reportada à Google', async () => {
+    const email = uniqueEmail('gp-web')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
+
+    await stub.setEasyPayResponse('POST', '/checkout', { id: 'chk-gp-web', session: 'sess', config: {} })
+    await fetch('/api/subscription/easypay/create-subscription', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ tier: 'pro', method: 'cc' }),
+    })
+    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-web', { id: 'chk-gp-web', payment: { id: 'pay-gp-web', status: 'success', key } })
+    await fetch('/api/subscription/easypay/confirm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ checkoutId: 'chk-gp-web' }),
+    })
+
+    expect((await User.findOne({ email }))!.subscription.tier).toBe('pro')
+    expect(await googleReports()).toHaveLength(0)
+    expect(await GooglePlayTransaction.countDocuments({ userId: user!._id })).toBe(0)
+  })
+
+  it('o reembolso por livre resolução é reportado à Google para as compras feitas na app', async () => {
+    const email = uniqueEmail('gp-refund')
+    await register(email)
+    const user = await User.findOne({ email })
+    await GooglePlayTransaction.create({
+      userId: user!._id, kind: 'initial', status: 'reported', token: TOKEN, paymentId: 'pay-gp-refund',
+      externalTransactionId: 'ff-pay-gp-refund', tier: 'pro', method: 'cc', periodMonths: 1, amountCents: 500,
+      regionCode: 'PT', transactionTime: new Date(Date.now() - 3 * 864e5),
+    })
+
+    const res = await fetch('/api/admin/refund-delete', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-admin-secret': env.ADMIN_SECRET },
+      body: JSON.stringify({ email }),
+    })
+    expect(res.status).toBe(200)
+    expect((await res.json()).googlePlayRefundsPending).toBe(0)
+
+    const [refund] = await googleReports()
+    expect(refund.path).toBe('/androidpublisher/v3/applications/com.financeflow.app/externalTransactions/ff-pay-gp-refund:refund')
+    expect(refund.body.fullRefund).toEqual({})
+    // O registo de faturação fica, mesmo com a conta apagada.
+    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-refund' }))?.status).toBe('refunded')
+  })
+
+  it('se a Google falhar, a transação fica na fila e o cron volta a reportar', async () => {
+    const email = uniqueEmail('gp-retry')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
+
+    await startAndroidCheckout(cookie, 'chk-gp-retry', { tier: 'pro', method: 'cc' })
+    await stub.setGoogleStatus(503)
+    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-retry', { id: 'chk-gp-retry', payment: { id: 'pay-gp-retry', status: 'success', key } })
+    const confirm = await fetch('/api/subscription/easypay/confirm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ checkoutId: 'chk-gp-retry' }),
+    })
+    // O pagamento é aplicado na mesma — a falha da Google nunca o trava.
+    expect(confirm.status).toBe(200)
+    expect((await User.findOne({ email }))!.subscription.tier).toBe('pro')
+    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-retry' }))?.status).toBe('pending')
+
+    await stub.setGoogleStatus(200)
+    const denied = await fetch('/api/billing/google-play/process-queue', { method: 'POST' })
+    expect(denied.status).toBe(401)
+    const queue = await fetch('/api/billing/google-play/process-queue', { method: 'POST', headers: { 'x-cron-secret': env.CRON_SECRET } })
+    expect(queue.status).toBe(200)
+    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-retry' }))?.status).toBe('reported')
+  })
+})
+

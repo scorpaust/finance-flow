@@ -56,7 +56,9 @@ export const LEGAL_CONTENT: Content = {
           h: "4. Com quem partilhamos os dados (subcontratantes)",
           p: [
             "MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.",
+            "Netlify — alojamento da aplicação; processa os pedidos feitos à app, incluindo o endereço IP.",
             "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
+            "Google (Google Play) — só nas subscrições compradas dentro da app Android: por exigência do programa de faturação alternativa da Google, comunicamos-lhe o valor, a data, o país e um identificador de cada transação (nunca o teu nome, email ou dados financeiros da app).",
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
             "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
             "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
@@ -142,7 +144,9 @@ export const LEGAL_CONTENT: Content = {
           h: "4. Who we share data with (processors)",
           p: [
             "MongoDB Atlas — hosting of the database that stores your data.",
+            "Netlify — application hosting; processes the requests made to the app, including your IP address.",
             "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
+            "Google (Google Play) — only for subscriptions bought inside the Android app: as required by Google's alternative billing program, we send Google the amount, date, country and an identifier of each transaction (never your name, email or financial data from the app).",
             "Anthropic — provider of the AI model used for the features described in section 5.",
             "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
             "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",

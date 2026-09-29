@@ -444,3 +444,76 @@ RateLimitBucketSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 export const RateLimitBucket: Model<IRateLimitBucket> =
   mongoose.models.RateLimitBucket ||
   mongoose.model<IRateLimitBucket>('RateLimitBucket', RateLimitBucketSchema)
+
+// ─── GOOGLE PLAY — TRANSAÇÕES EXTERNAS (alternative billing only) ────────────
+// Fase 9. A app Android cobra com a EasyPay pelo programa "alternative billing
+// only" da Google (EEE), que obriga a reportar cada transação feita DENTRO da
+// app à Google Play Developer API em até 24 h (context/PLAY-STORE.md, secção
+// 5). Um documento por transação, que serve também de fila de reporte
+// (server/utils/googlePlayBilling.ts):
+//   awaiting_payment → token da Google recebido ao criar o checkout na app,
+//                      à espera da confirmação do pagamento na EasyPay
+//   pending          → pagamento confirmado, falta reportar (ou nova tentativa)
+//   reported         → aceite pela Google
+//   failed           → recusado pela Google (4xx) — precisa de intervenção
+//   expired          → o checkout nunca foi pago
+//   refunded         → reembolso reportado à Google
+// Compras feitas no site não criam documento nenhum: não são transações da app.
+export type GooglePlayTransactionStatus = 'awaiting_payment' | 'pending' | 'reported' | 'failed' | 'expired' | 'refunded'
+
+export interface IGooglePlayTransaction {
+  userId: mongoose.Types.ObjectId
+  kind: 'initial' | 'renewal'
+  status: GooglePlayTransactionStatus
+  // Token da Play Billing Library (só na transação inicial; as renovações
+  // reportam-se pelo id da inicial).
+  token?: string
+  checkoutId?: string
+  // Id do pagamento na EasyPay — nas subscrições por cartão/débito direto é
+  // também o id da subscrição, que identifica a série de renovações.
+  paymentId?: string
+  // Transação inicial da série (só nas renovações).
+  initialExternalTransactionId?: string
+  externalTransactionId?: string
+  tier: 'pro' | 'premium'
+  method: 'cc' | 'dd' | 'mbway' | 'multibanco'
+  periodMonths: number
+  // Valor cobrado ao utilizador, em cêntimos de euro (IVA incluído, se houver).
+  amountCents: number
+  regionCode: string
+  transactionTime?: Date
+  attempts: number
+  lastError?: string
+  reportedAt?: Date
+  refundedAt?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+const GooglePlayTransactionSchema = new Schema<IGooglePlayTransaction>(
+  {
+    userId:       { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    kind:         { type: String, enum: ['initial', 'renewal'], required: true },
+    status:       { type: String, enum: ['awaiting_payment', 'pending', 'reported', 'failed', 'expired', 'refunded'], required: true, index: true },
+    token:        { type: String },
+    checkoutId:   { type: String, index: true },
+    paymentId:    { type: String, index: true },
+    initialExternalTransactionId: { type: String },
+    externalTransactionId: { type: String, unique: true, sparse: true },
+    tier:         { type: String, enum: ['pro', 'premium'], required: true },
+    method:       { type: String, enum: ['cc', 'dd', 'mbway', 'multibanco'], required: true },
+    periodMonths: { type: Number, required: true, default: 1 },
+    amountCents:  { type: Number, required: true, min: 0 },
+    regionCode:   { type: String, required: true },
+    transactionTime: { type: Date },
+    attempts:     { type: Number, required: true, default: 0 },
+    lastError:    { type: String },
+    reportedAt:   { type: Date },
+    refundedAt:   { type: Date },
+  },
+  { timestamps: true }
+)
+export const GooglePlayTransaction: Model<IGooglePlayTransaction> =
+  mongoose.models.GooglePlayTransaction ||
+  mongoose.model<IGooglePlayTransaction>('GooglePlayTransaction', GooglePlayTransactionSchema)
+

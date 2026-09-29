@@ -9,6 +9,7 @@ import { enforceRateLimit } from '../../../utils/rateLimit'
 import { z } from 'zod'
 import { validateBody } from '../../../utils/validate'
 import { assertNoActiveAutoRenew } from '../../../utils/subscriptionGuard'
+import { registerCheckoutToken } from '../../../utils/googlePlayBilling'
 
 const VALID_PERIODS = [1, 3, 6, 12] as const
 type Period = (typeof VALID_PERIODS)[number]
@@ -25,7 +26,7 @@ export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
-  const { tier, method, periodMonths } = await validateBody(
+  const { tier, method, periodMonths, googlePlayToken } = await validateBody(
     event,
     z.object({
       tier: z.enum(['pro', 'premium'], 'subscriptionApi.invalidTier'),
@@ -33,6 +34,9 @@ export default defineEventHandler(async (event) => {
       periodMonths: z
         .number('subscriptionApi.invalidPeriod')
         .refine((v): v is Period => (VALID_PERIODS as readonly number[]).includes(v), 'subscriptionApi.invalidPeriod'),
+      // Fase 9 — só nas compras feitas na app Android: token da Play Billing
+      // Library (alternative billing only), para reportar a transação à Google.
+      googlePlayToken: z.string().trim().min(1).max(4000).optional(),
     })
   )
 
@@ -65,6 +69,18 @@ export default defineEventHandler(async (event) => {
     customerName: user.name,
     customerEmail: user.email,
   })
+
+  if (googlePlayToken) {
+    await registerCheckoutToken({
+      userId,
+      token: googlePlayToken,
+      checkoutId: checkout.id,
+      tier,
+      method,
+      periodMonths,
+      regionCode: country,
+    })
+  }
 
   return { manifest: checkout }
 })

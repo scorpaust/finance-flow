@@ -596,6 +596,7 @@
     "planPremiumF2": "Previsioni IA (ConvNeXt-1D)",
     "planPremiumF3": "Supporto prioritario",
     "confirmNativePayment": "Completerai il pagamento tramite EasyPay. Continuare?",
+    "androidBillingUnavailable": "I pagamenti in-app non sono disponibili su questo dispositivo o nella tua regione.",
     "toastPaymentConfirmedCheck": "Pagamento confermato! Controlla lo stato dell'abbonamento qui sotto.",
     "errorEasyPayCode": "Errore nel checkout EasyPay ({code})",
     "toastPaymentFailed": "Pagamento non riuscito — puoi provare un altro metodo nel modulo.",

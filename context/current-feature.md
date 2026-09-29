@@ -4,9 +4,12 @@
 
 ## Estado
 
-Em progresso — branch `feature/fase-9-publicacao` criado a partir de `main`
-em 2026-09-29. Âmbito pedido pelo utilizador: responder a todas as
-pendências (as da especificação e as herdadas da Fase 8, ver Notas).
+Em progresso — **código concluído, publicação por fazer**. O trabalho de
+código e documentação da fase (branch `feature/fase-9-publicacao`, criado a
+2026-09-29) foi mergeado em `main` a 2026-09-30 e o branch apagado. **Não
+está concluída**: dos 4 critérios de aceitação só o plano de rollout/rollback
+está cumprido — os outros 3 dependem do deploy no Netlify e da Play Console
+(passos abaixo e em `context/OPERATIONS.md`, "Lançamento e rollout").
 
 Decisões do utilizador (2026-09-29): alojamento **Netlify**, no subdomínio
 `financeflow-fase2-subs.netlify.app` até haver domínio próprio; EasyPay em
@@ -34,7 +37,8 @@ Livro de Reclamações; bucket R2 dos backups.
 
 **Por fazer depois do 1.º deploy**: confirmar a geolocalização do Netlify
 (MB WAY/Multibanco aparecem em PT), validar a CSP e passá-la a obrigatória,
-Lighthouse, capturas de ecrã para a loja.
+Lighthouse. (Ícone, gráfico de funcionalidades e capturas de ecrã da loja já
+feitos — `assets/store/`.)
 
 ## Objetivos
 
@@ -2189,3 +2193,21 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
     aos destinatários.
   - **Testes**: integração 28/28 (5 novos, com a Google simulada: token e
     renovação, PREPAID, compra no site sem reporte, falha + cron, reembolso).
+
+- 2026-09-29/30: **imagens da ficha da Play Store**, pedidas pelo utilizador
+  com os requisitos exatos da Play Console. `scripts/store-assets.mjs`: ícone
+  512×512 (quadrado, sem cantos arredondados — a loja aplica a máscara) e
+  gráfico de funcionalidades 1024×500 PT-PT/EN (PNG sem transparência).
+  `npm run store:screenshots` (`store-screenshots/store.spec.ts`): 4 ecrãs
+  (painel, transações, estatísticas, investimentos) em telemóvel 1080×1920,
+  tablet 7" 1224×2176, tablet 10" 2560×1440 e Chromebook 1920×1080, com uma
+  conta Premium e dados de exemplo genéricos num servidor de testes. O
+  terceiro pedido do utilizador ("4 a 8, 1080–7680 px") foi interpretado
+  como a secção do Chromebook — **não confirmado**. As devtools do Nuxt
+  passam a estar desligadas com `E2E_PORT` (apareciam nas capturas).
+- 2026-09-30: branch `feature/fase-9-publicacao` mergeado em `main` e
+  apagado, a pedido do utilizador. A fase **não** foi marcada como concluída:
+  os critérios "app em testes internos", "web em produção" e "subscrição
+  partilhada entre plataformas" dependem do deploy e da Play Console, ainda
+  por fazer. Próximo passo acordado: deploy no Netlify (o utilizador tem
+  sessão iniciada no Netlify CLI).

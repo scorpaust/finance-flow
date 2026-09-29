@@ -9,7 +9,7 @@ import { enforceRateLimit } from '../../utils/rateLimit'
 // pedido, e exportá-los só ampliava o estrago de uma sessão roubada.
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: 'account-export', limit: 5, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'account-export', limit: 5, windowSeconds: 60 * 60, identity: userId })
 
   const user = await User.findById(userId).select('-passwordHash -twoFactorSecret -twoFactorBackupCodes').lean()
   if (!user) throw createError({ statusCode: 401, message: 'Unauthorized' })

@@ -21,7 +21,9 @@
     "both": "Entrambi",
     "viewPlans": "Vedi i piani",
     "vsLastMonth": "vs mese precedente",
-    "closeNotification": "Chiudi notifica"
+    "closeNotification": "Chiudi notifica",
+    "updateAvailable": "Nuova versione disponibile — aggiornamento in corso...",
+    "offlineReady": "App pronta per l'uso offline"
   },
   "nav": {
     "home": "Dashboard",

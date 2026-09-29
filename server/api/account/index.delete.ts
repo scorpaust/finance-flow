@@ -8,6 +8,7 @@ import { decryptSecret, verifyTotpCode, consumeBackupCode } from '../../utils/tw
 import { deleteUserAccount } from '../../utils/accountDeletion'
 import { clearAppSession } from '../../utils/session'
 import { getServerLocale, serverT } from '../../utils/i18n'
+import { logEvent } from '../../utils/logger'
 
 const DeleteSchema = z.object({
   password: z.string().min(1, 'twoFactor.invalidPassword'),
@@ -23,7 +24,7 @@ const DeleteSchema = z.object({
 // senão o cliente ficava a ser cobrado por uma conta que já não existe.
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: 'account-delete', limit: 5, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'account-delete', limit: 5, windowSeconds: 60 * 60, identity: userId })
 
   const { password, code } = await validateBody(event, DeleteSchema)
   const locale = getServerLocale(event)
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event) => {
   try {
     await deleteUserAccount(userId)
   } catch (e) {
-    console.error('[account] falha a cancelar a subscrição EasyPay antes de apagar a conta:', e)
+    logEvent('error', 'account.delete_cancel_subscription_failed', { userId, message: String((e as Error)?.message || e).slice(0, 300) })
     throw createError({ statusCode: 502, message: serverT(locale, 'account.cancelSubscriptionFailed') })
   }
 

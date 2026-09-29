@@ -11,6 +11,7 @@
 // Context7 (@anthropic-ai/sdk-typescript, helpers.md): `output_config.format`
 // do tipo `{ type: 'json_schema', schema }` e header
 // `anthropic-beta: structured-outputs-2025-12-15` em `/v1/messages?beta=true`.
+import { logEvent } from './logger'
 
 // Fase 8, ponto 6 — URL configurável só para os testes de integração
 // apontarem a um servidor simulado local em vez da Anthropic real (nunca
@@ -82,7 +83,7 @@ async function requestStructuredJson<T>(opts: {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    console.error(`[anthropic] HTTP ${res.status}:`, detail.slice(0, 2000))
+    logEvent('error', 'anthropic.http_error', { status: res.status, detail: detail.slice(0, 500) })
     throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 
@@ -92,7 +93,7 @@ async function requestStructuredJson<T>(opts: {
   }
   const textBlock = data.content?.find((b) => b.type === 'text')
   if (!textBlock?.text) {
-    console.error('[anthropic] Resposta sem bloco de texto:', JSON.stringify(data).slice(0, 2000))
+    logEvent('error', 'anthropic.no_text_block', { blockTypes: data.content?.map((b) => b.type) })
     throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 
@@ -102,7 +103,8 @@ async function requestStructuredJson<T>(opts: {
       usage: data.usage || { input_tokens: 0, output_tokens: 0 },
     }
   } catch {
-    console.error('[anthropic] JSON inválido na resposta:', textBlock.text.slice(0, 2000))
+    // Só o tamanho: o texto é a extração do documento/dados financeiros do utilizador.
+    logEvent('error', 'anthropic.invalid_json', { length: textBlock.text.length })
     throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 }

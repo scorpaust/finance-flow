@@ -3,7 +3,8 @@ import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
-import { User, Category, Transaction, Investment } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment } from '../../server/models/index'
+import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
 function anthropicTextResponse(data: unknown) {
   return { content: [{ type: 'text', text: JSON.stringify(data) }], usage: { input_tokens: 1, output_tokens: 1 } }
@@ -185,6 +186,113 @@ describe('transações', () => {
     expect(blocked.status).toBe(403)
     const blockedBody = await blocked.json()
     expect(blockedBody.data?.error).toBe('feature_locked')
+  })
+
+  it('filtros inválidos na listagem caem no default em vez de dar 500 ou devolver tudo', async () => {
+    const email = uniqueEmail('txlist')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const category = await Category.findOne({ userId: user!._id, type: 'expense' })
+    await Transaction.insertMany(
+      Array.from({ length: 25 }, (_, i) => ({
+        userId: user!._id,
+        type: 'expense',
+        amount: 1,
+        description: i === 0 ? 'Café (manhã)' : `linha-${i}`,
+        categoryId: category!._id,
+        date: new Date(),
+        tags: [],
+        recurrence: 'none',
+        currency: 'EUR',
+      }))
+    )
+
+    // `limit=0` era `.limit(0)` no Mongo = sem limite.
+    const zero = await fetch('/api/transactions?limit=0', { headers: { cookie } })
+    expect(zero.status).toBe(200)
+    expect((await zero.json()).data).toHaveLength(20)
+
+    // Pesquisa com caracteres especiais de regex é literal, não uma regex.
+    const paren = await fetch(`/api/transactions?search=${encodeURIComponent('(manhã)')}`, { headers: { cookie } })
+    expect(paren.status).toBe(200)
+    expect((await paren.json()).data.map((t: any) => t.description)).toEqual(['Café (manhã)'])
+
+    const bad = await fetch('/api/transactions?categoryId=nao-e-um-id&sortBy=passwordHash&page=abc', { headers: { cookie } })
+    expect(bad.status).toBe(200)
+  })
+})
+
+describe('categorias e orçamento inicial', () => {
+  it('uma conta nova recebe só categorias genéricas, no idioma do registo, sem grupos nem limites', async () => {
+    const email = uniqueEmail('seed-pt')
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': fakeIpFor(email), cookie: 'financeflow_locale=pt-PT' },
+      // `tier` forjado no corpo tem de ser ignorado — a conta nasce sempre no Gratuito.
+      body: JSON.stringify({ action: 'register', email, password: 'TestPassword123', name: 'Teste', acceptTerms: true, tier: 'premium' }),
+    })
+    expect(res.status).toBe(200)
+    const user = await User.findOne({ email })
+    expect(user!.subscription.tier).toBe('free')
+    expect(user!.subscription.provider).toBe('none')
+    const sub = await fetch('/api/subscription', { headers: { cookie: extractCookies(res.headers.get('set-cookie')) } })
+    expect((await sub.json()).subscription.tier).toBe('free')
+    const cats = await Category.find({ userId: user!._id }).lean()
+    expect(cats).toHaveLength(DEFAULT_CATEGORY_COUNT)
+    expect(cats.every((c: any) => c.isDefault && !c.groupId && !c.monthlyLimit)).toBe(true)
+    expect(cats.map((c: any) => c.name)).toContain('Salário')
+    expect(await TransactionGroup.countDocuments({ userId: user!._id })).toBe(0)
+  })
+
+  it('o registo cria as categorias por omissão, e um login não recria as que o utilizador apagou', async () => {
+    const email = uniqueEmail('seed')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const initial = await Category.countDocuments({ userId: user!._id })
+    expect(initial).toBe(DEFAULT_CATEGORY_COUNT)
+    expect(await Category.exists({ userId: user!._id, name: 'Salary' })).toBeTruthy()
+
+    const one = await Category.findOne({ userId: user!._id, isDefault: true })
+    await Category.deleteOne({ _id: one!._id })
+    await login(email, 'TestPassword123')
+    await fetch('/api/auth/session', { headers: { cookie } })
+    expect(await Category.countDocuments({ userId: user!._id })).toBe(initial - 1)
+  })
+
+  it('nomes com caracteres de regex não rebentam nem colidem por engano', async () => {
+    const email = uniqueEmail('catregex')
+    const { cookie } = await register(email)
+    // Pro: o Gratuito só permite 2 categorias próprias e este teste cria 3.
+    await setTier(email, 'pro')
+    const create = (name: string) =>
+      fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie },
+        body: JSON.stringify({ name, type: 'expense' }),
+      })
+    expect((await create('Casa (2)')).status).toBe(200)
+    // Antes `A.c` virava a regex /^A.c$/ e dava "já existe" para `Abc`.
+    expect((await create('A.c')).status).toBe(200)
+    expect((await create('Abc')).status).toBe(200)
+  })
+})
+
+describe('rate limiting', () => {
+  it('um X-Forwarded-For forjado pelo cliente não contorna o limite de login', async () => {
+    const email = uniqueEmail('ratelimit')
+    await register(email)
+    const attempt = (spoof: string) =>
+      fetch('/api/auth/session', {
+        method: 'POST',
+        // O cliente põe o que quiser à esquerda; o proxy acrescenta o IP real à direita.
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': `${spoof}, ${fakeIpFor(email)}` },
+        body: JSON.stringify({ action: 'login', email, password: 'ErradaErrada1' }),
+      })
+
+    const statuses: number[] = []
+    for (let i = 0; i < 9; i++) statuses.push((await attempt(`203.0.113.${i}`)).status)
+    expect(statuses.slice(0, 8).every((s) => s === 401)).toBe(true)
+    expect(statuses[8]).toBe(429)
   })
 })
 

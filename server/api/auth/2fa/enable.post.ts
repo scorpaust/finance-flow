@@ -17,7 +17,7 @@ const EnableSchema = z.object({
 // única vez (só o hash fica guardado, ver server/utils/twoFactor.ts).
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: '2fa-enable', limit: 10, windowSeconds: 15 * 60, identity: userId })
+  await enforceRateLimit(event, { name: '2fa-enable', limit: 10, windowSeconds: 15 * 60, identity: userId })
 
   const { code } = await validateBody(event, EnableSchema)
   const locale = getServerLocale(event)

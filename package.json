@@ -22,7 +22,6 @@
     "cap:open:android": "cap open android"
   },
   "dependencies": {
-    "@auth/mongodb-adapter": "^3.0.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/camera": "^8.2.4",
@@ -31,7 +30,6 @@
     "@capgo/capacitor-native-biometric": "^8.6.11",
     "@easypaypt/checkout-sdk": "^2.9.1",
     "@maxmind/geoip2-node": "^7.1.0",
-    "@nuxt/image": "^1.7.0",
     "@nuxtjs/color-mode": "^3.4.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^0.5.1",
@@ -43,7 +41,6 @@
     "date-fns": "^3.6.0",
     "lucide-vue-next": "^0.383.0",
     "mongoose": "^8.3.4",
-    "next-auth": "^4.24.7",
     "nuxt": "^3.11.2",
     "otpauth": "^9.5.2",
     "pinia": "^2.1.7",
@@ -65,11 +62,13 @@
     "@vite-pwa/nuxt": "^0.6.0",
     "autoprefixer": "^10.4.19",
     "cross-env": "^10.1.0",
+    "dotenv": "^16.6.1",
     "mongodb-memory-server": "^11.3.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
-    "vitest": "^3.2.7"
+    "vitest": "^3.2.7",
+    "vue-tsc": "^2.2.12"
   },
   "overrides": {
     "ofetch": "1.5.1"

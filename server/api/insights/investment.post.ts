@@ -12,6 +12,6 @@ export default defineEventHandler(async (event) => {
   // combinado das duas funcionalidades de IA por utilizador, mesmo que aqui
   // ainda conte também os pedidos servidos pela cache de 24h (mais simples
   // que separar cache-hit de cache-miss antes de chamar generateTips).
-  enforceRateLimit(event, { name: 'ai-generate', limit: 20, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'ai-generate', limit: 20, windowSeconds: 60 * 60, identity: userId })
   return generateTips(userId, getServerLocale(event))
 })

@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   // Fase 8, ponto 1 — criação de checkout é um endpoint sensível (gera custos
   // do lado da EasyPay e pode ser usado para enumerar/abusar o fluxo).
-  enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
   const { tier, method } = await validateBody(
     event,

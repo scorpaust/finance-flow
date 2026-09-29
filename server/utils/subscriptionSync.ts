@@ -19,9 +19,15 @@ async function fetchResourceLenient(
   try {
     return await specificFetch(resourceId)
   } catch (e) {
-    console.warn('[EasyPay] endpoint específico falhou, a tentar /single/{id} como fallback:', e)
+    logEvent('warn', 'easypay.specific_fetch_failed', { resourceId, message: errorMessage(e) })
     return await getSingle(resourceId)
   }
+}
+
+// Só a mensagem — um erro do fetch à EasyPay pode trazer o corpo da resposta
+// (nome, email e telefone do cliente), que não pode ir para o log.
+function errorMessage(e: unknown): string {
+  return String((e as Error)?.message || e).slice(0, 300)
 }
 
 function isSuccessResource(resource: EasyPayResource): boolean {
@@ -46,7 +52,7 @@ async function pollPaymentResult(paymentId: string, attempts = 6, delayMs = 2000
         return status
       }
     } catch (e) {
-      console.warn('[EasyPay] pollPaymentResult: erro a consultar o pagamento:', e)
+      logEvent('warn', 'easypay.poll_failed', { paymentId, message: errorMessage(e) })
     }
   }
   return null
@@ -90,16 +96,15 @@ function withApplied(applied: string[], id: string): string[] {
 
 export async function syncSubscriptionCreate(resourceId: string): Promise<void> {
   const resource = await fetchResourceLenient(getSubscriptionResource, resourceId)
-  console.log('[EasyPay] syncSubscriptionCreate resource:', resource)
   if (!isSuccessResource(resource)) {
-    console.warn('[EasyPay] syncSubscriptionCreate: resource não tem estado de sucesso, a ignorar')
+    logEvent('warn', 'easypay.subscription_not_successful', { resourceId, status: resource.status || resource.payment_status })
     return
   }
 
   const key = resource.key || resource.customer?.key
   const decoded = key ? decodeMerchantKey(key) : null
   if (!decoded) {
-    console.warn('[EasyPay] syncSubscriptionCreate: sem key decodificável no resource (key:', key, ')')
+    logEvent('warn', 'easypay.undecodable_key', { resourceId, source: 'subscription' })
     return
   }
 
@@ -138,9 +143,8 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   try {
     resource = await getSingle(paymentId)
   } catch (e) {
-    console.warn('[EasyPay] syncSinglePayment: falha ao consultar o pagamento:', e)
+    logEvent('warn', 'easypay.single_fetch_failed', { paymentId, message: errorMessage(e) })
   }
-  console.log('[EasyPay] syncSinglePayment resource:', resource)
 
   const method = typeof resource?.method === 'object' ? resource.method : undefined
   let status = resource?.status || resource?.payment_status || method?.status
@@ -151,7 +155,6 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   // resolvido; só recorre a polling se não vier.
   if (paymentMethod === 'mbway' && (!status || status === 'pending' || status === 'waiting')) {
     const polled = await pollPaymentResult(paymentId)
-    console.log('[EasyPay] syncSinglePayment (mbway): estado final após polling:', polled)
     if (polled) status = polled
   }
 
@@ -231,12 +234,11 @@ export async function checkPendingPayment(userId: string): Promise<{ status: str
 // próprios codificámos na `key`.
 export async function syncFromCheckout(checkoutId: string, expectedUserId?: string): Promise<void> {
   const checkout = await getCheckoutStatus(checkoutId)
-  console.log('[EasyPay] syncFromCheckout resposta:', checkout)
 
   const key = checkout.payment?.key
   const decoded = key ? decodeMerchantKey(key) : null
   if (!decoded) {
-    console.warn('[EasyPay] syncFromCheckout: sem key decodificável (payment.key:', key, ')')
+    logEvent('warn', 'easypay.undecodable_key', { checkoutId, source: 'checkout' })
     return
   }
 
@@ -259,7 +261,7 @@ export async function syncFromCheckout(checkoutId: string, expectedUserId?: stri
       typeof paymentStatus === 'string' &&
       (SUCCESS_STATUSES.includes(paymentStatus) || (decoded.paymentMethod === 'dd' && paymentStatus === 'pending'))
     if (!statusOk) {
-      console.warn('[EasyPay] syncFromCheckout: payment.status não é aceitável:', paymentStatus)
+      logEvent('warn', 'easypay.checkout_status_rejected', { checkoutId, status: paymentStatus })
       return
     }
     const applied = await getAppliedIds(decoded.userId)

@@ -1,4 +1,8 @@
-// Register Chart.js globally — client-only plugin
+// Registo do Chart.js e defaults do tema escuro. Importado (só por efeito)
+// pelos componentes de components/charts/ — antes era um plugin global, o que
+// punha o Chart.js no bundle inicial de todas as páginas, incluindo o login.
+// O boxplot regista-se à parte em CategoryBoxplot.vue (só a página de
+// estatísticas o usa).
 import {
   Chart,
   CategoryScale, LinearScale,
@@ -6,14 +10,11 @@ import {
   BarElement, ArcElement,
   Title, Tooltip, Legend, Filler,
 } from 'chart.js'
-import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot'
-
 Chart.register(
   CategoryScale, LinearScale,
   PointElement, LineElement,
   BarElement, ArcElement,
   Title, Tooltip, Legend, Filler,
-  BoxPlotController, BoxAndWiskers
 )
 
 // Global Chart.js dark-mode defaults
@@ -30,4 +31,3 @@ Chart.defaults.plugins.tooltip.bodyColor        = '#ffffff'
 Chart.defaults.plugins.tooltip.padding          = 12
 Chart.defaults.plugins.tooltip.cornerRadius     = 12
 
-export default defineNuxtPlugin(() => {})

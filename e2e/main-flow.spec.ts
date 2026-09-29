@@ -70,7 +70,7 @@ test('registo, criar transação, paywall sem Premium, acesso após upgrade', as
   await page.getByTestId('tx-amount').fill('42.50')
   // A 1.ª opção real do select é sempre uma categoria (a categoria placeholder
   // vem desativada, ver components/forms/TransactionModal.vue) — as
-  // categorias por omissão já vêm semeadas no registo (seedDefaultBudget).
+  // categorias por omissão já vêm semeadas no registo (seedDefaultCategories).
   await page.getByTestId('tx-category').selectOption({ index: 1 })
   await page.getByTestId('tx-submit').click()
   await expect(page.getByTestId('tx-submit')).toHaveCount(0) // modal fechou

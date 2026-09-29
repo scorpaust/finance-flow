@@ -10,6 +10,8 @@
 // (OpenAPI spec da Twelve Data). NÃO CONFIRMADO em sandbox real nesta sessão
 // se o plano gratuito cobre pares forex (só índices/ETFs foram testados na
 // Fase 3) — por validar antes de depender disto em produção.
+import { logEvent } from './logger'
+
 // Fase 8, ponto 6 — URL configurável só para os testes de integração.
 const TWELVE_DATA_EXCHANGE_RATE_URL = `${process.env.TWELVE_DATA_API_BASE_URL || 'https://api.twelvedata.com'}/exchange_rate`
 
@@ -42,7 +44,7 @@ export async function getExchangeRateToEur(from: string, date?: string): Promise
 
     return data.rate
   } catch (error) {
-    console.error('[exchangeRates] falha a obter taxa', currency, '→ EUR:', error)
+    logEvent('warn', 'exchange_rate.fetch_failed', { currency, message: String((error as Error)?.message || error) })
     return null
   }
 }

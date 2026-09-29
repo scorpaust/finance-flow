@@ -5,6 +5,7 @@ import { getUserTier } from '../../utils/requireFeature'
 import { TIER_LIMITS } from '../../../shared/features'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { validateBody } from '../../utils/validate'
+import { escapeRegex } from '../../utils/queryFilters'
 
 const CategoryCreateSchema = z.object({
   name: z.string().trim().min(1, 'categories.nameAndTypeRequired'),
@@ -19,10 +20,10 @@ export default defineEventHandler(async (event) => {
   const locale = getServerLocale(event)
 
   if (method === 'GET') {
-    const query = getQuery(event) as { type?: string }
+    const { type } = getQuery(event)
     const filter: Record<string, any> = { userId }
-    if (query.type && query.type !== 'all') {
-      filter.type = { $in: [query.type, 'both'] }
+    if (type === 'income' || type === 'expense') {
+      filter.type = { $in: [type, 'both'] }
     }
     // Sort by order (groups categories logically) then by name
     const categories = await Category.find(filter).sort({ order: 1, name: 1 }).lean()
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event) => {
 
     const existing = await Category.findOne({
       userId,
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
+      name: new RegExp(`^${escapeRegex(name.trim())}$`, 'i'),
     })
     if (existing) throw createError({ statusCode: 409, message: serverT(locale, 'categories.alreadyExists') })
 

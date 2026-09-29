@@ -34,6 +34,7 @@ const INDEXES = [
   { collection: 'investments', keys: { userId: 1 } },
   { collection: 'investments', keys: { userId: 1, initialDate: -1 } },
   { collection: 'refundedaccounts', keys: { email: 1 } },
+  { collection: 'ratelimitbuckets', keys: { expiresAt: 1 }, expireAfterSeconds: 0 },
 ]
 
 async function findDuplicates(col, keys) {
@@ -47,7 +48,7 @@ await mongoose.connect(URI, { dbName: 'financeflow' })
 const db = mongoose.connection.db
 let problems = 0
 
-for (const { collection, keys, unique } of INDEXES) {
+for (const { collection, keys, unique, expireAfterSeconds } of INDEXES) {
   const label = `${collection} ${JSON.stringify(keys)}${unique ? ' unique' : ''}`
   const col = db.collection(collection)
 
@@ -64,7 +65,10 @@ for (const { collection, keys, unique } of INDEXES) {
     continue
   }
   try {
-    await col.createIndex(keys, unique ? { unique: true } : {})
+    const options = {}
+    if (unique) options.unique = true
+    if (expireAfterSeconds !== undefined) options.expireAfterSeconds = expireAfterSeconds
+    await col.createIndex(keys, options)
     console.log(`✓ ${label}`)
   } catch (e) {
     problems++

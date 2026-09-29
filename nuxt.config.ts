@@ -16,7 +16,6 @@ export default defineNuxtConfig({
     ['@pinia/nuxt', { storesDirs: ['./stores/**'] }],
     '@vueuse/nuxt',
     '@vite-pwa/nuxt',
-    '@nuxt/image',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
     // Fase 8, ponto 8 — monitorização de erros. Só carrega com SENTRY_DSN
@@ -108,8 +107,18 @@ export default defineNuxtConfig({
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'google-fonts-stylesheets' },
+        },
+        // Os ficheiros de fonte em si (antes nunca ficavam em cache offline).
+        {
+          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
           handler: 'CacheFirst',
-          options: { cacheName: 'google-fonts-cache' },
+          options: {
+            cacheName: 'google-fonts-webfonts',
+            cacheableResponse: { statuses: [0, 200] },
+            expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+          },
         },
       ],
     },
@@ -176,8 +185,27 @@ export default defineNuxtConfig({
     },
   },
 
-  nitro: {
-    plugins: ['~/server/plugins/mongoose.ts'],
+  // server/plugins/ é carregado automaticamente pelo Nitro (antes o
+  // mongoose.ts estava também listado aqui e registava-se duas vezes).
+  //
+  // Cabeçalhos de segurança em todas as respostas. Sem CSP de propósito: o
+  // SDK de checkout da EasyPay, as Google Fonts e o Sentry carregam recursos
+  // de domínios terceiros — uma CSP mal afinada partia o pagamento; fica para
+  // quando houver o domínio de produção para validar (Fase 9).
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        // Sem `payment`: o iframe de checkout da EasyPay pode precisar dele.
+        'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
+        // Ignorado pelos browsers em http:// (dev local); só tem efeito em HTTPS.
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+    },
+    // Respostas da API são por utilizador: nunca em caches partilhadas.
+    '/api/**': { headers: { 'Cache-Control': 'no-store' } },
   },
 
   // TF.js is browser-only — pre-bundle for fast dynamic import, exclude from SSR
@@ -214,9 +242,12 @@ export default defineNuxtConfig({
       title: 'FinanceFlow',
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        // Só os pesos realmente usados (Tailwind font-normal…font-bold);
+        // 300/800/900 não aparecem em lado nenhum e eram descarregados à mesma.
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap',
         },
         // Mesmo logótipo do ícone Android/manifest PWA (Fase 4, tarefa 6) —
         // sem isto o browser não tinha favicon explícito nenhum.

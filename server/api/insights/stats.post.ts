@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
 
   // Fase 8, ponto 1 — só limita gerações reais (custo direto na Anthropic),
   // nunca leituras servidas pela cache de 24h acima.
-  enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
 
   const uid = new mongoose.Types.ObjectId(userId)
   const now = new Date()

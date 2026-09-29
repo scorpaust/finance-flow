@@ -28,6 +28,7 @@
 </template>
 <script setup lang="ts">
 import { Doughnut } from 'vue-chartjs'
+import '~/utils/chartjs'
 const props = defineProps<{
   categories: Array<{ _id: string; name: string; icon: string; color: string; total: number }>
   loading?: boolean

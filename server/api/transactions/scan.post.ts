@@ -11,6 +11,7 @@ import {
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { TIER_LIMITS } from '../../../shared/features'
 import { enforceRateLimit } from '../../utils/rateLimit'
+import { logEvent } from '../../utils/logger'
 
 // Digitalização de recibos/faturas com IA (Pro + Premium) — Fase 5, tarefa 3.
 // Recebe o ficheiro, extrai os campos e DEVOLVE-OS ao client. Nunca cria a
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const { userId, tier } = await requireFeature(event, 'documentScan')
   // Fase 8, ponto 1 — além do teto mensal (DocumentScanUsage), trava rajadas
   // rápidas dentro desse mesmo teto (cada chamada custa dinheiro na Anthropic).
-  enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'ai-generate', limit: 10, windowSeconds: 60 * 60, identity: userId })
 
   // Fase 7 — segue o idioma ativo da UI (cookie do @nuxtjs/i18n, ver
   // nuxt.config.ts → i18n e plugins/locale.ts); sem cookie (1.º pedido
@@ -101,7 +102,7 @@ export default defineEventHandler(async (event) => {
     await refundDocumentScan(userId)
     // O detalhe (ex. saldo da conta Anthropic, chave inválida) fica só no log do
     // servidor — o utilizador nunca deve ver o erro cru do fornecedor.
-    console.error('[scan] falha na extração:', e?.message || e)
+    logEvent('error', 'scan.extraction_failed', { userId, message: String(e?.message || e).slice(0, 300) })
     throw createError({
       statusCode: 502,
       message: serverT(locale, 'scan.upstreamError'),
@@ -111,9 +112,13 @@ export default defineEventHandler(async (event) => {
 
   const { extraction, usage } = result
   const costUsd = (usage.input_tokens * PRICE_IN_PER_MTOK + usage.output_tokens * PRICE_OUT_PER_MTOK) / 1_000_000
-  console.info(
-    `[scan] ${mediaType} ${Math.round(file.data.length / 1024)}KB → ${usage.input_tokens} in / ${usage.output_tokens} out tokens ≈ $${costUsd.toFixed(5)}`
-  )
+  logEvent('info', 'scan.completed', {
+    mediaType,
+    sizeKb: Math.round(file.data.length / 1024),
+    inputTokens: usage.input_tokens,
+    outputTokens: usage.output_tokens,
+    costUsd: Number(costUsd.toFixed(5)),
+  })
 
   const amount = typeof extraction.amount === 'number' && Number.isFinite(extraction.amount) ? Math.round(extraction.amount * 100) / 100 : null
   if (!extraction.isReceipt || !amount || amount <= 0) {

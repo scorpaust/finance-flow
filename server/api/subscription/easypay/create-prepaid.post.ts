@@ -23,7 +23,7 @@ type Period = (typeof VALID_PERIODS)[number]
 // tendo de voltar a esta página para renovar manualmente.
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
+  await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
   const { tier, method, periodMonths } = await validateBody(
     event,

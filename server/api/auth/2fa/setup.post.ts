@@ -11,7 +11,7 @@ import { getServerLocale, serverT } from '../../../utils/i18n'
 // antes de ativar substitui o segredo anterior (recomeça o setup do zero).
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: '2fa-setup', limit: 10, windowSeconds: 15 * 60, identity: userId })
+  await enforceRateLimit(event, { name: '2fa-setup', limit: 10, windowSeconds: 15 * 60, identity: userId })
 
   const locale = getServerLocale(event)
   const user = await User.findById(userId).select('email twoFactorEnabled')

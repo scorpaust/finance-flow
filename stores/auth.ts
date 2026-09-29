@@ -18,12 +18,19 @@ export const useAuthStore = defineStore('auth', () => {
   const loading  = ref(true)
   const _fetched = ref(false)   // reactive so middleware can watch it
 
-  async function fetchSession() {
-    // Guard: only fetch once per app lifecycle
-    if (_fetched.value) return
+  // Chamadas concorrentes (plugin de arranque, middleware, login) partilham o
+  // mesmo pedido em voo. Antes, a 2.ª chamada via `_fetched` já a true e
+  // devolvia logo, com `user` ainda null — o chamador concluía "sem sessão".
+  let inFlight: Promise<void> | null = null
 
-    loading.value  = true
-    _fetched.value = true          // mark immediately to prevent races
+  function fetchSession(): Promise<void> {
+    if (_fetched.value) return Promise.resolve()
+    if (!inFlight) inFlight = doFetchSession().finally(() => { inFlight = null })
+    return inFlight
+  }
+
+  async function doFetchSession() {
+    loading.value = true
     // GET /api/auth/session responde SEMPRE 200 (`{ user: null }` quando não há
     // sessão) — por isso um erro aqui é rede ou servidor indisponível (ex. o
     // servidor a reiniciar, um corte de Wi-Fi no telemóvel), nunca "sem
@@ -34,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         const data = (await $fetch('/api/auth/session')) as { user: User | null }
         user.value = data.user
+        _fetched.value = true
         loading.value = false
         return
       } catch {
@@ -43,7 +51,6 @@ export const useAuthStore = defineStore('auth', () => {
     // Continua sem resposta: mostra o login, mas deixa a próxima navegação
     // tentar de novo em vez de ficar marcado como "já verificado".
     user.value = null
-    _fetched.value = false
     loading.value = false
   }
 

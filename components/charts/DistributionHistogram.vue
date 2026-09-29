@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import { Bar } from 'vue-chartjs'
+import '~/utils/chartjs'
 
 const props = defineProps<{
   data: Array<{ rangeStart: number; rangeEnd: number; count: number }>

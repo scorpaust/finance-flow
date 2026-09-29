@@ -1975,3 +1975,71 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
     é inteiramente processo/documentação. A opção B (ecrã próprio,
     consentimento guardado na BD) fica registada como não escolhida, para
     reconsiderar se o volume de pedidos algum dia justificar automatizar.
+
+  - **Sessão de 2026-09-28/29 — limpeza e desempenho antes da Fase 9**: o
+    utilizador pediu remoção de logs/código obsoleto e melhorias de
+    desempenho, segurança e fiabilidade.
+
+    - **Logs**: `console.*` de debug removidos do checkout (cliente); no
+      servidor tudo passa por `logEvent` e sem dados pessoais (antes: recurso
+      EasyPay inteiro com nome/email/telefone, texto extraído de recibos, IP
+      no geo). Scripts CLI mantêm a consola.
+    - **Removido**: `next-auth`, `@auth/mongodb-adapter`, `@nuxt/image` (sem
+      uso), tipos mortos em `types/index.ts`, `scripts/generate-icons.js`
+      (reescrevia o logótipo real com placeholders), registo duplicado do
+      plugin mongoose, tabelas de aliases do seed. `dotenv` declarado (os
+      scripts de backup dependiam dele só por via transitiva); `vue-tsc`
+      instalado — o `type-check` do CI nunca tinha corrido de facto (54 erros
+      pré-existentes, nenhum nos ficheiros desta sessão).
+    - **Desempenho**: o seed do orçamento (~32 upserts) corria em cada
+      `GET /api/auth/session` e login — agora só no registo
+      (`server/utils/defaultCategories.ts`), e deixou de repor limites editados
+      e recriar categorias apagadas. Chart.js fora do bundle inicial
+      (`utils/chartjs.ts`, importado só pelos gráficos; boxplot só nas
+      estatísticas). Pesos de fonte não usados removidos; fontes em cache PWA.
+    - **Segurança**: queries validadas por Zod (`server/utils/queryFilters.ts`)
+      — `limit=0` devolvia tudo, pesquisa/nomes de categoria eram regex sem
+      escape, `sortBy` livre, ids inválidos davam 500. Rate limiting passou de
+      memória para MongoDB (`RateLimitBucket`, TTL) — em serverless cada
+      instância tinha o seu contador. IP do cliente em
+      `server/utils/clientIp.ts` (`x-nf-client-connection-ip`, senão o ÚLTIMO
+      salto de `X-Forwarded-For`; o 1.º é forjável). Cabeçalhos de segurança
+      e `Cache-Control: no-store` na API (`routeRules`). `npm audit fix`:
+      produção com 0 vulnerabilidades.
+    - **Fiabilidade/acessibilidade**: `fetchSession` partilha o pedido em voo
+      (uma 2.ª chamada concorrente via `user = null`); polling do pagamento
+      pára ao sair da página; textos fixos em PT (loading, avisos PWA)
+      traduzidos nas 6 línguas.
+    - **Build de produção** (`nuxt build`, preset netlify-legacy) passou —
+      o ENOENT anterior não se repetiu (demorou ~43 min nesta máquina).
+      Chart.js (183 KB) e boxplot (36 KB) confirmados em chunks próprios,
+      fora do chunk de entrada.
+    - **Testes**: unitários 46/46; integração **23/23** (5 novos: categorias genéricas no idioma do registo sem grupos, filtros
+      inválidos da listagem, regex em nomes de categoria, seed só no registo,
+      `X-Forwarded-For` forjado não contorna o limite de login). **Armadilha
+      de ambiente**: uma corrida de integração interrompida deixa um
+      `nuxi _dev` órfão que bloqueia a seguinte ("Another Nuxt dev is already
+      running" / porta 24678 em uso) — terminar o processo antes de repetir.
+      Não testado em browser/Android nesta sessão.
+    - **Testes**: unitários 46/46; integração **23/23** (5 novos: categorias genéricas no idioma do registo sem grupos, filtros
+      inválidos da listagem, regex em nomes de categoria, seed só no registo,
+      `X-Forwarded-For` forjado não contorna o limite de login). **Armadilha
+      de ambiente**: uma corrida de integração interrompida deixa um
+      `nuxi _dev` órfão que bloqueia a seguinte ("Another Nuxt dev is already
+      running" / porta 24678 em uso) — terminar o processo antes de repetir.
+      Não testado em browser/Android nesta sessão.
+    - **Decisão pendente do utilizador**: as categorias/grupos por omissão
+      de todas as contas novas são o orçamento pessoal do programador
+      (WiZink, CGD, Edição de livros…) — devem passar a genéricas e
+      traduzidas antes da publicação.
+    - **Contas novas com dados genéricos** (decisão do utilizador, 2026-09-29:
+      "reset para todas as novas... dados genéricos e limitados ao plano
+      gratuito"): o orçamento pessoal do programador (9 grupos com limites +
+      23 categorias como WiZink, CGD, Edição de livros) deixou de ser semeado.
+      Cada conta nova recebe 10 categorias genéricas (Salário, Outros
+      rendimentos, Habitação, Alimentação, Transportes, Saúde, Contas da casa,
+      Lazer, Compras, Outras despesas), gravadas no idioma do registo (6
+      línguas), sem limites mensais e **sem grupos** (funcionalidade Pro). Não
+      contam para o teto de 2 categorias próprias do Gratuito. Contas
+      existentes não foram tocadas. `scripts/seed.mjs` (conta demo de
+      desenvolvimento) mantém os dados antigos — não corre para utilizadores.

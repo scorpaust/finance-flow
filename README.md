@@ -156,10 +156,10 @@ financeflow/
 │   ├── investimento/           ← Portfolio + perfil de investidor + dicas educativas IA (Premium)
 │   └── settings/               ← Perfil + gestão de categorias (inclui seletor de idioma)
 ├── plugins/
-│   ├── chartjs.client.ts             ← Registo global Chart.js (dark theme)
 │   ├── init.client.ts                ← Init auth store
 │   ├── locale.ts                     ← Deteção/persistência manual do idioma (cookie
 │   │                                    `financeflow_locale`) — ver nota em Internacionalização
+│   ├── pwa-update.client.ts          ← Aviso de nova versão/offline do PWA
 │   └── capacitor-back-button.client.ts ← Botão "voltar" Android
 ├── server/
 │   ├── api/
@@ -185,6 +185,9 @@ financeflow/
 │   │                          espera por plugins — ver utils/db.ts)
 │   └── utils/
 │       ├── auth.ts              ← requireAuth, sanitizeId
+│       ├── queryFilters.ts      ← filtros de query validados (transações, `months`)
+│       ├── defaultCategories.ts ← categorias genéricas iniciais (no idioma do registo)
+│       ├── logger.ts            ← logEvent: log estruturado JSON, sem dados pessoais
 │       ├── requireFeature.ts    ← enforcement server-side por tier (403 se bloqueado)
 │       ├── easypay.ts           ← wrapper Checkout API (Cartão/DD/MB WAY/Multibanco)
 │       ├── subscriptionSync.ts  ← lógica partilhada webhook + confirmação client-side
@@ -207,6 +210,7 @@ financeflow/
 ├── shared/paymentMethods.ts    ← Tabela país → métodos de pagamento pré-pagos disponíveis
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
+├── utils/chartjs.ts            ← Registo do Chart.js (importado só pelos gráficos)
 ├── scripts/
 │   ├── seed.mjs                    ← 12 meses de dados de teste
 │   └── migrate-subscriptions.mjs   ← dá tier 'free' a utilizadores pré-Fase-2

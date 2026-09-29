@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
+import { readMonthsQuery } from '../../utils/queryFilters'
 import { Transaction } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'predictions')
-  const query = getQuery(event) as { months?: string }
-  const historyMonths = parseInt(query.months || '12')
+  const historyMonths = await readMonthsQuery(event, 12)
   const uid = new mongoose.Types.ObjectId(userId)
 
   const now = new Date()

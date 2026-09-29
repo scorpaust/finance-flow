@@ -21,7 +21,9 @@
     "both": "Both",
     "viewPlans": "View plans",
     "vsLastMonth": "vs last month",
-    "closeNotification": "Close notification"
+    "closeNotification": "Close notification",
+    "updateAvailable": "New version available — updating...",
+    "offlineReady": "App ready to work offline"
   },
   "nav": {
     "home": "Dashboard",

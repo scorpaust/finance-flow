@@ -17,7 +17,7 @@ const DisableSchema = z.object({
 // remover a segunda camada de proteção (spec, ponto 3).
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
-  enforceRateLimit(event, { name: '2fa-disable', limit: 10, windowSeconds: 15 * 60, identity: userId })
+  await enforceRateLimit(event, { name: '2fa-disable', limit: 10, windowSeconds: 15 * 60, identity: userId })
 
   const { password, code } = await validateBody(event, DisableSchema)
   const locale = getServerLocale(event)

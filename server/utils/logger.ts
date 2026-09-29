@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { H3Event } from 'h3'
+import { getClientIp } from './clientIp'
 
 // Fase 8, ponto 8 — logging estruturado (uma linha JSON por evento) dos eventos
 // críticos: falhas de pagamento, falhas de webhook, erros de autenticação. É
@@ -18,7 +19,7 @@ export function logEvent(level: Level, eventName: string, data: Record<string, u
     ts: new Date().toISOString(),
     level,
     event: eventName,
-    ip: h3 ? getRequestHeader(h3, 'x-forwarded-for')?.split(',')[0]?.trim() || h3.node.req.socket.remoteAddress : undefined,
+    ip: h3 ? getClientIp(h3) : undefined,
     ...data,
   })
   if (level === 'error') console.error(line)

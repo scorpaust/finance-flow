@@ -422,3 +422,25 @@ const RefundedAccountSchema = new Schema<IRefundedAccount>({
 export const RefundedAccount: Model<IRefundedAccount> =
   mongoose.models.RefundedAccount ||
   mongoose.model<IRefundedAccount>('RefundedAccount', RefundedAccountSchema)
+
+// ─── RATE LIMIT ──────────────────────────────────────────────────────────────
+// Contadores de server/utils/rateLimit.ts. `_id` = "<limite>:<ip>[:<hash>]";
+// o índice TTL apaga cada contador quando a janela expira.
+export interface IRateLimitBucket {
+  _id: string
+  count: number
+  expiresAt: Date
+}
+
+const RateLimitBucketSchema = new Schema<IRateLimitBucket>(
+  {
+    _id:       { type: String, required: true },
+    count:     { type: Number, required: true, default: 0 },
+    expiresAt: { type: Date, required: true },
+  },
+  { versionKey: false }
+)
+RateLimitBucketSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+export const RateLimitBucket: Model<IRateLimitBucket> =
+  mongoose.models.RateLimitBucket ||
+  mongoose.model<IRateLimitBucket>('RateLimitBucket', RateLimitBucketSchema)

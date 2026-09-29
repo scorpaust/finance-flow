@@ -21,7 +21,9 @@
     "both": "Beides",
     "viewPlans": "Pläne ansehen",
     "vsLastMonth": "vs. Vormonat",
-    "closeNotification": "Benachrichtigung schließen"
+    "closeNotification": "Benachrichtigung schließen",
+    "updateAvailable": "Neue Version verfügbar — wird aktualisiert...",
+    "offlineReady": "App ist offline einsatzbereit"
   },
   "nav": {
     "home": "Übersicht",

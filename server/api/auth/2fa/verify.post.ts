@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: serverT(locale, 'twoFactor.pendingExpired') })
   }
 
-  enforceRateLimit(event, { name: '2fa-verify', limit: 5, windowSeconds: 10 * 60, identity: userId })
+  await enforceRateLimit(event, { name: '2fa-verify', limit: 5, windowSeconds: 10 * 60, identity: userId })
 
   const { code } = await validateBody(event, VerifySchema)
 

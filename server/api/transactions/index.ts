@@ -6,6 +6,7 @@ import { resolveTransactionAmount } from '../../utils/transactionCurrency'
 import { TIER_LIMITS } from '../../../shared/features'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { validateBody } from '../../utils/validate'
+import { readTransactionListQuery } from '../../utils/queryFilters'
 
 // Fase 8, ponto 1 — shape validado por Zod (antes: `if (!type || !amount || ...)`,
 // mensagem fixa em inglês, nunca traduzida).
@@ -34,44 +35,8 @@ export default defineEventHandler(async (event) => {
 
   // ──────────── GET: list transactions ────────────
   if (method === 'GET') {
-    const query = getQuery(event)
-    const {
-      type,
-      categoryId,
-      groupId,
-      startDate,
-      endDate,
-      search,
-      page = '1',
-      limit = '20',
-      sortBy = 'date',
-      sortOrder = 'desc',
-    } = query as Record<string, string>
-
-    const filter: Record<string, any> = { userId }
-
-    if (type && type !== 'all') filter.type = type
-    if (categoryId) filter.categoryId = categoryId
-    if (groupId) filter.groupId = groupId === 'none' ? null : groupId
-
-    if (startDate || endDate) {
-      filter.date = {}
-      if (startDate) filter.date.$gte = new Date(startDate)
-      if (endDate) filter.date.$lte = new Date(endDate + 'T23:59:59.999Z')
-    }
-
-    if (search) {
-      filter.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { notes: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } },
-      ]
-    }
-
-    const pageNum = Math.max(1, parseInt(page))
-    const limitNum = Math.min(100, parseInt(limit))
+    const { filter, page: pageNum, limit: limitNum, sort } = await readTransactionListQuery(event, userId)
     const skip = (pageNum - 1) * limitNum
-    const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder === 'asc' ? 1 : -1 }
 
     const [transactions, total] = await Promise.all([
       Transaction.find(filter)

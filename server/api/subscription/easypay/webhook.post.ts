@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   // Fase 8, ponto 1 — generoso o suficiente para tráfego real da EasyPay,
   // mas trava uma tentativa de inundar o endpoint (cada evento aceite ainda
   // dispara um GET de verificação de volta à API, não é grátis).
-  enforceRateLimit(event, { name: 'easypay-webhook', limit: 120, windowSeconds: 60 })
+  await enforceRateLimit(event, { name: 'easypay-webhook', limit: 120, windowSeconds: 60 })
   const body = await readBody<{ id?: string; type?: string; status?: string }>(event)
 
   // Acknowledge imediato — a verificação (GET à API) e o processamento

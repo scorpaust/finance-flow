@@ -21,7 +21,9 @@
     "both": "Ambos",
     "viewPlans": "Ver planes",
     "vsLastMonth": "vs mes anterior",
-    "closeNotification": "Cerrar notificación"
+    "closeNotification": "Cerrar notificación",
+    "updateAvailable": "Nueva versión disponible — actualizando...",
+    "offlineReady": "App lista para usar sin conexión"
   },
   "nav": {
     "home": "Panel",

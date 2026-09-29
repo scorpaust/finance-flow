@@ -21,7 +21,9 @@
     "both": "Les deux",
     "viewPlans": "Voir les formules",
     "vsLastMonth": "vs mois précédent",
-    "closeNotification": "Fermer la notification"
+    "closeNotification": "Fermer la notification",
+    "updateAvailable": "Nouvelle version disponible — mise à jour...",
+    "offlineReady": "Application prête pour une utilisation hors ligne"
   },
   "nav": {
     "home": "Tableau de bord",

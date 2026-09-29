@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
-import { readTestEnv, stubClient, extractCookies } from './testHelpers'
+import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { User, Category, Transaction, TransactionGroup, Investment } from '../../server/models/index'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
@@ -63,7 +63,7 @@ async function register(email: string, opts: { acceptTerms?: boolean } = { accep
   const res = await fetch('/api/auth/session', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-forwarded-for': fakeIpFor(email) },
-    body: JSON.stringify({ action: 'register', email, password: 'TestPassword123', name: 'Test User', ...opts }),
+    body: JSON.stringify({ action: 'register', email, password: TEST_PASSWORD, name: 'Test User', ...opts }),
   })
   const body = await res.json().catch(() => null)
   return { status: res.status, body, cookie: extractCookies(res.headers.get('set-cookie')) }
@@ -119,10 +119,10 @@ describe('auth', () => {
   it('recusa login com password errada (401) e aceita com a certa (200)', async () => {
     const email = uniqueEmail('login')
     await register(email)
-    const wrong = await login(email, 'ErradaErrada1')
+    const wrong = await login(email, WRONG_PASSWORD)
     expect(wrong.status).toBe(401)
 
-    const right = await login(email, 'TestPassword123')
+    const right = await login(email, TEST_PASSWORD)
     expect(right.status).toBe(200)
   })
 
@@ -229,7 +229,7 @@ describe('categorias e orçamento inicial', () => {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-forwarded-for': fakeIpFor(email), cookie: 'financeflow_locale=pt-PT' },
       // `tier` forjado no corpo tem de ser ignorado — a conta nasce sempre no Gratuito.
-      body: JSON.stringify({ action: 'register', email, password: 'TestPassword123', name: 'Teste', acceptTerms: true, tier: 'premium' }),
+      body: JSON.stringify({ action: 'register', email, password: TEST_PASSWORD, name: 'Teste', acceptTerms: true, tier: 'premium' }),
     })
     expect(res.status).toBe(200)
     const user = await User.findOne({ email })
@@ -254,7 +254,7 @@ describe('categorias e orçamento inicial', () => {
 
     const one = await Category.findOne({ userId: user!._id, isDefault: true })
     await Category.deleteOne({ _id: one!._id })
-    await login(email, 'TestPassword123')
+    await login(email, TEST_PASSWORD)
     await fetch('/api/auth/session', { headers: { cookie } })
     expect(await Category.countDocuments({ userId: user!._id })).toBe(initial - 1)
   })
@@ -286,7 +286,7 @@ describe('rate limiting', () => {
         method: 'POST',
         // O cliente põe o que quiser à esquerda; o proxy acrescenta o IP real à direita.
         headers: { 'content-type': 'application/json', 'x-forwarded-for': `${spoof}, ${fakeIpFor(email)}` },
-        body: JSON.stringify({ action: 'login', email, password: 'ErradaErrada1' }),
+        body: JSON.stringify({ action: 'login', email, password: WRONG_PASSWORD }),
       })
 
     const statuses: number[] = []

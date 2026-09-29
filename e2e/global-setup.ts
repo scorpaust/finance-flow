@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { chromium } from '@playwright/test'
 
 // Fase 8, ponto 6 — "aquece" o servidor Nuxt (modo `dev`) antes dos testes
@@ -25,7 +26,7 @@ export default async function globalSetup() {
     await page.getByTestId('login-tab-register').click()
     await page.getByTestId('login-name').fill('Warmup')
     await page.getByTestId('login-email').fill(`e2e-warmup-${Date.now()}@example.com`)
-    await page.getByTestId('login-password').fill('TestPassword123')
+    await page.getByTestId('login-password').fill(`E2e-${randomUUID()}`)
     await page.getByTestId('login-accept-terms').check()
     await page.getByTestId('login-submit').click()
     await page.waitForURL('**/', { timeout: 120_000 })

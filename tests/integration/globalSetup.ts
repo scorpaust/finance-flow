@@ -1,5 +1,6 @@
 import { writeFileSync, unlinkSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { randomBytes } from 'node:crypto'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { startStubProviders } from './stubProviders'
 
@@ -22,8 +23,9 @@ export default async function setup() {
 
   const env = {
     MONGODB_URI: mongo.getUri(),
-    SESSION_SECRET: 'test-session-secret-not-for-production-0000000000000000',
-    TWO_FACTOR_ENCRYPTION_KEY: 'test-2fa-key-not-for-production-000000000000000000',
+    // Gerados a cada execução — sem valores com ar de segredo no repositório.
+    SESSION_SECRET: randomBytes(32).toString('hex'),
+    TWO_FACTOR_ENCRYPTION_KEY: randomBytes(32).toString('hex'),
     CRON_SECRET: 'test-cron-secret',
     ADMIN_SECRET: 'test-admin-secret',
     EASYPAY_ACCOUNT_ID: 'test-account',

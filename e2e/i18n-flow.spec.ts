@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { test, expect } from '@playwright/test'
 
 // Fase 8, ponto 6 — E2E da Fase 7 (internacionalização).
@@ -35,7 +36,8 @@ function uniqueEmail(label: string): string {
   return `${label}-${Date.now()}-${counter}@example.com`
 }
 
-const PASSWORD = 'TestPassword123'
+// Gerada a cada execução — sem passwords literais no repositório.
+const PASSWORD = `E2e-${randomUUID()}`
 
 async function registerViaUi(page: import('@playwright/test').Page, email: string) {
   await page.goto('/')

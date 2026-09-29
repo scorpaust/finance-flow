@@ -31,8 +31,14 @@
  */
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:http'
+import { randomBytes } from 'node:crypto'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { MongoClient } from 'mongodb'
+import mongoose from 'mongoose'
+
+// O driver nativo exposto pelo próprio mongoose — `mongodb` não é dependência
+// direta (antes só existia na raiz de node_modules por arrasto do
+// @auth/mongodb-adapter, entretanto removido, e o E2E partiu no CI).
+const { MongoClient } = mongoose.mongo
 
 const PORT = process.env.E2E_PORT || '3400'
 const CONTROL_PORT = process.env.E2E_CONTROL_PORT || '3401'
@@ -134,8 +140,9 @@ async function main() {
   const env = {
     ...process.env,
     MONGODB_URI: mongo.getUri(),
-    SESSION_SECRET: 'e2e-session-secret-not-for-production-00000000000000',
-    TWO_FACTOR_ENCRYPTION_KEY: 'e2e-2fa-key-not-for-production-0000000000000000',
+    // Gerados a cada execução — sem valores com ar de segredo no repositório.
+    SESSION_SECRET: randomBytes(32).toString('hex'),
+    TWO_FACTOR_ENCRYPTION_KEY: randomBytes(32).toString('hex'),
     CRON_SECRET: 'e2e-cron-secret',
     EASYPAY_ACCOUNT_ID: 'e2e-account',
     EASYPAY_API_KEY: 'e2e-key',

@@ -1,5 +1,12 @@
 import { readFileSync } from 'node:fs'
+import { randomBytes } from 'node:crypto'
 import { TEST_ENV_FILE } from './globalSetup'
+
+// Passwords das contas descartáveis dos testes, geradas a cada execução — sem
+// literais no repositório (scanners de segredos, ex. GitGuardian, sinalizam
+// `password: '...'` mesmo quando é só um valor de teste).
+export const TEST_PASSWORD = `T${randomBytes(9).toString('base64url')}1`
+export const WRONG_PASSWORD = `W${randomBytes(9).toString('base64url')}2`
 
 export function readTestEnv(): Record<string, string> {
   return JSON.parse(readFileSync(TEST_ENV_FILE, 'utf8'))

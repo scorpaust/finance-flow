@@ -2043,3 +2043,21 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
       contam para o teto de 2 categorias próprias do Gratuito. Contas
       existentes não foram tocadas. `scripts/seed.mjs` (conta demo de
       desenvolvimento) mantém os dados antigos — não corre para utilizadores.
+    - **Depois do push (2026-09-29)** — dois incidentes reportados pelo
+      utilizador:
+      - **E2E partiu no CI** (`Cannot find package 'mongodb'`): causado pela
+        remoção do `@auth/mongodb-adapter` nesta sessão — era ele que punha o
+        `mongodb` na raiz de `node_modules`, e `scripts/e2e-server.mjs`
+        importava-o diretamente. Agora usa `mongoose.mongo.MongoClient`.
+        Correr o E2E localmente revelou uma **regressão real** desta sessão: ao
+        tirar a chamada `fetchSession()` de `app.vue`, o `/login` ficava com o
+        ecrã de carregamento por cima para sempre (o plugin `init.client.ts`
+        tinha a condição `!auth.loading`, nunca verdadeira, e o middleware não
+        corre em rotas públicas). O plugin passa a chamar sempre
+        `fetchSession()` (idempotente, sem `await`).
+      - **GitGuardian** sinalizou `'ErradaErrada1'` (password falsa de um
+        teste de login falhado) — falso positivo, nada a rodar. Para não
+        repetir: passwords dos testes (integração e E2E) e `SESSION_SECRET`/
+        `TWO_FACTOR_ENCRYPTION_KEY` dos ambientes de teste passam a ser
+        gerados a cada execução, sem literais no repositório.
+      - Resultado: unitários 46/46, integração 23/23, E2E 3/3 (localmente).

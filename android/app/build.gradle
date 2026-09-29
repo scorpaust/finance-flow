@@ -1,5 +1,18 @@
 apply plugin: 'com.android.application'
 
+// Fase 9 — keystore de release. Nunca no repositório: lida de
+// android/keystore.properties (local, no .gitignore) ou das variáveis de
+// ambiente ANDROID_KEYSTORE_* (CI). Processo de criação e backup da chave em
+// context/OPERATIONS.md ("Keystore Android") — perder a chave impede publicar
+// atualizações da app.
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def signingValue = { String prop, String env -> keystoreProps.getProperty(prop) ?: System.getenv(env) }
+def releaseStoreFile = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
+
 android {
     namespace = "com.financeflow.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +20,11 @@ android {
         applicationId "com.financeflow.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Política de versões (context/OPERATIONS.md): versionCode sobe +1 em
+        // CADA upload para a Play Console (inteiro, nunca reutilizado);
+        // versionName acompanha o "version" do package.json (semver).
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +32,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseStoreFile) {
+                storeFile file(releaseStoreFile)
+                storePassword signingValue('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'ANDROID_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            // Sem keystore configurada o release não fica assinado — falha
+            // mais abaixo (gradle.taskGraph) em vez de gerar um .aab inútil.
+            if (releaseStoreFile) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -36,6 +65,8 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Fase 9 — alternative billing only (EEE): ver AlternativeBillingPlugin.java
+    implementation "com.android.billingclient:billing:9.1.0"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
@@ -51,4 +82,12 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+// Um bundle/APK de release sem assinatura não pode ir para a Play Console.
+gradle.taskGraph.whenReady { graph ->
+    def buildsRelease = graph.allTasks.any { it.name ==~ /(bundle|assemble)Release/ }
+    if (buildsRelease && !releaseStoreFile) {
+        throw new GradleException('Keystore de release em falta: cria android/keystore.properties ou define ANDROID_KEYSTORE_* (ver context/OPERATIONS.md, "Keystore Android").')
+    }
 }

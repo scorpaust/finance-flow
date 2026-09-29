@@ -1,0 +1,13 @@
+# Fase 9 — deploy de produção no Netlify (decisão do utilizador, 2026-09-29).
+# O Nitro deteta o Netlify e gera funções serverless (preset netlify-legacy);
+# `dist/` fica com os ficheiros estáticos. Variáveis de ambiente de produção
+# (segredos incluídos) configuram-se no painel do Netlify, nunca aqui — lista
+# completa em context/CONFIG-REFERENCE.md.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Evita instalar o Chromium do Playwright em cada deploy (só os testes o usam).
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"

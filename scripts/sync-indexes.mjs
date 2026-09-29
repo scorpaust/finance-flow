@@ -35,12 +35,19 @@ const INDEXES = [
   { collection: 'investments', keys: { userId: 1, initialDate: -1 } },
   { collection: 'refundedaccounts', keys: { email: 1 } },
   { collection: 'ratelimitbuckets', keys: { expiresAt: 1 }, expireAfterSeconds: 0 },
+  { collection: 'googleplaytransactions', keys: { userId: 1 } },
+  { collection: 'googleplaytransactions', keys: { status: 1 } },
+  { collection: 'googleplaytransactions', keys: { checkoutId: 1 } },
+  { collection: 'googleplaytransactions', keys: { paymentId: 1 } },
+  { collection: 'googleplaytransactions', keys: { externalTransactionId: 1 }, unique: true, sparse: true },
 ]
 
-async function findDuplicates(col, keys) {
+async function findDuplicates(col, keys, sparse) {
   const group = Object.fromEntries(Object.keys(keys).map((k) => [k, `$${k}`]))
+  // Num índice sparse, documentos sem o campo não entram no índice — não são duplicados.
+  const onlyPresent = sparse ? [{ $match: Object.fromEntries(Object.keys(keys).map((k) => [k, { $exists: true }])) }] : []
   return col
-    .aggregate([{ $group: { _id: group, n: { $sum: 1 } } }, { $match: { n: { $gt: 1 } } }, { $limit: 5 }])
+    .aggregate([...onlyPresent, { $group: { _id: group, n: { $sum: 1 } } }, { $match: { n: { $gt: 1 } } }, { $limit: 5 }])
     .toArray()
 }
 
@@ -48,12 +55,12 @@ await mongoose.connect(URI, { dbName: 'financeflow' })
 const db = mongoose.connection.db
 let problems = 0
 
-for (const { collection, keys, unique, expireAfterSeconds } of INDEXES) {
+for (const { collection, keys, unique, sparse, expireAfterSeconds } of INDEXES) {
   const label = `${collection} ${JSON.stringify(keys)}${unique ? ' unique' : ''}`
   const col = db.collection(collection)
 
   if (unique) {
-    const dups = await findDuplicates(col, keys)
+    const dups = await findDuplicates(col, keys, sparse)
     if (dups.length) {
       problems++
       console.log(`✗ ${label} — duplicados (exemplos): ${JSON.stringify(dups.map((d) => d._id))}`)
@@ -67,6 +74,7 @@ for (const { collection, keys, unique, expireAfterSeconds } of INDEXES) {
   try {
     const options = {}
     if (unique) options.unique = true
+    if (sparse) options.sparse = true
     if (expireAfterSeconds !== undefined) options.expireAfterSeconds = expireAfterSeconds
     await col.createIndex(keys, options)
     console.log(`✓ ${label}`)

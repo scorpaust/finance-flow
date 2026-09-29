@@ -40,3 +40,8 @@ tests/integration/.testenv.json
 
 # Backups locais (scripts/backup-mongo.mjs) — nunca commitar dados reais
 backups/
+
+# Keystore Android de release (Fase 9) — nunca no repositório
+*.jks
+*.keystore
+keystore.properties

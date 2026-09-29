@@ -22,6 +22,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { Loader2, Check, Clock } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default' })

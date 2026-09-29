@@ -1,6 +1,7 @@
 import { User } from '../models'
 import { logEvent } from './logger'
 import { decodeMerchantKey, getSubscriptionResource, getSingle, getCheckoutStatus, type EasyPayResource } from './easypay'
+import { onCheckoutResult, onPaymentPaid, onSubscriptionCharge } from './googlePlayBilling'
 
 // O `id` que confirmamos nem sempre é claramente "o id da subscrição" vs. "o
 // id genérico do pagamento" (o SDK de Checkout devolve `payment.id`, sem
@@ -28,6 +29,17 @@ async function fetchResourceLenient(
 // (nome, email e telefone do cliente), que não pode ir para o log.
 function errorMessage(e: unknown): string {
   return String((e as Error)?.message || e).slice(0, 300)
+}
+
+// Fase 9 — reporte das compras feitas na app Android à Google
+// (server/utils/googlePlayBilling.ts). Nunca pode travar a ativação de um
+// pagamento: um erro aqui fica no log e a fila (cron) volta a tentar.
+async function googlePlay(step: string, fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn()
+  } catch (e) {
+    logEvent('error', 'google_play.sync_hook_failed', { step, message: errorMessage(e) })
+  }
 }
 
 function isSuccessResource(resource: EasyPayResource): boolean {
@@ -171,6 +183,8 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
   // pagamento for confirmado) — evita ter de guardar o periodMonths à parte
   // só para o recalcular mais tarde em checkPendingPayment(). Multibanco
   // pode demorar dias a confirmar; esse tempo já conta para o período.
+  if (activeNow) await googlePlay('single_payment', () => onPaymentPaid(paymentId))
+
   await User.findByIdAndUpdate(decoded.userId, {
     subscription: {
       tier: decoded.tier,
@@ -217,6 +231,8 @@ export async function checkPendingPayment(userId: string): Promise<{ status: str
       sub.multibancoExpiresAt = null
     }
     await user!.save()
+    const paidId = sub.easypaySubscriptionId
+    await googlePlay('check_pending', () => onPaymentPaid(paidId))
     return { status: 'active' }
   }
 
@@ -264,6 +280,9 @@ export async function syncFromCheckout(checkoutId: string, expectedUserId?: stri
       logEvent('warn', 'easypay.checkout_status_rejected', { checkoutId, status: paymentStatus })
       return
     }
+    // Antes da verificação de idempotência: se o webhook já aplicou este
+    // pagamento, só aqui se sabe que o checkout veio da app Android.
+    await googlePlay('checkout_recurring', () => onCheckoutResult(checkoutId, paymentId, SUCCESS_STATUSES.includes(paymentStatus!)))
     const applied = await getAppliedIds(decoded.userId)
     if (applied.includes(paymentId)) return
     await User.findByIdAndUpdate(decoded.userId, {
@@ -282,6 +301,9 @@ export async function syncFromCheckout(checkoutId: string, expectedUserId?: stri
     return
   }
 
+  // Só liga o checkout ao pagamento; o reporte acontece quando estiver pago
+  // (syncSinglePayment, checkPendingPayment ou webhook "capture").
+  await googlePlay('checkout_single', () => onCheckoutResult(checkoutId, paymentId, false))
   await syncSinglePayment(paymentId, decoded)
 }
 
@@ -329,4 +351,10 @@ export async function syncCapture(resourceId: string): Promise<void> {
   }
   sub.appliedPaymentIds = withApplied(applied, resourceId)
   await user.save()
+
+  const seriesId = sub.billingMode === 'auto' ? sub.easypaySubscriptionId : undefined
+  await googlePlay('capture', async () => {
+    await onPaymentPaid(resourceId)
+    if (seriesId) await onSubscriptionCharge(seriesId, resourceId, decoded.tier)
+  })
 }

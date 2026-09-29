@@ -18,7 +18,7 @@
             :style="{ animationDelay: (i - 1) * 0.15 + 's' }"
           />
         </div>
-        <p class="text-white/30 text-sm font-medium">{{ $t('common.loading') }}</p>
+        <p class="text-white/30 text-sm font-medium">{{ t('common.loading') }}</p>
       </div>
     </div>
 
@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n()
 const auth = useAuthStore()
 const appLock = useAppLockStore()
 

@@ -228,3 +228,106 @@ insights de IA) sem decifrar tudo primeiro, o que anularia a proposta de
 valor da app; (3) a Atlas já garante encriptação de disco por omissão. Se o
 âmbito do produto vier a incluir dados de categoria especial, esta decisão
 deve ser reaberta.
+
+## Keystore Android (release)
+
+Fase 9. A keystore assina cada `.aab` enviado para a Play Console. **Perdê-la
+(ou a password) impede publicar atualizações da app** — só a Google pode
+repor uma chave de upload, e só com Play App Signing ativo.
+
+1. **Criar** (uma vez), fora do repositório:
+   ```bash
+   keytool -genkeypair -v -keystore financeflow-upload.jks -alias upload \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+2. **Configurar o build** — criar `android/keystore.properties` (está no
+   `.gitignore`, nunca vai para o git):
+   ```properties
+   storeFile=C:/caminho/seguro/financeflow-upload.jks
+   storePassword=...
+   keyAlias=upload
+   keyPassword=...
+   ```
+   Em CI, em alternativa, as variáveis `ANDROID_KEYSTORE_PATH`,
+   `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+   Sem nenhum dos dois, `bundleRelease` recusa-se a correr
+   (`android/app/build.gradle`) — nunca sai um bundle sem assinatura.
+3. **Play App Signing** (recomendado, é o default para apps novas): a Google
+   guarda a chave de assinatura final; a nossa passa a ser só a *chave de
+   upload*. Se a de upload se perder, pede-se uma nova à Google em vez de
+   perder a app.
+4. **Backup**: o `.jks` e as passwords em **dois** sítios independentes (ex.
+   gestor de passwords com anexo + pen/cofre offline). Nunca por email,
+   nunca na mesma pasta do código, nunca num serviço sincronizado com o
+   repositório.
+
+## Versões da app Android
+
+- `versionCode` (`android/app/build.gradle`): inteiro, **+1 em cada upload**
+  para a Play Console, mesmo que o upload seja descartado — a Play Console
+  nunca aceita um `versionCode` repetido ou menor.
+- `versionName`: acompanha o `"version"` do `package.json` (semver — patch
+  para correções, minor para funcionalidades novas).
+- Como a app Android é uma shell que carrega o site de produção
+  (`capacitor.config.ts` → `server.url`), a maior parte das alterações chega
+  aos utilizadores Android **só com o deploy web**, sem nova versão na loja.
+  Uma nova versão Android só é precisa para mudanças nativas (plugins
+  Capacitor, permissões, ícone/splash, manifest, `server.url`).
+
+## Deploy web (Netlify)
+
+- Configuração do build: `netlify.toml` (raiz). O site está ligado ao
+  projeto (`.netlify/state.json`), subdomínio
+  `financeflow-fase2-subs.netlify.app` (decisão de 2026-09-29, até haver
+  domínio próprio — renomear o site no Netlify muda o subdomínio, e então é
+  preciso atualizar `APP_URL`, `capacitor.config.ts` e o webhook EasyPay).
+- Variáveis de ambiente: todas as de `context/CONFIG-REFERENCE.md`, no painel
+  do Netlify (Site configuration → Environment variables). Em produção
+  `SESSION_SECRET`, `TWO_FACTOR_ENCRYPTION_KEY`, `CRON_SECRET` e
+  `ADMIN_SECRET` **gerados de novo**, nunca copiados do `.env` de
+  desenvolvimento.
+- Webhook EasyPay: no painel da EasyPay, apontar para
+  `<APP_URL>/api/subscription/easypay/webhook` (primeiro na conta sandbox;
+  na conta de produção quando se ligar `EASYPAY_ENV=production`).
+- Crons (`.github/workflows/cron.yml`): secrets `APP_URL` e `CRON_SECRET` no
+  GitHub (o mesmo `CRON_SECRET` do Netlify).
+- Índices: correr `npm run db:sync-indexes` contra a base de dados de
+  produção antes do primeiro deploy e depois de qualquer alteração a índices.
+
+## Lançamento e rollout
+
+Decisões de 2026-09-29: web no Netlify, pagamentos EasyPay em **sandbox**
+durante os testes internos, produção real só na promoção para a faixa
+pública.
+
+1. **Web**: deploy no Netlify com `EASYPAY_ENV=test`; verificar HTTPS, login,
+   registo, uma subscrição sandbox de cada método, e os avisos da CSP na
+   consola (ver `nuxt.config.ts`).
+2. **Android — testes internos**: `.aab` assinado na faixa de testes
+   internos; instalar a partir da Play Store num dispositivo real e repetir o
+   fluxo (login, subscrição sandbox, funcionalidades por plano); confirmar que
+   a mesma conta mostra o mesmo plano na web e no Android.
+3. **Passagem a pagamentos reais**: `EASYPAY_ENV=production` e credenciais de
+   produção no Netlify, webhook na conta EasyPay de produção, uma subscrição
+   real de baixo valor para confirmar, reembolsada a seguir.
+4. **Produção na Play Store**: só depois do programa de pagamentos externos
+   aprovado; rollout faseado 20% → 50% → 100%, pelo menos 48 h em cada passo,
+   a vigiar o Sentry e os registos do Netlify.
+
+## Rollback
+
+- **Web** (a maioria dos problemas, incluindo na app Android): Netlify →
+  Deploys → escolher o último deploy bom → **Publish deploy**. Instantâneo,
+  sem novo build. Se o problema for de dados, ver "Plano de rollback para
+  migrações de schema" acima.
+- **Android**: a Play Console não permite voltar a uma versão anterior. Num
+  rollout faseado, **Halt rollout** para parar a distribuição; a correção sai
+  numa versão nova (`versionCode` +1). Como a app carrega o site, um problema
+  só da parte web resolve-se com o rollback web acima.
+- **Pagamentos**: se algo falhar com pagamentos reais, voltar
+  `EASYPAY_ENV=test` no Netlify (novos checkouts deixam de cobrar) e tratar
+  os pagamentos já feitos manualmente no painel da EasyPay.
+- **Contacto**: o operador (email de contacto publicado nos Termos e na
+  Política de Privacidade, `utils/legalContent.ts`) é quem decide e executa
+  o rollback; os utilizadores reportam problemas pelo mesmo email.
+

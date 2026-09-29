@@ -1,0 +1,64 @@
+name: Crons de produção
+
+on:
+  schedule:
+    # Expiração de subscrições pré-pagas (MB WAY/Multibanco) e limpeza de
+    # campos — 04:23 UTC, todos os dias.
+    - cron: '23 4 * * *'
+    # Snapshot diário dos índices de mercado para as dicas de investimento
+    # (Fase 3) — 22:41 UTC, dias úteis, depois do fecho dos mercados dos EUA.
+    - cron: '41 22 * * 1-5'
+    # Fila de reportes à Google Play (compras na app Android, alternative
+    # billing only) — de hora a hora; a Google exige o reporte em até 24 h.
+    - cron: '7 * * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Qual correr à mão'
+        type: choice
+        options: [check-expirations, market-snapshot, google-play-queue]
+        default: check-expirations
+
+# Fase 9 — até aqui nada agendava estes endpoints (ver histórico da Fase 8).
+# Chamam a app de produção com o header `x-cron-secret`
+# (server/utils/cron.ts). Segredos necessários neste repositório
+# (Settings → Secrets and variables → Actions):
+#   APP_URL      — URL público de produção, sem barra final
+#   CRON_SECRET  — o MESMO valor configurado no Netlify
+# Sem eles o job termina com um aviso em vez de falhar (antes de o deploy de
+# produção existir não há nada para chamar).
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Escolher o endpoint
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            job="${{ inputs.job }}"
+          elif [ "${{ github.event.schedule }}" = "23 4 * * *" ]; then
+            job="check-expirations"
+          elif [ "${{ github.event.schedule }}" = "7 * * * *" ]; then
+            job="google-play-queue"
+          else
+            job="market-snapshot"
+          fi
+          case "$job" in
+            check-expirations) echo "path=/api/subscription/check-expirations" >> "$GITHUB_OUTPUT" ;;
+            market-snapshot)   echo "path=/api/insights/market-snapshot" >> "$GITHUB_OUTPUT" ;;
+            google-play-queue) echo "path=/api/billing/google-play/process-queue" >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Chamar a app
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::warning::APP_URL/CRON_SECRET não configurados — nada a fazer."
+            exit 0
+          fi
+          status=$(curl -sS -o response.json -w '%{http_code}' --max-time 120 \
+            -X POST -H "x-cron-secret: $CRON_SECRET" "$APP_URL${{ steps.pick.outputs.path }}")
+          echo "HTTP $status"
+          head -c 500 response.json; echo
+          test "$status" -ge 200 && test "$status" -lt 300

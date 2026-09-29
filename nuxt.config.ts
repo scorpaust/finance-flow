@@ -1,5 +1,8 @@
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  // Desligadas quando a app corre pela infraestrutura de testes/capturas
+  // (scripts/e2e-server.mjs define E2E_PORT): o botão flutuante das devtools
+  // aparecia nas capturas da Play Store e pode tapar elementos nos testes.
+  devtools: { enabled: !process.env.E2E_PORT },
 
   // O Nuxt regenera a app a cada ficheiro criado/apagado dentro do projeto. Um
   // `gradlew assembleDebug` ou `cap sync` mexe em milhares de ficheiros em
@@ -166,6 +169,15 @@ export default defineNuxtConfig({
     // processo de download/atualização). Sem o ficheiro, `server/utils/geo.ts`
     // devolve sempre `null` (país desconhecido) em vez de rebentar.
     geoliteDbPath: process.env.GEOLITE2_DB_PATH || '',
+    // Fase 9 — alternative billing only (Google Play, EEE): cada compra feita
+    // na app Android é reportada à Google Play Developer API
+    // (server/utils/googlePlayBilling.ts). JSON da conta de serviço (em texto
+    // ou base64); sem ele, os reportes ficam na fila à espera.
+    googlePlayServiceAccount: process.env.GOOGLE_PLAY_SERVICE_ACCOUNT || '',
+    googlePlayPackageName: process.env.GOOGLE_PLAY_PACKAGE_NAME || 'com.financeflow.app',
+    // Taxa de IVA incluída nos preços (0.23 = 23%). 0 por omissão: o operador
+    // está isento ao abrigo do art. 53.º do CIVA (decisão de 2026-09-29).
+    billingVatRate: Number(process.env.BILLING_VAT_RATE || '0'),
     public: {
       // O DSN do Sentry é público por desenho (vai no bundle do client).
       sentryDsn: process.env.SENTRY_DSN || '',
@@ -188,13 +200,32 @@ export default defineNuxtConfig({
   // server/plugins/ é carregado automaticamente pelo Nitro (antes o
   // mongoose.ts estava também listado aqui e registava-se duas vezes).
   //
-  // Cabeçalhos de segurança em todas as respostas. Sem CSP de propósito: o
-  // SDK de checkout da EasyPay, as Google Fonts e o Sentry carregam recursos
-  // de domínios terceiros — uma CSP mal afinada partia o pagamento; fica para
-  // quando houver o domínio de produção para validar (Fase 9).
+  // Cabeçalhos de segurança em todas as respostas.
+  //
+  // Fase 9 — CSP em modo Report-Only: o browser só avisa na consola do que
+  // bloquearia, sem bloquear nada. O checkout da EasyPay (iframe em
+  // pay[.sandbox].easypay.pt), as Google Fonts e o Sentry vêm de domínios
+  // terceiros; depois de validar em produção (checkout completo sem avisos
+  // na consola, web e Android), trocar o nome do cabeçalho para
+  // 'Content-Security-Policy' para passar a bloquear. `'unsafe-inline'` em
+  // script-src por causa do payload de hidratação inline do Nuxt.
   routeRules: {
     '/**': {
       headers: {
+        'Content-Security-Policy-Report-Only': [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' data: https://fonts.gstatic.com",
+          "img-src 'self' data: blob: https:",
+          "connect-src 'self' https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://pay.easypay.pt https://pay.sandbox.easypay.pt",
+          "frame-src https://pay.easypay.pt https://pay.sandbox.easypay.pt",
+          "worker-src 'self' blob:",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "frame-ancestors 'none'",
+        ].join('; '),
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -235,6 +266,13 @@ export default defineNuxtConfig({
   typescript: {
     strict: false,
     typeCheck: false,
+    // `ignore: ['android/**']` (acima) só vale para o Nuxt, não para o
+    // TypeScript: sem isto o type-check lia os bundles JS dentro dos builds
+    // do Gradle, que declaram um `$fetch` minificado e não genérico
+    // (a origem dos erros "Expected 0 type arguments" em `$fetch<T>`).
+    tsConfig: {
+      exclude: ['../android'],
+    },
   },
 
   app: {

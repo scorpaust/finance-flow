@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'node:http'
 
-// Fase 8, ponto 6 — servidor HTTP local que finge ser a Anthropic e a EasyPay
+// Fase 8, ponto 6 — servidor HTTP local que finge ser a Anthropic, a EasyPay
+// e (Fase 9) o OAuth + a Google Play Developer API
 // nos testes de integração (nunca chamadas reais a fornecedores externos —
 // custam dinheiro e tornariam os testes instáveis). Corre no processo
 // principal do Vitest (arrancado no `globalSetup`); o servidor Nuxt de teste
@@ -40,7 +41,9 @@ export async function startStubProviders(): Promise<StubProviders> {
     body: { content: [{ type: 'text', text: '{}' }], usage: { input_tokens: 1, output_tokens: 1 } },
   }
   const easypayResponses = new Map<string, StoredResponse>()
-  const requests: { path: string; method: string; body: unknown }[] = []
+  const requests: { path: string; query: string; method: string; body: unknown; authorization?: string }[] = []
+  // Fase 9 — resposta da Google Play Developer API (externalTransactions).
+  let googleStatus = 200
 
   function resetAll() {
     anthropicResponse = {
@@ -49,10 +52,11 @@ export async function startStubProviders(): Promise<StubProviders> {
     }
     easypayResponses.clear()
     requests.length = 0
+    googleStatus = 200
   }
 
   const server = createServer(async (req, res) => {
-    const path = (req.url || '').split('?')[0]
+    const [path, query = ''] = (req.url || '').split('?')
     const method = req.method || 'GET'
     const body = await readJsonBody(req)
 
@@ -72,17 +76,34 @@ export async function startStubProviders(): Promise<StubProviders> {
       res.writeHead(204).end()
       return
     }
+    if (path === '/__control/google' && method === 'POST') {
+      googleStatus = body.status ?? 200
+      res.writeHead(204).end()
+      return
+    }
     if (path === '/__control/requests' && method === 'GET') {
       res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(requests))
       return
     }
 
     // ── Respostas simuladas dos fornecedores ────────────────────────────────
-    requests.push({ path, method, body })
+    requests.push({ path, query, method, body, authorization: req.headers.authorization })
 
     if (path === '/v1/messages') {
       res.writeHead(anthropicResponse.status, { 'content-type': 'application/json' })
       res.end(JSON.stringify(anthropicResponse.body))
+      return
+    }
+
+    // OAuth 2.0 da conta de serviço (token_uri da conta de teste).
+    if (path === '/oauth/token' && method === 'POST') {
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ access_token: 'stub-google-token', expires_in: 3600, token_type: 'Bearer' }))
+      return
+    }
+    if (path.startsWith('/androidpublisher/')) {
+      res.writeHead(googleStatus, { 'content-type': 'application/json' })
+      res.end(JSON.stringify(googleStatus < 300 ? { transactionState: 'TRANSACTION_REPORTED' } : { error: { code: googleStatus } }))
       return
     }
 

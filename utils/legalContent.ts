@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-09-27";
+export const LEGAL_UPDATED = "2026-09-29";
 
 export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
@@ -56,7 +56,9 @@ export const LEGAL_CONTENT: Content = {
           h: "4. Com quem partilhamos os dados (subcontratantes)",
           p: [
             "MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.",
+            "Netlify — alojamento da aplicação; processa os pedidos feitos à app, incluindo o endereço IP.",
             "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
+            "Google (Google Play) — só nas subscrições compradas dentro da app Android: por exigência do programa de faturação alternativa da Google, comunicamos-lhe o valor, a data, o país e um identificador de cada transação (nunca o teu nome, email ou dados financeiros da app).",
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
             "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
             "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
@@ -83,7 +85,7 @@ export const LEGAL_CONTENT: Content = {
           h: "7. Os teus direitos",
           p: [
             "Acesso e portabilidade: em Definições → Privacidade e dados podes descarregar todos os teus dados em JSON.",
-            "Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes.",
+            "Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes. Se já não tiveres acesso à app, pede a eliminação por email para dinismiguelcosta@gmail.com, a partir do endereço associado à conta.",
             "Retificação: podes corrigir os teus dados diretamente na app. Tens ainda direito à limitação e à oposição ao tratamento; contacta-nos em dinismiguelcosta@gmail.com.",
             "Podes apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt.",
           ],
@@ -142,7 +144,9 @@ export const LEGAL_CONTENT: Content = {
           h: "4. Who we share data with (processors)",
           p: [
             "MongoDB Atlas — hosting of the database that stores your data.",
+            "Netlify — application hosting; processes the requests made to the app, including your IP address.",
             "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
+            "Google (Google Play) — only for subscriptions bought inside the Android app: as required by Google's alternative billing program, we send Google the amount, date, country and an identifier of each transaction (never your name, email or financial data from the app).",
             "Anthropic — provider of the AI model used for the features described in section 5.",
             "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
             "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",
@@ -169,7 +173,7 @@ export const LEGAL_CONTENT: Content = {
           h: "7. Your rights",
           p: [
             "Access and portability: in Settings → Privacy and data you can download all your data as JSON.",
-            "Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first.",
+            "Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first. If you no longer have access to the app, request deletion by email to dinismiguelcosta@gmail.com from the address linked to the account.",
             "Rectification: you can correct your data directly in the app. You also have the right to restriction and objection; contact us at dinismiguelcosta@gmail.com.",
             "You may lodge a complaint with the Portuguese data protection authority (CNPD), www.cnpd.pt, or your local authority.",
           ],

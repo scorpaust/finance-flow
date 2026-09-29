@@ -23,7 +23,9 @@
     "vsLastMonth": "vs mes anterior",
     "closeNotification": "Cerrar notificación",
     "updateAvailable": "Nueva versión disponible — actualizando...",
-    "offlineReady": "App lista para usar sin conexión"
+    "offlineReady": "App lista para usar sin conexión",
+    "pageNotFound": "Página no encontrada",
+    "somethingWentWrong": "Algo ha salido mal"
   },
   "nav": {
     "home": "Panel",
@@ -594,6 +596,7 @@
     "planPremiumF2": "Previsiones con IA (ConvNeXt-1D)",
     "planPremiumF3": "Soporte prioritario",
     "confirmNativePayment": "Vas a completar el pago a través de EasyPay. ¿Continuar?",
+    "androidBillingUnavailable": "Los pagos en la app no están disponibles en este dispositivo o en tu región.",
     "toastPaymentConfirmedCheck": "¡Pago confirmado! Comprueba el estado de tu suscripción abajo.",
     "errorEasyPayCode": "Error en el checkout de EasyPay ({code})",
     "toastPaymentFailed": "El pago ha fallado — puedes probar otro método en el formulario.",

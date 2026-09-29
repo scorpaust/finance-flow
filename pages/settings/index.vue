@@ -167,6 +167,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { User, Tag, Plus, Trash2, X, ArrowLeft, Crown, Languages } from 'lucide-vue-next'
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '~/types'
 import { TIER_LABEL } from '~/shared/features'

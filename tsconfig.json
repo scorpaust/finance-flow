@@ -1,14 +1,9 @@
 {
+  // Só `extends` + strict: redefinir aqui "paths" (ou module/target) substitui
+  // o que o Nuxt gera em .nuxt/tsconfig.json — "paths" apagava todos os aliases
+  // (#imports, #build, #pwa, ~, @), a origem de parte dos erros do typecheck.
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./*"]
-    }
+    "strict": true
   }
 }

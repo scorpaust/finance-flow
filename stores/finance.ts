@@ -23,7 +23,7 @@ export const useFinanceStore = defineStore('finance', () => {
           params[k] = v
         }
       }
-      const res = (await $fetch('/api/transactions', { params })) as PaginatedResponse<Transaction>
+      const res = await $fetch<PaginatedResponse<Transaction>>('/api/transactions', { params })
       transactions.value = res.data
       total.value        = res.total
       currentPage.value  = res.page
@@ -34,13 +34,13 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   async function createTransaction(data: Partial<Transaction>) {
-    const tx = (await $fetch('/api/transactions', { method: 'POST', body: data })) as Transaction
+    const tx = await $fetch<Transaction>('/api/transactions', { method: 'POST', body: data })
     await fetchTransactions()
     return tx
   }
 
   async function updateTransaction(id: string, data: Partial<Transaction>) {
-    const tx = (await $fetch(`/api/transactions/${id}`, { method: 'PUT', body: data })) as Transaction
+    const tx = await $fetch<Transaction>(`/api/transactions/${id}`, { method: 'PUT', body: data })
     const idx = transactions.value.findIndex(t => t._id === id)
     if (idx >= 0) transactions.value[idx] = tx
     return tx
@@ -55,11 +55,11 @@ export const useFinanceStore = defineStore('finance', () => {
   async function fetchCategories(type?: string) {
     const params: Record<string, any> = {}
     if (type && type !== 'all') params.type = type
-    categories.value = (await $fetch('/api/categories', { params })) as Category[]
+    categories.value = await $fetch<Category[]>('/api/categories', { params })
   }
 
   async function createCategory(data: Partial<Category>) {
-    const cat = (await $fetch('/api/categories', { method: 'POST', body: data })) as Category
+    const cat = await $fetch<Category>('/api/categories', { method: 'POST', body: data })
     categories.value.push(cat)
     categories.value.sort((a, b) => a.name.localeCompare(b.name))
     return cat

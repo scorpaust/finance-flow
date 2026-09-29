@@ -170,6 +170,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { ArrowLeft, Check, Loader2 } from 'lucide-vue-next'
 import { SUBSCRIPTION_TIERS, TIER_LABEL, TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
 
@@ -178,6 +180,7 @@ definePageMeta({ layout: 'default' })
 const toast = useToastStore()
 const sub = useSubscription()
 const platform = usePlatform()
+const { prepareAndroidPurchase } = useAlternativeBilling()
 const route = useRoute()
 const { t, locale } = useI18n()
 
@@ -276,6 +279,16 @@ async function beginCheckout() {
     return
   }
 
+  // Fase 9 — na app Android a Google exige o seu ecrã informativo e um token
+  // por compra (alternative billing only); no browser não faz nada.
+  const billing = await prepareAndroidPurchase()
+  if (billing.kind === 'canceled') return
+  if (billing.kind === 'unavailable') {
+    toast.error(t('subscription.androidBillingUnavailable'))
+    return
+  }
+  const googlePlayToken = billing.kind === 'ready' ? billing.token : undefined
+
   submitting.value = true
   mbwayWaiting.value = false
   try {
@@ -287,13 +300,14 @@ async function beginCheckout() {
             body: {
               tier: selectedTier.value,
               method: selectedMethod.value,
+              googlePlayToken,
             },
           })
         ).manifest
       : (
           await $fetch<{ manifest: any }>('/api/subscription/easypay/create-prepaid', {
             method: 'POST',
-            body: { tier: selectedTier.value, method: selectedMethod.value, periodMonths: periodMonths.value },
+            body: { tier: selectedTier.value, method: selectedMethod.value, periodMonths: periodMonths.value, googlePlayToken },
           })
         ).manifest
 

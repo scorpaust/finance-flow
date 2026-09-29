@@ -31,7 +31,13 @@ export function stubClient(baseUrl: string) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ method, path, body, status }),
       }),
-    requests: async (): Promise<{ path: string; method: string; body: unknown }[]> =>
+    setGoogleStatus: (status: number) =>
+      fetch(`${baseUrl}/__control/google`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }),
+    requests: async (): Promise<{ path: string; query: string; method: string; body: any; authorization?: string }[]> =>
       (await fetch(`${baseUrl}/__control/requests`)).json(),
   }
 }

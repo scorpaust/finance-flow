@@ -23,7 +23,9 @@
     "vsLastMonth": "vs mes anterior",
     "closeNotification": "Cerrar notificación",
     "updateAvailable": "Nueva versión disponible — actualizando...",
-    "offlineReady": "App lista para usar sin conexión"
+    "offlineReady": "App lista para usar sin conexión",
+    "pageNotFound": "Página no encontrada",
+    "somethingWentWrong": "Algo ha salido mal"
   },
   "nav": {
     "home": "Panel",

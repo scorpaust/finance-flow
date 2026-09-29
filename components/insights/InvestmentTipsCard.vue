@@ -74,6 +74,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { Lightbulb, AlertTriangle, Sparkles, Loader2, ShieldCheck } from 'lucide-vue-next'
 
 // Dicas de investimento por IA (Fase 3) na zona de investimentos (Fase 6). Ao

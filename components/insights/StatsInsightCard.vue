@@ -74,6 +74,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { Sparkles, Loader2, Lightbulb, Target, RefreshCw } from 'lucide-vue-next'
 
 const props = defineProps<{ months: number }>()
@@ -84,7 +86,8 @@ const sub = useSubscription()
 const canUse = computed(() => sub.hasFeature('aiStatsInsights'))
 
 const loading = ref(false)
-const result = ref<{ insights: string[]; suggestions: string[]; generatedAt: string; cached: boolean } | null>(null)
+type StatsInsightResult = { insights: string[]; suggestions: string[]; generatedAt: string; cached: boolean }
+const result = ref<StatsInsightResult | null>(null)
 
 const formattedDate = computed(() =>
   result.value ? new Date(result.value.generatedAt).toLocaleString(intlLocale.value) : ''
@@ -93,7 +96,9 @@ const formattedDate = computed(() =>
 async function analyze() {
   loading.value = true
   try {
-    result.value = await $fetch('/api/insights/stats', {
+    // Genérico explícito: a inferência pelas rotas tipadas do Nitro esgota a
+    // profundidade do TypeScript neste endpoint (TS2321).
+    result.value = await $fetch<StatsInsightResult>('/api/insights/stats', {
       method: 'POST',
       body: { months: props.months },
     })

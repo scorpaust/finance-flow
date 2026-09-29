@@ -124,3 +124,25 @@ envio no projeto — ver `context/features/08-FASE-8-seguranca-qualidade.md`).
 - [ ] Nenhuma chave de teste em ambiente de produção
 - [ ] `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` está `false` (ou ausente) em produção, salvo validação jurídica feita
 - [ ] `android:usesCleartextTraffic="false"` e sem `CAPACITOR_SERVER_URL` no build de release Android
+
+## Fase 9 — Publicação
+
+**Alojamento de produção: Netlify** (decisão do utilizador, 2026-09-29).
+Nuxt SSR corre em funções serverless (preset `netlify-legacy`, detetado
+automaticamente); build definido em `netlify.toml`. Endereço:
+`https://financeflow-fase2-subs.netlify.app` (subdomínio do Netlify até haver
+domínio próprio — o mesmo valor em `APP_URL` e em `capacitor.config.ts`).
+Todas as variáveis acima configuram-se no painel do Netlify; passos completos
+em `context/OPERATIONS.md` ("Deploy web").
+
+| Variável | Onde | Descrição |
+|---|---|---|
+| `APP_URL` | Netlify + secret do GitHub | URL público de produção, sem barra final (CORS, links, crons) |
+| `CRON_SECRET` | Netlify + secret do GitHub | O mesmo valor nos dois — `.github/workflows/cron.yml` chama `check-expirations` e `market-snapshot` |
+| `CAPACITOR_SERVER_URL` | Só na máquina de desenvolvimento | Aponta a app Android para um dev server (`http://…`) — **nunca definida num build de release** |
+| `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | CI (opcional) | Alternativa a `android/keystore.properties` para assinar o release — ver `OPERATIONS.md`, "Keystore Android" |
+
+**Geolocalização em produção**: no Netlify o país vem dos cabeçalhos de
+geolocalização do próprio Netlify (`x-country` / `x-nf-geo`,
+`server/utils/geo.ts`); `GEOLITE2_DB_PATH` só é usado fora do Netlify.
+

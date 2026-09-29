@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!--
+  Fase 9 — release: só HTTPS (usesCleartextTraffic=false) e sem backup dos dados
+  da app (a WebView guarda o cookie de sessão; um backup restaurado noutro
+  dispositivo levava a sessão consigo). O HTTP simples para testar contra o dev
+  server local fica só nos builds debug — ver src/debug/AndroidManifest.xml.
+  `tools:replace`: o módulo gerado capacitor-cordova-android-plugins declara
+  usesCleartextTraffic=true e, sem isto, o merge falha (ou herdava o true).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="false"
+        tools:replace="android:usesCleartextTraffic"
         android:theme="@style/AppTheme">
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"

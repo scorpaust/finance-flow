@@ -37,10 +37,10 @@ export const useSubscriptionStore = defineStore('subscription', () => {
   async function refresh() {
     isLoading.value = true
     try {
-      const data = (await $fetch('/api/subscription')) as {
+      const data = await $fetch<{
         subscription: SubscriptionState
         daysUntilExpiry: number | null
-      }
+      }>('/api/subscription')
       subscription.value = data.subscription
       daysUntilExpiry.value = data.daysUntilExpiry
     } catch {

@@ -170,6 +170,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { ArrowLeft, Check, Loader2 } from 'lucide-vue-next'
 import { SUBSCRIPTION_TIERS, TIER_LABEL, TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
 

@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-09-27";
+export const LEGAL_UPDATED = "2026-09-29";
 
 export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
@@ -83,7 +83,7 @@ export const LEGAL_CONTENT: Content = {
           h: "7. Os teus direitos",
           p: [
             "Acesso e portabilidade: em Definições → Privacidade e dados podes descarregar todos os teus dados em JSON.",
-            "Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes.",
+            "Apagamento: na mesma secção podes eliminar a tua conta e todos os dados associados. Se tiveres uma subscrição com renovação automática, ela é cancelada antes. Se já não tiveres acesso à app, pede a eliminação por email para dinismiguelcosta@gmail.com, a partir do endereço associado à conta.",
             "Retificação: podes corrigir os teus dados diretamente na app. Tens ainda direito à limitação e à oposição ao tratamento; contacta-nos em dinismiguelcosta@gmail.com.",
             "Podes apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), www.cnpd.pt.",
           ],
@@ -169,7 +169,7 @@ export const LEGAL_CONTENT: Content = {
           h: "7. Your rights",
           p: [
             "Access and portability: in Settings → Privacy and data you can download all your data as JSON.",
-            "Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first.",
+            "Erasure: in the same section you can delete your account and all associated data. If you have an auto-renewing subscription, it is cancelled first. If you no longer have access to the app, request deletion by email to dinismiguelcosta@gmail.com from the address linked to the account.",
             "Rectification: you can correct your data directly in the app. You also have the right to restriction and objection; contact us at dinismiguelcosta@gmail.com.",
             "You may lodge a complaint with the Portuguese data protection authority (CNPD), www.cnpd.pt, or your local authority.",
           ],

@@ -117,6 +117,8 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default' })

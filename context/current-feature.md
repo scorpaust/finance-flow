@@ -8,6 +8,33 @@ Em progresso — branch `feature/fase-9-publicacao` criado a partir de `main`
 em 2026-09-29. Âmbito pedido pelo utilizador: responder a todas as
 pendências (as da especificação e as herdadas da Fase 8, ver Notas).
 
+Decisões do utilizador (2026-09-29): alojamento **Netlify**, no subdomínio
+`financeflow-fase2-subs.netlify.app` até haver domínio próprio; EasyPay em
+**sandbox** durante os testes internos (produção só na faixa pública);
+inscrição nos pagamentos externos da Google **ainda não submetida**.
+
+**Feito no código/documentação** (ver histórico de 2026-09-29):
+cleartext desligado no release, sem backup dos dados da app, assinatura de
+release + política de versões, URL de produção, `netlify.toml`, crons
+agendados, geolocalização em produção, CSP (Report-Only), plano de rollout e
+rollback, keystore documentada, ficha/declarações da Play Store, dívida de
+tipos (54 → 0, CI passa a falhar com erros de tipos).
+
+**Por decidir pelo utilizador**:
+- ⚠️ **Faturação Android** — o programa da especificação já não se aplica
+  ao nosso caso; ver `context/PLAY-STORE.md`, secção 5.
+
+**Por fazer pelo utilizador** (fora do código): criar a keystore e o
+`android/keystore.properties`; variáveis de ambiente e primeiro deploy no
+Netlify; `npm run db:sync-indexes` em produção; webhook EasyPay a apontar
+para produção; secrets `APP_URL`/`CRON_SECRET` no GitHub; conta Play Console
+e ficha; conta Anthropic com créditos e limite de gasto; link próprio do
+Livro de Reclamações; bucket R2 dos backups.
+
+**Por fazer depois do 1.º deploy**: confirmar a geolocalização do Netlify
+(MB WAY/Multibanco aparecem em PT), validar a CSP e passá-la a obrigatória,
+Lighthouse, capturas de ecrã para a loja.
+
 ## Objetivos
 
 FASE 9 — Publicação (Google Play + Deploy Web de Produção). Última fase antes
@@ -2064,3 +2091,60 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
 - 2026-09-29: Definida como funcionalidade atual — FASE 9 (Publicação: Google
   Play + Deploy Web de Produção), especificação em
   `context/features/09-FASE-9-publicacao.md`. Estado inicial: não iniciada.
+- 2026-09-29: Branch `feature/fase-9-publicacao` criado a partir de `main`.
+  O utilizador pediu para "responder a todas as pendências". Decisões pedidas
+  e obtidas: Netlify, subdomínio do Netlify, EasyPay em sandbox nos testes
+  internos, inscrição na Google ainda não submetida. Trabalho:
+
+  - **Android (tarefa 1)**: `usesCleartextTraffic="false"` no manifest
+    principal, com `tools:replace` — **achado**: o módulo gerado
+    `capacitor-cordova-android-plugins` declara `true` e, sem isto, o merge
+    falhava ou herdava o `true`. HTTP simples só nos builds debug
+    (`android/app/src/debug/AndroidManifest.xml`, para testar contra o dev
+    server). `allowBackup="false"` + `data_extraction_rules.xml` (a WebView
+    guarda o cookie de sessão; um backup restaurado noutro dispositivo
+    levava a sessão). Assinatura de release em `build.gradle`, lida de
+    `android/keystore.properties` ou `ANDROID_KEYSTORE_*`; sem keystore o
+    `bundleRelease` recusa-se a correr. **Achado**: `android/.gitignore` tinha
+    as regras de keystore comentadas — um `.jks` podia ir para o git;
+    corrigido também no `.gitignore` da raiz. `versionName` 1.0.0 +
+    política de versões. `capacitor.config.ts`: URL de produção real e
+    cleartext só com um `http://` explícito. **Validado com Gradle** (JDK 21
+    — o `JAVA_HOME` desta máquina aponta para o 17, que o Capacitor 8 já não
+    aceita): debug compila; release sem keystore é recusado; release com uma
+    keystore descartável sai assinado; manifest final com cleartext `false`
+    no release e `true` no debug. O `.aab` de teste foi apagado.
+  - **Web (tarefa 5)**: `netlify.toml`; `.github/workflows/cron.yml` agenda
+    `check-expirations` (diário) e `market-snapshot` (dias úteis) — antes
+    nada os chamava. **Achado importante**: o país para os métodos de
+    pagamento vinha só do GeoLite2 local (`GEOLITE2_DB_PATH`), que não existe
+    nas funções do Netlify — em produção ninguém veria MB WAY/Multibanco.
+    `getRequestCountry()` (`server/utils/geo.ts`) usa `x-country`/`x-nf-geo`
+    do Netlify, só dentro de uma função Lambda (fora dela um cliente podia
+    forjá-los). O cabeçalho vem de um fórum do Netlify, não da documentação
+    oficial — **confirmar no 1.º deploy**. CSP em modo Report-Only
+    (`nuxt.config.ts`), com os domínios reais do SDK da EasyPay.
+  - **Documentação**: `context/OPERATIONS.md` ganhou keystore (criação,
+    Play App Signing, backup), versões, deploy no Netlify, rollout faseado e
+    rollback (web, Android, pagamentos, contacto) — critério de aceitação
+    "plano de rollout e rollback documentado". `CONFIG-REFERENCE.md`:
+    alojamento e variáveis novas. `context/PLAY-STORE.md` (novo): ficha
+    PT-PT/EN, classificação de conteúdo, segurança dos dados, declarações.
+    Política de Privacidade: acrescentado como pedir a eliminação sem a app
+    (exigido pela Google), `LEGAL_UPDATED` → 2026-09-29.
+  - **Faturação Android — correção à especificação**: verificado nas páginas
+    da Google que o "programa de pagamentos externos" é hoje só para o
+    Japão. No EEE, cobrar com a EasyPay dentro da app exige "alternative
+    billing only": Play Billing Library 8+ nativa (obrigatória desde
+    31/08/2026), ecrã informativo da Google e reporte de cada transação à
+    API da Google em 24 h. Detalhe em `context/PLAY-STORE.md`, secção 5.
+    **Decisão pedida ao utilizador.**
+  - **Dívida de tipos (54 → 0)**: causas reais — o `tsconfig.json` da raiz
+    redefinia `paths` e apagava todos os aliases do Nuxt; o type-check lia
+    `android/` (bundles JS dos builds do Gradle declaram um `$fetch`
+    minificado, daí os "Expected 0 type arguments"); casts
+    `(await $fetch(...)) as T` esgotavam a profundidade das rotas tipadas do
+    Nitro (trocados por `$fetch<T>`); `navigateTo`/`clearError` usados nos
+    templates sem import. Corrigidos também 5 erros reais (tipos de grupos,
+    ordenação de transações, ObjectId). `error.vue` traduzido (tinha texto
+    fixo em PT). O CI passa a falhar com erros de tipos. `vue-tsc` 3.

@@ -188,13 +188,32 @@ export default defineNuxtConfig({
   // server/plugins/ é carregado automaticamente pelo Nitro (antes o
   // mongoose.ts estava também listado aqui e registava-se duas vezes).
   //
-  // Cabeçalhos de segurança em todas as respostas. Sem CSP de propósito: o
-  // SDK de checkout da EasyPay, as Google Fonts e o Sentry carregam recursos
-  // de domínios terceiros — uma CSP mal afinada partia o pagamento; fica para
-  // quando houver o domínio de produção para validar (Fase 9).
+  // Cabeçalhos de segurança em todas as respostas.
+  //
+  // Fase 9 — CSP em modo Report-Only: o browser só avisa na consola do que
+  // bloquearia, sem bloquear nada. O checkout da EasyPay (iframe em
+  // pay[.sandbox].easypay.pt), as Google Fonts e o Sentry vêm de domínios
+  // terceiros; depois de validar em produção (checkout completo sem avisos
+  // na consola, web e Android), trocar o nome do cabeçalho para
+  // 'Content-Security-Policy' para passar a bloquear. `'unsafe-inline'` em
+  // script-src por causa do payload de hidratação inline do Nuxt.
   routeRules: {
     '/**': {
       headers: {
+        'Content-Security-Policy-Report-Only': [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' data: https://fonts.gstatic.com",
+          "img-src 'self' data: blob: https:",
+          "connect-src 'self' https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://pay.easypay.pt https://pay.sandbox.easypay.pt",
+          "frame-src https://pay.easypay.pt https://pay.sandbox.easypay.pt",
+          "worker-src 'self' blob:",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "frame-ancestors 'none'",
+        ].join('; '),
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -235,6 +254,13 @@ export default defineNuxtConfig({
   typescript: {
     strict: false,
     typeCheck: false,
+    // `ignore: ['android/**']` (acima) só vale para o Nuxt, não para o
+    // TypeScript: sem isto o type-check lia os bundles JS dentro dos builds
+    // do Gradle, que declaram um `$fetch` minificado e não genérico
+    // (a origem dos erros "Expected 0 type arguments" em `$fetch<T>`).
+    tsConfig: {
+      exclude: ['../android'],
+    },
   },
 
   app: {

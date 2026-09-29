@@ -23,7 +23,9 @@
     "vsLastMonth": "vs mois précédent",
     "closeNotification": "Fermer la notification",
     "updateAvailable": "Nouvelle version disponible — mise à jour...",
-    "offlineReady": "Application prête pour une utilisation hors ligne"
+    "offlineReady": "Application prête pour une utilisation hors ligne",
+    "pageNotFound": "Page introuvable",
+    "somethingWentWrong": "Une erreur s'est produite"
   },
   "nav": {
     "home": "Tableau de bord",

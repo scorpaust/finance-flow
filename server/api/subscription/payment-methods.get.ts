@@ -1,5 +1,5 @@
 import { requireAuth } from '../../utils/auth'
-import { getRequestIp, lookupCountry } from '../../utils/geo'
+import { getRequestCountry } from '../../utils/geo'
 import { prepaidMethodsForCountry } from '../../../shared/paymentMethods'
 
 // Fase 7, tarefa 4 — o client usa isto só para decidir que separador de
@@ -9,6 +9,6 @@ import { prepaidMethodsForCountry } from '../../../shared/paymentMethods'
 export default defineEventHandler(async (event) => {
   await requireAuth(event)
 
-  const country = await lookupCountry(getRequestIp(event))
+  const country = await getRequestCountry(event)
   return { country, prepaidMethods: prepaidMethodsForCountry(country) }
 })

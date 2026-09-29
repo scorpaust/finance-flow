@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Só builds debug: permite HTTP simples para testar contra o dev server local
+  (adb reverse / IP da LAN, CAPACITOR_SERVER_URL=http://...). O build de release
+  usa o manifest principal, que proíbe cleartext.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
+</manifest>

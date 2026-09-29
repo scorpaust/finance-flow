@@ -23,7 +23,9 @@
     "vsLastMonth": "vs. Vormonat",
     "closeNotification": "Benachrichtigung schließen",
     "updateAvailable": "Neue Version verfügbar — wird aktualisiert...",
-    "offlineReady": "App ist offline einsatzbereit"
+    "offlineReady": "App ist offline einsatzbereit",
+    "pageNotFound": "Seite nicht gefunden",
+    "somethingWentWrong": "Etwas ist schiefgelaufen"
   },
   "nav": {
     "home": "Übersicht",

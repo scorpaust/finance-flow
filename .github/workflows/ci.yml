@@ -23,11 +23,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      # `nuxt typecheck` tem uma dívida de erros pré-existentes ainda por
-      # limpar em várias páginas (confirmado nesta sessão, ver
-      # context/features/08-FASE-8-seguranca-qualidade.md, ponto 6) — corre
-      # aqui só a informar (nunca falha o job), até essa dívida ser paga.
-      - run: npm run type-check || true
+      # Fase 9 — a dívida de 54 erros foi paga (tsconfig da raiz a apagar os
+      # aliases do Nuxt, android/ incluído no type-check, casts de `$fetch`):
+      # o type-check passa a falhar o job.
+      - run: npm run type-check
 
   integration:
     name: Integration tests (servidor Nuxt real + Mongo em memória)

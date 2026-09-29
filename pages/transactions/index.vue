@@ -210,8 +210,10 @@
 </template>
 
 <script setup lang="ts">
+// Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
+import { navigateTo } from '#imports'
 import { Plus, Search, X, Download, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-vue-next'
-import type { Transaction, DocumentScanResult } from '~/types'
+import type { Transaction, DocumentScanResult, FilterOptions } from '~/types'
 
 definePageMeta({ layout: 'default' })
 
@@ -256,10 +258,16 @@ const visiblePages = computed(() => {
   return pages
 })
 
-function buildFetchParams() {
+// `sortKey` vem das opções do <select> ("campo:asc|desc").
+function currentSort(): { sortBy: string; sortOrder: 'asc' | 'desc' } {
   const [sortBy, sortOrder] = sortKey.value.split(':')
+  return { sortBy, sortOrder: sortOrder === 'asc' ? 'asc' : 'desc' }
+}
+
+function buildFetchParams(): Partial<FilterOptions> {
+  const { sortBy, sortOrder } = currentSort()
   return {
-    type: filters.type === 'all' ? undefined : filters.type,
+    type: filters.type === 'all' ? undefined : (filters.type as FilterOptions['type']),
     categoryId: filters.categoryId || undefined,
     search: filters.search || undefined,
     startDate: filters.startDate || undefined,
@@ -293,8 +301,7 @@ function clearFilters() {
 }
 
 async function changePage(page: number) {
-  const [sortBy, sortOrder] = sortKey.value.split(':')
-  await finance.fetchTransactions({ page, sortBy, sortOrder, limit: parseInt(pageSize.value) })
+  await finance.fetchTransactions({ page, ...currentSort(), limit: parseInt(pageSize.value) })
 }
 
 async function handleDelete(id: string) {

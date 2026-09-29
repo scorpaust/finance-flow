@@ -23,7 +23,9 @@
     "vsLastMonth": "vs mês anterior",
     "closeNotification": "Fechar notificação",
     "updateAvailable": "Nova versão disponível — a atualizar...",
-    "offlineReady": "App pronta para uso offline"
+    "offlineReady": "App pronta para uso offline",
+    "pageNotFound": "Página não encontrada",
+    "somethingWentWrong": "Algo correu mal"
   },
   "nav": {
     "home": "Dashboard",

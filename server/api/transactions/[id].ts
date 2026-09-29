@@ -57,14 +57,15 @@ export default defineEventHandler(async (event) => {
     if (categoryId !== undefined) {
       const category = await Category.findOne({ _id: categoryId, userId }).lean()
       if (!category) throw createError({ statusCode: 400, message: serverT(locale, 'transactions.invalidCategory') })
-      tx.categoryId = categoryId
+      // `set` deixa o Mongoose converter a string num ObjectId.
+      tx.set('categoryId', categoryId)
       if (groupId === undefined) tx.groupId = (category as any).groupId || null
     }
     if (date !== undefined) tx.date = new Date(date)
     if (tags !== undefined) tx.tags = tags
     if (recurrence !== undefined) tx.recurrence = recurrence
     if (notes !== undefined) tx.notes = notes?.trim()
-    if (groupId !== undefined) tx.groupId = groupId || null
+    if (groupId !== undefined) tx.set('groupId', groupId || null)
 
     await tx.save()
     await tx.populate('categoryId', 'name icon color type')

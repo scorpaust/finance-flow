@@ -69,3 +69,32 @@ export async function lookupCountry(ip: string | undefined | null): Promise<stri
 export function getRequestIp(event: H3Event): string | undefined {
   return getClientIp(event)
 }
+
+const ISO_COUNTRY = /^[A-Z]{2}$/
+
+// Fase 9 — no Netlify (produção) as funções serverless não têm o ficheiro
+// GeoLite2 (`GEOLITE2_DB_PATH` aponta para um caminho local), por isso sem isto
+// o país seria sempre desconhecido e ninguém veria MB WAY/Multibanco. O Netlify
+// acrescenta a geolocalização do pedido: `x-country` (código ISO) e `x-nf-geo`
+// (JSON em base64). Só se confia nestes cabeçalhos quando a app corre mesmo
+// numa função do Netlify (AWS Lambda por baixo): fora dele um cliente podia
+// enviá-los à mão. A CONFIRMAR no primeiro deploy (ver context/current-feature.md).
+function netlifyCountry(event: H3Event): string | null {
+  if (!process.env.AWS_LAMBDA_FUNCTION_NAME) return null
+  const direct = getRequestHeader(event, 'x-country')?.trim().toUpperCase()
+  if (direct && ISO_COUNTRY.test(direct)) return direct
+  const encoded = getRequestHeader(event, 'x-nf-geo')
+  if (!encoded) return null
+  try {
+    const geo = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'))
+    const code = String(geo?.country?.code || '').toUpperCase()
+    return ISO_COUNTRY.test(code) ? code : null
+  } catch {
+    return null
+  }
+}
+
+// País do pedido: geolocalização do Netlify quando disponível, senão GeoLite2.
+export async function getRequestCountry(event: H3Event): Promise<string | null> {
+  return netlifyCountry(event) || lookupCountry(getRequestIp(event))
+}

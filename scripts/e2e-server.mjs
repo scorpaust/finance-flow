@@ -143,7 +143,7 @@ async function main() {
     // Gerados a cada execução — sem valores com ar de segredo no repositório.
     SESSION_SECRET: randomBytes(32).toString('hex'),
     TWO_FACTOR_ENCRYPTION_KEY: randomBytes(32).toString('hex'),
-    CRON_SECRET: 'e2e-cron-secret',
+    CRON_SECRET: randomBytes(16).toString('hex'),
     EASYPAY_ACCOUNT_ID: 'e2e-account',
     EASYPAY_API_KEY: 'e2e-key',
     ANTHROPIC_API_KEY: 'e2e-key',

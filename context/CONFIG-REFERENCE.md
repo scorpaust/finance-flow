@@ -9,6 +9,7 @@
 |---|---|
 | `MONGODB_URI` | Ligação à instância MongoDB |
 | `SESSION_SECRET` | Segredo HMAC para assinar o cookie de sessão (Fase 8, `server/utils/session.ts`) — gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, nunca reutilizar entre ambientes |
+| `DEMO_PASSWORD` | Opcional, só para `scripts/seed.mjs` (conta demo de desenvolvimento). Sem ela, o script gera uma password aleatória e mostra-a no fim — nunca há uma password fixa no repositório |
 
 ## Fase 1 — Capacitor / Android
 

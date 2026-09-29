@@ -26,7 +26,7 @@ export default async function globalSetup() {
     await page.getByTestId('login-tab-register').click()
     await page.getByTestId('login-name').fill('Warmup')
     await page.getByTestId('login-email').fill(`e2e-warmup-${Date.now()}@example.com`)
-    await page.getByTestId('login-password').fill(`E2e-${randomUUID()}`)
+    await page.getByTestId('login-password').fill(randomUUID())
     await page.getByTestId('login-accept-terms').check()
     await page.getByTestId('login-submit').click()
     await page.waitForURL('**/', { timeout: 120_000 })

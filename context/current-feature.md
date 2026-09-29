@@ -2061,3 +2061,11 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
         `TWO_FACTOR_ENCRYPTION_KEY` dos ambientes de teste passam a ser
         gerados a cada execução, sem literais no repositório.
       - Resultado: unitários 46/46, integração 23/23, E2E 3/3 (localmente).
+      - **2.º alerta do GitGuardian** no commit seguinte: o detetor genérico
+        sinaliza QUALQUER string atribuída a `PASSWORD`, mesmo um template
+        gerado (`` `E2e-${randomUUID()}` ``). As passwords de teste passam a
+        ser o valor da função, sem texto literal; `CRON_SECRET`/`ADMIN_SECRET`
+        dos testes também gerados. **Achado pelo caminho**: `scripts/seed.mjs`
+        tinha a password fixa `password123` da conta demo — perigoso se o seed
+        correr contra uma base de dados real; agora vem de `DEMO_PASSWORD` ou é
+        gerada e mostrada no fim (documentado em `CONFIG-REFERENCE.md`).

@@ -46,8 +46,9 @@ function uniqueEmail(label: string): string {
   return `${label}-${Date.now()}-${counter}@example.com`
 }
 
-// Gerada a cada execução — sem passwords literais no repositório.
-const PASSWORD = `E2e-${randomUUID()}`
+// Gerada a cada execução, sem texto literal (o GitGuardian sinaliza qualquer
+// string atribuída a PASSWORD, mesmo um template).
+const PASSWORD = randomUUID()
 
 async function registerViaUi(page: import('@playwright/test').Page, opts: { email: string; name?: string }) {
   await page.goto('/')

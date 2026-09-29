@@ -7,7 +7,10 @@ import { randomBytes, scryptSync } from 'node:crypto'
 
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/financeflow'
 const DEMO_EMAIL = 'demo@financeflow.app'
-const DEMO_PASSWORD = 'password123'
+// Nunca uma password fixa no repositório: se o seed correr contra uma base de
+// dados real (o MONGODB_URI do .env), uma conta com password conhecida ficava
+// lá exposta. Usa DEMO_PASSWORD se definida; senão gera uma e mostra-a no fim.
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || randomBytes(12).toString('base64url')
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString('hex')
@@ -144,6 +147,7 @@ async function seed() {
   await Transaction.insertMany(txWithUser)
   console.log(`💳 ${txWithUser.length} transacções criadas (6 meses)`)
   console.log('\n🎉 Seed completo! Login: demo@financeflow.app')
+  console.log(`   Password: ${DEMO_PASSWORD}`)
   console.log(`   Saldo simulado: ~${3347} € | Orçamento mensal: ~1.597 €`)
 
   await mongoose.disconnect()

@@ -276,6 +276,14 @@ repor uma chave de upload, e só com Play App Signing ativo.
 
 ## Deploy web (Netlify)
 
+- **Publicar a partir desta máquina: `npm run deploy:netlify`**
+  (`scripts/deploy-netlify.mjs`) — nunca um `netlify deploy --build` simples
+  em Windows: o `.env` local entrava no build de produção, e as junctions que
+  o Nitro cria para as duas versões do `vue-router` chegavam partidas ao
+  Linux do Netlify (502 em todas as páginas no 1.º deploy, 2026-09-30). O
+  script afasta o `.env`, faz o build, troca as ligações por cópias, apaga o
+  zip já gerado e publica com `--no-build`. Demora ~45 min nesta máquina. Com
+  o repositório ligado ao Netlify (build no Linux deles) nada disto é preciso.
 - Configuração do build: `netlify.toml` (raiz). O site está ligado ao
   projeto (`.netlify/state.json`), subdomínio
   `financeflow-fase2-subs.netlify.app` (decisão de 2026-09-29, até haver

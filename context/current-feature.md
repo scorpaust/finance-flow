@@ -10,6 +10,10 @@ código e documentação da fase (branch `feature/fase-9-publicacao`, criado a
 está concluída**: dos 4 critérios de aceitação só o plano de rollout/rollback
 está cumprido — os outros 3 dependem do deploy no Netlify e da Play Console
 (passos abaixo e em `context/OPERATIONS.md`, "Lançamento e rollout").
+**Atualização 2026-09-30**: web em produção em
+https://financeflow-fase2-subs.netlify.app (HTTPS, verificada) — 2 dos 4
+critérios cumpridos; faltam a app na faixa de testes internos e a subscrição
+partilhada entre plataformas.
 
 Decisões do utilizador (2026-09-29): alojamento **Netlify**, no subdomínio
 `financeflow-fase2-subs.netlify.app` até haver domínio próprio; EasyPay em
@@ -2211,3 +2215,25 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   partilhada entre plataformas" dependem do deploy e da Play Console, ainda
   por fazer. Próximo passo acordado: deploy no Netlify (o utilizador tem
   sessão iniciada no Netlify CLI).
+- 2026-09-30: **primeiro deploy de produção no Netlify**. Decisões do
+  utilizador: base de dados separada no mesmo cluster Atlas (a produção
+  apontava para a mesma base do desenvolvimento — novo `MONGODB_DB_NAME`,
+  produção em `financeflow-prod`, índices criados), copiar as chaves de
+  fornecedores do `.env` (EasyPay sandbox, Anthropic, Twelve Data, Sentry),
+  remover as variáveis antigas do PayPal, deploy pelo CLI. Segredos da app
+  (sessão, 2FA, cron, admin) gerados de novo e enviados ao Netlify sem
+  passarem pela conversa. Removidas também as `NUXT_*` antigas
+  (sobrepunham-se às novas em runtime — `NUXT_CRON_SECRET` partiria o cron).
+  **Dois problemas no caminho**: (1) 502 em tudo — `Cannot find package
+  'vue-router'`: o Nitro liga as duas versões do vue-router (4 do Nuxt, 5 do
+  @nuxtjs/i18n) com junctions do Windows (caminhos C:\…), partidas no Linux do
+  Netlify; (2) esta versão do CLI refaz o build mesmo sem `--build`, com o
+  `.env` presente — interrompido antes de publicar. Resolvido com
+  `npm run deploy:netlify` (`scripts/deploy-netlify.mjs`). **Verificado em
+  produção**: páginas e API 200; cabeçalhos de segurança e CSP Report-Only;
+  conta de teste descartável → 10 categorias genéricas PT-PT, plano
+  Gratuito, **país `PT` com MB WAY/Multibanco (geolocalização do Netlify
+  confirmada)**, gravada em `financeflow-prod` (não em `financeflow`), e
+  apagada no fim. **Por fazer**: secrets `APP_URL`/`CRON_SECRET` no GitHub
+  (sem `gh` nesta máquina — utilizador), validar a CSP num browser durante
+  um checkout, Lighthouse, webhook EasyPay a apontar para produção.

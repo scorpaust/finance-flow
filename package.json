@@ -21,7 +21,8 @@
     "build:android": "npm run build:android:assets && npm run cap:sync",
     "cap:open:android": "cap open android",
     "store:assets": "node scripts/store-assets.mjs",
-    "store:screenshots": "playwright test -c playwright.store.config.ts"
+    "store:screenshots": "playwright test -c playwright.store.config.ts",
+    "deploy:netlify": "node scripts/deploy-netlify.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

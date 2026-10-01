@@ -29,9 +29,23 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 
-const URI = process.env.MONGODB_URI
+// Tolera os erros mais comuns ao colar o valor num secret do GitHub: espaços
+// ou linhas em branco, aspas à volta, ou a linha inteira do .env
+// ("MONGODB_URI=..."). Nunca imprime o valor (tem a password).
+const URI = (process.env.MONGODB_URI || '')
+  .trim()
+  .replace(/^MONGODB_URI\s*=\s*/, '')
+  .replace(/^["']|["']$/g, '')
+  .trim()
 if (!URI) {
   console.error('MONGODB_URI em falta.')
+  process.exit(1)
+}
+if (!/^mongodb(\+srv)?:\/\//.test(URI)) {
+  console.error(
+    `MONGODB_URI inválido: tem de começar por "mongodb+srv://" (começa por "${URI.slice(0, 6)}…", ` +
+      `${URI.length} caracteres). Volta a colar no secret só o valor, sem aspas nem o nome da variável.`
+  )
   process.exit(1)
 }
 

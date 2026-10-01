@@ -2255,4 +2255,20 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   o erro sem mostrar o valor; (3) actions v5 (aviso de Node 20). E o CI
   falhava no type-check sem `SENTRY_DSN` (opções do Sentry passaram para o
   módulo — 0 erros com e sem DSN).
+- 2026-10-01: **pacote Android definitivo `com.dinismcosta.financeflow`**
+  (pedido do utilizador; antes `com.financeflow.app` — fica fixo no 1.º
+  upload). Mudado em applicationId/namespace, pacote Java, capacitor.config,
+  strings.xml, pacote reportado à Google e testes. Keystore de upload criada
+  pelo utilizador fora do repositório (`C:/Users/dinis/chaves/`, alias
+  `upload`, válida até 2054) e `android/keystore.properties` (ignorado pelo
+  git) — verificados sem expor a password. **Primeiro `.aab` assinado**
+  (`versionCode 1`, `versionName 1.0.0`, 7,2 MB): `jarsigner` confirma a
+  assinatura com o certificado do utilizador; manifest de release com
+  `usesCleartextTraffic=false`, `allowBackup=false`, sem `debuggable`;
+  `server.url` = `https://financeflow-webapp.netlify.app`. Conta de revisão
+  da Google criada em produção (Premium de cortesia, `billingMode: none`,
+  sem 2FA; credenciais só na conversa, não no repositório). Política de
+  Privacidade: eliminação de dados sem apagar a conta (pedido pela
+  declaração de segurança dos dados). Por fazer: carregar o `.aab` na faixa
+  de testes internos.
 

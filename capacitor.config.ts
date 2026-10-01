@@ -18,7 +18,7 @@ const PROD_APP_URL = process.env.CAPACITOR_SERVER_URL || 'https://financeflow-we
 const IS_DEV_OVERRIDE = PROD_APP_URL.startsWith('http://')
 
 const config: CapacitorConfig = {
-  appId: 'com.financeflow.app',
+  appId: 'com.dinismcosta.financeflow',
   appName: 'FinanceFlow',
   // Fallback local (offline mínimo) caso `server.url` seja removido no futuro.
   webDir: '.output/public',

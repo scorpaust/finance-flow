@@ -1,4 +1,4 @@
-package com.financeflow.app;
+package com.dinismcosta.financeflow;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;

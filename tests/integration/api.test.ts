@@ -727,7 +727,7 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
     expect(confirm.status).toBe(200)
 
     const [initial] = await googleReports()
-    expect(initial.path).toBe('/androidpublisher/v3/applications/com.financeflow.app/externalTransactions')
+    expect(initial.path).toBe('/androidpublisher/v3/applications/com.dinismcosta.financeflow/externalTransactions')
     expect(initial.query).toBe('externalTransactionId=ff-pay-gp-cc')
     expect(initial.authorization).toBe('Bearer stub-google-token')
     expect(initial.body.recurringTransaction).toEqual({
@@ -829,7 +829,7 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
     expect((await res.json()).googlePlayRefundsPending).toBe(0)
 
     const [refund] = await googleReports()
-    expect(refund.path).toBe('/androidpublisher/v3/applications/com.financeflow.app/externalTransactions/ff-pay-gp-refund:refund')
+    expect(refund.path).toBe('/androidpublisher/v3/applications/com.dinismcosta.financeflow/externalTransactions/ff-pay-gp-refund:refund')
     expect(refund.body.fullRefund).toEqual({})
     // O registo de faturação fica, mesmo com a conta apagada.
     expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-refund' }))?.status).toBe('refunded')

@@ -1,4 +1,4 @@
-package com.financeflow.app;
+package com.dinismcosta.financeflow;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;

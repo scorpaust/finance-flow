@@ -540,7 +540,7 @@ CAPACITOR_SERVER_URL=http://localhost:3000 npx cap sync android
 cd android
 .\gradlew.bat assembleDebug
 adb install -r app\build\outputs\apk\debug\app-debug.apk
-adb shell am start -n com.financeflow.app/.MainActivity
+adb shell am start -n com.dinismcosta.financeflow/.MainActivity
 ```
 
 Isto ativa automaticamente `cleartext`/`allowMixedContent` em

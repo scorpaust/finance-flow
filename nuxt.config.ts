@@ -176,7 +176,7 @@ export default defineNuxtConfig({
     // (server/utils/googlePlayBilling.ts). JSON da conta de serviço (em texto
     // ou base64); sem ele, os reportes ficam na fila à espera.
     googlePlayServiceAccount: process.env.GOOGLE_PLAY_SERVICE_ACCOUNT || '',
-    googlePlayPackageName: process.env.GOOGLE_PLAY_PACKAGE_NAME || 'com.financeflow.app',
+    googlePlayPackageName: process.env.GOOGLE_PLAY_PACKAGE_NAME || 'com.dinismcosta.financeflow',
     // Taxa de IVA incluída nos preços (0.23 = 23%). 0 por omissão: o operador
     // está isento ao abrigo do art. 53.º do CIVA (decisão de 2026-09-29).
     billingVatRate: Number(process.env.BILLING_VAT_RATE || '0'),

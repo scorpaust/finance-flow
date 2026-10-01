@@ -14,10 +14,10 @@ def signingValue = { String prop, String env -> keystoreProps.getProperty(prop) 
 def releaseStoreFile = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
 
 android {
-    namespace = "com.financeflow.app"
+    namespace = "com.dinismcosta.financeflow"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.financeflow.app"
+        applicationId "com.dinismcosta.financeflow"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Política de versões (context/OPERATIONS.md): versionCode sobe +1 em

@@ -20,11 +20,16 @@ const IS_DEV_OVERRIDE = PROD_APP_URL.startsWith('http://')
 const config: CapacitorConfig = {
   appId: 'com.dinismcosta.financeflow',
   appName: 'FinanceFlow',
-  // Fallback local (offline mínimo) caso `server.url` seja removido no futuro.
-  webDir: '.output/public',
+  // Fase 9 (1.0.2) — só os ficheiros locais da shell: index.html (salto para
+  // o site) e offline.html (ecrã sem internet). Antes era `.output/public`,
+  // que metia um build Nuxt antigo e inútil dentro da app.
+  webDir: 'android-web',
   server: {
     url: PROD_APP_URL,
     cleartext: IS_DEV_OVERRIDE,
+    // Página local mostrada pela WebView quando o site não carrega (sem
+    // internet, DNS, timeout). Não tem acesso aos plugins nativos.
+    errorPath: 'offline.html',
   },
   android: {
     allowMixedContent: IS_DEV_OVERRIDE,

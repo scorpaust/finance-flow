@@ -1,6 +1,6 @@
 {
   "name": "finance-app",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -16,9 +16,8 @@
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
-    "build:android:assets": "cross-env NITRO_PRESET=static nuxi generate",
     "cap:sync": "cap sync android",
-    "build:android": "npm run build:android:assets && npm run cap:sync",
+    "build:android": "npm run cap:sync",
     "cap:open:android": "cap open android",
     "store:assets": "node scripts/store-assets.mjs",
     "store:screenshots": "playwright test -c playwright.store.config.ts",

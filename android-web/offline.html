@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f23" />
+  <title>FinanceFlow</title>
+  <!--
+    Fase 9 — ecrã sem internet da app Android (capacitor.config.ts →
+    server.errorPath). Fica dentro do pacote da app: a WebView mostra-o quando
+    não consegue carregar o site de produção. Sem acesso aos plugins nativos
+    (limitação do Capacitor), por isso é HTML/JS simples, sem dependências.
+  -->
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 30%, #2a1f5c 0%, #0f0f23 60%);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+      text-align: center;
+    }
+    main { max-width: 360px; }
+    .logo {
+      width: 72px; height: 72px; margin: 0 auto 28px; border-radius: 20px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 40px rgba(139, 92, 246, .35);
+    }
+    h1 { font-size: 22px; margin: 0 0 10px; font-weight: 700; }
+    p { margin: 0 0 28px; color: rgba(255, 255, 255, .6); line-height: 1.5; font-size: 15px; }
+    button {
+      appearance: none; border: 0; border-radius: 14px; padding: 14px 28px;
+      font: inherit; font-weight: 600; font-size: 15px; color: #fff;
+      background: linear-gradient(135deg, #6366f1, #7c3aed); width: 100%;
+    }
+    button:disabled { opacity: .6; }
+    .hint { margin-top: 16px; font-size: 12px; color: rgba(255, 255, 255, .35); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="logo" aria-hidden="true">
+      <svg width="40" height="40" viewBox="0 0 1024 1024" fill="#fff">
+        <rect x="300" y="570" width="110" height="130" rx="18"/>
+        <rect x="460" y="480" width="110" height="220" rx="18"/>
+        <rect x="620" y="390" width="110" height="310" rx="18"/>
+        <polyline points="330,560 515,470 675,380 750,320" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="672,300 758,308 750,392"/>
+      </svg>
+    </div>
+    <h1 id="title"></h1>
+    <p id="text"></p>
+    <button id="retry" type="button"></button>
+    <div class="hint" id="hint"></div>
+  </main>
+  <script>
+    // Mesmo endereço que capacitor.config.ts → server.url.
+    var APP_URL = 'https://financeflow-webapp.netlify.app/'
+    var T = {
+      pt: { title: 'Sem ligação à internet', text: 'O FinanceFlow precisa de internet para mostrar os teus dados. Verifica o Wi-Fi ou os dados móveis.', retry: 'Tentar de novo', trying: 'A ligar…', hint: 'Voltamos a tentar sozinhos quando a ligação regressar.' },
+      en: { title: 'No internet connection', text: 'FinanceFlow needs the internet to show your data. Check your Wi-Fi or mobile data.', retry: 'Try again', trying: 'Connecting…', hint: "We'll retry automatically when you're back online." },
+      fr: { title: 'Pas de connexion internet', text: 'FinanceFlow a besoin d’internet pour afficher tes données. Vérifie le Wi-Fi ou les données mobiles.', retry: 'Réessayer', trying: 'Connexion…', hint: 'Nouvelle tentative automatique au retour de la connexion.' },
+      de: { title: 'Keine Internetverbindung', text: 'FinanceFlow braucht Internet, um deine Daten anzuzeigen. Prüfe WLAN oder mobile Daten.', retry: 'Erneut versuchen', trying: 'Verbinde…', hint: 'Wir versuchen es automatisch erneut, sobald du wieder online bist.' },
+      it: { title: 'Nessuna connessione a internet', text: 'FinanceFlow ha bisogno di internet per mostrare i tuoi dati. Controlla il Wi-Fi o i dati mobili.', retry: 'Riprova', trying: 'Connessione…', hint: 'Riproveremo automaticamente quando la connessione torna.' },
+      es: { title: 'Sin conexión a internet', text: 'FinanceFlow necesita internet para mostrar tus datos. Revisa el Wi-Fi o los datos móviles.', retry: 'Reintentar', trying: 'Conectando…', hint: 'Lo volveremos a intentar automáticamente cuando vuelva la conexión.' },
+    }
+    var lang = ((navigator.languages && navigator.languages[0]) || navigator.language || 'en').slice(0, 2).toLowerCase()
+    var t = T[lang] || T.en
+    document.documentElement.lang = lang
+    document.getElementById('title').textContent = t.title
+    document.getElementById('text').textContent = t.text
+    document.getElementById('hint').textContent = t.hint
+    var button = document.getElementById('retry')
+    button.textContent = t.retry
+
+    function retry() {
+      button.disabled = true
+      button.textContent = t.trying
+      window.location.replace(APP_URL)
+      // Se continuar sem rede, a WebView volta a esta página; repõe o botão por precaução.
+      setTimeout(function () { button.disabled = false; button.textContent = t.retry }, 8000)
+    }
+    button.addEventListener('click', retry)
+    window.addEventListener('online', retry)
+  </script>
+</body>
+</html>

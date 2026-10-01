@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f0f23" />
+  <title>FinanceFlow</title>
+  <!--
+    Fase 9 — o Capacitor exige um index.html em webDir, mas a app Android
+    carrega sempre o site de produção (capacitor.config.ts → server.url), por
+    isso isto nunca é a app: só um ecrã de carregamento e, se for mesmo aberto,
+    o salto para o site. Sem internet, a WebView mostra offline.html.
+  -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #0f0f23; }
+  </style>
+</head>
+<body>
+  <script>window.location.replace('https://financeflow-webapp.netlify.app/')</script>
+</body>
+</html>

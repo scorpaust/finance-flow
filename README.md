@@ -482,8 +482,9 @@ com `server.cleartext`/`android.allowMixedContent` **sempre `false` por
 default** (URL de produção é HTTPS) — só ficam `true` quando
 `CAPACITOR_SERVER_URL` é explicitamente definido para testar contra um
 servidor de desenvolvimento local (ver "Testar num dispositivo físico via
-USB" abaixo). O `webDir` (`.output/public`, gerado por `nuxi generate`) fica
-apenas como fallback offline mínimo, não como fonte principal.
+USB" abaixo). O `webDir` (`android-web/`) só tem duas páginas locais:
+`index.html` (salta para o site) e `offline.html`, o ecrã "sem internet" que a
+WebView mostra quando o site não carrega (`server.errorPath`, desde a 1.0.2).
 
 Se no futuro se quiser um modo 100% offline nativo, isso implica migrar a
 autenticação de cookie `httpOnly` para token (ex.: JWT em storage seguro) —
@@ -501,15 +502,14 @@ CAPACITOR_SERVER_URL=https://app.financeflow.com npx cap sync android
 | Script | Descrição |
 |---|---|
 | `npm run build:web` | Build SSR normal (produção web, sem alterações) |
-| `npm run build:android:assets` | `nuxi generate` — build estática usada como fallback local do shell Capacitor |
 | `npm run cap:sync` | `cap sync android` — copia assets web + plugins nativos para o projeto Android |
-| `npm run build:android` | Encadeia os dois anteriores |
+| `npm run build:android` | Igual a `cap:sync` (não há build web local: a app carrega o site) |
 | `npm run cap:open:android` | Abre o projeto no Android Studio |
 
 ### Fluxo de desenvolvimento
 
 ```bash
-npm run build:android      # gera .output/public + sincroniza com o projeto Android
+npm run build:android      # sincroniza android-web/ + plugins com o projeto Android
 npm run cap:open:android   # abre o Android Studio
 # Correr num emulador/dispositivo a partir do Android Studio (Run ▶)
 ```

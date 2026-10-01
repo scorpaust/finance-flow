@@ -141,6 +141,17 @@
     "confirmDeleteTransaction": "Diese Transaktion löschen?"
   },
   "settings": {
+    "currency": {
+      "title": "Währung",
+      "description": "Währung, in der du alle Beträge der App siehst, zum Tageskurs umgerechnet. Deine Daten bleiben in Euro gespeichert: Zurück zum Euro zeigt genau dieselben Beträge.",
+      "label": "Anzeigewährung",
+      "search": "Währung suchen…",
+      "rateToday": "{rate} · heutiger Kurs",
+      "rateStale": "{rate} · Kurs vom {day} (der heutige ist nicht verfügbar)",
+      "unavailable": "Wechselkurs derzeit nicht verfügbar — Beträge werden in Euro angezeigt.",
+      "toastChanged": "Beträge jetzt in {currency}",
+      "error": "Währung konnte nicht geändert werden"
+    },
     "language": {
       "title": "Sprache",
       "description": "Sprache der Oberfläche — betrifft nicht die verfügbaren Zahlungsmethoden, die vom erkannten Land abhängen.",
@@ -343,8 +354,8 @@
     "descriptionLabel": "Beschreibung",
     "descriptionPlaceholder": "Optionale Beschreibung...",
     "colorLabel": "Farbe",
-    "monthlyLimitLabel": "Monatliche Obergrenze (€)",
-    "weeklyLimitLabel": "Wöchentliche Obergrenze (€)",
+    "monthlyLimitLabel": "Monatliche Obergrenze ({currency})",
+    "weeklyLimitLabel": "Wöchentliche Obergrenze ({currency})",
     "noLimitPlaceholder": "Kein Limit",
     "alertLabel": "Warnung bei",
     "previewNamePlaceholder": "Gruppenname",
@@ -452,10 +463,10 @@
       "namePlaceholder": "z. B. FTSE All-World ETF, Sparzertifikate...",
       "assetClassLabel": "Anlageklasse",
       "optional": "(optional)",
-      "initialLabel": "Anfangsbetrag (€) *",
+      "initialLabel": "Anfangsbetrag ({currency}) *",
       "dateLabel": "Datum *",
-      "reinforcementLabel": "Einzahlungen (€)",
-      "valueLabel": "Wert (€) *",
+      "reinforcementLabel": "Einzahlungen ({currency})",
+      "valueLabel": "Wert ({currency}) *",
       "hint": "Einzahlungen ist die Summe, die bereits zum Anfangsbetrag hinzugefügt wurde. Wert ist der aktuelle Wert der Position.",
       "invested": "Investiert",
       "gain": "Gewinn",
@@ -471,8 +482,8 @@
     "quickModal": {
       "reinforceTitle": "Einzahlen",
       "updateValueTitle": "Wert aktualisieren",
-      "reinforceAmountLabel": "Hinzuzufügender Betrag (€)",
-      "updateValueAmountLabel": "Neuer Wert (€)",
+      "reinforceAmountLabel": "Hinzuzufügender Betrag ({currency})",
+      "updateValueAmountLabel": "Neuer Wert ({currency})",
       "reinforceLabel": "Einzahlungen",
       "investedTotalLabel": "Gesamt investiert",
       "reinforceNote": "Der Wert ändert sich nicht von selbst — aktualisiere ihn danach, falls sich der Wert der Position ebenfalls geändert hat.",

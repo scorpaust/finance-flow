@@ -1,30 +1,41 @@
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, isValid } from 'date-fns'
 
-// Fase 7 — todos os formatadores seguem o idioma ativo da UI (nunca o país
-// geolocalizado, que só decide métodos de pagamento — ver
-// shared/paymentMethods.ts). `formatCurrency` aceita uma moeda por chamada
-// (default EUR) — usado com a moeda original de uma transação estrangeira
-// (tarefa 6); todos os outros valores agregados (KPIs, estatísticas,
-// orçamentos, previsões) continuam sempre em € (ver
-// server/utils/transactionCurrency.ts).
+// Fase 7 — todos os formatadores seguem o idioma ativo da UI (nunca o país).
+//
+// Fase 10 — moeda de apresentação: os valores chegam da API sempre em euros.
+// Uma chamada SEM moeda (`formatCurrency(valorEmEuros)`) converte para a moeda
+// escolhida pelo utilizador ao câmbio do dia (stores/currency.ts). Uma chamada
+// COM moeda (`formatCurrency(valor, 'USD')`) mostra o valor tal como está — é
+// o caso do valor original de um recibo estrangeiro (Fase 7, tarefa 6).
 export function useFormatters() {
   const { t } = useI18n()
   const { dateFnsLocale, intlLocale } = useLocaleFormat()
+  const fx = useCurrencyStore()
 
-  function formatCurrency(value: number, currency = 'EUR'): string {
+  function formatCurrency(value: number, currency?: string): string {
     return new Intl.NumberFormat(intlLocale.value, {
       style: 'currency',
-      currency,
+      currency: currency || fx.currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value ?? 0)
+    }).format(currency ? value ?? 0 : fx.fromEur(value))
   }
 
+  // Símbolo da moeda de apresentação no idioma ativo ("€", "$", "R$"…).
+  const currencySymbol = computed(() => {
+    const parts = new Intl.NumberFormat(intlLocale.value, {
+      style: 'currency',
+      currency: fx.currency,
+      currencyDisplay: 'narrowSymbol',
+    }).formatToParts(0)
+    return parts.find((p) => p.type === 'currency')?.value || fx.currency
+  })
+
   function formatCompact(value: number): string {
-    const v = value ?? 0
-    if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M €`
-    if (Math.abs(v) >= 1_000)     return `${(v / 1_000).toFixed(1)}k €`
-    return formatCurrency(v)
+    const v = fx.fromEur(value)
+    if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M ${currencySymbol.value}`
+    if (Math.abs(v) >= 1_000)     return `${(v / 1_000).toFixed(1)}k ${currencySymbol.value}`
+    return formatCurrency(value)
   }
 
   function formatDate(date: string | Date | undefined | null, fmt = 'dd MMM yyyy'): string {
@@ -65,16 +76,16 @@ export function useFormatters() {
     }).format(value / 100)
   }
 
-  // Ganho/perda em euros com sinal explícito ("+20,00 €" / "-1,00 €"). Onde o
-  // `signDisplay` não é suportado, cai para o formato normal (só o "-").
+  // Ganho/perda com sinal explícito ("+20,00 €" / "-1,00 €"), na moeda de
+  // apresentação. Onde o `signDisplay` não é suportado, só o "-".
   function formatSignedCurrency(value: number): string {
     return new Intl.NumberFormat(intlLocale.value, {
       style: 'currency',
-      currency: 'EUR',
+      currency: fx.currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       signDisplay: 'exceptZero',
-    }).format(value ?? 0)
+    }).format(fx.fromEur(value))
   }
 
   function getMonthRange(monthsBack = 0): { start: string; end: string } {
@@ -105,6 +116,7 @@ export function useFormatters() {
   return {
     formatCurrency,
     formatCompact,
+    currencySymbol,
     formatDate,
     formatMonthYear,
     formatPercentage,

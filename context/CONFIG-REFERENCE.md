@@ -73,7 +73,7 @@ projeto (ver `pages/subscription/index.vue`).
 | Variável | Descrição |
 |---|---|
 | `ANTHROPIC_API_KEY` | Chave da API Anthropic (`claude-haiku-4-5`) — interpretação de estatísticas e dicas de investimento (Fase 3), digitalização de documentos (Fase 5). Só no servidor, nunca em `public` |
-| `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data — snapshot diário de mercado para as dicas de investimento (Fase 3) |
+| `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data — snapshot diário de mercado para as dicas de investimento (Fase 3); também o câmbio das transações em moeda estrangeira (Fase 7) e da moeda de apresentação (Fase 10: lista de moedas e taxa EUR→X do dia, em cache na coleção `fxcaches`, um pedido por moeda por dia) |
 | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` | `true` para as dicas de investimento receberem um resumo **agregado** do portfolio registado (Fase 6, tarefa 6 — nunca nomes nem valores por posição). Por omissão desligada (`false`); **só ligar em produção depois da validação jurídica** (ver `06-FASE-6-registo-investimentos.md`, decisão 8) |
 
 ## Fase 7 — Internacionalização (idiomas + geolocalização + câmbio)

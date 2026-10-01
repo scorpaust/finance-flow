@@ -88,9 +88,9 @@
           <!-- Amount + Date -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="form-label">{{ t('transactionModal.amountLabel') }}{{ form.currency === 'EUR' ? ' (€)' : '' }} *</label>
+              <label class="form-label">{{ t('transactionModal.amountLabel') }} ({{ symbolOf(form.currency) }}) *</label>
               <div class="input-group">
-                <span class="input-prefix font-medium">{{ form.currency === 'EUR' ? '€' : form.currency }}</span>
+                <span class="input-prefix font-medium">{{ symbolOf(form.currency) }}</span>
                 <input
                   v-model="form.amount"
                   type="number"
@@ -118,14 +118,14 @@
             </div>
           </div>
 
-          <!-- Moeda (Fase 7, tarefa 6) — escondida por omissão para não
-               complicar o fluxo normal em €; aparece quando o documento
-               digitalizado não é € ou quando se edita uma transação já
-               guardada nessa situação. -->
+          <!-- Moeda (Fase 7, tarefa 6) — escondida no fluxo normal em €;
+               aparece quando o documento digitalizado não é €, quando se
+               edita uma transação guardada noutra moeda, ou (Fase 10) quando
+               a moeda de apresentação não é o euro. -->
           <div v-if="foreignCurrency || form.currency !== 'EUR'">
             <label class="form-label">{{ t('transactionModal.currencyLabel') }}</label>
             <select v-model="form.currency" class="form-select">
-              <option v-for="c in CURRENCY_OPTIONS" :key="c" :value="c">{{ c }}</option>
+              <option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}</option>
             </select>
             <p v-if="resolvedRate" class="text-white/30 text-xs mt-1">
               {{ t('transactionModal.rateUsed', { currency: form.currency, rate: resolvedRate }) }}
@@ -326,7 +326,19 @@ const today = new Date().toISOString().split('T')[0]
 // transação guarda o valor e a moeda tal como no documento; o servidor
 // calcula o equivalente em € à taxa do dia ao guardar — ver
 // server/utils/transactionCurrency.ts).
-const CURRENCY_OPTIONS = ['EUR', 'USD', 'GBP', 'CHF', 'BRL', 'JPY', 'CAD', 'AUD']
+// Fase 10 — as moedas que o câmbio suporta (stores/currency.ts), sempre com
+// a moeda atual do formulário incluída.
+const fx = useCurrencyStore()
+const { intlLocale } = useLocaleFormat()
+const currencyOptions = computed(() => [...new Set(['EUR', ...fx.currencies, form.currency])].sort())
+function symbolOf(code: string): string {
+  try {
+    const parts = new Intl.NumberFormat(intlLocale.value, { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' }).formatToParts(0)
+    return parts.find((p) => p.type === 'currency')?.value || code
+  } catch {
+    return code
+  }
+}
 const foreignCurrency = !props.transaction && !!props.prefill && props.prefill.currency !== 'EUR'
 const resolvedRate = props.transaction?.exchangeRate ? props.transaction.exchangeRate.toFixed(4) : null
 const isPayslip = !props.transaction && props.prefill?.documentType === 'payslip'
@@ -360,7 +372,9 @@ const hasFlagged = computed(() => Object.values(flagged).some(Boolean))
 const form = reactive({
   type:        (props.transaction?.type || props.prefill?.type || 'expense') as 'income' | 'expense',
   amount:      (props.transaction?.originalAmount ?? props.transaction?.amount)?.toString() || props.prefill?.amount?.toString() || '',
-  currency:    props.transaction?.currency || props.prefill?.currency || 'EUR',
+  // Fase 10 — numa transação nova escreve-se na moeda de apresentação; o
+  // servidor converte para euros e guarda o valor e a moeda originais.
+  currency:    props.transaction?.currency || props.prefill?.currency || fx.currency,
   description: props.transaction?.description        || props.prefill?.merchant || '',
   categoryId:  (() => {
     const c = props.transaction?.categoryId

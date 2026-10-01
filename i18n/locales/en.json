@@ -141,6 +141,17 @@
     "confirmDeleteTransaction": "Delete this transaction?"
   },
   "settings": {
+    "currency": {
+      "title": "Currency",
+      "description": "Currency in which you see every amount in the app, converted at today's rate. Your data stays stored in euros: switching back to euro shows exactly the same amounts.",
+      "label": "Display currency",
+      "search": "Search currency…",
+      "rateToday": "{rate} · today's rate",
+      "rateStale": "{rate} · rate from {day} (today's is unavailable)",
+      "unavailable": "Exchange rate unavailable right now — amounts are shown in euros.",
+      "toastChanged": "Amounts now in {currency}",
+      "error": "Could not change the currency"
+    },
     "language": {
       "title": "Language",
       "description": "Interface language — does not affect the payment methods available, which depend on your detected country.",
@@ -343,8 +354,8 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Optional description...",
     "colorLabel": "Color",
-    "monthlyLimitLabel": "Monthly cap (€)",
-    "weeklyLimitLabel": "Weekly cap (€)",
+    "monthlyLimitLabel": "Monthly cap ({currency})",
+    "weeklyLimitLabel": "Weekly cap ({currency})",
     "noLimitPlaceholder": "No limit",
     "alertLabel": "Alert at",
     "previewNamePlaceholder": "Group name",
@@ -452,10 +463,10 @@
       "namePlaceholder": "e.g. FTSE All-World ETF, Savings Certificates...",
       "assetClassLabel": "Asset class",
       "optional": "(optional)",
-      "initialLabel": "Initial (€) *",
+      "initialLabel": "Initial ({currency}) *",
       "dateLabel": "Date *",
-      "reinforcementLabel": "Top-ups (€)",
-      "valueLabel": "Value (€) *",
+      "reinforcementLabel": "Top-ups ({currency})",
+      "valueLabel": "Value ({currency}) *",
       "hint": "Top-ups is the total already added to the initial amount. Value is the position's current value.",
       "invested": "Invested",
       "gain": "Gain",
@@ -471,8 +482,8 @@
     "quickModal": {
       "reinforceTitle": "Top up",
       "updateValueTitle": "Update value",
-      "reinforceAmountLabel": "Amount to add (€)",
-      "updateValueAmountLabel": "New value (€)",
+      "reinforceAmountLabel": "Amount to add ({currency})",
+      "updateValueAmountLabel": "New value ({currency})",
       "reinforceLabel": "Top-ups",
       "investedTotalLabel": "Total invested",
       "reinforceNote": "The value doesn't change on its own — update it afterwards if the position's value also changed.",

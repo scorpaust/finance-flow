@@ -41,4 +41,17 @@ const appLock = useAppLockStore()
 onMounted(() => {
   appLock.init()
 })
+
+// Fase 10 — moeda de apresentação: carrega a da conta quando há sessão e
+// volta aos euros ao sair (só no cliente; os valores da API vêm em euros).
+const currency = useCurrencyStore()
+watch(
+  () => auth.user?._id,
+  (id) => {
+    if (!import.meta.client) return
+    if (id) currency.load()
+    else currency.reset()
+  },
+  { immediate: true }
+)
 </script>

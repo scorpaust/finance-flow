@@ -21,6 +21,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
 | **Internacionalização** | UI em 6 idiomas (PT-PT, EN, FR, DE, IT, ES), deteção automática por browser com override manual persistente; métodos de pagamento pré-pagos (MB WAY/Multibanco) disponíveis em qualquer país (emigrantes com conta portuguesa); recibos/faturas em moeda estrangeira convertidos para € à taxa do dia, com o valor e a moeda originais preservados — ver [Internacionalização](#-internacionalização) |
+| **Moeda de apresentação** | Em Configurações, cada utilizador escolhe a moeda em que vê todos os valores (121 moedas), convertidos ao câmbio do dia; os dados ficam em euros, por isso voltar ao euro repõe exatamente os valores. Preços das subscrições em € com o aproximado — ver [`context/features/10-FASE-10-moeda-de-apresentacao.md`](context/features/10-FASE-10-moeda-de-apresentacao.md) |
 | **PWA** | Instalável, offline-ready, manifest completo |
 | **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
 | **Responsivo** | Mobile-first, sidebar colapsável desktop, bottom nav mobile |
@@ -92,7 +93,7 @@ ver `.env.example` e a descrição de cada uma em
 | Grupo | Variáveis |
 |---|---|
 | Subscrições (EasyPay) | `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID`, `EASYPAY_API_KEY`, `SUBSCRIPTION_RENEWAL_REMINDER_DAYS`, `CRON_SECRET` |
-| Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (dicas de investimento e câmbio de transações em moeda estrangeira) |
+| Insights com IA e digitalização de documentos | `ANTHROPIC_API_KEY` (ambos), `TWELVE_DATA_API_KEY` (dicas de investimento, câmbio de transações em moeda estrangeira e moeda de apresentação) |
 | Dicas de investimento com portfolio | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` (opcional, `false` por omissão — ver [Registo de investimentos](#-registo-de-investimentos)) |
 | Internacionalização | `GEOLITE2_DB_PATH` (opcional — sem ela, país fica sempre "desconhecido" e MB WAY/Multibanco ficam escondidos para todos; idioma da UI não depende de nenhuma variável) |
 

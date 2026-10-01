@@ -141,6 +141,17 @@
     "confirmDeleteTransaction": "Eliminar esta transação?"
   },
   "settings": {
+    "currency": {
+      "title": "Moeda",
+      "description": "Moeda em que vês todos os valores da app, convertidos ao câmbio do dia. Os teus dados ficam guardados em euros: voltar ao euro mostra exatamente os mesmos valores.",
+      "label": "Moeda de apresentação",
+      "search": "Pesquisar moeda…",
+      "rateToday": "{rate} · câmbio de hoje",
+      "rateStale": "{rate} · câmbio de {day} (o de hoje está indisponível)",
+      "unavailable": "Câmbio indisponível de momento — os valores estão em euros.",
+      "toastChanged": "Valores agora em {currency}",
+      "error": "Não foi possível mudar a moeda"
+    },
     "language": {
       "title": "Idioma",
       "description": "Idioma da interface — não afeta os métodos de pagamento disponíveis, que dependem do país detetado.",
@@ -343,8 +354,8 @@
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "Descrição opcional...",
     "colorLabel": "Cor",
-    "monthlyLimitLabel": "Teto mensal (€)",
-    "weeklyLimitLabel": "Teto semanal (€)",
+    "monthlyLimitLabel": "Teto mensal ({currency})",
+    "weeklyLimitLabel": "Teto semanal ({currency})",
     "noLimitPlaceholder": "Sem limite",
     "alertLabel": "Alerta aos",
     "previewNamePlaceholder": "Nome do grupo",
@@ -452,10 +463,10 @@
       "namePlaceholder": "Ex: FTSE All-World ETF, Certificados de Aforro...",
       "assetClassLabel": "Classe de ativo",
       "optional": "(opcional)",
-      "initialLabel": "Inicial (€) *",
+      "initialLabel": "Inicial ({currency}) *",
       "dateLabel": "Data *",
-      "reinforcementLabel": "Reforço (€)",
-      "valueLabel": "Situação (€) *",
+      "reinforcementLabel": "Reforço ({currency})",
+      "valueLabel": "Situação ({currency}) *",
       "hint": "Reforço é o total já acrescentado ao valor inicial. Situação é o valor atual da posição.",
       "invested": "Investido",
       "gain": "Ganho",
@@ -471,8 +482,8 @@
     "quickModal": {
       "reinforceTitle": "Reforçar",
       "updateValueTitle": "Atualizar situação",
-      "reinforceAmountLabel": "Valor a acrescentar (€)",
-      "updateValueAmountLabel": "Nova situação (€)",
+      "reinforceAmountLabel": "Valor a acrescentar ({currency})",
+      "updateValueAmountLabel": "Nova situação ({currency})",
       "reinforceLabel": "Reforço",
       "investedTotalLabel": "Investido no total",
       "reinforceNote": "A situação não muda sozinha — atualiza-a a seguir se o valor da posição também mudou.",

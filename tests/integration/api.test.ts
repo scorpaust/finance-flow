@@ -3,7 +3,7 @@ import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
-import { User, Category, Transaction, TransactionGroup, Investment, GooglePlayTransaction } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, GooglePlayTransaction, FxCache } from '../../server/models/index'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
 function anthropicTextResponse(data: unknown) {
@@ -858,6 +858,88 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
     const queue = await fetch('/api/billing/google-play/process-queue', { method: 'POST', headers: { 'x-cron-secret': env.CRON_SECRET } })
     expect(queue.status).toBe(200)
     expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-retry' }))?.status).toBe('reported')
+  })
+})
+
+describe('moeda de apresentação (Fase 10)', () => {
+  const PAIRS = { data: [{ symbol: 'EUR/USD', currency_quote: 'USD' }, { symbol: 'EUR/BRL', currency_quote: 'BRL' }] }
+
+  beforeEach(async () => {
+    // Cache do câmbio partilhada por todos os utilizadores — limpa entre testes.
+    await FxCache.deleteMany({})
+  })
+
+  const fxRequests = async () => (await stub.requests()).filter((r) => r.path === '/exchange_rate' || r.path === '/forex_pairs')
+
+  it('começa em euros; mudar para dólares devolve a taxa do dia, guardada na conta e em cache', async () => {
+    const email = uniqueEmail('fx')
+    const { cookie } = await register(email)
+    await stub.setEasyPayResponse('GET', '/forex_pairs', PAIRS)
+    await stub.setEasyPayResponse('GET', '/exchange_rate', { symbol: 'EUR/USD', rate: 1.1 })
+
+    const initial = await (await fetch('/api/account/currency', { headers: { cookie } })).json()
+    expect(initial).toMatchObject({ selected: 'EUR', currency: 'EUR', rate: 1, stale: false })
+    expect(initial.currencies).toEqual(['BRL', 'EUR', 'USD'])
+
+    const put = await fetch('/api/account/currency', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ currency: 'usd' }),
+    })
+    expect(put.status).toBe(200)
+    expect(await put.json()).toMatchObject({ selected: 'USD', currency: 'USD', rate: 1.1, stale: false })
+    expect((await User.findOne({ email }))!.displayCurrency).toBe('USD')
+
+    // A taxa do dia fica em cache: outro pedido não volta ao fornecedor.
+    const before = (await fxRequests()).filter((r) => r.path === '/exchange_rate').length
+    await fetch('/api/account/currency', { headers: { cookie } })
+    expect((await fxRequests()).filter((r) => r.path === '/exchange_rate').length).toBe(before)
+  })
+
+  it('recusa uma moeda que o fornecedor não suporta', async () => {
+    const { cookie } = await register(uniqueEmail('fx-bad'))
+    await stub.setEasyPayResponse('GET', '/forex_pairs', PAIRS)
+    const res = await fetch('/api/account/currency', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ currency: 'XYZ' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('com o fornecedor em baixo usa a última taxa conhecida, ou euros se nunca houve nenhuma', async () => {
+    const email = uniqueEmail('fx-down')
+    const { cookie } = await register(email)
+    await User.updateOne({ email }, { displayCurrency: 'BRL' })
+
+    // Nunca houve taxa para BRL e o fornecedor falha → euros, sem erro.
+    await stub.setEasyPayResponse('GET', '/exchange_rate', { code: 500, message: 'down' }, 500)
+    const noRate = await fetch('/api/account/currency', { headers: { cookie } })
+    expect(noRate.status).toBe(200)
+    expect(await noRate.json()).toMatchObject({ selected: 'BRL', currency: 'EUR', rate: 1, stale: true })
+
+    // Com uma taxa de ontem em cache → usa-a, marcada como desatualizada.
+    await FxCache.create({ _id: 'rate:BRL', value: 5.8, day: '2026-01-01' })
+    const stale = await (await fetch('/api/account/currency', { headers: { cookie } })).json()
+    expect(stale).toMatchObject({ selected: 'BRL', currency: 'BRL', rate: 5.8, day: '2026-01-01', stale: true })
+  })
+
+  it('uma transação criada em dólares fica em euros com o valor e a moeda originais', async () => {
+    const email = uniqueEmail('fx-tx')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const category = await Category.findOne({ userId: user!._id, type: 'expense' })
+    // getExchangeRateToEur (Fase 7) pede USD/EUR à mesma API simulada.
+    await stub.setEasyPayResponse('GET', '/exchange_rate', { symbol: 'USD/EUR', rate: 0.9 })
+
+    const res = await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ type: 'expense', amount: 100, currency: 'USD', description: 'Em dólares', categoryId: category!._id, date: new Date().toISOString() }),
+    })
+    expect(res.status).toBe(200)
+    const tx = await Transaction.findOne({ userId: user!._id, description: 'Em dólares' }).lean()
+    expect(tx).toMatchObject({ amount: 90, currency: 'USD', originalAmount: 100, exchangeRate: 0.9 })
   })
 })
 

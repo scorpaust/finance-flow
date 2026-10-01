@@ -2199,3 +2199,29 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   Fornecedor confirmado com a chave do projeto: Twelve Data cobre 121 moedas
   a partir do euro no plano gratuito (incluindo BRL, AOA, CVE, MZN). Fase 9
   em pausa (ver Estado).
+- 2026-10-01: **FASE 10 implementada** no branch
+  `feature/fase-10-moeda-apresentacao`.
+  - **Servidor**: `User.displayCurrency` (omissão `EUR`); coleção `FxCache`
+    (lista de moedas e taxa EUR→X do dia, partilhadas, um pedido por moeda
+    por dia); `server/utils/displayCurrency.ts` (fornecedor em baixo → última
+    taxa conhecida, ou euros); `GET/PUT /api/account/currency`;
+    interpretação de estatísticas por IA com os agregados convertidos e a
+    moeda no prompt, cache por moeda.
+  - **Cliente**: `stores/currency.ts` (carregada quando há sessão, euros ao
+    sair); `useFormatters` converte qualquer valor em euros sem moeda
+    explícita (valores com moeda explícita — o original de um recibo — ficam
+    como estão); `CurrencyCard` em Configurações (pesquisa, nomes via
+    `Intl.DisplayNames`, taxa em uso). Campos de valor na moeda escolhida,
+    gravados em euros: transação nova com a moeda escolhida como moeda
+    original (o servidor converte, como os recibos estrangeiros); tetos dos
+    grupos e investimentos convertidos ao abrir e ao gravar — um campo não
+    alterado grava o valor original em euros (evita perder um cêntimo na ida
+    e volta). Preços das subscrições "5,00 € (≈ X)". Rótulos "(€)" → símbolo
+    da moeda nas 6 línguas.
+  - **Testes**: unitários 51/51 (4 novos de conversão), integração 32/32
+    (4 novos), E2E 4/4 (novo: mudar para dólares — 100 € aparecem como 200 $
+    — e voltar ao euro). Type-check 0 erros.
+  - **Limitação conhecida**: um gráfico já aberto só reflete a nova moeda nos
+    eixos/tooltips ao voltar a montar (mudar de página); a moeda muda-se em
+    Configurações, por isso na prática é sempre assim.
+

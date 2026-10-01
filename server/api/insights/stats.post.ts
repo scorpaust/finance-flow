@@ -5,6 +5,7 @@ import { requireFeature } from '../../utils/requireFeature'
 import { generateStructuredJson } from '../../utils/anthropic'
 import { getServerLocale, type ServerLocale } from '../../utils/i18n'
 import { enforceRateLimit } from '../../utils/rateLimit'
+import { getEurRate, getUserDisplayCurrency } from '../../utils/displayCurrency'
 
 // Interpretação de estatísticas com IA (Pro + Premium) — Fase 3, tarefa 4.
 // Só agregados já calculados vão para o LLM (nunca descrições de transações
@@ -24,9 +25,11 @@ const RESPONSE_LANGUAGE_NAME: Record<ServerLocale, string> = {
 // Prompt fixo, versionado no código (não editável em runtime) — ver
 // context/features/03-FASE-3-insights-ia.md tarefa 4. Fase 7 — segue o
 // idioma ativo da UI.
-function buildSystemPrompt(locale: ServerLocale): string {
+function buildSystemPrompt(locale: ServerLocale, currency: string): string {
   return `És um assistente financeiro que interpreta agregados financeiros já
 calculados de um utilizador e devolve JSON estruturado em ${RESPONSE_LANGUAGE_NAME[locale]}.
+Todos os valores monetários estão em ${currency} (código ISO 4217); quando
+mencionares valores, usa essa moeda.
 Recebes apenas números e nomes de categoria — nunca descrições de transações
 individuais. Gera entre 2 e 3 insights (observações concretas sobre padrões
 nos dados, ex. tendências de poupança, categorias com maior peso) e entre 1 e
@@ -45,11 +48,15 @@ export default defineEventHandler(async (event) => {
   const parsed = z.object({ months: z.coerce.number().int().optional() }).safeParse(await readBody(event).catch(() => ({})))
   const months = Math.max(1, Math.min(24, (parsed.success && parsed.data.months) || 6))
   const locale = getServerLocale(event)
+  // Fase 10 — os valores enviados ao modelo vão na moeda de apresentação do
+  // utilizador (câmbio do dia); a cache distingue a moeda, como o idioma.
+  const fx = await getEurRate(await getUserDisplayCurrency(userId))
 
   const cached = await AiInsightCache.findOne({ userId }).lean()
   if (
     cached &&
     (cached.locale || 'pt-PT') === locale &&
+    (cached.currency || 'EUR') === fx.currency &&
     Date.now() - new Date(cached.generatedAt).getTime() < CACHE_TTL_MS
   ) {
     return { insights: cached.insights, suggestions: cached.suggestions, generatedAt: cached.generatedAt, cached: true }
@@ -90,11 +97,12 @@ export default defineEventHandler(async (event) => {
     monthlyMap[key] = monthlyMap[key] || { income: 0, expense: 0 }
     monthlyMap[key][r._id.type as 'income' | 'expense'] = r.total
   }
+  const toDisplay = (eur: number) => Math.round(eur * fx.rate * 100) / 100
   const monthly = Object.entries(monthlyMap).map(([month, v]) => ({
     month,
-    income: v.income,
-    expense: v.expense,
-    balance: v.income - v.expense,
+    income: toDisplay(v.income),
+    expense: toDisplay(v.expense),
+    balance: toDisplay(v.income - v.expense),
   }))
 
   const totalIncome = monthly.reduce((s, m) => s + m.income, 0)
@@ -103,14 +111,14 @@ export default defineEventHandler(async (event) => {
 
   const topExpenseCategories = (categoryRaw as any[]).map((r) => ({
     name: r.category?.name || 'Sem categoria',
-    total: r.total,
+    total: toDisplay(r.total),
     count: r.count,
   }))
 
-  const aggregates = { months, totalIncome, totalExpense, savingsRate, monthly, topExpenseCategories }
+  const aggregates = { currency: fx.currency, months, totalIncome, totalExpense, savingsRate, monthly, topExpenseCategories }
 
   const result = await generateStructuredJson<StatsInsightResult>({
-    system: buildSystemPrompt(locale),
+    system: buildSystemPrompt(locale, fx.currency),
     prompt: `Agregados financeiros do utilizador (JSON):\n${JSON.stringify(aggregates)}`,
     schema: {
       type: 'object',
@@ -126,7 +134,7 @@ export default defineEventHandler(async (event) => {
   const generatedAt = new Date()
   await AiInsightCache.findOneAndUpdate(
     { userId },
-    { userId, months, insights: result.insights, suggestions: result.suggestions, generatedAt, locale },
+    { userId, months, insights: result.insights, suggestions: result.suggestions, generatedAt, locale, currency: fx.currency },
     { upsert: true }
   )
 

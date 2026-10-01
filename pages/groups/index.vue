@@ -227,7 +227,7 @@
             <!-- Budget limits -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="form-label">{{ t('groups.monthlyLimitLabel') }}</label>
+                <label class="form-label">{{ t('groups.monthlyLimitLabel', { currency: currencySymbol }) }}</label>
                 <input
                   v-model.number="form.monthlyLimit"
                   type="number"
@@ -238,7 +238,7 @@
                 />
               </div>
               <div>
-                <label class="form-label">{{ t('groups.weeklyLimitLabel') }}</label>
+                <label class="form-label">{{ t('groups.weeklyLimitLabel', { currency: currencySymbol }) }}</label>
                 <input
                   v-model.number="form.weeklyLimit"
                   type="number"
@@ -275,7 +275,7 @@
               <div class="flex-1">
                 <p class="text-white text-sm font-medium">{{ form.name || t('groups.previewNamePlaceholder') }}</p>
                 <p class="text-white/30 text-xs">
-                  {{ form.monthlyLimit ? t('groups.previewLimit', { amount: formatCurrency(form.monthlyLimit) }) : t('groups.previewNoLimit') }}
+                  {{ form.monthlyLimit ? t('groups.previewLimit', { amount: formatCurrency(form.monthlyLimit, fx.currency) }) : t('groups.previewNoLimit') }}
                 </p>
               </div>
             </div>
@@ -305,7 +305,11 @@ definePageMeta({ layout: 'default' })
 
 const groupsStore = useGroupsStore()
 const toast = useToastStore()
-const { formatCurrency, formatCompact, formatDate } = useFormatters()
+const { formatCurrency, formatCompact, formatDate, currencySymbol } = useFormatters()
+// Fase 10 — os tetos escrevem-se na moeda de apresentação e gravam-se em euros.
+const fx = useCurrencyStore()
+const toDisplay = (eur: number | null | undefined) => (eur == null ? null : Math.round(fx.fromEur(eur) * 100) / 100)
+const toEur = (value: number | null) => (value == null ? null : fx.toEur(value))
 const { t } = useI18n()
 const sub = useSubscription()
 const subLoading = sub.isLoading   // top-level ref so Vue auto-unwraps in template
@@ -349,8 +353,8 @@ watch(editGroup, (g) => {
     form.name = g.name
     form.description = g.description || ''
     form.color = g.color
-    form.monthlyLimit = g.monthlyLimit ?? null
-    form.weeklyLimit = g.weeklyLimit ?? null
+    form.monthlyLimit = toDisplay(g.monthlyLimit)
+    form.weeklyLimit = toDisplay(g.weeklyLimit)
     form.alertThreshold = g.alertThreshold ?? 80
   }
 })
@@ -369,10 +373,10 @@ async function saveGroup() {
   saving.value = true
   try {
     if (editGroup.value) {
-      await groupsStore.updateGroup(editGroup.value._id, { ...form })
+      await groupsStore.updateGroup(editGroup.value._id, { ...form, monthlyLimit: toEur(form.monthlyLimit), weeklyLimit: toEur(form.weeklyLimit) })
       toast.success(t('groups.toastUpdated'))
     } else {
-      await groupsStore.createGroup({ ...form })
+      await groupsStore.createGroup({ ...form, monthlyLimit: toEur(form.monthlyLimit), weeklyLimit: toEur(form.weeklyLimit) })
       toast.success(t('groups.toastCreated'))
     }
     closeModal()

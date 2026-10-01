@@ -141,6 +141,17 @@
     "confirmDeleteTransaction": "¿Eliminar esta transacción?"
   },
   "settings": {
+    "currency": {
+      "title": "Moneda",
+      "description": "Moneda en la que ves todos los importes de la app, convertidos al cambio del día. Tus datos se guardan en euros: volver al euro muestra exactamente los mismos importes.",
+      "label": "Moneda de visualización",
+      "search": "Buscar moneda…",
+      "rateToday": "{rate} · cambio de hoy",
+      "rateStale": "{rate} · cambio del {day} (el de hoy no está disponible)",
+      "unavailable": "Tipo de cambio no disponible ahora mismo — los importes se muestran en euros.",
+      "toastChanged": "Importes ahora en {currency}",
+      "error": "No se pudo cambiar la moneda"
+    },
     "language": {
       "title": "Idioma",
       "description": "Idioma de la interfaz — no afecta a los métodos de pago disponibles, que dependen del país detectado.",
@@ -343,8 +354,8 @@
     "descriptionLabel": "Descripción",
     "descriptionPlaceholder": "Descripción opcional...",
     "colorLabel": "Color",
-    "monthlyLimitLabel": "Límite mensual (€)",
-    "weeklyLimitLabel": "Límite semanal (€)",
+    "monthlyLimitLabel": "Límite mensual ({currency})",
+    "weeklyLimitLabel": "Límite semanal ({currency})",
     "noLimitPlaceholder": "Sin límite",
     "alertLabel": "Alerta al",
     "previewNamePlaceholder": "Nombre del grupo",
@@ -452,10 +463,10 @@
       "namePlaceholder": "Ej: FTSE All-World ETF, Certificados de ahorro...",
       "assetClassLabel": "Clase de activo",
       "optional": "(opcional)",
-      "initialLabel": "Inicial (€) *",
+      "initialLabel": "Inicial ({currency}) *",
       "dateLabel": "Fecha *",
-      "reinforcementLabel": "Aportaciones (€)",
-      "valueLabel": "Valor (€) *",
+      "reinforcementLabel": "Aportaciones ({currency})",
+      "valueLabel": "Valor ({currency}) *",
       "hint": "Aportaciones es el total ya añadido al importe inicial. Valor es el valor actual de la posición.",
       "invested": "Invertido",
       "gain": "Ganancia",
@@ -471,8 +482,8 @@
     "quickModal": {
       "reinforceTitle": "Aportar",
       "updateValueTitle": "Actualizar valor",
-      "reinforceAmountLabel": "Importe a añadir (€)",
-      "updateValueAmountLabel": "Nuevo valor (€)",
+      "reinforceAmountLabel": "Importe a añadir ({currency})",
+      "updateValueAmountLabel": "Nuevo valor ({currency})",
       "reinforceLabel": "Aportaciones",
       "investedTotalLabel": "Total invertido",
       "reinforceNote": "El valor no cambia solo — actualízalo después si el valor de la posición también cambió.",

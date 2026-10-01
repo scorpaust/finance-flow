@@ -4,11 +4,16 @@
 
 ## Estado
 
-Em progresso — branch `feature/fase-10-moeda-apresentacao` criado a partir
-de `main` em 2026-10-01. Pedida pelo utilizador para implementar **antes** dos
-testes fechados da Play Store.
+**Concluída** (2026-10-01) — os 5 critérios de aceitação abaixo cumpridos e
+cobertos por testes (unitários 51/51, integração 32/32, E2E 4/4, type-check
+0 erros). Branch `feature/fase-10-moeda-apresentacao` mergeado em `main` e
+apagado. Chega à web e à app Android com o próximo deploy (a escolha da
+moeda é um ecrã do site, não precisa de `.aab` novo).
 
-**Fase 9 (Publicação) em pausa**, não concluída. Feito: web em produção
+**A seguir: retomar a Fase 9 (Publicação)**, que ficou em pausa e não está
+concluída. Próximo passo combinado: testes fechados (12+ testadores durante
+14 dias), com 2–3 atualizações da app Android ao longo do teste (ecrã sem
+internet, splash/barra de estado, otimização R8, correções do feedback). Feito: web em produção
 (https://financeflow-webapp.netlify.app), backups R2, app nos testes
 internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`),
 ficha da loja e declarações da Play Console. Por fazer: testes fechados,
@@ -2224,4 +2229,10 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   - **Limitação conhecida**: um gráfico já aberto só reflete a nova moeda nos
     eixos/tooltips ao voltar a montar (mudar de página); a moeda muda-se em
     Configurações, por isso na prática é sempre assim.
+- 2026-10-01: **FASE 10 concluída**, a pedido do utilizador. Branch
+  `feature/fase-10-moeda-apresentacao` mergeado em `main` e apagado. Plano
+  para os testes fechados da Fase 9 (a Google valoriza 2–3 atualizações
+  durante o teste, e só um `.aab` novo conta como atualização — um deploy do
+  site não): ecrã próprio sem internet, splash/barra de estado no tema
+  escuro, otimização R8, atalhos no ícone, correções do feedback.
 

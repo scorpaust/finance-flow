@@ -2271,4 +2271,18 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   Privacidade: eliminação de dados sem apagar a conta (pedido pela
   declaração de segurança dos dados). Por fazer: carregar o `.aab` na faixa
   de testes internos.
+- 2026-10-01: **MB WAY/Multibanco em todos os países** (decisão do
+  utilizador). Origem: ao ver os requisitos por país da Play Console, o
+  Regulamento (UE) 2018/302 (bloqueio geográfico), art. 5.º — recusar um meio
+  de pagamento aceite por causa da localização do cliente — e, sobretudo, os
+  emigrantes portugueses (Suíça, França, Reino Unido, EUA, Brasil…), que
+  pagam com a conta portuguesa onde quer que vivam. `shared/paymentMethods.ts`
+  deixa de depender do país; removidos a recusa 403 em `create-prepaid` e a
+  mensagem `methodNotAvailableInCountry`. O idioma continua a seguir a língua
+  do telemóvel/browser (não o IP — um emigrante com o telemóvel em PT vê PT),
+  confirmado com o utilizador. O E2E passa a provar o caso positivo (os 4
+  métodos com país desconhecido) e o teste de integração do MB WAY pela app
+  passa pelo endpoint real. Distribuição na Play Store: recomendado só o EEE
+  (30 países) — alternative billing só lá; EUA ficam para uma fase própria
+  (programa de faturação americano separado, regras ainda em mudança).
 

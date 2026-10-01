@@ -765,13 +765,11 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
     const user = await User.findOne({ email })
     const key = encodeMerchantKey(String(user!._id), 'premium', 'mbway', 3)
 
-    // Sem GeoLite2 nem Netlify em teste o país é desconhecido e o servidor
-    // recusa métodos pré-pagos — o documento de espera cria-se diretamente,
-    // como faria o create-prepaid para um utilizador em Portugal.
-    await GooglePlayTransaction.create({
-      userId: user!._id, kind: 'initial', status: 'awaiting_payment', token: TOKEN, checkoutId: 'chk-gp-mbw',
-      tier: 'premium', method: 'mbway', periodMonths: 3, amountCents: 3897, regionCode: 'PT',
-    })
+    // MB WAY aceite em qualquer país (Fase 9) — pelo endpoint real, mesmo com o
+    // país desconhecido em teste (fica 'PT' como país fiscal por omissão).
+    await startAndroidCheckout(cookie, 'chk-gp-mbw', { tier: 'premium', method: 'mbway', periodMonths: 3 }, 'create-prepaid')
+    const awaiting = await GooglePlayTransaction.findOne({ checkoutId: 'chk-gp-mbw' })
+    expect(awaiting?.amountCents).toBe(3897)
     await stub.setEasyPayResponse('GET', '/checkout/chk-gp-mbw', { id: 'chk-gp-mbw', payment: { id: 'pay-gp-mbw', status: 'success', key } })
     await stub.setEasyPayResponse('GET', '/single/pay-gp-mbw', { id: 'pay-gp-mbw', status: 'paid', key })
     const confirm = await fetch('/api/subscription/easypay/confirm', {

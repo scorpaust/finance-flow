@@ -1,25 +1,22 @@
-// Fase 7 — tabela país → métodos de pagamento PRÉ-PAGOS disponíveis
-// (`push_confirm`/`manual_reference`, ver Fase 2). Usado tanto no client
-// (esconder o separador quando o país não tem nenhum) como no server
-// (`create-prepaid.post.ts`, nunca confiar só na UI). Deliberadamente
-// limitado a Portugal nesta fase (decisão de arquitetura 5 da especificação)
-// — qualquer país fora desta tabela cai no fallback universal de
-// auto-renovação (Cartão/Débito Direto, `billingMode: 'auto'`), que nunca
-// depende do país.
+// Métodos de pagamento PRÉ-PAGOS (`push_confirm`/`manual_reference`, ver
+// Fase 2) — MB WAY e Multibanco. Usado tanto no client (separador de
+// pagamento) como no server (`create-prepaid.post.ts`, nunca confiar só na UI).
+//
+// Fase 9 (2026-10-01) — disponíveis em TODOS os países (antes: só a quem a
+// geolocalização dava como estando em Portugal). Dois motivos, decididos pelo
+// utilizador: (1) os emigrantes portugueses (Suíça, França, Reino Unido, EUA,
+// Brasil…) pagam com MB WAY/Multibanco através da conta num banco português,
+// estejam onde estiverem; (2) o Regulamento (UE) 2018/302 (bloqueio
+// geográfico), art. 5.º, proíbe recusar um meio de pagamento aceite por causa
+// da residência/localização do cliente. Quem não tiver conta portuguesa
+// simplesmente não os usa — cartão/débito direto continuam lá para todos.
+// O país (geolocalização) continua a ser usado noutros sítios, ex. o país
+// fiscal no reporte à Google Play (server/utils/googlePlayBilling.ts).
 export type PrepaidMethod = 'mbway' | 'multibanco'
 
-const PREPAID_METHODS_BY_COUNTRY: Record<string, PrepaidMethod[]> = {
-  PT: ['mbway', 'multibanco'],
-}
+const PREPAID_METHODS: PrepaidMethod[] = ['mbway', 'multibanco']
 
-// País `null`/desconhecido (geolocalização não configurada ou IP não
-// encontrado) é tratado como "sem métodos pré-pagos locais" — nunca
-// assumido como Portugal.
-export function prepaidMethodsForCountry(countryCode: string | null | undefined): PrepaidMethod[] {
-  if (!countryCode) return []
-  return PREPAID_METHODS_BY_COUNTRY[countryCode.toUpperCase()] || []
-}
-
-export function isPrepaidMethodAvailable(countryCode: string | null | undefined, method: string): boolean {
-  return prepaidMethodsForCountry(countryCode).includes(method as PrepaidMethod)
+// O parâmetro do país fica para não mudar quem chama — já não restringe nada.
+export function prepaidMethodsForCountry(_countryCode?: string | null): PrepaidMethod[] {
+  return [...PREPAID_METHODS]
 }

@@ -203,11 +203,9 @@ const ALL_METHODS = computed<{ value: Method; label: string }[]>(() => [
   { value: 'multibanco', label: t('subscription.methodMultibanco') },
 ])
 
-// Fase 7, tarefa 4 — só mostra MB WAY/Multibanco quando o país detetado do
-// utilizador (geolocalização de IP, nunca a preferência de idioma da UI) os
-// tem disponíveis; hoje só Portugal (ver shared/paymentMethods.ts). Esconder
-// aqui é só UX — o servidor (create-prepaid.post.ts) volta a validar sempre,
-// mesmo que este pedido falhe ou a lista chegue vazia.
+// MB WAY/Multibanco disponíveis em qualquer país desde a Fase 9 (emigrantes
+// com conta portuguesa; bloqueio geográfico — ver shared/paymentMethods.ts).
+// A lista continua a vir do servidor (/api/subscription/payment-methods).
 const availablePrepaidMethods = ref<string[]>([])
 const METHODS = computed(() =>
   ALL_METHODS.value.filter((m) => m.value === 'cc' || m.value === 'dd' || availablePrepaidMethods.value.includes(m.value))

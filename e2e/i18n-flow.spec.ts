@@ -8,15 +8,13 @@ import { test, expect } from '@playwright/test'
 // geolocalização (nuxt.config.ts tem `detectBrowserLanguage: false` de
 // propósito, ver plugins/locale.ts): deteta-se do cabeçalho Accept-Language/
 // `navigator.languages`, nunca do IP. A geolocalização (server/utils/geo.ts,
-// base de dados MaxMind GeoLite2) só decide que MÉTODOS DE PAGAMENTO
-// pré-pagos mostrar (MB WAY/Multibanco, só Portugal) — são dois mecanismos
-// independentes. Este spec testa os dois, corretamente separados:
+// base de dados MaxMind GeoLite2) já não decide os métodos de pagamento:
+// desde a Fase 9 MB WAY/Multibanco aparecem em qualquer país (emigrantes com
+// conta portuguesa; Regulamento (UE) 2018/302, art. 5.º — ver
+// shared/paymentMethods.ts). Este spec testa:
 //   1. idioma: fallback para EN com um Accept-Language não suportado
-//   2. país: sem GEOLITE2_DB_PATH configurado neste ambiente de teste (não há
-//      licença MaxMind disponível), o país fica sempre desconhecido — o
-//      mesmo resultado que "fora de Portugal". Prova que só CC/DD aparecem
-//      nesse caso; NÃO prova o caso positivo (Portugal → MB WAY/Multibanco
-//      aparecem), que exigiria uma base de dados GeoLite2 real.
+//   2. pagamentos: sem GEOLITE2_DB_PATH neste ambiente o país fica
+//      desconhecido — e mesmo assim os 4 métodos aparecem.
 //
 // Nota de infraestrutura: helpers inline (não num e2e/helpers.ts partilhado)
 // — ver o comentário equivalente em main-flow.spec.ts.
@@ -65,14 +63,14 @@ test.describe('internacionalização (Fase 7)', () => {
     await expect(page.getByTestId('settings-language-select')).toHaveValue('en')
   })
 
-  test('sem base de dados GeoLite2 (país desconhecido), o checkout só mostra CC/DD', async ({ page }) => {
+  test('mesmo com país desconhecido, o checkout mostra cartão, débito direto, MB WAY e Multibanco', async ({ page }) => {
     const email = uniqueEmail('e2e-i18n-pay')
     await registerViaUi(page, email)
 
     await page.goto('/subscription?tier=pro')
     await expect(page.getByTestId('subscription-method-cc')).toBeVisible()
     await expect(page.getByTestId('subscription-method-dd')).toBeVisible()
-    await expect(page.getByTestId('subscription-method-mbway')).toHaveCount(0)
-    await expect(page.getByTestId('subscription-method-multibanco')).toHaveCount(0)
+    await expect(page.getByTestId('subscription-method-mbway')).toBeVisible()
+    await expect(page.getByTestId('subscription-method-multibanco')).toBeVisible()
   })
 })

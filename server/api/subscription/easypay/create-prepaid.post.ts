@@ -2,7 +2,6 @@ import { requireAuth } from '../../../utils/auth'
 import { createSinglePaymentCheckout, encodeMerchantKey } from '../../../utils/easypay'
 import { getRequestCountry } from '../../../utils/geo'
 import { TIER_PRICE_EUR } from '../../../../shared/features'
-import { isPrepaidMethodAvailable } from '../../../../shared/paymentMethods'
 import { User } from '../../../models'
 import { getServerLocale, serverT } from '../../../utils/i18n'
 import { enforceRateLimit } from '../../../utils/rateLimit'
@@ -42,19 +41,9 @@ export default defineEventHandler(async (event) => {
 
   await assertNoActiveAutoRenew(event, userId)
 
-  // Fase 7, tarefa 4 — nunca confiar só na UI a esconder o separador
-  // MB WAY/Multibanco: o país vem da geolocalização do IP do pedido, não de
-  // nenhum campo enviado pelo client (que podia ser adulterado).
+  // MB WAY/Multibanco aceites em qualquer país (Fase 9 — ver
+  // shared/paymentMethods.ts). O país só serve para o reporte à Google Play.
   const country = await getRequestCountry(event)
-  if (!isPrepaidMethodAvailable(country, method)) {
-    throw createError({
-      statusCode: 403,
-      message: serverT(locale, 'subscriptionApi.methodNotAvailableInCountry', {
-        method,
-        countrySuffix: country ? ` (${country})` : '',
-      }),
-    })
-  }
 
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()
   if (!user) throw createError({ statusCode: 404, message: serverT(locale, 'subscriptionApi.userNotFound') })

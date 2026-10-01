@@ -20,7 +20,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
 | **Exportar CSV** | Download de transações filtradas (Pro+) |
-| **Internacionalização** | UI em 6 idiomas (PT-PT, EN, FR, DE, IT, ES), deteção automática por browser com override manual persistente; métodos de pagamento pré-pagos (MB WAY/Multibanco) só disponíveis para utilizadores geolocalizados em Portugal; recibos/faturas em moeda estrangeira convertidos para € à taxa do dia, com o valor e a moeda originais preservados — ver [Internacionalização](#-internacionalização) |
+| **Internacionalização** | UI em 6 idiomas (PT-PT, EN, FR, DE, IT, ES), deteção automática por browser com override manual persistente; métodos de pagamento pré-pagos (MB WAY/Multibanco) disponíveis em qualquer país (emigrantes com conta portuguesa); recibos/faturas em moeda estrangeira convertidos para € à taxa do dia, com o valor e a moeda originais preservados — ver [Internacionalização](#-internacionalização) |
 | **PWA** | Instalável, offline-ready, manifest completo |
 | **App Android nativa** | Empacotada com Capacitor, mesmo código-base — ver [App Android Nativa](#-app-android-nativa-capacitor) |
 | **Responsivo** | Mobile-first, sidebar colapsável desktop, bottom nav mobile |
@@ -207,7 +207,7 @@ financeflow/
 │                                     em moeda estrangeira (nunca assume 1:1)
 ├── shared/features.ts          ← Fonte única da matriz de features por tier
 ├── shared/portfolio.ts         ← Fonte única do cálculo de rentabilidade (servidor, UI e IA)
-├── shared/paymentMethods.ts    ← Tabela país → métodos de pagamento pré-pagos disponíveis
+├── shared/paymentMethods.ts    ← Métodos de pagamento pré-pagos (MB WAY/Multibanco, todos os países)
 ├── stores/                     ← Pinia: auth, finance, groups, subscription, toast
 ├── types/index.ts               ← TypeScript types + constantes
 ├── utils/chartjs.ts            ← Registo do Chart.js (importado só pelos gráficos)
@@ -400,11 +400,10 @@ Detalhe completo em
 
 ## 🌍 Internacionalização
 
-Dois sinais independentes, nunca confundidos: o **idioma da UI** segue a
-preferência do browser (`Accept-Language`), com override manual persistente;
-os **métodos de pagamento pré-pagos disponíveis** seguem o país detetado por
-geolocalização de IP — são rails bancários por país, não preferência do
-utilizador.
+O **idioma da UI** segue a preferência do browser/telemóvel
+(`Accept-Language`), com override manual persistente — nunca o país do IP: um
+emigrante em França com o telemóvel em português vê a app em português. A
+geolocalização de IP só serve para o país fiscal no reporte à Google Play.
 
 - **Idioma** — 6 línguas no lançamento (PT-PT, EN, FR, DE, IT, ES), com
   **EN como fallback universal**. Via `@nuxtjs/i18n` (`strategy: 'no_prefix'`
@@ -424,21 +423,15 @@ utilizador.
   do servidor usam um dicionário próprio e leve
   ([`server/utils/i18n.ts`](server/utils/i18n.ts), lido do mesmo cookie) em
   vez de dependerem do `vue-i18n`, que só existe no client.
-- **Métodos de pagamento por país** — [`server/utils/geo.ts`](server/utils/geo.ts)
-  faz o lookup do IP do pedido contra a base de dados local MaxMind
-  GeoLite2-Country (sem chamadas externas por pedido; ver o comentário no
-  topo do ficheiro para o processo de download/atualização). Âmbito
-  deliberadamente limitado a Portugal
-  ([`shared/paymentMethods.ts`](shared/paymentMethods.ts): tabela
-  país → métodos, hoje só `PT: ['mbway', 'multibanco']`) — qualquer outro
-  país, ou um país desconhecido (sem `GEOLITE2_DB_PATH`, ou em `localhost`
-  onde o IP do pedido é sempre loopback/privado e não geolocalizável), cai
-  no fallback universal de cartão com auto-renovação. **Nunca assumido como
-  Portugal por omissão.** A validação real está sempre no servidor
-  (`create-prepaid.post.ts` rejeita com `403` um pedido de MB WAY/Multibanco
-  vindo de fora de Portugal, mesmo que a UI tenha sido adulterada) — o
-  endpoint `payment-methods.get.ts` que o client usa para decidir que
-  separador mostrar não é uma fonte de confiança para isso.
+- **Métodos de pagamento** — MB WAY e Multibanco disponíveis em **todos os
+  países** desde a Fase 9 ([`shared/paymentMethods.ts`](shared/paymentMethods.ts)):
+  os emigrantes portugueses pagam com a conta num banco português onde quer
+  que vivam, e o Regulamento (UE) 2018/302 (bloqueio geográfico), art. 5.º,
+  proíbe recusar um meio de pagamento aceite por causa da localização do
+  cliente. Antes estavam limitados a quem a geolocalização dava como estando
+  em Portugal. O país do pedido ([`server/utils/geo.ts`](server/utils/geo.ts):
+  geolocalização do Netlify em produção, MaxMind GeoLite2 fora dele) continua
+  a ser usado como país fiscal no reporte das compras da app Android à Google.
 - **Moeda estrangeira em documentos digitalizados** — ver
   [Digitalizar documentos](#-digitalizar-documentos-com-ia) acima.
 

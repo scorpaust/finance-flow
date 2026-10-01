@@ -97,8 +97,12 @@ instruções: usar `<APP_URL>/privacy`.
 |---|---|---|---|---|
 | Nome | Nome da conta | Sim | Gestão da conta | Não |
 | Endereço de email | Login | Sim | Gestão da conta | Não |
+| IDs do utilizador | Id interno da conta | Sim | Gestão da conta | Não |
 | Outras informações financeiras | Transações, orçamentos, investimentos, perfil de investidor | Sim | Funcionalidade da app | Não |
+| Histórico de compras | Subscrições compradas (plano, estado, referências de pagamento) | Sim | Gestão da conta, funcionalidade da app | Não |
 | Fotos | Recibo/fatura digitalizado (Pro) — enviado à Anthropic para extração, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
+| Ficheiros e documentos | Recibo/fatura em PDF na digitalização — idem, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
+| Outro conteúdo gerado pelo utilizador | Descrições e notas das transações, nomes de categorias/grupos | Sim | Funcionalidade da app | Não |
 | Localização aproximada | País, a partir do IP, só para mostrar os métodos de pagamento — **não guardado** | Sim, processamento efémero | Funcionalidade da app | Não |
 | Registos de falhas / diagnóstico | Sentry (só com `SENTRY_DSN` definido; sem corpos, cookies nem Session Replay) | Sim | Análise e correção de erros | Não |
 

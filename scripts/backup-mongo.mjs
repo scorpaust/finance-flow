@@ -57,6 +57,13 @@ async function main() {
   const { EJSON } = mongoose.mongo.BSON
   const r2 = r2Client()
   if (!r2) {
+    // No CI o disco do runner é apagado no fim: um backup "só local" ali não
+    // guarda nada e parecia bem-sucedido. Falha em vez de fingir.
+    if (process.env.CI) {
+      console.error('R2_* em falta — no CI um backup só local perde-se com o runner. Ver context/OPERATIONS.md.')
+      await mongoose.disconnect()
+      process.exit(1)
+    }
     console.warn('R2_* em falta — backup só local, sem envio para a cloud. Ver context/OPERATIONS.md.')
   }
 

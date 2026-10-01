@@ -2244,3 +2244,15 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   funcionar). Atualizados `APP_URL` no Netlify, `capacitor.config.ts` e a
   documentação; novo deploy. Por fazer pelo utilizador: secret `APP_URL` no
   GitHub e webhook da EasyPay com o endereço novo.
+- 2026-10-01: **backups a funcionar** (pendência da Fase 8, ponto 10). O
+  utilizador criou a conta Cloudflare, o bucket R2 com a regra de 3 anos e os
+  secrets do GitHub; o workflow corrido à mão gravou `backups/` no R2,
+  confirmado pelo utilizador. Pelo caminho: (1) o workflow falhava com
+  "exit code 1" sem explicação — passa a listar os secrets em falta e, no CI,
+  a recusar um backup só local (perdia-se com o runner); (2) o secret
+  `MONGODB_URI` tinha o endereço do Netlify em vez da ligação MongoDB — o
+  script passa a tolerar aspas/espaços/o prefixo `MONGODB_URI=` e a explicar
+  o erro sem mostrar o valor; (3) actions v5 (aviso de Node 20). E o CI
+  falhava no type-check sem `SENTRY_DSN` (opções do Sentry passaram para o
+  módulo — 0 erros com e sem DSN).
+

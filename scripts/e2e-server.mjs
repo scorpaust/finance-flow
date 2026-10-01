@@ -83,6 +83,17 @@ async function startControlServer(mongoUri) {
       return
     }
 
+    // Fase 10 — câmbio de teste (sem acesso ao fornecedor real): lista de
+    // moedas e taxa EUR→moeda do dia, como server/utils/displayCurrency.ts as guarda.
+    if (path === '/__e2e/seed-fx' && req.method === 'POST') {
+      const day = new Date().toISOString().slice(0, 10)
+      const fx = db.collection('fxcaches')
+      await fx.updateOne({ _id: 'currencies' }, { $set: { value: ['EUR', body.currency], day } }, { upsert: true })
+      await fx.updateOne({ _id: `rate:${body.currency}` }, { $set: { value: body.rate, day } }, { upsert: true })
+      res.writeHead(204).end()
+      return
+    }
+
     if (path === '/__e2e/seed-transaction' && req.method === 'POST') {
       const user = await db.collection('users').findOne({ email: body.email })
       if (!user) {

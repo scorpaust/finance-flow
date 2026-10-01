@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useLocaleFormat } from '../../composables/useLocaleFormat'
 
 // Fase 8, ponto 6 — os composables de UI (useFormatters, useMLPrediction,
@@ -23,3 +23,21 @@ import { useLocaleFormat } from '../../composables/useLocaleFormat'
 // Real composable (not a fake) — só precisa que useI18n()/computed() já
 // estejam em globalThis (linhas acima) para funcionar como no Nuxt real.
 ;(globalThis as any).useLocaleFormat = useLocaleFormat
+
+// Fase 10 — store da moeda de apresentação, controlável pelos testes
+// (`currencyStub.currency = 'USD'; currencyStub.rate = 1.1`). Por omissão em
+// euros, taxa 1 — como uma conta que nunca mudou de moeda.
+// Reativo, como a store real do Pinia: computeds que dependem da moeda
+// (ex. o símbolo em useFormatters) voltam a calcular quando ela muda.
+export const currencyStub = reactive({
+  currency: 'EUR',
+  rate: 1,
+  fromEur(eur: number) {
+    return (eur ?? 0) * this.rate
+  },
+  toEur(value: number) {
+    return Math.round(((value ?? 0) / this.rate) * 100) / 100
+  },
+})
+;(globalThis as any).useCurrencyStore = () => currencyStub
+

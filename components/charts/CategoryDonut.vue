@@ -34,7 +34,7 @@ const props = defineProps<{
   loading?: boolean
 }>()
 const { t } = useI18n()
-const { formatCompact } = useFormatters()
+const { formatCompact, formatCurrency } = useFormatters()
 const total = computed(() => props.categories?.reduce((s, c) => s + c.total, 0) ?? 0)
 const chartData = computed(() => {
   if (!props.categories?.length) return null
@@ -53,7 +53,7 @@ const opts = {
   responsive: true, maintainAspectRatio: false, cutout: '70%',
   plugins: {
     legend: { display: false },
-    tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.formattedValue} €` } },
+    tooltip: { callbacks: { label: (ctx: any) => ` ${formatCurrency(ctx.raw)}` } },
   },
 }
 </script>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { useFormatters } from '../composables/useFormatters'
+import { currencyStub } from './setup/nuxtStubs'
 
 // Fase 8, ponto 6 — useFormatters() depende de useI18n()/useLocaleFormat()
 // (auto-imports do Nuxt, stubados em tests/setup/nuxtStubs.ts para fixar o
@@ -83,3 +84,48 @@ describe('relativeTime', () => {
     expect(result).not.toMatch(/^common\./)
   })
 })
+
+// Fase 10 — moeda de apresentação: valores em euros (como vêm da API) são
+// convertidos ao câmbio da store; com moeda explícita (valor original de um
+// recibo estrangeiro) nunca há conversão.
+describe('moeda de apresentação', () => {
+  function withCurrency(currency: string, rate: number, fn: () => void) {
+    currencyStub.currency = currency
+    currencyStub.rate = rate
+    try {
+      fn()
+    } finally {
+      currencyStub.currency = 'EUR'
+      currencyStub.rate = 1
+    }
+  }
+
+  it('converte euros para a moeda escolhida', () => {
+    withCurrency('USD', 1.1, () => {
+      const out = formatCurrency(100)
+      expect(out).toMatch(/110,00/)
+      expect(out).toMatch(/US\$|\$/)
+    })
+  })
+
+  it('não converte um valor com moeda explícita (original de um recibo)', () => {
+    withCurrency('USD', 1.1, () => {
+      expect(formatCurrency(50, 'GBP')).toMatch(/50,00/)
+    })
+  })
+
+  it('formatCompact e formatSignedCurrency também convertem', () => {
+    withCurrency('USD', 2, () => {
+      expect(formatCompact(1_500)).toBe('3.0k $')
+      expect(formatSignedCurrency(10)).toMatch(/^\+.*20,00/)
+    })
+  })
+
+  it('voltar ao euro mostra exatamente o valor original', () => {
+    withCurrency('JPY', 177.64, () => {
+      expect(formatCurrency(12.34)).not.toMatch(/12,34/)
+    })
+    expect(formatCurrency(12.34)).toMatch(/12,34\s?€/)
+  })
+})
+

@@ -141,6 +141,17 @@
     "confirmDeleteTransaction": "Supprimer cette transaction ?"
   },
   "settings": {
+    "currency": {
+      "title": "Devise",
+      "description": "Devise dans laquelle tu vois tous les montants de l'app, convertis au taux du jour. Tes données restent enregistrées en euros : revenir à l'euro affiche exactement les mêmes montants.",
+      "label": "Devise d'affichage",
+      "search": "Rechercher une devise…",
+      "rateToday": "{rate} · taux du jour",
+      "rateStale": "{rate} · taux du {day} (celui du jour est indisponible)",
+      "unavailable": "Taux de change indisponible pour le moment — les montants sont en euros.",
+      "toastChanged": "Montants désormais en {currency}",
+      "error": "Impossible de changer la devise"
+    },
     "language": {
       "title": "Langue",
       "description": "Langue de l'interface — n'affecte pas les moyens de paiement disponibles, qui dépendent du pays détecté.",
@@ -343,8 +354,8 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Description facultative...",
     "colorLabel": "Couleur",
-    "monthlyLimitLabel": "Plafond mensuel (€)",
-    "weeklyLimitLabel": "Plafond hebdomadaire (€)",
+    "monthlyLimitLabel": "Plafond mensuel ({currency})",
+    "weeklyLimitLabel": "Plafond hebdomadaire ({currency})",
     "noLimitPlaceholder": "Sans limite",
     "alertLabel": "Alerte à",
     "previewNamePlaceholder": "Nom du groupe",
@@ -452,10 +463,10 @@
       "namePlaceholder": "Ex : FTSE All-World ETF, Bons d'épargne...",
       "assetClassLabel": "Classe d'actif",
       "optional": "(facultatif)",
-      "initialLabel": "Initial (€) *",
+      "initialLabel": "Initial ({currency}) *",
       "dateLabel": "Date *",
-      "reinforcementLabel": "Versements (€)",
-      "valueLabel": "Valeur (€) *",
+      "reinforcementLabel": "Versements ({currency})",
+      "valueLabel": "Valeur ({currency}) *",
       "hint": "Versements est le total déjà ajouté au montant initial. Valeur est la valeur actuelle de la position.",
       "invested": "Investi",
       "gain": "Gain",
@@ -471,8 +482,8 @@
     "quickModal": {
       "reinforceTitle": "Verser",
       "updateValueTitle": "Mettre à jour la valeur",
-      "reinforceAmountLabel": "Montant à ajouter (€)",
-      "updateValueAmountLabel": "Nouvelle valeur (€)",
+      "reinforceAmountLabel": "Montant à ajouter ({currency})",
+      "updateValueAmountLabel": "Nouvelle valeur ({currency})",
       "reinforceLabel": "Versements",
       "investedTotalLabel": "Total investi",
       "reinforceNote": "La valeur ne change pas automatiquement — mets-la à jour ensuite si la valeur de la position a aussi changé.",

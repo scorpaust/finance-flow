@@ -1,132 +1,44 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/09-FASE-9-publicacao.md -->
+<!-- Ver especificação completa em context/features/10-FASE-10-moeda-de-apresentacao.md -->
 
 ## Estado
 
-Em progresso — **código concluído, publicação por fazer**. O trabalho de
-código e documentação da fase (branch `feature/fase-9-publicacao`, criado a
-2026-09-29) foi mergeado em `main` a 2026-09-30 e o branch apagado. **Não
-está concluída**: dos 4 critérios de aceitação só o plano de rollout/rollback
-está cumprido — os outros 3 dependem do deploy no Netlify e da Play Console
-(passos abaixo e em `context/OPERATIONS.md`, "Lançamento e rollout").
-**Atualização 2026-09-30**: web em produção em
-https://financeflow-webapp.netlify.app (HTTPS, verificada) — 2 dos 4
-critérios cumpridos; faltam a app na faixa de testes internos e a subscrição
-partilhada entre plataformas.
+**Concluída** (2026-10-01) — os 5 critérios de aceitação abaixo cumpridos e
+cobertos por testes (unitários 51/51, integração 32/32, E2E 4/4, type-check
+0 erros). Branch `feature/fase-10-moeda-apresentacao` mergeado em `main` e
+apagado. Chega à web e à app Android com o próximo deploy (a escolha da
+moeda é um ecrã do site, não precisa de `.aab` novo).
 
-Decisões do utilizador (2026-09-29): alojamento **Netlify**, no subdomínio
-`financeflow-webapp.netlify.app` até haver domínio próprio; EasyPay em
-**sandbox** durante os testes internos (produção só na faixa pública);
-inscrição nos pagamentos externos da Google **ainda não submetida**.
-
-**Feito no código/documentação** (ver histórico de 2026-09-29):
-cleartext desligado no release, sem backup dos dados da app, assinatura de
-release + política de versões, URL de produção, `netlify.toml`, crons
-agendados, geolocalização em produção, CSP (Report-Only), plano de rollout e
-rollback, keystore documentada, ficha/declarações da Play Store, dívida de
-tipos (54 → 0, CI passa a falhar com erros de tipos).
-
-**Faturação Android**: decidido *alternative billing only* (EasyPay dentro
-da app, reportado à Google) e implementado — ver `context/PLAY-STORE.md`,
-secção 5. IVA reportado 0 (operador isento, art. 53.º CIVA).
-
-**Por fazer pelo utilizador** (fora do código): inscrição no *alternative
-billing only* + conta de serviço Google (`GOOGLE_PLAY_SERVICE_ACCOUNT`) +
-license testers; criar a keystore e o `android/keystore.properties`; variáveis de ambiente e primeiro deploy no
-Netlify; `npm run db:sync-indexes` em produção; webhook EasyPay a apontar
-para produção; secrets `APP_URL`/`CRON_SECRET` no GitHub; conta Play Console
-e ficha; conta Anthropic com créditos e limite de gasto; link próprio do
-Livro de Reclamações; bucket R2 dos backups.
-
-**Por fazer depois do 1.º deploy**: confirmar a geolocalização do Netlify
-(MB WAY/Multibanco aparecem em PT), validar a CSP e passá-la a obrigatória,
-Lighthouse. (Ícone, gráfico de funcionalidades e capturas de ecrã da loja já
-feitos — `assets/store/`.)
+**A seguir: retomar a Fase 9 (Publicação)**, que ficou em pausa e não está
+concluída. Próximo passo combinado: testes fechados (12+ testadores durante
+14 dias), com 2–3 atualizações da app Android ao longo do teste (ecrã sem
+internet, splash/barra de estado, otimização R8, correções do feedback). Feito: web em produção
+(https://financeflow-webapp.netlify.app), backups R2, app nos testes
+internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`),
+ficha da loja e declarações da Play Console. Por fazer: testes fechados,
+inscrição no alternative billing + conta de serviço Google, validar a CSP e
+passá-la a obrigatória, Lighthouse, produção com rollout faseado. Histórico
+completo abaixo.
 
 ## Objetivos
 
-FASE 9 — Publicação (Google Play + Deploy Web de Produção). Última fase antes
-de utilizadores reais: app publicada (pelo menos em faixa de teste interno)
-na Google Play Store e versão web em produção com HTTPS, ambas ligadas a
-billing real (ou sandbox validado, consoante o momento de lançamento decidido
-pelo dono do produto).
+FASE 10 — Moeda de apresentação: o utilizador escolhe em Configurações a
+moeda em que vê todos os valores da app (121 moedas suportadas pela Twelve
+Data), convertidos ao câmbio do dia. Os dados continuam em euros.
 
-Ler `context/features/09-FASE-9-publicacao.md` para a especificação completa
-(7 tarefas, critérios de aceitação).
-
-Tarefas principais (ver especificação para detalhe completo):
-
-1. Assinatura e build Android — reverter `usesCleartextTraffic`, keystore de
-   produção (fora do repositório, com processo de backup documentado), `.aab`
-   assinado, política de `versionCode`/`versionName`
-2. Ficha da Google Play Console — textos, categoria Finanças, screenshots
-   (telemóvel e tablet), ícone, banner, classificação de conteúdo, link da
-   política de privacidade
-3. Programa de pagamentos externos (Google Play / EEE) — confirmar aprovação
-   da inscrição submetida na Fase 2, requisitos do programa e taxas atuais
-4. Faixas de lançamento — testes internos primeiro, validação em
-   dispositivo real, depois produção com rollout percentual
-5. Deploy web de produção — hosting, domínio próprio + HTTPS, variáveis de
-   ambiente de produção (`EASYPAY_ENV=production`), webhook EasyPay a
-   apontar para produção
-6. Pré-condições de produto e legais — `INVESTMENT_TIPS_INCLUDE_PORTFOLIO`
-   fica `false` salvo validação jurídica; conta Anthropic com créditos e
-   limite de gasto
-7. Verificação pós-lançamento — Sentry/logs nas primeiras 48h, subscrição
-   real refletida no tier, mesmo estado de subscrição em Android e web
-
-## Notas
-
-Estado verificado no código a 2026-09-29, antes de começar:
-
-- ⚠️ **Bloqueador de release**: `android/app/src/main/AndroidManifest.xml`
-  continua com `android:usesCleartextTraffic="true"` (tarefa 1).
-- `capacitor.config.ts`: sem `CAPACITOR_SERVER_URL`, `server.url` cai em
-  `https://financeflow.example.com` — **placeholder**, tem de passar a ser o
-  domínio real de produção; `cleartext`/`allowMixedContent` já só ligam com
-  essa variável definida (o build de release não a pode ter). O APK instalado
-  no telemóvel de testes aponta para um IP da LAN (ver histórico de
-  2026-09-24).
-- `android/app/build.gradle`: `applicationId com.financeflow.app`,
-  `versionCode 1`, `versionName "1.0"`, **sem `signingConfig` de release**.
-- Hosting: o projeto já está ligado ao Netlify (`.netlify/`, site
-  `financeflow-webapp`, preset `netlify-legacy`, confirmado na Fase 8) —
-  falta decidir se é esse o alvo final e documentá-lo em
-  `CONFIG-REFERENCE.md` (tarefa 5). Rate limiting já está no MongoDB e o IP do
-  cliente vem de `x-nf-client-connection-ip` (compatível com serverless).
-- `.env.example` tem `EASYPAY_ENV=test` e
-  `INVESTMENT_TIPS_INCLUDE_PORTFOLIO=false` — os valores de produção vivem
-  no painel do hosting, nunca no repositório.
-- Herdado da Fase 8, a tratar aqui:
-  - **CSP** (Content-Security-Policy) deixada de fora de propósito — afinar
-    com o domínio de produção, sem partir o iframe de checkout da EasyPay,
-    as Google Fonts e o Sentry (`nuxt.config.ts` → `routeRules`).
-  - O job `check-expirations` e o `market-snapshot` precisam de um cron
-    externo real com `CRON_SECRET` (nada os agenda hoje).
-  - Backups: bucket R2 + regra de lifecycle + secrets do GitHub por criar
-    (passos em `context/OPERATIONS.md`).
-  - Livro de Reclamações: trocar o link genérico de `pages/login.vue` pelo
-    link específico do comerciante.
-  - Texto legal publicado sem revisão jurídica (decisão do utilizador).
-  - Lighthouse e teste em Android de gama baixa nunca feitos.
-  - 54 erros de tipos pré-existentes (o CI mostra-os, não falha).
-- Muitos passos desta fase são fora do código (Play Console, keystore, DNS,
-  contas de fornecedores) — o agente prepara e documenta; as ações nas
-  contas são do utilizador. Parar e perguntar em decisões de negócio
-  (domínio, momento de lançamento, billing real vs sandbox).
-- Testar sempre em pelo menos mobile (dispositivo Android real) e desktop,
-  incluindo tablet/ultra-wide — ver `AGENT-RULES.md`.
+Decisões já tomadas (ver especificação): euro como moeda base (nunca se
+reescrevem os dados), câmbio do dia para tudo, preços das subscrições em € com
+o aproximado, fornecedor Twelve Data.
 
 ## Critérios de aceitação
 
-- App publicada em faixa de teste interno da Play Store, instalável e
-  funcional em dispositivo real
-- Versão web em produção, acessível via HTTPS, sem erros de configuração de
-  ambiente
-- Subscrição feita numa plataforma reflete-se corretamente também na outra,
-  para o mesmo utilizador
-- Plano de rollout e contacto/processo de rollback documentado
+- Mudar a moeda altera todos os valores sem recarregar dados; a escolha
+  mantém-se entre web e Android
+- Voltar ao euro mostra exatamente os mesmos valores
+- Transação criada noutra moeda fica em euros com o valor/moeda originais
+- Fornecedor de câmbio em baixo não parte a app
+- Testes unitários, de integração e E2E
 
 ## Histórico
 
@@ -2285,4 +2197,42 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   passa pelo endpoint real. Distribuição na Play Store: recomendado só o EEE
   (30 países) — alternative billing só lá; EUA ficam para uma fase própria
   (programa de faturação americano separado, regras ainda em mudança).
+- 2026-10-01: Definida como funcionalidade atual — FASE 10 (Moeda de
+  apresentação), especificação em
+  `context/features/10-FASE-10-moeda-de-apresentacao.md`. Decisões do
+  utilizador: câmbio do dia; preços das subscrições em € com o aproximado.
+  Fornecedor confirmado com a chave do projeto: Twelve Data cobre 121 moedas
+  a partir do euro no plano gratuito (incluindo BRL, AOA, CVE, MZN). Fase 9
+  em pausa (ver Estado).
+- 2026-10-01: **FASE 10 implementada** no branch
+  `feature/fase-10-moeda-apresentacao`.
+  - **Servidor**: `User.displayCurrency` (omissão `EUR`); coleção `FxCache`
+    (lista de moedas e taxa EUR→X do dia, partilhadas, um pedido por moeda
+    por dia); `server/utils/displayCurrency.ts` (fornecedor em baixo → última
+    taxa conhecida, ou euros); `GET/PUT /api/account/currency`;
+    interpretação de estatísticas por IA com os agregados convertidos e a
+    moeda no prompt, cache por moeda.
+  - **Cliente**: `stores/currency.ts` (carregada quando há sessão, euros ao
+    sair); `useFormatters` converte qualquer valor em euros sem moeda
+    explícita (valores com moeda explícita — o original de um recibo — ficam
+    como estão); `CurrencyCard` em Configurações (pesquisa, nomes via
+    `Intl.DisplayNames`, taxa em uso). Campos de valor na moeda escolhida,
+    gravados em euros: transação nova com a moeda escolhida como moeda
+    original (o servidor converte, como os recibos estrangeiros); tetos dos
+    grupos e investimentos convertidos ao abrir e ao gravar — um campo não
+    alterado grava o valor original em euros (evita perder um cêntimo na ida
+    e volta). Preços das subscrições "5,00 € (≈ X)". Rótulos "(€)" → símbolo
+    da moeda nas 6 línguas.
+  - **Testes**: unitários 51/51 (4 novos de conversão), integração 32/32
+    (4 novos), E2E 4/4 (novo: mudar para dólares — 100 € aparecem como 200 $
+    — e voltar ao euro). Type-check 0 erros.
+  - **Limitação conhecida**: um gráfico já aberto só reflete a nova moeda nos
+    eixos/tooltips ao voltar a montar (mudar de página); a moeda muda-se em
+    Configurações, por isso na prática é sempre assim.
+- 2026-10-01: **FASE 10 concluída**, a pedido do utilizador. Branch
+  `feature/fase-10-moeda-apresentacao` mergeado em `main` e apagado. Plano
+  para os testes fechados da Fase 9 (a Google valoriza 2–3 atualizações
+  durante o teste, e só um `.aab` novo conta como atualização — um deploy do
+  site não): ecrã próprio sem internet, splash/barra de estado no tema
+  escuro, otimização R8, atalhos no ícone, correções do feedback.
 

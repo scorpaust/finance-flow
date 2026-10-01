@@ -75,7 +75,7 @@
       >
         <p class="font-semibold text-white">{{ TIER_LABEL[tierOption] }}</p>
         <p class="text-2xl font-bold text-brand-300 mt-1">
-          {{ TIER_PRICE_EUR[tierOption].toFixed(2).replace('.', ',') }} €<span class="text-xs text-white/40 font-normal">{{ t('subscription.perMonth') }}</span>
+          {{ formatPrice(TIER_PRICE_EUR[tierOption]) }}<span class="text-xs text-white/40 font-normal">{{ t('subscription.perMonth') }}</span>
         </p>
         <ul class="mt-3 space-y-1.5 text-xs text-white/50">
           <li v-for="f in planFeatures[tierOption]" :key="f" class="flex items-start gap-1.5">
@@ -127,10 +127,10 @@
 
       <p class="text-white/50 text-sm text-center">
         <template v-if="selectedMethod === 'mbway' || selectedMethod === 'multibanco'">
-          {{ t('subscription.totalLabel') }}: <span class="text-brand-300 font-bold">{{ prepaidTotal }} €</span>
-          ({{ periodMonths }} × {{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €, {{ t('subscription.totalSuffix') }}
+          {{ t('subscription.totalLabel') }}: <span class="text-brand-300 font-bold">{{ formatPrice(prepaidTotal) }}</span>
+          ({{ periodMonths }} × {{ formatCurrency(TIER_PRICE_EUR[selectedTier], 'EUR') }}, {{ t('subscription.totalSuffix') }}
         </template>
-        <template v-else>{{ TIER_PRICE_EUR[selectedTier].toFixed(2).replace('.', ',') }} €{{ t('subscription.perMonth') }}</template>
+        <template v-else>{{ formatPrice(TIER_PRICE_EUR[selectedTier]) }}{{ t('subscription.perMonth') }}</template>
       </p>
 
       <button
@@ -230,7 +230,16 @@ const METHOD_DESCRIPTION = computed<Record<Method, string>>(() => ({
 const selectedMethod = ref<Method>('cc')
 const PERIODS = [1, 3, 6, 12] as const
 const periodMonths = ref<(typeof PERIODS)[number]>(1)
-const prepaidTotal = computed(() => (TIER_PRICE_EUR[selectedTier.value] * periodMonths.value).toFixed(2).replace('.', ','))
+const prepaidTotal = computed(() => Math.round(TIER_PRICE_EUR[selectedTier.value] * periodMonths.value * 100) / 100)
+
+// Fase 10 — os preços são cobrados em euros (EasyPay); noutra moeda de
+// apresentação mostra-se também o valor aproximado: "5,00 € (≈ 5,62 $)".
+const { formatCurrency } = useFormatters()
+const fx = useCurrencyStore()
+function formatPrice(eur: number): string {
+  const inEur = formatCurrency(eur, 'EUR')
+  return fx.currency === 'EUR' ? inEur : `${inEur} (≈ ${formatCurrency(eur)})`
+}
 
 const submitting = ref(false)
 const canceling = ref(false)

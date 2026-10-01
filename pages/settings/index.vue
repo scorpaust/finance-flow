@@ -41,6 +41,9 @@
       </select>
     </div>
 
+    <!-- Moeda de apresentação (Fase 10) -->
+    <CurrencyCard />
+
     <!-- Segurança (Fase 8, ponto 3) -->
     <TwoFactorCard />
     <BiometricLockCard />

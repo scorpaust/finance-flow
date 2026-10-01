@@ -58,9 +58,9 @@
           <!-- Inicial + Data -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="form-label" for="inv-initial">{{ t('investment.modal.initialLabel') }}</label>
+              <label class="form-label" for="inv-initial">{{ t('investment.modal.initialLabel', { currency: currencySymbol }) }}</label>
               <div class="input-group">
-                <span class="input-prefix font-medium">€</span>
+                <span class="input-prefix font-medium">{{ currencySymbol }}</span>
                 <input
                   id="inv-initial"
                   v-model="form.initialAmount"
@@ -82,9 +82,9 @@
           <!-- Reforço + Situação -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="form-label" for="inv-reinf">{{ t('investment.modal.reinforcementLabel') }}</label>
+              <label class="form-label" for="inv-reinf">{{ t('investment.modal.reinforcementLabel', { currency: currencySymbol }) }}</label>
               <div class="input-group">
-                <span class="input-prefix font-medium">€</span>
+                <span class="input-prefix font-medium">{{ currencySymbol }}</span>
                 <input
                   id="inv-reinf"
                   v-model="form.reinforcement"
@@ -97,9 +97,9 @@
               </div>
             </div>
             <div>
-              <label class="form-label" for="inv-value">{{ t('investment.modal.valueLabel') }}</label>
+              <label class="form-label" for="inv-value">{{ t('investment.modal.valueLabel', { currency: currencySymbol }) }}</label>
               <div class="input-group">
-                <span class="input-prefix font-medium">€</span>
+                <span class="input-prefix font-medium">{{ currencySymbol }}</span>
                 <input
                   id="inv-value"
                   v-model="form.currentValue"
@@ -172,7 +172,12 @@ const props = defineProps<{ investment?: InvestmentDto | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
 const { create, update } = useInvestments()
-const { formatCurrency, formatSignedCurrency, formatReturnPct } = useFormatters()
+const { formatCurrency, formatSignedCurrency, formatReturnPct, currencySymbol } = useFormatters()
+// Fase 10 — os campos estão na moeda de apresentação; tudo o que se calcula
+// e grava volta a euros. Um campo que o utilizador não mexeu grava o valor
+// original em euros (a ida e volta pelo câmbio podia mudar um cêntimo).
+const fx = useCurrencyStore()
+const shown = (eur: number) => String(Math.round(fx.fromEur(eur) * 100) / 100)
 const { t } = useI18n()
 
 const isEditing = computed(() => !!props.investment)
@@ -184,11 +189,16 @@ const today = new Date().toISOString().split('T')[0]
 const form = reactive({
   name: props.investment?.name ?? '',
   assetClass: (props.investment?.assetClass ?? '') as AssetClass | '',
-  initialAmount: props.investment ? String(props.investment.initialAmount) : '',
+  initialAmount: props.investment ? shown(props.investment.initialAmount) : '',
   initialDate: props.investment ? new Date(props.investment.initialDate).toISOString().split('T')[0] : today,
-  reinforcement: props.investment ? String(props.investment.reinforcement) : '0',
-  currentValue: props.investment ? String(props.investment.currentValue) : '',
+  reinforcement: props.investment ? shown(props.investment.reinforcement) : '0',
+  currentValue: props.investment ? shown(props.investment.currentValue) : '',
 })
+const initialShown = { ...form }
+function eurOf(field: 'initialAmount' | 'reinforcement' | 'currentValue', value: number): number {
+  if (props.investment && form[field] === initialShown[field]) return props.investment[field]
+  return fx.toEur(value)
+}
 
 // Ao criar, a Situação acompanha Inicial + Reforço até o utilizador a escrever
 // (uma posição nova vale, à partida, o que se investiu).
@@ -208,9 +218,9 @@ const preview = computed(() => {
   const currentValue = parseFloat(form.currentValue)
   const valid = initialAmount > 0 && Number.isFinite(currentValue) && currentValue >= 0
   const amounts = {
-    initialAmount: initialAmount > 0 ? initialAmount : 0,
-    reinforcement,
-    currentValue: Number.isFinite(currentValue) ? currentValue : 0,
+    initialAmount: initialAmount > 0 ? eurOf('initialAmount', initialAmount) : 0,
+    reinforcement: eurOf('reinforcement', reinforcement),
+    currentValue: Number.isFinite(currentValue) ? eurOf('currentValue', currentValue) : 0,
   }
   return {
     valid,
@@ -249,10 +259,10 @@ async function handleSubmit() {
   const payload = {
     name,
     assetClass: form.assetClass || null,
-    initialAmount,
+    initialAmount: eurOf('initialAmount', initialAmount),
     initialDate: form.initialDate,
-    reinforcement,
-    currentValue,
+    reinforcement: eurOf('reinforcement', reinforcement),
+    currentValue: eurOf('currentValue', currentValue),
   }
 
   saving.value = true

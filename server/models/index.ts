@@ -112,6 +112,9 @@ export interface IUser extends Document {
   // anteriores a esta regra não têm estes campos.
   termsAcceptedAt?: Date
   termsVersion?: string
+  // Fase 10 — moeda em que o utilizador vê os valores (ISO 4217). Só de
+  // apresentação: todos os valores continuam guardados em euros.
+  displayCurrency: string
   createdAt: Date
   updatedAt: Date
 }
@@ -131,6 +134,7 @@ const UserSchema = new Schema<IUser>(
     twoFactorBackupCodes: { type: [String], select: false, default: undefined },
     termsAcceptedAt:      { type: Date },
     termsVersion:         { type: String },
+    displayCurrency:      { type: String, default: 'EUR', uppercase: true, minlength: 3, maxlength: 3 },
   },
   { timestamps: true }
 )
@@ -323,6 +327,9 @@ export interface IAiInsightCache extends Document {
   // invalida a cache (ver server/api/insights/stats.post.ts). Cache antiga
   // sem este campo é tratada como 'pt-PT' (era o único idioma antes da Fase 7).
   locale?: string
+  // Fase 10 — moeda em que os valores das insights foram escritos; mudar a
+  // moeda de apresentação invalida a cache. Sem o campo: euros.
+  currency?: string
 }
 
 const AiInsightCacheSchema = new Schema<IAiInsightCache>({
@@ -332,6 +339,7 @@ const AiInsightCacheSchema = new Schema<IAiInsightCache>({
   suggestions: [{ type: String }],
   generatedAt: { type: Date, required: true },
   locale:      { type: String, default: 'pt-PT' },
+  currency:    { type: String, default: 'EUR' },
 })
 export const AiInsightCache: Model<IAiInsightCache> =
   mongoose.models.AiInsightCache ||
@@ -516,4 +524,27 @@ const GooglePlayTransactionSchema = new Schema<IGooglePlayTransaction>(
 export const GooglePlayTransaction: Model<IGooglePlayTransaction> =
   mongoose.models.GooglePlayTransaction ||
   mongoose.model<IGooglePlayTransaction>('GooglePlayTransaction', GooglePlayTransactionSchema)
+
+// ─── CÂMBIO (cache) ──────────────────────────────────────────────────────────
+// Fase 10 — câmbio EUR→X do dia e lista de moedas suportadas, partilhados por
+// todos os utilizadores (server/utils/displayCurrency.ts). `_id`:
+// "rate:USD" ou "currencies". `day` (AAAA-MM-DD) diz se ainda é de hoje; o
+// valor fica como "última conhecida" quando o fornecedor falha.
+export interface IFxCache {
+  _id: string
+  value: unknown
+  day: string
+  updatedAt: Date
+}
+
+const FxCacheSchema = new Schema<IFxCache>(
+  {
+    _id:   { type: String, required: true },
+    value: { type: Schema.Types.Mixed, required: true },
+    day:   { type: String, required: true },
+  },
+  { timestamps: { createdAt: false, updatedAt: true }, versionKey: false }
+)
+export const FxCache: Model<IFxCache> =
+  mongoose.models.FxCache || mongoose.model<IFxCache>('FxCache', FxCacheSchema)
 

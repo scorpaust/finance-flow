@@ -25,10 +25,10 @@
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <div>
             <label class="form-label" for="quick-amount">
-              {{ mode === 'reinforce' ? t('investment.quickModal.reinforceAmountLabel') : t('investment.quickModal.updateValueAmountLabel') }}
+              {{ mode === 'reinforce' ? t('investment.quickModal.reinforceAmountLabel', { currency: currencySymbol }) : t('investment.quickModal.updateValueAmountLabel', { currency: currencySymbol }) }}
             </label>
             <div class="input-group">
-              <span class="input-prefix font-medium">€</span>
+              <span class="input-prefix font-medium">{{ currencySymbol }}</span>
               <input
                 id="quick-amount"
                 v-model="amount"
@@ -89,20 +89,25 @@ const props = defineProps<{ investment: InvestmentDto; mode: 'reinforce' | 'valu
 const emit = defineEmits<{ close: []; saved: [] }>()
 
 const { update } = useInvestments()
-const { formatCurrency, formatReturnPct } = useFormatters()
+const { formatCurrency, formatReturnPct, currencySymbol } = useFormatters()
+// Fase 10 — o valor escreve-se na moeda de apresentação; os cálculos e a
+// gravação voltam a euros (sem mexer no valor sugerido, grava o original).
+const fx = useCurrencyStore()
 const { t } = useI18n()
 
 const saving = ref(false)
 const formError = ref('')
 // "Reforçar" escreve o valor a ACRESCENTAR (não o novo total, que é fácil de
 // errar); "Atualizar situação" já vem com o valor atual para ajustar.
-const amount = ref(props.mode === 'value' ? String(props.investment.currentValue) : '')
+const initialShown = props.mode === 'value' ? String(Math.round(fx.fromEur(props.investment.currentValue) * 100) / 100) : ''
+const amount = ref(initialShown)
+const amountEur = (n: number) => (props.mode === 'value' && amount.value === initialShown ? props.investment.currentValue : fx.toEur(n))
 
 const next = computed(() => {
   const n = parseFloat(amount.value)
   const value = Number.isFinite(n) ? n : 0
-  const reinforcement = props.mode === 'reinforce' ? roundMoney(props.investment.reinforcement + Math.max(0, value)) : props.investment.reinforcement
-  const currentValue = props.mode === 'value' ? Math.max(0, value) : props.investment.currentValue
+  const reinforcement = props.mode === 'reinforce' ? roundMoney(props.investment.reinforcement + Math.max(0, amountEur(value))) : props.investment.reinforcement
+  const currentValue = props.mode === 'value' ? Math.max(0, amountEur(value)) : props.investment.currentValue
   const amounts = { initialAmount: props.investment.initialAmount, reinforcement, currentValue }
   return { reinforcement, currentValue, invested: investedAmount(amounts), returnPct: returnPct(amounts) }
 })
@@ -117,7 +122,7 @@ async function handleSubmit() {
   try {
     await update(
       props.investment._id,
-      props.mode === 'reinforce' ? { reinforcement: next.value.reinforcement } : { currentValue: roundMoney(n) }
+      props.mode === 'reinforce' ? { reinforcement: next.value.reinforcement } : { currentValue: roundMoney(amountEur(n)) }
     )
     emit('saved')
   } catch (e: any) {

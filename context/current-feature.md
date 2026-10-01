@@ -2235,4 +2235,14 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   durante o teste, e só um `.aab` novo conta como atualização — um deploy do
   site não): ecrã próprio sem internet, splash/barra de estado no tema
   escuro, otimização R8, atalhos no ícone, correções do feedback.
+- 2026-10-01: **deploy da Fase 10 em produção — com uma correção**. No
+  primeiro deploy a lista de moedas ficava só com o euro: a Twelve Data
+  devolve em `currency_quote` o NOME da moeda ("US Dollar"), o código vem em
+  `symbol` ("EUR/USD"); o código usava o nome e descartava tudo, sem registar
+  nada. O teste de integração não apanhou porque a simulação usava um formato
+  inventado. Corrigido (código lido de `symbol`, aviso
+  `fx.currencies_empty`, simulação com o formato real). **Verificado em
+  produção** com uma conta descartável, apagada no fim: 122 moedas (121 + €),
+  USD a 1,1245 e BRL a 5,86883 com o câmbio do dia, moeda inválida recusada,
+  escolha guardada na conta.
 

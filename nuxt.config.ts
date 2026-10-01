@@ -24,25 +24,24 @@ export default defineNuxtConfig({
     // Fase 8, ponto 8 — monitorização de erros. Só carrega com SENTRY_DSN
     // definido: sem DSN a app não instrumenta nem envia nada (dev/testes
     // nunca poluem o projeto Sentry, e um DSN em falta nunca parte o build).
-    ...(process.env.SENTRY_DSN ? ['@sentry/nuxt/module'] : []),
+    // Fase 8, ponto 8 — o alvo de deploy real é o Netlify (Nitro gera funções
+    // serverless, confirmado pelo preset `netlify-legacy` detetado a partir de
+    // .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
+    // uma versão anterior desta nota presumia sem confirmar). Num serverless o
+    // CLI flag `--import` não é aplicável (não há um comando de arranque
+    // nosso a controlar) — `autoInjectServerSentry: 'top-level-import'` injeta
+    // a configuração do Sentry no topo do ficheiro de entrada do Nitro durante
+    // o build, e o próprio módulo volta a exportar o handler serverless
+    // embrulhado (necessário para a Sentry conseguir fazer `flush()` antes de
+    // a função terminar — sem isto, eventos capturados podem perder-se quando
+    // o processo é morto logo após responder). Ver context/OPERATIONS.md.
+    // As opções vão junto com o módulo (e não numa chave `sentry:` à parte):
+    // sem DSN o módulo não é carregado, a chave fica sem tipo e o
+    // `nuxt typecheck` do CI (sem SENTRY_DSN) falhava com TS2353.
+    ...(process.env.SENTRY_DSN ? [['@sentry/nuxt/module', { autoInjectServerSentry: 'top-level-import' }] as [string, Record<string, unknown>]] : []),
   ],
 
-  // Fase 8, ponto 8 — o alvo de deploy real é o Netlify (Nitro gera funções
-  // serverless, confirmado pelo preset `netlify-legacy` detetado a partir de
-  // .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
-  // uma versão anterior desta nota presumia sem confirmar). Num serverless o
-  // CLI flag `--import` não é aplicável (não há um comando de arranque
-  // nosso a controlar) — `autoInjectServerSentry: 'top-level-import'` injeta
-  // a configuração do Sentry no topo do ficheiro de entrada do Nitro durante
-  // o build, e o próprio módulo volta a exportar o handler serverless
-  // embrulhado (necessário para a Sentry conseguir fazer `flush()` antes de
-  // a função terminar — sem isto, eventos capturados podem perder-se quando
-  // o processo é morto logo após responder). Ver context/OPERATIONS.md.
-  sentry: {
-    autoInjectServerSentry: 'top-level-import',
-  },
-
-  // Fase 7 — Internacionalização. `strategy: 'no_prefix'` porque a app não
+  // Fase 7— Internacionalização. `strategy: 'no_prefix'` porque a app não
   // tem (nem precisa de) rotas prefixadas por idioma (`/en/transacoes`) — o
   // idioma é só uma preferência de interface, não faz parte do endereço da
   // página (bookmarks, deep links do WebView Android continuam a funcionar

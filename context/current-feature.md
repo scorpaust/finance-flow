@@ -2192,8 +2192,6 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   passa pelo endpoint real. Distribuição na Play Store: recomendado só o EEE
   (30 países) — alternative billing só lá; EUA ficam para uma fase própria
   (programa de faturação americano separado, regras ainda em mudança).
-
-
 - 2026-10-01: Definida como funcionalidade atual — FASE 10 (Moeda de
   apresentação), especificação em
   `context/features/10-FASE-10-moeda-de-apresentacao.md`. Decisões do
@@ -2201,4 +2199,3 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   Fornecedor confirmado com a chave do projeto: Twelve Data cobre 121 moedas
   a partir do euro no plano gratuito (incluindo BRL, AOA, CVE, MZN). Fase 9
   em pausa (ver Estado).
-\n

@@ -862,7 +862,13 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
 })
 
 describe('moeda de apresentação (Fase 10)', () => {
-  const PAIRS = { data: [{ symbol: 'EUR/USD', currency_quote: 'USD' }, { symbol: 'EUR/BRL', currency_quote: 'BRL' }] }
+  // Formato real da Twelve Data: o código está em `symbol`; `currency_quote` é o nome.
+  const PAIRS = {
+    data: [
+      { symbol: 'EUR/USD', currency_group: 'Major', currency_base: 'Euro', currency_quote: 'US Dollar' },
+      { symbol: 'EUR/BRL', currency_group: 'Exotic-Cross', currency_base: 'Euro', currency_quote: 'Brazilian Real' },
+    ],
+  }
 
   beforeEach(async () => {
     // Cache do câmbio partilhada por todos os utilizadores — limpa entre testes.

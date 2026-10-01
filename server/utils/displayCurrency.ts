@@ -42,10 +42,13 @@ export async function getSupportedCurrencies(): Promise<string[]> {
   if (key) {
     try {
       const res = await fetch(`${API()}/forex_pairs?currency_base=${BASE}&apikey=${encodeURIComponent(key)}`)
-      const data = (await res.json()) as { data?: { symbol?: string; currency_quote?: string }[] }
+      // O código vem em `symbol` ("EUR/USD"); `currency_quote` é o NOME da
+      // moeda ("US Dollar") — usá-lo deixava a lista só com o euro (1.º deploy
+      // da Fase 10, 2026-10-01).
+      const data = (await res.json()) as { data?: { symbol?: string }[]; message?: string }
       const codes = new Set<string>([BASE])
       for (const pair of data.data || []) {
-        const code = (pair.currency_quote || pair.symbol?.split('/')[1] || '').toUpperCase()
+        const code = (pair.symbol?.split('/')[1] || '').toUpperCase()
         if (ISO_CODE.test(code)) codes.add(code)
       }
       if (codes.size > 1) {
@@ -53,6 +56,7 @@ export async function getSupportedCurrencies(): Promise<string[]> {
         await store('currencies', list)
         return list
       }
+      logEvent('warn', 'fx.currencies_empty', { status: res.status, message: String(data.message || '').slice(0, 200) })
     } catch (e: any) {
       logEvent('warn', 'fx.currencies_fetch_failed', { message: String(e?.message || e).slice(0, 200) })
     }

@@ -7,6 +7,17 @@ import { test, expect } from '@playwright/test'
 const CONTROL = 'http://localhost:3401'
 const PASSWORD = randomUUID()
 
+// Muda a moeda e espera que o servidor a grave — sem isto, navegar logo a
+// seguir lia a moeda antiga da conta (corrida vista no CI, onde o runner é
+// mais rápido do que o pedido de gravação).
+async function chooseCurrency(page: import('@playwright/test').Page, code: string) {
+  const saved = page.waitForResponse(
+    (r) => r.url().includes('/api/account/currency') && r.request().method() === 'PUT' && r.ok()
+  )
+  await page.getByTestId('settings-currency-select').selectOption(code)
+  await saved
+}
+
 test('mudar a moeda para dólares e voltar ao euro', async ({ page, request }) => {
   const email = `e2e-fx-${Date.now()}@example.com`
   await page.goto('/')
@@ -25,7 +36,7 @@ test('mudar a moeda para dólares e voltar ao euro', async ({ page, request }) =
   await page.goto('/settings')
   const select = page.getByTestId('settings-currency-select')
   await expect(select.locator('option[value="USD"]')).toHaveCount(1, { timeout: 60_000 })
-  await select.selectOption('USD')
+  await chooseCurrency(page, 'USD')
   await expect(page.getByTestId('settings-currency-rate')).toContainText('$')
 
   await page.goto('/transactions')
@@ -34,7 +45,8 @@ test('mudar a moeda para dólares e voltar ao euro', async ({ page, request }) =
   await expect(page.getByText(/\$/).first()).toBeVisible()
 
   await page.goto('/settings')
-  await page.getByTestId('settings-currency-select').selectOption('EUR')
+  await expect(page.getByTestId('settings-currency-select')).toHaveValue('USD', { timeout: 60_000 })
+  await chooseCurrency(page, 'EUR')
   await page.goto('/transactions')
   // "€100.00" (EN, símbolo antes) ou "100,00 €" (PT, símbolo depois).
   await expect(page.getByText(/€\s?100[.,]00|100[.,]00\s?€/).first()).toBeVisible({ timeout: 60_000 })

@@ -286,7 +286,7 @@ repor uma chave de upload, e só com Play App Signing ativo.
   o repositório ligado ao Netlify (build no Linux deles) nada disto é preciso.
 - Configuração do build: `netlify.toml` (raiz). O site está ligado ao
   projeto (`.netlify/state.json`), subdomínio
-  `financeflow-fase2-subs.netlify.app` (decisão de 2026-09-29, até haver
+  `financeflow-webapp.netlify.app` (decisão de 2026-09-29, até haver
   domínio próprio — renomear o site no Netlify muda o subdomínio, e então é
   preciso atualizar `APP_URL`, `capacitor.config.ts` e o webhook EasyPay).
 - Variáveis de ambiente: todas as de `context/CONFIG-REFERENCE.md`, no painel

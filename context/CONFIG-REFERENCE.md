@@ -131,7 +131,7 @@ envio no projeto — ver `context/features/08-FASE-8-seguranca-qualidade.md`).
 **Alojamento de produção: Netlify** (decisão do utilizador, 2026-09-29).
 Nuxt SSR corre em funções serverless (preset `netlify-legacy`, detetado
 automaticamente); build definido em `netlify.toml`. Endereço:
-`https://financeflow-fase2-subs.netlify.app` (subdomínio do Netlify até haver
+`https://financeflow-webapp.netlify.app` (subdomínio do Netlify até haver
 domínio próprio — o mesmo valor em `APP_URL` e em `capacitor.config.ts`).
 Todas as variáveis acima configuram-se no painel do Netlify; passos completos
 em `context/OPERATIONS.md` ("Deploy web").

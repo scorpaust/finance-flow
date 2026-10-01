@@ -10,7 +10,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 // Fase 9 — produção no subdomínio do Netlify (decisão do utilizador,
 // 2026-09-29, até haver domínio próprio). Mudar aqui E em APP_URL no Netlify
 // se o site mudar de nome ou ganhar domínio próprio.
-const PROD_APP_URL = process.env.CAPACITOR_SERVER_URL || 'https://financeflow-fase2-subs.netlify.app'
+const PROD_APP_URL = process.env.CAPACITOR_SERVER_URL || 'https://financeflow-webapp.netlify.app'
 // cleartext (HTTP simples) só quando o URL é mesmo http:// — um dev server
 // local (adb reverse / IP da LAN). Antes bastava CAPACITOR_SERVER_URL estar
 // definida, mesmo com um https://. O build de release proíbe cleartext de

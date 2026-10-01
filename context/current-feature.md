@@ -11,12 +11,12 @@ está concluída**: dos 4 critérios de aceitação só o plano de rollout/rollb
 está cumprido — os outros 3 dependem do deploy no Netlify e da Play Console
 (passos abaixo e em `context/OPERATIONS.md`, "Lançamento e rollout").
 **Atualização 2026-09-30**: web em produção em
-https://financeflow-fase2-subs.netlify.app (HTTPS, verificada) — 2 dos 4
+https://financeflow-webapp.netlify.app (HTTPS, verificada) — 2 dos 4
 critérios cumpridos; faltam a app na faixa de testes internos e a subscrição
 partilhada entre plataformas.
 
 Decisões do utilizador (2026-09-29): alojamento **Netlify**, no subdomínio
-`financeflow-fase2-subs.netlify.app` até haver domínio próprio; EasyPay em
+`financeflow-webapp.netlify.app` até haver domínio próprio; EasyPay em
 **sandbox** durante os testes internos (produção só na faixa pública);
 inscrição nos pagamentos externos da Google **ainda não submetida**.
 
@@ -91,7 +91,7 @@ Estado verificado no código a 2026-09-29, antes de começar:
 - `android/app/build.gradle`: `applicationId com.financeflow.app`,
   `versionCode 1`, `versionName "1.0"`, **sem `signingConfig` de release**.
 - Hosting: o projeto já está ligado ao Netlify (`.netlify/`, site
-  `financeflow-fase2-subs`, preset `netlify-legacy`, confirmado na Fase 8) —
+  `financeflow-webapp`, preset `netlify-legacy`, confirmado na Fase 8) —
   falta decidir se é esse o alvo final e documentá-lo em
   `CONFIG-REFERENCE.md` (tarefa 5). Rate limiting já está no MongoDB e o IP do
   cliente vem de `x-nf-client-connection-ip` (compatível com serverless).
@@ -2237,3 +2237,10 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   apagada no fim. **Por fazer**: secrets `APP_URL`/`CRON_SECRET` no GitHub
   (sem `gh` nesta máquina — utilizador), validar a CSP num browser durante
   um checkout, Lighthouse, webhook EasyPay a apontar para produção.
+- 2026-10-01: endereço de produção mudado a pedido do utilizador ("não vai
+  ficar esse nome em produção"): site do Netlify renomeado de
+  `financeflow-fase2-subs` para **`financeflow-webapp`** →
+  https://financeflow-webapp.netlify.app (o endereço antigo deixa de
+  funcionar). Atualizados `APP_URL` no Netlify, `capacitor.config.ts` e a
+  documentação; novo deploy. Por fazer pelo utilizador: secret `APP_URL` no
+  GitHub e webhook da EasyPay com o endereço novo.

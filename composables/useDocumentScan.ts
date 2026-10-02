@@ -81,9 +81,12 @@ export function useDocumentScan() {
     try {
       return await $fetch<DocumentScanResult>('/api/transactions/scan', { method: 'POST', body })
     } catch (e: any) {
+      const code = e?.data?.data?.error
+      // A mensagem de `ai_upstream_error` vem sempre em inglês do servidor
+      // (server/utils/anthropic.ts) — substitui-a pela traduzida.
       throw new ScanError(
-        e?.data?.message || t('documentScan.errorGeneric'),
-        e?.data?.data?.error
+        code === 'ai_upstream_error' ? t('documentScan.errorAiUnavailable') : e?.data?.message || t('documentScan.errorGeneric'),
+        code
       )
     }
   }

@@ -82,6 +82,7 @@ const props = defineProps<{ months: number }>()
 
 const { t } = useI18n()
 const { intlLocale } = useLocaleFormat()
+const toast = useToastStore()
 const sub = useSubscription()
 const canUse = computed(() => sub.hasFeature('aiStatsInsights'))
 
@@ -102,6 +103,10 @@ async function analyze() {
       method: 'POST',
       body: { months: props.months },
     })
+  } catch (e: any) {
+    // 429 (limite de gerações) já vem traduzido do servidor; o resto (ex.
+    // Anthropic indisponível/sem crédito → 502) recebe a mensagem local.
+    toast.error(e?.statusCode === 429 && e?.data?.message ? e.data.message : t('statsInsights.errorGeneric'))
   } finally {
     loading.value = false
   }

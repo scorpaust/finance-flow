@@ -527,7 +527,8 @@
     "consentBody": "The photo or PDF of the document is sent to Anthropic (the AI provider that reads the document) only to extract the data — it's never stored by us. A payslip may contain a tax ID, address and salary; only continue if you agree to this being sent.",
     "consentAccept": "I agree, continue",
     "errorCamera": "Couldn't open the camera. Check the app's permissions or choose a file instead.",
-    "errorGeneric": "Error scanning the document. Please try again."
+    "errorGeneric": "Error scanning the document. Please try again.",
+    "errorAiUnavailable": "Document reading is unavailable right now. Please try again shortly or fill it in manually."
   },
   "paywall": {
     "featureTier": "{tier} feature",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Suggestions",
     "lastAnalysis": "Last analysis",
     "generatedNow": "Generated now",
-    "analyzeAgain": "Analyze again"
+    "analyzeAgain": "Analyze again",
+    "errorGeneric": "Couldn't analyze your statistics right now. Please try again shortly."
   },
   "stats": {
     "title": "Statistics",

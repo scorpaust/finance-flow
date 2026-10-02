@@ -527,7 +527,8 @@
     "consentBody": "Das Foto oder PDF des Dokuments wird nur zur Datenextraktion an Anthropic gesendet (den KI-Anbieter, der das Dokument liest) — es wird von uns nie gespeichert. Eine Gehaltsabrechnung kann Steuernummer, Adresse und Gehalt enthalten; fahre nur fort, wenn du mit dieser Übermittlung einverstanden bist.",
     "consentAccept": "Ich stimme zu, weiter",
     "errorCamera": "Die Kamera konnte nicht geöffnet werden. Überprüfe die App-Berechtigungen oder wähle stattdessen eine Datei.",
-    "errorGeneric": "Fehler beim Scannen des Dokuments. Bitte erneut versuchen."
+    "errorGeneric": "Fehler beim Scannen des Dokuments. Bitte erneut versuchen.",
+    "errorAiUnavailable": "Das Auslesen von Dokumenten ist gerade nicht verfügbar. Bitte versuche es in Kürze erneut oder fülle es manuell aus."
   },
   "paywall": {
     "featureTier": "{tier}-Funktion",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Vorschläge",
     "lastAnalysis": "Letzte Analyse",
     "generatedNow": "Jetzt erstellt",
-    "analyzeAgain": "Erneut analysieren"
+    "analyzeAgain": "Erneut analysieren",
+    "errorGeneric": "Deine Statistiken konnten gerade nicht analysiert werden. Bitte versuche es in Kürze erneut."
   },
   "stats": {
     "title": "Statistiken",

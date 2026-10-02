@@ -527,7 +527,8 @@
     "consentBody": "La foto o il PDF del documento viene inviato ad Anthropic (il fornitore di IA che legge il documento) solo per estrarne i dati — non viene mai conservato da noi. Una busta paga può contenere codice fiscale, indirizzo e stipendio; continua solo se sei d'accordo con questo invio.",
     "consentAccept": "Accetto, continua",
     "errorCamera": "Impossibile aprire la fotocamera. Controlla i permessi dell'app o scegli un file.",
-    "errorGeneric": "Errore durante la scansione del documento. Riprova."
+    "errorGeneric": "Errore durante la scansione del documento. Riprova.",
+    "errorAiUnavailable": "La lettura dei documenti non è disponibile ora. Riprova tra poco o compila a mano."
   },
   "paywall": {
     "featureTier": "Funzionalità {tier}",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Suggerimenti",
     "lastAnalysis": "Ultima analisi",
     "generatedNow": "Generato ora",
-    "analyzeAgain": "Analizza di nuovo"
+    "analyzeAgain": "Analizza di nuovo",
+    "errorGeneric": "Non è stato possibile analizzare le statistiche ora. Riprova tra poco."
   },
   "stats": {
     "title": "Statistiche",

@@ -527,7 +527,8 @@
     "consentBody": "La photo ou le PDF du document est envoyé à Anthropic (le fournisseur d'IA qui lit le document) uniquement pour en extraire les données — il n'est jamais conservé par nous. Un bulletin de salaire peut contenir un numéro fiscal, une adresse et un salaire ; continue uniquement si tu es d'accord avec cet envoi.",
     "consentAccept": "J'accepte, continuer",
     "errorCamera": "Impossible d'ouvrir l'appareil photo. Vérifie les autorisations de l'application ou choisis un fichier.",
-    "errorGeneric": "Erreur lors de la numérisation du document. Réessaie."
+    "errorGeneric": "Erreur lors de la numérisation du document. Réessaie.",
+    "errorAiUnavailable": "La lecture des documents est indisponible pour le moment. Réessaie dans quelques instants ou remplis à la main."
   },
   "paywall": {
     "featureTier": "Fonctionnalité {tier}",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Suggestions",
     "lastAnalysis": "Dernière analyse",
     "generatedNow": "Généré maintenant",
-    "analyzeAgain": "Analyser à nouveau"
+    "analyzeAgain": "Analyser à nouveau",
+    "errorGeneric": "Impossible d'analyser tes statistiques pour le moment. Réessaie dans quelques instants."
   },
   "stats": {
     "title": "Statistiques",

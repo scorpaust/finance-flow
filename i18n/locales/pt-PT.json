@@ -527,7 +527,8 @@
     "consentBody": "A foto ou PDF do documento é enviada à Anthropic (o fornecedor de IA que lê o documento) só para extrair os dados — nunca é guardada por nós. Um recibo de vencimento pode conter NIF, morada e salário; só continua se concordares com este envio.",
     "consentAccept": "Concordo e continuar",
     "errorCamera": "Não foi possível abrir a câmara. Verifica as permissões da app ou escolhe um ficheiro.",
-    "errorGeneric": "Erro ao digitalizar o documento. Tenta novamente."
+    "errorGeneric": "Erro ao digitalizar o documento. Tenta novamente.",
+    "errorAiUnavailable": "A leitura automática de documentos está indisponível de momento. Tenta novamente daqui a pouco ou preenche à mão."
   },
   "paywall": {
     "featureTier": "Funcionalidade {tier}",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Sugestões",
     "lastAnalysis": "Última análise",
     "generatedNow": "Gerado agora",
-    "analyzeAgain": "Analisar de novo"
+    "analyzeAgain": "Analisar de novo",
+    "errorGeneric": "Não foi possível analisar agora. Tenta novamente daqui a pouco."
   },
   "stats": {
     "title": "Estatísticas",

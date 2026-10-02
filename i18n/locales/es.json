@@ -527,7 +527,8 @@
     "consentBody": "La foto o el PDF del documento se envía a Anthropic (el proveedor de IA que lee el documento) solo para extraer los datos — nunca lo guardamos nosotros. Una nómina puede contener el NIF, la dirección y el salario; continúa solo si estás de acuerdo con este envío.",
     "consentAccept": "Estoy de acuerdo, continuar",
     "errorCamera": "No se pudo abrir la cámara. Comprueba los permisos de la app o elige un archivo.",
-    "errorGeneric": "Error al escanear el documento. Inténtalo de nuevo."
+    "errorGeneric": "Error al escanear el documento. Inténtalo de nuevo.",
+    "errorAiUnavailable": "La lectura de documentos no está disponible ahora. Inténtalo de nuevo en unos momentos o rellénalo a mano."
   },
   "paywall": {
     "featureTier": "Función {tier}",
@@ -692,7 +693,8 @@
     "suggestionsLabel": "Sugerencias",
     "lastAnalysis": "Último análisis",
     "generatedNow": "Generado ahora",
-    "analyzeAgain": "Analizar de nuevo"
+    "analyzeAgain": "Analizar de nuevo",
+    "errorGeneric": "No se pudieron analizar tus estadísticas ahora. Inténtalo de nuevo en unos momentos."
   },
   "stats": {
     "title": "Estadísticas",

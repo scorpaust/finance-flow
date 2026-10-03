@@ -167,4 +167,4 @@ revisão anual, e confirma por escrito (email ou assinatura neste ficheiro).
 
 | Nome | Data | Confirmação |
 |---|---|---|
-| Dinis Miguel Costa | | |
+| Dinis Miguel Costa | 2026-10-03 | Lida e aceite |

@@ -1,0 +1,34 @@
+# Fase 9 — atualizações automáticas de dependências (PCI DSS: manter sistemas
+# atualizados). Dependabot abre PRs semanais; os alertas e PRs de segurança
+# saem logo, fora deste calendário. Minor/patch agrupados num só PR por
+# ecossistema para não encher a lista; majors vêm em PRs separados para rever.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Shell Android (Capacitor + Play Billing). Uma mudança aqui só chega aos
+  # utilizadores com um .aab novo.
+  - package-ecosystem: gradle
+    directory: /android
+    schedule:
+      interval: monthly
+    groups:
+      gradle-minor-patch:
+        update-types: [minor, patch]

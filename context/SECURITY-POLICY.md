@@ -4,7 +4,7 @@
 |---|---|
 | Versão | 1.0 |
 | Data | 2026-10-03 |
-| Responsável | Dinis Costa (titular e único administrador) |
+| Responsável | Dinis Miguel Costa (titular e único administrador) |
 | Revisão | Anual, e sempre que mude a forma de receber pagamentos ou de alojar a app |
 
 ## 1. Objetivo e âmbito
@@ -158,7 +158,7 @@ alteração não autorizada do site ou do checkout):
    e registar o que aconteceu, quando e o que foi afetado.
 4. **Corrigir** a causa e rever esta política.
 
-Contacto para reportar problemas de segurança: [email de contacto a definir].
+Contacto para reportar problemas de segurança: dinismiguelcosta@gmail.com.
 
 ## 10. Formação e aceitação
 
@@ -167,4 +167,4 @@ revisão anual, e confirma por escrito (email ou assinatura neste ficheiro).
 
 | Nome | Data | Confirmação |
 |---|---|---|
-| Dinis Costa | | |
+| Dinis Miguel Costa | | |

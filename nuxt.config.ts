@@ -204,17 +204,18 @@ export default defineNuxtConfig({
   //
   // Cabeçalhos de segurança em todas as respostas.
   //
-  // Fase 9 — CSP em modo Report-Only: o browser só avisa na consola do que
-  // bloquearia, sem bloquear nada. O checkout da EasyPay (iframe em
+  // Fase 9 — CSP obrigatória (bloqueia) desde 2026-10-03. Validada antes em
+  // Report-Only num build de produção: todas as páginas (conta Premium) e o
+  // checkout EasyPay sandbox com cartão e débito direto, 0 violações. É a
+  // proteção contra scripts maliciosos na página que embebe o iframe de
+  // pagamento (PCI DSS 4.0, SAQ A). O checkout da EasyPay (iframe em
   // pay[.sandbox].easypay.pt), as Google Fonts e o Sentry vêm de domínios
-  // terceiros; depois de validar em produção (checkout completo sem avisos
-  // na consola, web e Android), trocar o nome do cabeçalho para
-  // 'Content-Security-Policy' para passar a bloquear. `'unsafe-inline'` em
-  // script-src por causa do payload de hidratação inline do Nuxt.
+  // terceiros. `'unsafe-inline'` em script-src por causa do payload de
+  // hidratação inline do Nuxt.
   routeRules: {
     '/**': {
       headers: {
-        'Content-Security-Policy-Report-Only': [
+        'Content-Security-Policy': [
           "default-src 'self'",
           "script-src 'self' 'unsafe-inline'",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",

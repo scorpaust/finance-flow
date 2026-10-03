@@ -19,8 +19,8 @@ internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`;
 1.0.2 / versionCode 3 gerada a 2026-10-01 com o ecrã sem internet —
 `android-web/offline.html` via `server.errorPath`),
 ficha da loja e declarações da Play Console. Por fazer: testes fechados,
-inscrição no alternative billing + conta de serviço Google, validar a CSP e
-passá-la a obrigatória, Lighthouse, produção com rollout faseado. Histórico
+inscrição no alternative billing + conta de serviço Google, Lighthouse
+(a CSP já é obrigatória desde 2026-10-03, validada sem violações), produção com rollout faseado. Histórico
 completo abaixo.
 
 ## Objetivos

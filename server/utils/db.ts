@@ -18,8 +18,13 @@ export async function ensureDb(): Promise<void> {
 
   if (!connecting) {
     const config = useRuntimeConfig()
+    // Lido do ambiente em runtime primeiro: o runtimeConfig fica com o valor do
+    // momento do build, e uma variável marcada como secreta no Netlify chega ao
+    // build local do CLI mascarada ("****…net/") — partiu a produção a
+    // 2026-10-04. A função recebe sempre o valor real em runtime.
+    const uri = process.env.MONGODB_URI || config.mongodbUri
     connecting = mongoose
-      .connect(config.mongodbUri, { dbName: config.mongodbDbName, bufferCommands: false })
+      .connect(uri, { dbName: process.env.MONGODB_DB_NAME || config.mongodbDbName, bufferCommands: false })
       .then(() => logEvent('info', 'db.connected'))
       .catch((error) => {
         connecting = null // deixa o pedido seguinte tentar de novo

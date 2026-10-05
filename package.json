@@ -29,7 +29,7 @@
     "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/status-bar": "^8.0.3",
-    "@capgo/capacitor-native-biometric": "^8.6.11",
+    "@capgo/capacitor-native-biometric": "^8.7.0",
     "@easypaypt/checkout-sdk": "^2.9.1",
     "@maxmind/geoip2-node": "^7.1.0",
     "@nuxtjs/color-mode": "^3.4.2",
@@ -48,12 +48,12 @@
     "pinia": "^2.1.7",
     "qrcode": "^1.5.4",
     "vue": "^3.4.27",
-    "vue-chartjs": "^5.3.0",
+    "vue-chartjs": "^5.3.4",
     "vue-router": "^4.3.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/client-s3": "^3.1145.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2",
     "@nuxt/test-utils": "^3.23.0",
@@ -70,7 +70,7 @@
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "vitest": "^3.2.7",
-    "vue-tsc": "^3.3.11"
+    "vue-tsc": "^3.3.12"
   },
   "overrides": {
     "ofetch": "1.5.1",

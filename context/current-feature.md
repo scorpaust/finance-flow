@@ -10,6 +10,16 @@ cobertos por testes (unitários 51/51, integração 32/32, E2E 4/4, type-check
 apagado. Chega à web e à app Android com o próximo deploy (a escolha da
 moeda é um ecrã do site, não precisa de `.aab` novo).
 
+**Em curso: Upgrade 01 — Google Play Billing na app Android**
+(`context/features/upgrades/01-google-play-billing-android.md`, branch
+`feature/upgrade-01-google-play-billing`). A conta de programador é pessoal e
+não é elegível para pagamentos externos: na app Android paga-se só pela
+Google Play; a web mantém a EasyPay. Preços iguais nos dois: Pro 7 €,
+Premium 18 €. Implementado e testado (unit 58/58, integração 39/39, E2E 5/5),
+app 1.1.0 (versionCode 4). Falta do lado do utilizador: perfil de pagamentos,
+produtos, conta de serviço, RTDN e testadores de licenças na Play Console
+(`context/PLAY-STORE.md`, secção 5), e o teste num dispositivo.
+
 **A seguir: retomar a Fase 9 (Publicação)**, que ficou em pausa e não está
 concluída. Próximo passo combinado: testes fechados (12+ testadores durante
 14 dias), com 2–3 atualizações da app Android ao longo do teste (ecrã sem
@@ -19,7 +29,7 @@ internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`;
 1.0.2 / versionCode 3 gerada a 2026-10-01 com o ecrã sem internet —
 `android-web/offline.html` via `server.errorPath`),
 ficha da loja e declarações da Play Console. Por fazer: testes fechados,
-inscrição no alternative billing + conta de serviço Google, Lighthouse
+configuração da Google Play Billing (Upgrade 01), Lighthouse
 (a CSP já é obrigatória desde 2026-10-03, validada sem violações), produção com rollout faseado. Histórico
 completo abaixo.
 

@@ -35,11 +35,10 @@ const INDEXES = [
   { collection: 'investments', keys: { userId: 1, initialDate: -1 } },
   { collection: 'refundedaccounts', keys: { email: 1 } },
   { collection: 'ratelimitbuckets', keys: { expiresAt: 1 }, expireAfterSeconds: 0 },
-  { collection: 'googleplaytransactions', keys: { userId: 1 } },
-  { collection: 'googleplaytransactions', keys: { status: 1 } },
-  { collection: 'googleplaytransactions', keys: { checkoutId: 1 } },
-  { collection: 'googleplaytransactions', keys: { paymentId: 1 } },
-  { collection: 'googleplaytransactions', keys: { externalTransactionId: 1 }, unique: true, sparse: true },
+  // Upgrade 01 — Google Play Billing: uma compra pertence a uma só conta, e
+  // as notificações da Google encontram a conta pelo identificador enviado.
+  { collection: 'users', keys: { 'subscription.googlePlayPurchaseToken': 1 }, unique: true, sparse: true },
+  { collection: 'users', keys: { playAccountId: 1 }, unique: true, sparse: true },
 ]
 
 async function findDuplicates(col, keys, sparse) {

@@ -15,7 +15,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Dashboard** | KPIs em tempo real, evolução do saldo, top categorias, transações recentes |
 | **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período + distribuição/quartis (Pro+) |
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
-| **Subscrições** | Planos Gratuito/Pro (5€)/Premium (12,99€) via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses) — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
+| **Subscrições** | Planos Gratuito/Pro (7€)/Premium (18€). No site via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses); na app Android via Google Play Billing, com a mesma oferta e os mesmos preços — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
 | **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
@@ -247,9 +247,12 @@ Output: valor previsto (receita ou despesa)
 
 ## 💳 Subscrições (EasyPay: Cartão/DD + MB WAY + Multibanco)
 
-Três planos — **Gratuito**, **Pro** (5,00 €/mês) e **Premium** (12,99 €/mês)
-— com um único processador (EasyPay), expondo quatro métodos de pagamento ao
-utilizador via um único fluxo de Checkout:
+Três planos — **Gratuito**, **Pro** (7 €/mês) e **Premium** (18 €/mês).
+Na **app Android** paga-se só pela **Google Play Billing** (mensal com
+renovação ou pré-pago de 1/3/6/12 meses, aos mesmos preços — ver
+[context/PLAY-STORE.md](context/PLAY-STORE.md), secção 5). No **site**, um
+único processador (EasyPay), com quatro métodos de pagamento num único
+fluxo de Checkout:
 
 - **Cartão / Débito Direto** → subscrição nativa EasyPay com auto-renovação
   real todos os meses (`billingMode: 'auto'`).
@@ -404,7 +407,7 @@ Detalhe completo em
 O **idioma da UI** segue a preferência do browser/telemóvel
 (`Accept-Language`), com override manual persistente — nunca o país do IP: um
 emigrante em França com o telemóvel em português vê a app em português. A
-geolocalização de IP só serve para o país fiscal no reporte à Google Play.
+geolocalização de IP não decide nem o idioma nem os métodos de pagamento.
 
 - **Idioma** — 6 línguas no lançamento (PT-PT, EN, FR, DE, IT, ES), com
   **EN como fallback universal**. Via `@nuxtjs/i18n` (`strategy: 'no_prefix'`
@@ -431,8 +434,8 @@ geolocalização de IP só serve para o país fiscal no reporte à Google Play.
   proíbe recusar um meio de pagamento aceite por causa da localização do
   cliente. Antes estavam limitados a quem a geolocalização dava como estando
   em Portugal. O país do pedido ([`server/utils/geo.ts`](server/utils/geo.ts):
-  geolocalização do Netlify em produção, MaxMind GeoLite2 fora dele) continua
-  a ser usado como país fiscal no reporte das compras da app Android à Google.
+  geolocalização do Netlify em produção, MaxMind GeoLite2 fora dele) já não
+  restringe nenhum método.
 - **Moeda estrangeira em documentos digitalizados** — ver
   [Digitalizar documentos](#-digitalizar-documentos-com-ia) acima.
 

@@ -44,7 +44,7 @@ Abrange:
 | MongoDB Atlas | Base de dados | Contas e dados financeiros pessoais (sem cartões) |
 | Cloudflare R2 | Backups encriptados da base de dados | Cópia da base de dados |
 | GitHub | Código e automatismos (CI, backups, tarefas agendadas) | Código e segredos de CI |
-| Google Play | Distribuição Android e faturação alternativa | Dados de instalação e transação |
+| Google Play | Distribuição Android e pagamentos na app (Google Play Billing) | Dados de instalação e compras na app |
 | Anthropic | IA (análise de estatísticas, leitura de documentos) | Agregados e imagens de documentos, não guardados |
 | Twelve Data | Câmbios e dados de mercado | Nenhum dado pessoal |
 | Sentry | Registo de erros | Erros técnicos, sem dados sensíveis |

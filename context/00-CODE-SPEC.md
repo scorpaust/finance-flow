@@ -55,8 +55,8 @@ política recente e sujeita a evolução.
 ```ts
 enum SubscriptionTier {
   FREE = 'free',
-  PRO = 'pro',       // 5,00 €/mês
-  PREMIUM = 'premium' // 12,99 €/mês
+  PRO = 'pro',       // 7 €/mês (Upgrade 01; antes 5,00 €)
+  PREMIUM = 'premium' // 18 €/mês (Upgrade 01; antes 12,99 €)
 }
 
 interface UserSubscription {
@@ -78,7 +78,7 @@ uma cobrança MB WAY à espera da confirmação push do cliente.
 
 ### Matriz de funcionalidades (referência — afinar na Fase 2)
 
-| Funcionalidade | Free | Pro (5€) | Premium (12,99€) |
+| Funcionalidade | Free | Pro (7€) | Premium (18€) |
 |---|---|---|---|
 | Dashboard + KPIs básicos | ✅ | ✅ | ✅ |
 | Transações (limite mensal a definir, ex. 50) | ✅ (limitado) | ✅ (ilimitado) | ✅ (ilimitado) |

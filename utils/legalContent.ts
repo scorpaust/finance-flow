@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-09-29";
+export const LEGAL_UPDATED = "2026-10-07";
 
 export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
@@ -38,7 +38,7 @@ export const LEGAL_CONTENT: Content = {
           p: [
             "Conta: nome, email e um hash da tua password (nunca guardamos a password em texto). Se ativares a autenticação de dois fatores, guardamos o segredo do autenticador encriptado e apenas hashes dos códigos de recuperação.",
             "Dados financeiros que tu introduzes: transações, categorias, grupos e orçamentos, e o registo de investimentos. Se preencheres o questionário de perfil de investidor, guardamos as respostas.",
-            "Subscrição: o plano, o estado e as referências do pagamento. Os dados de cartão, IBAN ou telemóvel MB WAY são recolhidos diretamente pela EasyPay e nunca passam pelos nossos servidores.",
+            "Subscrição: o plano, o estado e as referências do pagamento. Os dados de cartão, IBAN ou telemóvel MB WAY são recolhidos diretamente pela EasyPay e nunca passam pelos nossos servidores. Nas compras feitas na app Android, o pagamento é feito na Google Play: guardamos só o identificador da compra, o produto e o estado da subscrição que a Google nos comunica.",
             "Preferências: idioma da interface e, no Android, se ativaste o bloqueio por biometria (guardado apenas no teu telemóvel; a app nunca recebe a tua impressão digital ou rosto).",
             "Dados técnicos: o teu endereço IP é usado para deduzir o país (com uma base de dados local, sem o enviar a terceiros) e para limitar tentativas abusivas; mantemos registos de segurança (por exemplo, tentativas de início de sessão falhadas) sem passwords, códigos nem o conteúdo dos teus dados.",
           ],
@@ -58,7 +58,7 @@ export const LEGAL_CONTENT: Content = {
             "MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.",
             "Netlify — alojamento da aplicação; processa os pedidos feitos à app, incluindo o endereço IP.",
             "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
-            "Google (Google Play) — só nas subscrições compradas dentro da app Android: por exigência do programa de faturação alternativa da Google, comunicamos-lhe o valor, a data, o país e um identificador de cada transação (nunca o teu nome, email ou dados financeiros da app).",
+            "Google (Google Play) — distribuição da app Android e pagamento das subscrições compradas dentro dela. A Google trata esses pagamentos como vendedora, segundo a sua própria política de privacidade; para associar a compra à tua conta enviamos-lhe só um identificador cifrado da conta (nunca o teu nome, email ou dados financeiros da app).",
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
             "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
             "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
@@ -127,7 +127,7 @@ export const LEGAL_CONTENT: Content = {
           p: [
             "Account: name, email and a hash of your password (we never store the password itself). If you enable two-factor authentication we store the authenticator secret encrypted and only hashes of the recovery codes.",
             "Financial data you enter: transactions, categories, groups and budgets, and your investment records. If you complete the investor-profile questionnaire, we store your answers.",
-            "Subscription: plan, status and payment references. Card, IBAN or MB WAY phone details are collected directly by EasyPay and never pass through our servers.",
+            "Subscription: plan, status and payment references. Card, IBAN or MB WAY phone details are collected directly by EasyPay and never pass through our servers. For purchases made in the Android app, payment happens on Google Play: we only keep the purchase identifier, the product and the subscription status that Google sends us.",
             "Preferences: interface language and, on Android, whether you enabled biometric lock (stored only on your phone; the app never receives your fingerprint or face).",
             "Technical data: your IP address is used to infer your country (through a local database, without sending it to third parties) and to limit abusive attempts; we keep security logs (for example failed sign-in attempts) without passwords, codes or the content of your data.",
           ],
@@ -147,7 +147,7 @@ export const LEGAL_CONTENT: Content = {
             "MongoDB Atlas — hosting of the database that stores your data.",
             "Netlify — application hosting; processes the requests made to the app, including your IP address.",
             "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
-            "Google (Google Play) — only for subscriptions bought inside the Android app: as required by Google's alternative billing program, we send Google the amount, date, country and an identifier of each transaction (never your name, email or financial data from the app).",
+            "Google (Google Play) — distribution of the Android app and payment of subscriptions bought inside it. Google handles those payments as the seller, under its own privacy policy; to link the purchase to your account we only send Google an encrypted account identifier (never your name, email or financial data from the app).",
             "Anthropic — provider of the AI model used for the features described in section 5.",
             "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
             "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",
@@ -229,9 +229,10 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "4. Planos e pagamentos",
           p: [
-            "Existe um plano Gratuito com limites e planos pagos (Pro e Premium) com mais funcionalidades, ao preço indicado na app no momento da subscrição. Os pagamentos são processados pela EasyPay.",
+            "Existe um plano Gratuito com limites e planos pagos (Pro e Premium) com mais funcionalidades, ao preço indicado na app no momento da subscrição. No site, os pagamentos são processados pela EasyPay; na app Android, pela Google Play. O plano fica associado à tua conta e vale nas duas versões.",
             "Cartão e débito direto: subscrição com renovação automática até a cancelares (Definições → Subscrição); mantém o acesso até ao fim do período já pago.",
             "MB WAY e Multibanco: pagamento único por um período fixo (1, 3, 6 ou 12 meses), sem renovação automática; o acesso termina no fim do período pago, a menos que voltes a pagar. Uma referência por pagar não dá acesso ao plano.",
+            "Google Play (app Android): a cobrança, a renovação automática e o cancelamento são feitos pela Google Play, nas condições da Google; o pagamento único por período fixo também está disponível. Um plano comprado na Google Play gere-se na Google Play, e um plano comprado no site gere-se no site; não é possível ter os dois ativos ao mesmo tempo.",
             "Livre resolução e reembolsos: se és consumidor, podes resolver o contrato no prazo de 14 dias a contar da sua celebração, sem indicar qualquer motivo, contactando-nos em dinismiguelcosta@gmail.com. Não deduzimos qualquer valor pelo período de serviço já usado nesse prazo: reembolsamos a totalidade do valor pago, no prazo máximo de 14 dias a contar do momento em que tomarmos conhecimento da tua decisão, pelo mesmo meio de pagamento usado na compra sempre que possível. Como contrapartida do reembolso total, a tua conta é eliminada e não podes criar uma nova conta com o mesmo email nos 6 meses seguintes; este bloqueio aplica-se só a este caso, não a uma eliminação de conta noutras circunstâncias (ver ponto 8). Se o serviço não funcionar de acordo com o acordado, tens direito à reposição da conformidade e, se esta for impossível ou desproporcionada, à redução do preço ou à resolução do contrato com reembolso, nos termos da lei.",
           ],
         },
@@ -300,9 +301,10 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "4. Plans and payments",
           p: [
-            "There is a Free plan with limits and paid plans (Pro and Premium) with more features, at the price shown in the app when you subscribe. Payments are processed by EasyPay.",
+            "There is a Free plan with limits and paid plans (Pro and Premium) with more features, at the price shown in the app when you subscribe. On the website, payments are processed by EasyPay; in the Android app, by Google Play. The plan belongs to your account and works on both versions.",
             "Card and direct debit: subscription that renews automatically until you cancel it (Settings → Subscription); you keep access until the end of the period already paid.",
             "MB WAY and Multibanco: a one-off payment for a fixed period (1, 3, 6 or 12 months), with no automatic renewal; access ends at the end of the paid period unless you pay again. An unpaid reference does not grant access to the plan.",
+            "Google Play (Android app): charging, automatic renewal and cancellation are handled by Google Play, under Google's terms; a one-off payment for a fixed period is also available. A plan bought on Google Play is managed on Google Play, and a plan bought on the website is managed on the website; you cannot have both active at the same time.",
             "Right of withdrawal and refunds: if you are a consumer, you may withdraw from the contract within 14 days of its conclusion, without giving any reason, by contacting us at dinismiguelcosta@gmail.com. We do not deduct any amount for the service already used during that period: we refund the full amount paid, within 14 days of learning of your decision, using the same payment method as the purchase where possible. In exchange for the full refund, your account is deleted and you cannot create a new account with the same email for the following 6 months; this block only applies to this case, not to account deletion in other circumstances (see section 8). If the service does not work as agreed, you are entitled to have it brought into conformity and, where that is impossible or disproportionate, to a price reduction or to terminate the contract with a refund, as provided by law.",
           ],
         },

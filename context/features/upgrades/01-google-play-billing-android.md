@@ -34,24 +34,55 @@ Já tomadas (utilizador, 2026-10-06):
    pagamentos. A faturação à Google é feita à mão pelo utilizador; ver a
    secção "Faturação e IVA".
 
-A tomar antes de implementar (perguntar ao utilizador):
+Tomadas a 2026-10-06 (resposta do utilizador às decisões propostas):
 
-4. **Preços na Google Play.** Manter 5,00 € / 12,99 € por mês (a Google fica
-   com 15% nas subscrições) ou ajustar. Os preços da Play incluem IVA ao
-   consumidor, que a Google liquida. Os outros países do EEE podem usar a
-   conversão automática da Play Console.
-5. **Planos na Play.** Proposta: um produto de subscrição por plano (`pro`,
-   `premium`), cada um com um base plan mensal com renovação automática. Base
-   plans pré-pagos, equivalentes a MB WAY/Multibanco, ficam fora de âmbito
-   nesta versão.
-6. **Mudança de plano no Android.**
+4. **Preços iguais na web e na Play.** A Play nunca pode ser mais cara do
+   que a web. Uma subida, se houver, é nos dois. Os novos preços compensam a
+   taxa da Google e arredondam a números certos. **Valores por escolher**
+   entre as opções da tabela abaixo.
+5. **As mesmas ofertas nas duas plataformas.** Cada produto (`pro`,
+   `premium`) tem os seguintes base plans:
+   - mensal com renovação automática, como cartão e débito direto na web;
+   - **pré-pagos de 1, 3, 6 e 12 meses**, sem renovação, como MB WAY e
+     Multibanco na web (`PERIODS = [1, 3, 6, 12]`).
+
+   Na Play, os pré-pagos estendem-se com um carregamento (*top-up*), e o
+   tempo acumula sobre o `expiryTime`. Os meios de pagamento dentro da Play
+   (cartão, PayPal, saldo Google Play…) são escolhidos pela Google, não pela
+   app.
+6. **Mudança de plano no Android** (aceite como proposto):
    - Pro → Premium: imediato, com `CHARGE_PRORATED_PRICE` (cobra a
      diferença, mantém a data de renovação).
    - Premium → Pro: `DEFERRED` (só na renovação).
-7. **Quem já paga na web e abre a app:** vê o plano ativo e o texto
-   "Subscrição gerida no site", **sem link** para pagar na web (ver as
-   regras da Google Play). Não pode comprar uma segunda subscrição na Play
-   enquanto a da web estiver ativa.
+   - Em pré-pagos, a Google só aceita `CHARGE_FULL_PRICE`.
+7. **Quem paga na web e abre a app** vê o plano ativo e o texto
+   "Subscrição gerida na versão web", **sem link nem botão** para o site. Não
+   pode comprar na Play enquanto a subscrição da web estiver ativa. Quando a
+   da web termina (cancelada ou expirada), voltam as opções de compra da
+   Google Play no Android.
+
+### Preços (decisão 4): opções
+
+As contas abaixo são para um cliente em Portugal (IVA 23%):
+
+- **Na Play**, a Google desconta primeiro o IVA ao consumidor (está
+  incluído no preço) e depois a taxa de 15%.
+- **Na web**, com a isenção do art. 53.º, o operador recebe o preço inteiro,
+  menos a comissão da EasyPay.
+
+| Opção | Pro | Premium | Recebido na Play, Pro / Premium | Recebido na web, Pro / Premium |
+|---|---|---|---|---|
+| Hoje | 5,00 € | 12,99 € | 3,46 € / 8,98 € | 5,00 € / 12,99 € |
+| A: só os 15% | 6 € | 15 € | 4,15 € / 10,37 € | 6 € / 15 € |
+| B: 15% e parte do IVA | 7 € | 18 € | 4,84 € / 12,44 € | 7 € / 18 € |
+| C: 15% e IVA por inteiro | 8 € | 19 € | 5,53 € / 13,13 € | 8 € / 19 € |
+
+Os pré-pagos de 3, 6 e 12 meses custam o mensal × o número de meses, como
+hoje na web, salvo indicação em contrário.
+
+Ainda não há subscritores reais: a EasyPay está em sandbox. A mudança de
+preço não afeta ninguém. Atualizar `TIER_PRICE_EUR`, os textos e a ficha da
+loja ao mesmo tempo.
 
 ## Regras da Google Play a cumprir
 
@@ -82,9 +113,11 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 - [ ] **Perfil de pagamentos.** Play Console → Configuração → Perfil de
       pagamentos: conta de comerciante com IBAN e dados fiscais.
       Confirmar aí o limiar mínimo de pagamento.
-- [ ] **Produtos.** Monetizar → Subscrições: criar `pro` e `premium`, cada
-      um com o base plan `mensal`, com renovação automática e preço da
-      decisão 4.
+- [ ] **Produtos.** Monetizar → Subscrições: criar `pro` e `premium`. Cada
+      um leva estes base plans, todos com o preço da decisão 4:
+  - `mensal`, com renovação automática;
+  - `prepago-1m`, `prepago-3m`, `prepago-6m` e `prepago-12m`, sem
+    renovação.
 - [ ] **Conta de serviço.**
   - Google Cloud: ativar a Google Play Android Developer API e criar a conta
     de serviço.
@@ -189,8 +222,13 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 - [ ] Em `pages/subscription/index.vue`, com `isNative`, o fluxo é outro:
   - **Escolha do plano:** cartões Pro e Premium com o preço vindo da Google
     (`getProducts`), e não o `TIER_PRICE_EUR` convertido.
-  - **Pagamento:** sem métodos de pagamento, sem períodos, sem iframe
-    EasyPay; um único botão "Subscrever com Google Play".
+  - **Pagamento:** a mesma escolha da web, mas sem iframe EasyPay:
+    - "Renovação automática (mensal)", no lugar de cartão e débito direto;
+    - "Pagamento único" com período de 1, 3, 6 ou 12 meses, no lugar de
+      MB WAY e Multibanco;
+    - um botão "Pagar com Google Play";
+    - num pré-pago ativo, oferecer "Prolongar" (top-up) a partir de
+      `allowExtendAfterTime`.
   - **Depois da compra:** chamar `verify`, atualizar o store de subscrição e
     mostrar sucesso.
   - **Compra pendente** (por exemplo, pagamento em dinheiro numa loja):
@@ -199,8 +237,9 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
     decisão 6.
   - **Plano da Play ativo:** mostrar "Gerir na Google Play", que abre
     `https://play.google.com/store/account/subscriptions?sku=…&package=com.dinismcosta.financeflow`.
-  - **Plano da web ativo:** mostrar "Subscrição gerida no site", sem link e
-    sem botões de compra (decisão 7).
+  - **Plano da web ativo:** mostrar "Subscrição gerida na versão web", sem
+    link e sem botões de compra. Quando a subscrição da web termina, voltam
+    as opções da Google Play (decisão 7).
 - [ ] **Na web**, com um plano da Play ativo: mostrar "Subscrição gerida na
       Google Play", com o link acima, e esconder o checkout EasyPay.
 - [ ] Retirar `composables/useAlternativeBilling.ts` e a mensagem
@@ -257,7 +296,6 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 
 ## Fora de âmbito
 
-- Base plans pré-pagos e planos anuais na Play (ver a decisão 5).
 - Períodos de experiência e ofertas promocionais.
 - iOS / App Store.
 - Pagamentos externos no Android: só se a conta passar a ser de empresa e

@@ -37,6 +37,18 @@ describe('effectiveTier — plano que o utilizador realmente pode usar', () => {
     expect(effectiveTier({ tier: 'pro', status: 'canceled', billingMode: 'auto', currentPeriodEnd: null }, NOW)).toBe('free')
   })
 
+  it('Google Play (Upgrade 01): a data da Google manda sempre, como nos pré-pagos', () => {
+    // Renovação automática ou pré-pago: ativa só até ao expiryTime.
+    expect(effectiveTier({ tier: 'premium', status: 'active', billingMode: 'google_play', currentPeriodEnd: future }, NOW)).toBe('premium')
+    expect(effectiveTier({ tier: 'premium', status: 'active', billingMode: 'google_play', currentPeriodEnd: past }, NOW)).toBe('free')
+    // Renovação desligada na Play: acesso até ao fim do período.
+    expect(effectiveTier({ tier: 'pro', status: 'canceled', billingMode: 'google_play', currentPeriodEnd: future }, NOW)).toBe('pro')
+    // Pagamento pendente, suspensa (on hold, período já passado), expirada.
+    expect(effectiveTier({ tier: 'pro', status: 'pending', billingMode: 'google_play', currentPeriodEnd: future }, NOW)).toBe('free')
+    expect(effectiveTier({ tier: 'pro', status: 'past_due', billingMode: 'google_play', currentPeriodEnd: past }, NOW)).toBe('free')
+    expect(effectiveTier({ tier: 'pro', status: 'expired', billingMode: 'google_play', currentPeriodEnd: future }, NOW)).toBe('free')
+  })
+
   it('past_due e expired', () => {
     expect(effectiveTier({ tier: 'pro', status: 'past_due', currentPeriodEnd: future }, NOW)).toBe('pro')
     expect(effectiveTier({ tier: 'pro', status: 'past_due', currentPeriodEnd: past }, NOW)).toBe('free')

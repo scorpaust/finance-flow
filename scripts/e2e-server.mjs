@@ -83,6 +83,30 @@ async function startControlServer(mongoUri) {
       return
     }
 
+    // Upgrade 01 — plano comprado na Google Play (app Android), como
+    // server/utils/googlePlay.ts o grava.
+    if (path === '/__e2e/set-play-subscription' && req.method === 'POST') {
+      await db.collection('users').updateOne(
+        { email: body.email },
+        {
+          $set: {
+            'subscription.tier': body.tier,
+            'subscription.status': 'active',
+            'subscription.provider': 'google_play',
+            'subscription.paymentMethod': 'google_play',
+            'subscription.billingMode': 'google_play',
+            'subscription.autoRenew': true,
+            'subscription.currentPeriodEnd': new Date(Date.now() + 30 * 864e5),
+            'subscription.googlePlayPurchaseToken': `e2e-${Date.now()}`,
+            'subscription.googlePlayProductId': body.tier,
+            'subscription.googlePlayBasePlanId': 'mensal',
+          },
+        }
+      )
+      res.writeHead(204).end()
+      return
+    }
+
     // Fase 10 — câmbio de teste (sem acesso ao fornecedor real): lista de
     // moedas e taxa EUR→moeda do dia, como server/utils/displayCurrency.ts as guarda.
     if (path === '/__e2e/seed-fx' && req.method === 'POST') {

@@ -3,7 +3,8 @@ import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
-import { User, Category, Transaction, TransactionGroup, Investment, GooglePlayTransaction, FxCache } from '../../server/models/index'
+import { createSign } from 'node:crypto'
+import { User, Category, Transaction, TransactionGroup, Investment, FxCache } from '../../server/models/index'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
 function anthropicTextResponse(data: unknown) {
@@ -692,131 +693,303 @@ describe('reembolso por livre resolução — eliminação + bloqueio de 6 meses
   })
 })
 
-describe('Google Play — alternative billing only (compras na app Android)', () => {
-  const TOKEN = 'token-da-play-billing-library'
+describe('Google Play Billing — compras na app Android (Upgrade 01)', () => {
+  const PKG = '/androidpublisher/v3/applications/com.dinismcosta.financeflow'
+  const DAY = 864e5
 
-  async function startAndroidCheckout(cookie: string, checkoutId: string, body: Record<string, unknown>, path = 'create-subscription') {
-    await stub.setEasyPayResponse('POST', '/checkout', { id: checkoutId, session: 'sess', config: {} })
-    const res = await fetch(`/api/subscription/easypay/${path}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ ...body, googlePlayToken: TOKEN }),
-    })
+  async function accountIdFor(cookie: string): Promise<string> {
+    const res = await fetch('/api/billing/google-play/config', { headers: { cookie } })
     expect(res.status).toBe(200)
+    return (await res.json()).accountId
   }
 
-  const googleReports = async () =>
-    (await stub.requests()).filter((r) => r.path.startsWith('/androidpublisher/') && r.method === 'POST')
+  // Recurso purchases.subscriptionsv2 como a Google o devolve.
+  function playResource(o: {
+    accountId: string
+    productId?: string
+    basePlanId?: string
+    state?: string
+    ack?: string
+    expiresInDays?: number
+    autoRenew?: boolean
+    prepaid?: boolean
+    linked?: string
+  }) {
+    const productId = o.productId ?? 'pro'
+    return {
+      kind: 'androidpublisher#subscriptionPurchaseV2',
+      subscriptionState: o.state ?? 'SUBSCRIPTION_STATE_ACTIVE',
+      acknowledgementState: o.ack ?? 'ACKNOWLEDGEMENT_STATE_PENDING',
+      latestOrderId: 'GPA.1234-5678',
+      linkedPurchaseToken: o.linked,
+      externalAccountIdentifiers: { obfuscatedExternalAccountId: o.accountId },
+      lineItems: [
+        {
+          productId,
+          expiryTime: new Date(Date.now() + (o.expiresInDays ?? 30) * DAY).toISOString(),
+          offerDetails: { basePlanId: o.basePlanId ?? (o.prepaid ? 'prepago-3m' : 'mensal') },
+          ...(o.prepaid
+            ? { prepaidPlan: { allowExtendAfterTime: new Date(Date.now() + 20 * DAY).toISOString() } }
+            : { autoRenewingPlan: { autoRenewEnabled: o.autoRenew ?? true } }),
+        },
+      ],
+    }
+  }
 
-  it('uma subscrição por cartão feita na app é reportada à Google com o token, e a renovação na mesma série', async () => {
-    const email = uniqueEmail('gp-cc')
-    const { cookie } = await register(email)
-    const user = await User.findOne({ email })
-    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
-
-    await startAndroidCheckout(cookie, 'chk-gp-cc', { tier: 'pro', method: 'cc' })
-    const awaiting = await GooglePlayTransaction.findOne({ checkoutId: 'chk-gp-cc' })
-    expect(awaiting?.status).toBe('awaiting_payment')
-
-    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-cc', { id: 'chk-gp-cc', payment: { id: 'pay-gp-cc', status: 'success', key } })
-    const confirm = await fetch('/api/subscription/easypay/confirm', {
+  async function verify(cookie: string, purchaseToken: string) {
+    const res = await fetch('/api/billing/google-play/verify', {
       method: 'POST',
       headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ checkoutId: 'chk-gp-cc' }),
+      body: JSON.stringify({ purchaseToken }),
     })
-    expect(confirm.status).toBe(200)
+    return { status: res.status, body: await res.json().catch(() => null) }
+  }
 
-    const [initial] = await googleReports()
-    expect(initial.path).toBe('/androidpublisher/v3/applications/com.dinismcosta.financeflow/externalTransactions')
-    expect(initial.query).toBe('externalTransactionId=ff-pay-gp-cc')
-    expect(initial.authorization).toBe('Bearer stub-google-token')
-    expect(initial.body.recurringTransaction).toEqual({
-      externalTransactionToken: TOKEN,
-      externalSubscription: { subscriptionType: 'RECURRING' },
-    })
-    // 5,00 € (Pro), IVA 0 (isenção, BILLING_VAT_RATE por omissão), país desconhecido em teste → PT.
-    expect(initial.body.originalPreTaxAmount).toEqual({ currency: 'EUR', priceMicros: '5000000' })
-    expect(initial.body.originalTaxAmount).toEqual({ currency: 'EUR', priceMicros: '0' })
-    expect(initial.body.userTaxAddress).toEqual({ regionCode: 'PT' })
-    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-cc' }))?.status).toBe('reported')
+  const googleCalls = async (suffix: string) =>
+    (await stub.requests()).filter((r) => r.method === 'POST' && r.path.startsWith(PKG) && r.path.endsWith(suffix))
 
-    // Renovação um mês depois, pelo webhook da EasyPay.
-    await GooglePlayTransaction.updateOne({ paymentId: 'pay-gp-cc' }, { transactionTime: new Date(Date.now() - 31 * 864e5) })
-    await stub.setEasyPayResponse('GET', '/single/renov-gp-cc', { id: 'renov-gp-cc', status: 'success', key })
-    const webhook = await fetch('/api/subscription/easypay/webhook', {
+  // Push do Pub/Sub assinado como a Google faria (chave do globalSetup).
+  function pubSubToken(claims: Record<string, unknown> = {}) {
+    const header = Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'test-kid', typ: 'JWT' })).toString('base64url')
+    const payload = Buffer.from(
+      JSON.stringify({
+        iss: 'https://accounts.google.com',
+        aud: env.GOOGLE_PLAY_RTDN_AUDIENCE,
+        email: env.GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT,
+        email_verified: true,
+        exp: Math.floor(Date.now() / 1000) + 600,
+        ...claims,
+      })
+    ).toString('base64url')
+    const signature = createSign('RSA-SHA256').update(`${header}.${payload}`).sign(env.RTDN_TEST_PRIVATE_KEY).toString('base64url')
+    return `${header}.${payload}.${signature}`
+  }
+
+  async function rtdn(notification: Record<string, unknown>, token = pubSubToken()) {
+    const data = Buffer.from(JSON.stringify({ version: '1.0', packageName: 'com.dinismcosta.financeflow', eventTimeMillis: String(Date.now()), ...notification })).toString('base64')
+    const res = await fetch('/api/billing/google-play/rtdn', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id: 'renov-gp-cc', type: 'subscription_capture' }),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ message: { data, messageId: '1' }, subscription: 'projects/test/subscriptions/play' }),
     })
-    expect(webhook.status).toBe(200)
+    return { status: res.status, body: await res.json().catch(() => null) }
+  }
 
-    const reports = await googleReports()
-    expect(reports).toHaveLength(2)
-    expect(reports[1].query).toBe('externalTransactionId=ff-renov-gp-cc')
-    expect(reports[1].body.recurringTransaction).toEqual({
-      initialExternalTransactionId: 'ff-pay-gp-cc',
-      externalSubscription: { subscriptionType: 'RECURRING' },
-    })
+  async function tierOf(cookie: string) {
+    const res = await fetch('/api/subscription', { headers: { cookie } })
+    return (await res.json()).subscription.tier
+  }
+
+  it('uma compra válida dá o plano, é confirmada à Google uma só vez e repetir não estraga nada', async () => {
+    const { cookie } = await register(uniqueEmail('play-ok'))
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-ok-1234567', playResource({ accountId }))
+
+    const first = await verify(cookie, 'tok-ok-1234567')
+    expect(first.status).toBe(200)
+    expect(first.body).toMatchObject({ outcome: 'applied', tier: 'pro', status: 'active' })
+    expect(await tierOf(cookie)).toBe('pro')
+    const acks = await googleCalls(':acknowledge')
+    expect(acks).toHaveLength(1)
+    expect(acks[0].path).toBe(`${PKG}/purchases/subscriptions/pro/tokens/tok-ok-1234567:acknowledge`)
+    expect(acks[0].authorization).toBe('Bearer stub-google-token')
+
+    // A Google já tem a compra confirmada: a segunda chamada não volta a confirmar.
+    await stub.setGoogleSubscription('tok-ok-1234567', playResource({ accountId, ack: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }))
+    expect((await verify(cookie, 'tok-ok-1234567')).status).toBe(200)
+    expect(await googleCalls(':acknowledge')).toHaveLength(1)
+
+    const config = await (await fetch('/api/billing/google-play/config', { headers: { cookie } })).json()
+    expect(config.current).toMatchObject({ tier: 'pro', productId: 'pro', basePlanId: 'mensal', purchaseToken: 'tok-ok-1234567', autoRenew: true })
   })
 
-  it('MB WAY pré-pago feito na app é reportado como PREPAID pelo valor do período', async () => {
-    const email = uniqueEmail('gp-mbway')
-    const { cookie } = await register(email)
-    const user = await User.findOne({ email })
-    const key = encodeMerchantKey(String(user!._id), 'premium', 'mbway', 3)
-
-    // MB WAY aceite em qualquer país (Fase 9) — pelo endpoint real, mesmo com o
-    // país desconhecido em teste (fica 'PT' como país fiscal por omissão).
-    await startAndroidCheckout(cookie, 'chk-gp-mbw', { tier: 'premium', method: 'mbway', periodMonths: 3 }, 'create-prepaid')
-    const awaiting = await GooglePlayTransaction.findOne({ checkoutId: 'chk-gp-mbw' })
-    expect(awaiting?.amountCents).toBe(3897)
-    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-mbw', { id: 'chk-gp-mbw', payment: { id: 'pay-gp-mbw', status: 'success', key } })
-    await stub.setEasyPayResponse('GET', '/single/pay-gp-mbw', { id: 'pay-gp-mbw', status: 'paid', key })
-    const confirm = await fetch('/api/subscription/easypay/confirm', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ checkoutId: 'chk-gp-mbw' }),
-    })
-    expect(confirm.status).toBe(200)
-
-    const [report] = await googleReports()
-    expect(report.body.recurringTransaction.externalSubscription).toEqual({ subscriptionType: 'PREPAID' })
-    expect(report.body.originalPreTaxAmount.priceMicros).toBe('38970000')
+  it('uma compra feita por outra conta (obfuscatedAccountId diferente) é recusada', async () => {
+    const { cookie } = await register(uniqueEmail('play-other'))
+    await stub.setGoogleSubscription('tok-other-123456', playResource({ accountId: 'a'.repeat(64) }))
+    const res = await verify(cookie, 'tok-other-123456')
+    expect(res.status).toBe(403)
+    expect(await tierOf(cookie)).toBe('free')
+    expect(await googleCalls(':acknowledge')).toHaveLength(0)
   })
 
-  it('uma compra feita no site (sem token) não é reportada à Google', async () => {
-    const email = uniqueEmail('gp-web')
-    const { cookie } = await register(email)
-    const user = await User.findOne({ email })
-    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
-
-    await stub.setEasyPayResponse('POST', '/checkout', { id: 'chk-gp-web', session: 'sess', config: {} })
-    await fetch('/api/subscription/easypay/create-subscription', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ tier: 'pro', method: 'cc' }),
-    })
-    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-web', { id: 'chk-gp-web', payment: { id: 'pay-gp-web', status: 'success', key } })
-    await fetch('/api/subscription/easypay/confirm', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ checkoutId: 'chk-gp-web' }),
-    })
-
-    expect((await User.findOne({ email }))!.subscription.tier).toBe('pro')
-    expect(await googleReports()).toHaveLength(0)
-    expect(await GooglePlayTransaction.countDocuments({ userId: user!._id })).toBe(0)
+  it('pagamento pendente na Google não dá acesso nem é confirmado', async () => {
+    const { cookie } = await register(uniqueEmail('play-pending'))
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-pending-12345', playResource({ accountId, state: 'SUBSCRIPTION_STATE_PENDING' }))
+    const res = await verify(cookie, 'tok-pending-12345')
+    expect(res.status).toBe(200)
+    expect(res.body.outcome).toBe('pending')
+    expect(await tierOf(cookie)).toBe('free')
+    expect(await googleCalls(':acknowledge')).toHaveLength(0)
   })
 
-  it('o reembolso por livre resolução é reportado à Google para as compras feitas na app', async () => {
-    const email = uniqueEmail('gp-refund')
-    await register(email)
+  it('token desconhecido na Google → 400', async () => {
+    const { cookie } = await register(uniqueEmail('play-unknown'))
+    const res = await verify(cookie, 'tok-nao-existe-123')
+    expect(res.status).toBe(400)
+    expect(res.body.data?.error).toBe('play_invalid_purchase')
+  })
+
+  it('com um plano da web ativo, a compra na Play é anulada e reembolsada (sem pagar duas vezes)', async () => {
+    const email = uniqueEmail('play-web')
+    const { cookie } = await register(email)
+    await setTier(email, 'pro')
+    const accountId = await accountIdFor(cookie)
+    const config = await (await fetch('/api/billing/google-play/config', { headers: { cookie } })).json()
+    expect(config.webSubscriptionActive).toBe(true)
+
+    await stub.setGoogleSubscription('tok-web-conflict1', playResource({ accountId, productId: 'premium' }))
+    const res = await verify(cookie, 'tok-web-conflict1')
+    expect(res.status).toBe(409)
+    expect(res.body.data?.error).toBe('web_subscription_active')
+    const revokes = await googleCalls(':revoke')
+    expect(revokes).toHaveLength(1)
+    expect(revokes[0].body).toEqual({ revocationContext: { fullRefund: {} } })
     const user = await User.findOne({ email })
-    await GooglePlayTransaction.create({
-      userId: user!._id, kind: 'initial', status: 'reported', token: TOKEN, paymentId: 'pay-gp-refund',
-      externalTransactionId: 'ff-pay-gp-refund', tier: 'pro', method: 'cc', periodMonths: 1, amountCents: 500,
-      regionCode: 'PT', transactionTime: new Date(Date.now() - 3 * 864e5),
+    expect(user!.subscription.provider).toBe('easypay')
+    expect(user!.subscription.tier).toBe('pro')
+  })
+
+  it('com um plano da Google Play ativo, o checkout EasyPay do site é recusado', async () => {
+    const { cookie } = await register(uniqueEmail('play-block-web'))
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-block-web-123', playResource({ accountId }))
+    expect((await verify(cookie, 'tok-block-web-123')).status).toBe(200)
+
+    for (const [path, body] of [
+      ['create-subscription', { tier: 'premium', method: 'cc' }],
+      ['create-prepaid', { tier: 'premium', method: 'mbway', periodMonths: 3 }],
+    ] as const) {
+      const res = await fetch(`/api/subscription/easypay/${path}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie },
+        body: JSON.stringify(body),
+      })
+      expect(res.status).toBe(409)
+      expect((await res.json()).data?.error).toBe('play_subscription_active')
+    }
+  })
+
+  it('notificações da Google: só pushes assinados; compra nova chega à conta certa; cancelamento e expiração', async () => {
+    const email = uniqueEmail('play-rtdn')
+    const { cookie } = await register(email)
+    const accountId = await accountIdFor(cookie)
+
+    // Sem token, token com a audiência errada, ou de outra conta de serviço → 401.
+    expect((await rtdn({ testNotification: { version: '1.0' } }, 'nao-e-um-jwt')).status).toBe(401)
+    expect((await rtdn({ testNotification: { version: '1.0' } }, pubSubToken({ aud: 'https://outro.example' }))).status).toBe(401)
+    expect((await rtdn({ testNotification: { version: '1.0' } }, pubSubToken({ email: 'intruso@example.com' }))).status).toBe(401)
+    expect((await rtdn({ testNotification: { version: '1.0' } })).body.handled).toBe('test')
+
+    // Compra nova que chega primeiro por notificação (a app ainda não confirmou):
+    // encontrada pelo obfuscatedAccountId e confirmada à Google.
+    await stub.setGoogleSubscription('tok-rtdn-1234567', playResource({ accountId, prepaid: true, productId: 'premium' }))
+    const bought = await rtdn({ subscriptionNotification: { version: '1.0', notificationType: 4, purchaseToken: 'tok-rtdn-1234567' } })
+    expect(bought.status).toBe(200)
+    expect(bought.body.handled).toBe('applied')
+    expect(await tierOf(cookie)).toBe('premium')
+    expect(await googleCalls(':acknowledge')).toHaveLength(1)
+    let user = await User.findOne({ email })
+    expect(user!.subscription.autoRenew).toBe(false)
+    expect(user!.subscription.googlePlayBasePlanId).toBe('prepago-3m')
+    expect(user!.subscription.googlePlayAllowExtendAfter).toBeTruthy()
+
+    // Renovação desligada: acesso até ao fim do período.
+    await stub.setGoogleSubscription('tok-rtdn-1234567', playResource({ accountId, productId: 'premium', state: 'SUBSCRIPTION_STATE_CANCELED', autoRenew: false, ack: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }))
+    await rtdn({ subscriptionNotification: { version: '1.0', notificationType: 3, purchaseToken: 'tok-rtdn-1234567' } })
+    user = await User.findOne({ email })
+    expect(user!.subscription.status).toBe('canceled')
+    expect(await tierOf(cookie)).toBe('premium')
+
+    // Expirada → gratuito.
+    await stub.setGoogleSubscription('tok-rtdn-1234567', playResource({ accountId, productId: 'premium', state: 'SUBSCRIPTION_STATE_EXPIRED', expiresInDays: -1, ack: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }))
+    await rtdn({ subscriptionNotification: { version: '1.0', notificationType: 13, purchaseToken: 'tok-rtdn-1234567' } })
+    expect(await tierOf(cookie)).toBe('free')
+  })
+
+  it('reembolso ou estorno na Google (voidedPurchaseNotification) tira o plano de imediato', async () => {
+    const { cookie } = await register(uniqueEmail('play-voided'))
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-voided-123456', playResource({ accountId }))
+    await verify(cookie, 'tok-voided-123456')
+    expect(await tierOf(cookie)).toBe('pro')
+
+    const res = await rtdn({ voidedPurchaseNotification: { purchaseToken: 'tok-voided-123456', orderId: 'GPA.1', productType: 1, refundType: 1 } })
+    expect(res.body.handled).toBe('voided')
+    expect(await tierOf(cookie)).toBe('free')
+  })
+
+  it('mudança de plano: o token novo substitui o antigo, e a notificação do antigo não o tapa', async () => {
+    const email = uniqueEmail('play-upgrade')
+    const { cookie } = await register(email)
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-up-old-12345', playResource({ accountId }))
+    await verify(cookie, 'tok-up-old-12345')
+
+    await stub.setGoogleSubscription('tok-up-new-12345', playResource({ accountId, productId: 'premium', linked: 'tok-up-old-12345' }))
+    expect((await verify(cookie, 'tok-up-new-12345')).status).toBe(200)
+    expect(await tierOf(cookie)).toBe('premium')
+
+    // A Google avisa que a compra antiga (substituída) expirou.
+    await stub.setGoogleSubscription('tok-up-old-12345', playResource({ accountId, state: 'SUBSCRIPTION_STATE_EXPIRED', expiresInDays: -1, ack: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }))
+    const res = await rtdn({ subscriptionNotification: { version: '1.0', notificationType: 13, purchaseToken: 'tok-up-old-12345' } })
+    expect(res.body.handled).toBe('ignored_stale')
+    const user = await User.findOne({ email })
+    expect(user!.subscription.googlePlayPurchaseToken).toBe('tok-up-new-12345')
+    expect(await tierOf(cookie)).toBe('premium')
+  })
+
+  it('reconciliação (cron) e leitura sob pedido apanham uma renovação sem notificação', async () => {
+    const email = uniqueEmail('play-reconcile')
+    const { cookie } = await register(email)
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-reconcile-123', playResource({ accountId }))
+    await verify(cookie, 'tok-reconcile-123')
+
+    // O período cá ficou para trás; a Google já renovou (+30 dias).
+    await User.updateOne({ email }, { $set: { 'subscription.currentPeriodEnd': new Date(Date.now() - DAY) } })
+    await stub.setGoogleSubscription('tok-reconcile-123', playResource({ accountId, ack: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }))
+
+    expect((await fetch('/api/billing/google-play/reconcile', { method: 'POST' })).status).toBe(401)
+    const run = await fetch('/api/billing/google-play/reconcile', { method: 'POST', headers: { 'x-cron-secret': env.CRON_SECRET } })
+    expect(run.status).toBe(200)
+    expect((await run.json()).checked).toBeGreaterThanOrEqual(1)
+    let user = await User.findOne({ email })
+    expect(user!.subscription.currentPeriodEnd!.getTime()).toBeGreaterThan(Date.now())
+
+    // Leitura sob pedido: GET /api/subscription com o período passado lê de novo na Google.
+    await User.updateOne({ email }, { $set: { 'subscription.currentPeriodEnd': new Date(Date.now() - DAY) } })
+    expect(await tierOf(cookie)).toBe('pro')
+    user = await User.findOne({ email })
+    expect(user!.subscription.currentPeriodEnd!.getTime()).toBeGreaterThan(Date.now())
+  })
+
+  it('apagar a conta com renovação na Play pára as cobranças na Google', async () => {
+    const email = uniqueEmail('play-delete')
+    const { cookie } = await register(email)
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-delete-123456', playResource({ accountId }))
+    await verify(cookie, 'tok-delete-123456')
+
+    const res = await fetch('/api/account', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ password: TEST_PASSWORD }),
     })
+    expect(res.status).toBe(200)
+    const cancels = await googleCalls(':cancel')
+    expect(cancels).toHaveLength(1)
+    expect(cancels[0].path).toBe(`${PKG}/purchases/subscriptionsv2/tokens/tok-delete-123456:cancel`)
+    expect(cancels[0].body).toEqual({ cancellationContext: { cancellationType: 'DEVELOPER_REQUESTED_STOP_PAYMENTS' } })
+    expect(await User.findOne({ email })).toBeNull()
+  })
+
+  it('livre resolução (refund-delete) reembolsa a compra da Play pela API', async () => {
+    const email = uniqueEmail('play-refund')
+    const { cookie } = await register(email)
+    const accountId = await accountIdFor(cookie)
+    await stub.setGoogleSubscription('tok-refund-123456', playResource({ accountId }))
+    await verify(cookie, 'tok-refund-123456')
 
     const res = await fetch('/api/admin/refund-delete', {
       method: 'POST',
@@ -824,40 +997,11 @@ describe('Google Play — alternative billing only (compras na app Android)', ()
       body: JSON.stringify({ email }),
     })
     expect(res.status).toBe(200)
-    expect((await res.json()).googlePlayRefundsPending).toBe(0)
-
-    const [refund] = await googleReports()
-    expect(refund.path).toBe('/androidpublisher/v3/applications/com.dinismcosta.financeflow/externalTransactions/ff-pay-gp-refund:refund')
-    expect(refund.body.fullRefund).toEqual({})
-    // O registo de faturação fica, mesmo com a conta apagada.
-    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-refund' }))?.status).toBe('refunded')
-  })
-
-  it('se a Google falhar, a transação fica na fila e o cron volta a reportar', async () => {
-    const email = uniqueEmail('gp-retry')
-    const { cookie } = await register(email)
-    const user = await User.findOne({ email })
-    const key = encodeMerchantKey(String(user!._id), 'pro', 'cc')
-
-    await startAndroidCheckout(cookie, 'chk-gp-retry', { tier: 'pro', method: 'cc' })
-    await stub.setGoogleStatus(503)
-    await stub.setEasyPayResponse('GET', '/checkout/chk-gp-retry', { id: 'chk-gp-retry', payment: { id: 'pay-gp-retry', status: 'success', key } })
-    const confirm = await fetch('/api/subscription/easypay/confirm', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie },
-      body: JSON.stringify({ checkoutId: 'chk-gp-retry' }),
-    })
-    // O pagamento é aplicado na mesma — a falha da Google nunca o trava.
-    expect(confirm.status).toBe(200)
-    expect((await User.findOne({ email }))!.subscription.tier).toBe('pro')
-    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-retry' }))?.status).toBe('pending')
-
-    await stub.setGoogleStatus(200)
-    const denied = await fetch('/api/billing/google-play/process-queue', { method: 'POST' })
-    expect(denied.status).toBe(401)
-    const queue = await fetch('/api/billing/google-play/process-queue', { method: 'POST', headers: { 'x-cron-secret': env.CRON_SECRET } })
-    expect(queue.status).toBe(200)
-    expect((await GooglePlayTransaction.findOne({ paymentId: 'pay-gp-retry' }))?.status).toBe('reported')
+    expect((await res.json()).googlePlayRefundFailed).toBe(false)
+    expect(await googleCalls(':revoke')).toHaveLength(1)
+    // Já revogada: a eliminação não tenta cancelar outra vez.
+    expect(await googleCalls(':cancel')).toHaveLength(0)
+    expect(await User.findOne({ email })).toBeNull()
   })
 })
 

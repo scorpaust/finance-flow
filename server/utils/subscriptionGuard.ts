@@ -1,5 +1,6 @@
 import { User } from '../models'
 import { getServerLocale, serverT } from './i18n'
+import { effectiveTier } from '../../shared/features'
 import type { H3Event } from 'h3'
 
 // Fase 8, ponto 5 — comprar um plano novo (pré-pago ou outro cartão) com uma
@@ -18,6 +19,21 @@ export async function assertNoActiveAutoRenew(event: H3Event, userId: string): P
       statusCode: 409,
       message: serverT(getServerLocale(event), 'subscriptionApi.activeAutoRenewExists'),
       data: { error: 'active_auto_renew' },
+    })
+  }
+}
+
+// Upgrade 01 — um plano comprado na Google Play (app Android) é gerido pela
+// Google: enquanto der acesso, o site não vende outro por cima (decisão 7 da
+// especificação, no sentido inverso). Cancelar/alterar faz-se na Google Play.
+export async function assertNoActivePlaySubscription(event: H3Event, userId: string): Promise<void> {
+  const user = await User.findById(userId).select('subscription').lean<{ subscription?: any }>()
+  const sub = user?.subscription
+  if (sub?.billingMode === 'google_play' && effectiveTier(sub) !== 'free') {
+    throw createError({
+      statusCode: 409,
+      message: serverT(getServerLocale(event), 'subscriptionApi.playSubscriptionActive'),
+      data: { error: 'play_subscription_active' },
     })
   }
 }

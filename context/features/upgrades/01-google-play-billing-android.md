@@ -38,8 +38,9 @@ Tomadas a 2026-10-06 (resposta do utilizador às decisões propostas):
 
 4. **Preços iguais na web e na Play.** A Play nunca pode ser mais cara do
    que a web. Uma subida, se houver, é nos dois. Os novos preços compensam a
-   taxa da Google e arredondam a números certos. **Valores por escolher**
-   entre as opções da tabela abaixo.
+   taxa da Google e arredondam a números certos. **Escolhida a opção B
+   (utilizador, 2026-10-06): Pro 7 €/mês, Premium 18 €/mês**, na web e na
+   Play.
 5. **As mesmas ofertas nas duas plataformas.** Cada produto (`pro`,
    `premium`) tem os seguintes base plans:
    - mensal com renovação automática, como cartão e débito direto na web;

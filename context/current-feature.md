@@ -22,9 +22,9 @@ nos logs. App 1.1.0 (versionCode 4).
 Acertos de 2026-10-07, depois do teste:
 - **Preços: a Play Console é a única fonte.** O site e o checkout EasyPay
   usam o preço de Portugal lido da Google (`server/utils/playPrices.ts`).
-  Decisão: Pro 8 €, Premium 18 €. Falta o utilizador definir esses valores
-  na linha de Portugal (e do euro) de cada base plan: o preço predefinido é
-  sem IVA e dava 8,49 €/21,99 €.
+  Preços finais (2026-10-07): Pro 8,49 €, Premium 21,99 €/mês, pré-pagos com
+  desconto (12 meses = 10 meses) — tabela em `context/PLAY-STORE.md`,
+  secção 5.
 - **Plano sempre atual:** a app volta a lê-lo ao regressar ao primeiro plano
   e quando o servidor responde 403 `feature_locked`.
 - **Diversos:**

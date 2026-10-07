@@ -7,11 +7,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = ['free', 'pro', 'premium']
 
 // Só um RECURSO: os preços reais vêm da Play Console (preço de Portugal, IVA
 // incluído — server/utils/playPrices.ts). Usado se a Google não responder.
-// Decisão do utilizador (2026-10-07): Pro 8 €, Premium 18 €.
+// Preços finais (utilizador, 2026-10-07): os que a Google calcula em Portugal
+// — Pro 8,49 €, Premium 21,99 € por mês; pré-pagos com desconto (ver
+// server/utils/playPrices.ts e context/PLAY-STORE.md).
 export const TIER_PRICE_EUR: Record<SubscriptionTier, number> = {
   free: 0,
-  pro: 8,
-  premium: 18,
+  pro: 8.49,
+  premium: 21.99,
 }
 
 // Nomes dos planos: traduzidos em i18n (`tiers.free|pro|premium`) — antes

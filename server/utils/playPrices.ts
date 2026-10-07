@@ -18,11 +18,16 @@ export type PlanPrices = Record<PaidTier, TierPrices>
 const REGION = 'PT'
 const TTL_MS = 10 * 60 * 1000
 
+// Cópia dos preços da Play Console em 2026-10-07 (Portugal, IVA incluído):
+// pré-pagos com desconto, 12 meses = 10 meses. Só para quando a Google não
+// responde — mudar um preço é na Play Console, não aqui.
+const FALLBACK_PREPAID: Record<PaidTier, Record<PlayPrepaidPeriod, number>> = {
+  pro: { 1: 8.49, 3: 23.99, 6: 45.99, 12: 84.99 },
+  premium: { 1: 21.99, 3: 59.99, 6: 114.99, 12: 219.99 },
+}
+
 function fallbackPrices(): PlanPrices {
-  const tier = (t: PaidTier): TierPrices => ({
-    monthly: TIER_PRICE_EUR[t],
-    prepaid: Object.fromEntries(PLAY_PREPAID_PERIODS.map((m) => [m, round(TIER_PRICE_EUR[t] * m)])) as Record<PlayPrepaidPeriod, number>,
-  })
+  const tier = (t: PaidTier): TierPrices => ({ monthly: TIER_PRICE_EUR[t], prepaid: { ...FALLBACK_PREPAID[t] } })
   return { pro: tier('pro'), premium: tier('premium') }
 }
 

@@ -43,8 +43,9 @@ Tomadas a 2026-10-06 (resposta do utilizador às decisões propostas):
    Play. **Revisto a 2026-10-07:** a Play Console passou a ser a única fonte
    dos preços (o site lê-os da Google — `server/utils/playPrices.ts`), depois
    de a Play mostrar 8,49 €/21,99 € e o site 7 €/18 € (o preço predefinido
-   da Play Console é sem IVA). Preços finais escolhidos: Pro 8 €, Premium
-   18 €.
+   da Play Console é sem IVA). Preços finais escolhidos: os que a Google
+   calcula em Portugal — Pro 8,49 €, Premium 21,99 € por mês, pré-pagos com
+   desconto (12 meses = 10 meses). Tabela em `context/PLAY-STORE.md`.
 5. **As mesmas ofertas nas duas plataformas.** Cada produto (`pro`,
    `premium`) tem os seguintes base plans:
    - mensal com renovação automática, como cartão e débito direto na web;

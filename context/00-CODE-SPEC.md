@@ -79,7 +79,14 @@ definidos só na Play Console (preço de Portugal, IVA incluído); o servidor
 lê-os da Google (`server/utils/playPrices.ts`, `GET /api/billing/prices`) e o
 site e o checkout EasyPay usam esses valores. `TIER_PRICE_EUR` só serve de
 recurso se a Google não responder. Histórico: 5,00 € / 12,99 € até
-2026-10-06; decisão do utilizador a 2026-10-07: 8 € / 18 €.
+2026-10-06; 7 € / 18 € (preço sem IVA) até 2026-10-07. Decisão final do
+utilizador a 2026-10-07: os preços que a Google calcula em Portugal, com
+desconto nos pré-pagos (12 meses = 10 meses):
+
+| | Mensal | 1 mês | 3 meses | 6 meses | 12 meses |
+|---|---|---|---|---|---|
+| **Pro** | 8,49 € | 8,49 € | 23,99 € (−6%) | 45,99 € (−10%) | 84,99 € (−17%) |
+| **Premium** | 21,99 € | 21,99 € | 59,99 € (−9%) | 114,99 € (−13%) | 219,99 € (−17%) |
 
 `status: 'pending'` cobre tanto uma referência Multibanco por confirmar como
 uma cobrança MB WAY à espera da confirmação push do cliente.

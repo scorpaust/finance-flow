@@ -146,8 +146,23 @@ externos. Esse código foi retirado no Upgrade 01.
 **A Play Console é a única fonte dos preços** (2026-10-07). O servidor lê
 o preço de **Portugal** de cada base plan (IVA incluído) e o site e o
 checkout EasyPay usam exatamente esse valor (`server/utils/playPrices.ts`,
-`GET /api/billing/prices`, cache de 10 minutos). Decisão do utilizador:
-**Pro 8 €/mês, Premium 18 €/mês**, e os pré-pagos ao mensal × meses.
+`GET /api/billing/prices`, cache de 10 minutos). Preços finais (decisão do
+utilizador, 2026-10-07), confirmados na API da Google:
+
+| | Mensal | 1 mês | 3 meses | 6 meses | 12 meses |
+|---|---|---|---|---|---|
+| **Pro** | 8,49 € | 8,49 € | 23,99 € (−6%) | 45,99 € (−10%) | 84,99 € (−17%) |
+| **Premium** | 21,99 € | 21,99 € | 59,99 € (−9%) | 114,99 € (−13%) | 219,99 € (−17%) |
+
+Valores introduzidos na Play Console (campo **sem IVA**; a Google soma 23%
+e arredonda — acima de ~50 € só aceita valores acabados em 4,99/9,99):
+
+| Plano base | Pro | Premium |
+|---|---|---|
+| `mensal`, `prepago-1m` | 6,90 | 17,88 |
+| `prepago-3m` | 19,50 | (59,99 € após arredondamento) |
+| `prepago-6m` | 37,39 | 93,49 |
+| `prepago-12m` | 69,10 | 178,85 |
 
 **Atenção ao definir preços:**
 - O "preço predefinido" da Play Console é **sem impostos**. A Google

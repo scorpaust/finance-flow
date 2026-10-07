@@ -108,6 +108,41 @@ Resultado (2026-10-07):
 - **Testes:** unitários 67/67, E2E 5/5, typecheck 0.
 - **Ainda não feito:** o teste manual num dispositivo.
 
+### Correções depois do teste no telemóvel (1.2.1 → 1.2.2)
+
+Na 1.2.0, a câmara da digitalização fechava a app. O erro foi visto por
+`adb logcat` no telemóvel do utilizador:
+
+```
+NullPointerException: getPermissionState(...) must not be null
+  at com.capacitorjs.plugins.camera.CameraPlugin.load$lambda$1
+  at ...LegacyCameraFlow.checkCameraPermissions
+```
+
+1. **O R8 em modo completo** (o padrão do Android Gradle Plugin 8) apaga
+   as anotações cujo tipo não é mantido.
+   - O Capacitor lê em runtime `@CapacitorPlugin(permissions = [@Permission
+     ...])` para saber as permissões de cada plugin.
+   - Sem as anotações, o mapa de permissões ficava vazio e
+     `getPermissionState()` devolvia `null`.
+   - **Correção:** `-keep class com.getcapacitor.** { *; }` e
+     `-keep @interface com.getcapacitor.annotation.**`.
+2. **Precaução:** a biblioteca da câmara da Ionic
+   (`io.ionic.libs.ioncameralib`) usa Gson. Ficam também intactos:
+   - os plugins (`com.capacitorjs.plugins.**`, `ee.forgr.biometric.**`);
+   - a própria biblioteca;
+   - o Gson.
+
+Confirmado num build de release com R8, instalado por cabo no telemóvel
+(Honor, Android 15): a câmara abre, tira a foto, a IA lê o documento e a
+transação é registada. O `.aab` 1.2.2 tem 4 266 100 bytes, **−40%** face à
+1.1.0.
+
+**Lição para próximas otimizações:** testar sempre num dispositivo, com o
+build de release, cada funcionalidade nativa (câmara, biometria, compras,
+ecrã sem internet) antes de carregar na Play Console. O R8 não dá erro no
+build: os problemas só aparecem quando o código corre.
+
 ## Testes
 
 - Automáticos: unitários, integração, E2E e typecheck sem regressões (a

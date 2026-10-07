@@ -38,6 +38,15 @@
 -keep class ee.forgr.biometric.** { *; }
 -keep class com.google.gson.** { *; }
 -keepattributes Signature,*Annotation*,EnclosingMethod,InnerClasses
+
+# 1.2.1 (2.ª causa, vista no telemóvel por logcat): o R8 em modo completo
+# apaga as anotações cujo TIPO não é mantido. O Capacitor lê em runtime
+# @CapacitorPlugin(permissions = [@Permission(...)]) para saber as
+# permissões de cada plugin; sem as anotações, getPermissionState() devolvia
+# null e a câmara rebentava ("getPermissionState(...) must not be null").
+-keep class com.getcapacitor.** { *; }
+-keep @interface com.getcapacitor.annotation.** { *; }
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations,AnnotationDefault
 -keepclassmembers,allowobfuscation class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }

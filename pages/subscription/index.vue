@@ -13,7 +13,7 @@
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
           <p class="text-white/40 text-xs">{{ t('subscription.currentPlan') }}</p>
-          <p class="text-white font-bold text-lg">{{ TIER_LABEL[currentTier] }}</p>
+          <p class="text-white font-bold text-lg">{{ t(`tiers.${currentTier}`) }}</p>
           <p v-if="currentBillingMode === 'auto' && currentStatus === 'active'" class="text-white/40 text-xs mt-1">
             {{ t('subscription.autoRenewActive', { method: currentPaymentMethod === 'cc' ? t('subscription.methodCard') : t('subscription.methodDirectDebit') }) }}{{
               currentPeriodEnd ? t('subscription.nextCharge', { date: formatDate(currentPeriodEnd) }) : ''
@@ -108,7 +108,7 @@
         :class="selectedTier === tierOption ? 'border-brand-500' : 'border-transparent hover:border-white/10'"
         @click="selectedTier = tierOption"
       >
-        <p class="font-semibold text-white">{{ TIER_LABEL[tierOption] }}</p>
+        <p class="font-semibold text-white">{{ t(`tiers.${tierOption}`) }}</p>
         <p class="text-2xl font-bold text-brand-300 mt-1">
           {{ planPrice(tierOption) }}<span class="text-xs text-white/40 font-normal">{{ t('subscription.perMonth') }}</span>
         </p>
@@ -260,7 +260,7 @@
          num cartão branco arredondado para não destoar tanto do resto. -->
     <div v-if="checkoutOpen" class="space-y-2">
       <p v-if="confirming" class="text-white/50 text-xs text-center flex items-center justify-center gap-2">
-        <Loader2 class="w-3.5 h-3.5 animate-spin" /> A confirmar com a EasyPay — não feches esta página...
+        <Loader2 class="w-3.5 h-3.5 animate-spin" /> {{ t('subscription.confirmingEasyPay') }}
       </p>
       <div class="rounded-3xl bg-white p-4 flex justify-center shadow-xl">
         <div id="easypay-checkout" />
@@ -273,7 +273,7 @@
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
 import { ArrowLeft, Check, Loader2 } from 'lucide-vue-next'
-import { SUBSCRIPTION_TIERS, TIER_LABEL, TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
+import { SUBSCRIPTION_TIERS, TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
 import {
   PLAY_MONTHLY_BASE_PLAN,
   PLAY_PACKAGE_NAME,
@@ -628,7 +628,7 @@ async function buyWithPlay() {
     await play.verify(result.purchaseToken)
     await refreshPlay()
     if (result.status === 'pending') toast.info(t('subscription.playPendingPayment'))
-    else if (mode === 'DEFERRED') toast.success(t('subscription.playDowngradeDeferred', { plan: TIER_LABEL[tier] }))
+    else if (mode === 'DEFERRED') toast.success(t('subscription.playDowngradeDeferred', { plan: t(`tiers.${tier}`) }))
     else toast.success(t('subscription.toastPaymentConfirmedCelebrate'))
   } catch (e: any) {
     toast.error(e?.data?.message || t('subscription.playPurchaseError'))

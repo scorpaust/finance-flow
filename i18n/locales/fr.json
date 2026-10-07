@@ -586,6 +586,7 @@
     "totalLabel": "Total",
     "totalSuffix": "sans renouvellement automatique)",
     "continueButton": "Continuer",
+    "confirmingEasyPay": "Confirmation auprès d’EasyPay — ne ferme pas cette page…",
     "openingEasyPay": "Ouverture d'EasyPay...",
     "mbwayWaitingTitle": "Confirme le paiement dans l'app MB WAY",
     "mbwayWaitingHint": "Tu vas recevoir une notification sur le téléphone associé à ton compte.",
@@ -784,10 +785,16 @@
     "reason": "Déverrouiller FinanceFlow"
   },
   "legal": {
+    "complaintsBook": "Livre de réclamations électronique",
     "back": "Retour",
     "draftNotice": "Brouillon — ce texte n'a pas encore été relu par un juriste et comporte des champs à compléter.",
     "englishOnly": "Ce document n'est disponible qu'en portugais et en anglais ; affichage de la version anglaise.",
     "terms": "Conditions d'utilisation",
     "privacy": "Politique de confidentialité"
+  },
+  "tiers": {
+    "free": "Gratuit",
+    "pro": "Pro",
+    "premium": "Premium"
   }
 }

@@ -54,7 +54,7 @@
       <h3 class="font-semibold text-white mb-4 flex items-center gap-2"><Crown class="w-4 h-4 text-brand-400" /> {{ t('settings.subscriptionTitle') }}</h3>
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <p class="text-white font-bold">{{ TIER_LABEL[currentTier] }}</p>
+          <p class="text-white font-bold">{{ t(`tiers.${currentTier}`) }}</p>
           <p class="text-white/40 text-xs mt-0.5">
             {{ currentTier === 'free' ? t('settings.subscriptionFreeDescription') : t('settings.subscriptionManageDescription') }}
           </p>
@@ -174,7 +174,6 @@
 import { navigateTo } from '#imports'
 import { User, Tag, Plus, Trash2, X, ArrowLeft, Crown, Languages } from 'lucide-vue-next'
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '~/types'
-import { TIER_LABEL } from '~/shared/features'
 
 definePageMeta({ layout: 'default' })
 

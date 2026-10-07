@@ -7,7 +7,7 @@
       <AlertTriangle class="w-4 h-4 text-amber-400" />
     </div>
     <div class="flex-1 min-w-0">
-      <p class="text-sm font-semibold text-white">{{ t('upsellBanner.expiresIn', { tier: TIER_LABEL[tier], days: daysUntilExpiry }) }}</p>
+      <p class="text-sm font-semibold text-white">{{ t('upsellBanner.expiresIn', { tier: t(`tiers.${tier}`), days: daysUntilExpiry }) }}</p>
       <p v-if="multibancoReference" class="text-white/40 text-xs mt-0.5">
         {{ t('upsellBanner.multibancoPending', { entity: multibancoEntity, reference: multibancoReference }) }}
       </p>
@@ -25,7 +25,6 @@
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
 import { AlertTriangle } from 'lucide-vue-next'
-import { TIER_LABEL } from '~/shared/features'
 
 const { t } = useI18n()
 // Top-level para Vue auto-unwrapping refs em template (ver padrão em predictions.vue).

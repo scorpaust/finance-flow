@@ -6,10 +6,10 @@
           <Lock class="w-6 h-6 text-brand-400" />
         </div>
 
-        <h2 class="font-display font-bold text-xl text-white">{{ t('paywall.featureTier', { tier: TIER_LABEL[requiredTier] }) }}</h2>
+        <h2 class="font-display font-bold text-xl text-white">{{ t('paywall.featureTier', { tier: t(`tiers.${requiredTier}`) }) }}</h2>
         <p class="text-white/50 text-sm mt-2">
           {{ t('paywall.availableFrom', { feature: featureLabel }) }}
-          <span class="text-brand-300 font-semibold">{{ TIER_LABEL[requiredTier] }}</span>
+          <span class="text-brand-300 font-semibold">{{ t(`tiers.${requiredTier}`) }}</span>
           {{ t('paywall.perMonthPrice', { price: TIER_PRICE_EUR[requiredTier].toFixed(2).replace('.', ',') }) }}
         </p>
 
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { Lock, Sparkles } from 'lucide-vue-next'
 import type { SubscriptionTier } from '~/shared/features'
-import { TIER_LABEL, TIER_PRICE_EUR } from '~/shared/features'
+import { TIER_PRICE_EUR } from '~/shared/features'
 
 const props = defineProps<{
   requiredTier: SubscriptionTier

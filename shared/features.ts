@@ -14,11 +14,9 @@ export const TIER_PRICE_EUR: Record<SubscriptionTier, number> = {
   premium: 18,
 }
 
-export const TIER_LABEL: Record<SubscriptionTier, string> = {
-  free: 'Gratuito',
-  pro: 'Pro',
-  premium: 'Premium',
-}
+// Nomes dos planos: traduzidos em i18n (`tiers.free|pro|premium`) — antes
+// havia aqui um TIER_LABEL fixo em português, que aparecia ("Gratuito") na
+// versão inglesa.
 
 export type FeatureKey =
   | 'groups'

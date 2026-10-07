@@ -586,6 +586,7 @@
     "totalLabel": "Total",
     "totalSuffix": "no auto-renewal)",
     "continueButton": "Continue",
+    "confirmingEasyPay": "Confirming with EasyPay — please don’t close this page…",
     "openingEasyPay": "Opening EasyPay...",
     "mbwayWaitingTitle": "Confirm the payment in the MB WAY app",
     "mbwayWaitingHint": "You'll receive a notification on the phone linked to your account.",
@@ -790,5 +791,10 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "complaintsBook": "Electronic Complaints Book"
+  },
+  "tiers": {
+    "free": "Free",
+    "pro": "Pro",
+    "premium": "Premium"
   }
 }

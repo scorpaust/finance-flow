@@ -19,28 +19,31 @@
               currentPeriodEnd ? t('subscription.nextCharge', { date: formatDate(currentPeriodEnd) }) : ''
             }}
           </p>
-          <p v-else-if="currentBillingMode === 'auto' && currentStatus === 'canceled'" class="text-amber-400 text-xs mt-1">
+          <p v-else-if="currentBillingMode === 'auto' && currentStatus === 'canceled' && currentTier !== 'free'" class="text-amber-400 text-xs mt-1">
             {{ t('subscription.autoRenewCanceled', { date: currentPeriodEnd ? formatDate(currentPeriodEnd) : t('subscription.noDate') }) }}
           </p>
-          <p v-else-if="currentBillingMode === 'push_confirm'" class="text-white/40 text-xs mt-1">
+          <p v-else-if="currentBillingMode === 'push_confirm' && (currentTier !== 'free' || currentStatus === 'pending')" class="text-white/40 text-xs mt-1">
             {{ t('subscription.mbwayPaidPeriod') }}{{ currentStatus === 'pending' ? t('subscription.mbwayPendingConfirm') : '' }}{{
               currentPeriodEnd ? t('subscription.expiresOn', { date: formatDate(currentPeriodEnd) }) : ''
             }}
           </p>
-          <p v-else-if="currentBillingMode === 'manual_reference'" class="text-white/40 text-xs mt-1">
+          <p v-else-if="currentBillingMode === 'manual_reference' && (currentTier !== 'free' || currentStatus === 'pending')" class="text-white/40 text-xs mt-1">
             {{ t('subscription.multibancoPaidPeriod') }} · {{ currentPeriodEnd ? t('subscription.expiresOnPlain', { date: formatDate(currentPeriodEnd) }) : t('subscription.noActivePeriod') }}
           </p>
           <!-- Upgrade 01 — comprado na Google Play (app Android). -->
           <p v-else-if="currentBillingMode === 'google_play' && currentStatus === 'pending'" class="text-amber-400 text-xs mt-1">
             {{ t('subscription.playPendingStatus') }}
           </p>
-          <p v-else-if="currentBillingMode === 'google_play' && currentStatus === 'canceled'" class="text-amber-400 text-xs mt-1">
+          <p v-else-if="currentBillingMode === 'google_play' && currentStatus === 'canceled' && currentTier !== 'free'" class="text-amber-400 text-xs mt-1">
             {{ t('subscription.playAutoRenewCanceled', { date: currentPeriodEnd ? formatDate(currentPeriodEnd) : t('subscription.noDate') }) }}
           </p>
-          <p v-else-if="currentBillingMode === 'google_play' && currentAutoRenew" class="text-white/40 text-xs mt-1">
+          <p v-else-if="currentBillingMode === 'google_play' && currentAutoRenew && currentTier !== 'free'" class="text-white/40 text-xs mt-1">
             {{ t('subscription.playAutoRenewActive') }}{{ currentPeriodEnd ? t('subscription.nextCharge', { date: formatDate(currentPeriodEnd) }) : '' }}
           </p>
-          <p v-else-if="currentBillingMode === 'google_play' && currentPeriodEnd" class="text-white/40 text-xs mt-1">
+          <!-- Só enquanto o plano está ativo: depois de expirar, o plano é Gratuito e
+               a compra antiga já não interessa (antes aparecia "Free · Pagamento
+               único… expira a"). -->
+          <p v-else-if="currentBillingMode === 'google_play' && currentPeriodEnd && currentTier !== 'free'" class="text-white/40 text-xs mt-1">
             {{ t('subscription.playPrepaidActive', { date: formatDate(currentPeriodEnd) }) }}
           </p>
         </div>

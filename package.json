@@ -1,6 +1,6 @@
 {
   "name": "finance-app",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -28,7 +28,7 @@
     "@capacitor/app": "^8.1.1",
     "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.2",
-    "@capacitor/status-bar": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
     "@capgo/capacitor-native-biometric": "^8.6.11",
     "@easypaypt/checkout-sdk": "^2.9.1",
     "@maxmind/geoip2-node": "^7.1.0",
@@ -82,7 +82,9 @@
     "uuid": "^11.1.1",
     "shell-quote": "^1.12.0",
     "source-map-js": "^1.2.2",
-    "simple-git": { "@simple-git/argv-parser": "^2.0.1" },
+    "simple-git": {
+      "@simple-git/argv-parser": "^2.0.1"
+    },
     "tinypool": "^2.2.0"
   }
 }

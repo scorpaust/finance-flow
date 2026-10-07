@@ -257,10 +257,10 @@
     /* Nunca deixar o conteúdo do modal ficar atrás de um notch/status bar
        (Fase 4, tarefa 2) — usa o maior valor entre o padding base e o
        safe-area-inset do lado correspondente. */
-    padding-top: max(1rem, env(safe-area-inset-top, 0px));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-    padding-left: max(1rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    padding-top: max(1rem, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    padding-bottom: max(1rem, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    padding-left: max(1rem, var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+    padding-right: max(1rem, var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
   }
 
   .modal-content {

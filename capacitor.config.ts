@@ -31,8 +31,27 @@ const config: CapacitorConfig = {
     // internet, DNS, timeout). Não tem acesso aos plugins nativos.
     errorPath: 'offline.html',
   },
+  // Upgrade 02 — fundo da WebView enquanto o site carrega (antes: branco).
+  backgroundColor: '#0f0f23',
   android: {
     allowMixedContent: IS_DEV_OVERRIDE,
+  },
+  plugins: {
+    // Edge-to-edge (obrigatório no Android 15+ com targetSdk 36): barra de
+    // estado escura com ícones claros; as margens de segurança chegam ao CSS
+    // em --safe-area-inset-* (corrige env() nas WebViews < 140).
+    SystemBars: {
+      insetsHandling: 'css',
+      style: 'DARK',
+    },
+    // A app esconde o ecrã de arranque quando o site está desenhado
+    // (plugins/native-splash.client.ts). O limite garante que nunca fica
+    // preso — ex. sem internet, a página offline.html não tem plugins.
+    SplashScreen: {
+      launchAutoHide: true,
+      launchShowDuration: 4000,
+      backgroundColor: '#0f0f23',
+    },
   },
 }
 

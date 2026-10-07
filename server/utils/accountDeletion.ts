@@ -9,6 +9,7 @@ import {
   DocumentScanUsage,
 } from '../models'
 import { cancelSubscription } from './easypay'
+import { cancelPlaySubscription } from './googlePlay'
 
 // Partilhado por server/api/account/index.delete.ts (o próprio utilizador,
 // autenticado) e server/api/admin/refund-delete.post.ts (o operador, depois
@@ -23,6 +24,11 @@ export async function deleteUserAccount(userId: string): Promise<void> {
   const sub = user.subscription
   if (sub?.billingMode === 'auto' && sub.easypaySubscriptionId && ['active', 'past_due'].includes(sub.status)) {
     await cancelSubscription(sub.easypaySubscriptionId)
+  }
+  // Upgrade 01 — subscrição da Google Play com renovação: parar as cobranças
+  // seguintes. Pré-pagos não renovam; nada a cancelar.
+  if (sub?.billingMode === 'google_play' && sub.googlePlayPurchaseToken && sub.autoRenew && ['active', 'past_due'].includes(sub.status)) {
+    await cancelPlaySubscription(sub.googlePlayPurchaseToken)
   }
 
   await Promise.all([

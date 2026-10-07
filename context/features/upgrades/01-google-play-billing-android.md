@@ -139,7 +139,7 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 
 ### 1. App Android (nativo)
 
-- [ ] Plugin Capacitor `PlayBillingPlugin.java`, que substitui
+- [x] Plugin Capacitor `PlayBillingPlugin.java`, que substitui
       `AlternativeBillingPlugin.java` e usa a Play Billing Library 9.x, já
       incluída. Funções:
   - `getProducts()`: `queryProductDetailsAsync` para `pro`/`premium`;
@@ -154,17 +154,17 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
     perdeu.
   - Eventos do `PurchasesUpdatedListener`: comprado, pendente, cancelado e
     erro.
-- [ ] `MainActivity` regista o plugin novo.
-- [ ] Retirar `AlternativeBillingPlugin.java`.
-- [ ] `versionName` 1.1.0, `versionCode` 4.
+- [x] `MainActivity` regista o plugin novo.
+- [x] Retirar `AlternativeBillingPlugin.java`.
+- [x] `versionName` 1.1.0, `versionCode` 4.
 
 ### 2. Servidor
 
-- [ ] **2.1** `GOOGLE_PLAY_SERVICE_ACCOUNT` lida do ambiente em runtime
+- [x] **2.1** `GOOGLE_PLAY_SERVICE_ACCOUNT` lida do ambiente em runtime
       (`process.env`), como `MONGODB_URI` em `server/utils/db.ts`. Uma
       variável secreta do Netlify chega mascarada ao build local (incidente
       de 2026-10-04).
-- [ ] **2.2** `POST /api/billing/google-play/verify`, recebendo
+- [x] **2.2** `POST /api/billing/google-play/verify`, recebendo
       `{ purchaseToken, productId }`:
   - chama `subscriptionsv2.get`;
   - confirma que o produto é conhecido, que o estado é ativo e que
@@ -176,10 +176,10 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
   - faz o acknowledge no servidor (`purchases.subscriptions.acknowledge`) se
     `acknowledgementState` ainda for pendente.
   - É idempotente: o mesmo token chamado duas vezes não estraga nada.
-- [ ] **2.3** Um `purchaseToken` só pode pertencer a uma conta: índice
+- [x] **2.3** Um `purchaseToken` só pode pertencer a uma conta: índice
       único. Quando há mudança de plano, o `linkedPurchaseToken` substitui o
       token antigo, sem duplicar.
-- [ ] **2.4** `POST /api/billing/google-play/rtdn`, o push do Pub/Sub:
+- [x] **2.4** `POST /api/billing/google-play/rtdn`, o push do Pub/Sub:
   - verifica o token OIDC do Pub/Sub (emissor Google e audiência
     configurada) e recusa o resto;
   - para cada `subscriptionNotification`, volta a ler o estado com
@@ -191,25 +191,25 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
     plano;
   - responde 200 depressa, porque o Pub/Sub repete o que não for
     confirmado.
-- [ ] **2.5** `effectiveTier` conhece `provider: 'google_play'`: ativo
+- [x] **2.5** `effectiveTier` conhece `provider: 'google_play'`: ativo
       enquanto `currentPeriodEnd` estiver no futuro e o estado não for
       `expired`.
-- [ ] **2.6** Proteção contra subscrição dupla: o `verify` recusa uma
+- [x] **2.6** Proteção contra subscrição dupla: o `verify` recusa uma
       compra na Play se a conta tiver uma subscrição EasyPay ativa, e o
       checkout EasyPay da web recusa se houver uma subscrição Play ativa.
       Mensagem clara nas 6 línguas.
-- [ ] **2.7** Cron diário de reconciliação: volta a ler o estado de todas as
+- [x] **2.7** Cron diário de reconciliação: volta a ler o estado de todas as
       subscrições Play que expiram nas próximas 48 h ou que já expiraram sem
       notificação. Rede de segurança caso falhe uma RTDN. Substitui o
       `process-queue` do alternative billing.
-- [ ] **2.8** Eliminação de conta com subscrição Play ativa: revogar no
+- [x] **2.8** Eliminação de conta com subscrição Play ativa: revogar no
       servidor (`subscriptionsv2.revoke`) ou, no mínimo, avisar antes de
       apagar que a subscrição continua na Google Play e tem de ser
       cancelada lá.
-- [ ] **2.9** Reembolso de livre resolução (14 dias, `admin/refund-delete`):
+- [x] **2.9** Reembolso de livre resolução (14 dias, `admin/refund-delete`):
       para Play, `subscriptionsv2.revoke` com reembolso, em vez do reporte
       `externalTransactions:refund`.
-- [ ] **2.10** Retirar o alternative billing:
+- [x] **2.10** Retirar o alternative billing:
   - `server/utils/googlePlayBilling.ts` (reportes `externalTransactions`);
   - modelo `GooglePlayTransaction`;
   - `/api/billing/google-play/process-queue` e o passo correspondente em
@@ -220,7 +220,7 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 
 ### 3. Cliente (web dentro da app)
 
-- [ ] Em `pages/subscription/index.vue`, com `isNative`, o fluxo é outro:
+- [x] Em `pages/subscription/index.vue`, com `isNative`, o fluxo é outro:
   - **Escolha do plano:** cartões Pro e Premium com o preço vindo da Google
     (`getProducts`), e não o `TIER_PRICE_EUR` convertido.
   - **Pagamento:** a mesma escolha da web, mas sem iframe EasyPay:
@@ -241,14 +241,14 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
   - **Plano da web ativo:** mostrar "Subscrição gerida na versão web", sem
     link e sem botões de compra. Quando a subscrição da web termina, voltam
     as opções da Google Play (decisão 7).
-- [ ] **Na web**, com um plano da Play ativo: mostrar "Subscrição gerida na
+- [x] **Na web**, com um plano da Play ativo: mostrar "Subscrição gerida na
       Google Play", com o link acima, e esconder o checkout EasyPay.
-- [ ] Retirar `composables/useAlternativeBilling.ts` e a mensagem
+- [x] Retirar `composables/useAlternativeBilling.ts` e a mensagem
       `subscription.androidBillingUnavailable`.
-- [ ] Textos novos nas 6 línguas.
-- [ ] Moeda de apresentação (Fase 10): no Android, o preço da Google já vem
+- [x] Textos novos nas 6 línguas.
+- [x] Moeda de apresentação (Fase 10): no Android, o preço da Google já vem
       na moeda do utilizador e não leva o "≈".
-- [ ] Termos de utilização:
+- [x] Termos de utilização:
   - no Android, a cobrança, a renovação e o cancelamento são feitos pela
     Google Play;
   - reembolsos das compras feitas na Play seguem as regras da Google;
@@ -256,22 +256,22 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
 
 ### 4. Documentação e declarações
 
-- [ ] `context/PLAY-STORE.md` secção 5: reescrever para Google Play Billing
+- [x] `context/PLAY-STORE.md` secção 5: reescrever para Google Play Billing
       e registar o histórico (alternative billing abandonado: conta pessoal
       não elegível).
-- [ ] **Play Console, declaração de segurança dos dados:**
+- [x] **Play Console, declaração de segurança dos dados:**
   - a compra passa a ser processada pela Google;
   - o servidor guarda só o estado da subscrição e o id da encomenda.
-- [ ] **Política de Privacidade:**
+- [x] **Política de Privacidade:**
   - Google como processador de pagamentos no Android;
   - retirar "reporte de transações à Google".
   - Atualizar `LEGAL_UPDATED`.
-- [ ] `context/SECURITY-POLICY.md`, tabela de fornecedores: "Google Play —
+- [x] `context/SECURITY-POLICY.md`, tabela de fornecedores: "Google Play —
       distribuição Android **e pagamentos na app**".
-- [ ] `context/CONFIG-REFERENCE.md`:
+- [x] `context/CONFIG-REFERENCE.md`:
   - acrescentar `GOOGLE_PLAY_SERVICE_ACCOUNT` e a audiência OIDC do RTDN;
   - retirar `BILLING_VAT_RATE`.
-- [ ] `context/OPERATIONS.md`: como ver as subscrições Play, como
+- [x] `context/OPERATIONS.md`: como ver as subscrições Play, como
       reembolsar e o que fazer se as RTDN pararem.
 
 ## Faturação e IVA (registo para o utilizador; confirmar com o contabilista)
@@ -333,6 +333,10 @@ consultado a 2026-10-06): ciclo de vida das subscrições, acknowledge,
   - instalar noutro dispositivo e confirmar que o plano aparece.
 
 ## Critérios de aceitação
+
+Código e testes automáticos feitos a 2026-10-07; falta a confirmação num
+dispositivo com a Play Console configurada (tarefa 0).
+
 
 - [ ] Na app Android não existe nenhum caminho para pagar fora da Google
       Play (sem EasyPay, sem links para o site).

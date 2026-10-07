@@ -16,8 +16,8 @@ import { ASSET_CLASSES, type AssetClass } from '../../shared/portfolio'
 export interface IUserSubscription {
   tier: 'free' | 'pro' | 'premium'
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
-  provider: 'easypay' | 'none'
-  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'none'
+  provider: 'easypay' | 'google_play' | 'none'
+  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'google_play' | 'none'
   // 'auto'             = CC/DD via Subscription nativa da EasyPay, cobrança 100% automática
   // 'push_confirm'     = MB WAY — pagamento único de um período fixo, confirmado por push
   // 'manual_reference' = Multibanco — pagamento único de um período fixo, via referência
@@ -25,7 +25,12 @@ export interface IUserSubscription {
   // ver context/current-feature.md) — expiram no fim do período pago
   // (server/api/subscription/check-expirations.post.ts), sem cron a gerar
   // ciclos seguintes.
-  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'none'
+  // 'google_play'      = Upgrade 01 — comprado na app Android pela Google Play
+  //                      Billing (renovação automática ou pré-pago, ver
+  //                      `autoRenew`). O estado vem sempre da Google
+  //                      (server/utils/googlePlay.ts); o acesso termina no
+  //                      `currentPeriodEnd` (= expiryTime da Google).
+  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'google_play' | 'none'
   autoRenew: boolean
   currentPeriodEnd: Date | null
   // 'auto' (CC/DD): id da Subscription nativa EasyPay. 'push_confirm'/
@@ -44,15 +49,27 @@ export interface IUserSubscription {
   // nem a estender período pago. Nunca limpo pelo job de expiração — senão um
   // checkout antigo reativava uma subscrição já expirada.
   appliedPaymentIds?: string[]
+  // Upgrade 01 — Google Play Billing. O token identifica a compra na Google
+  // (único por conta, índice abaixo); muda numa mudança de plano ou num
+  // carregamento de um pré-pago.
+  googlePlayPurchaseToken?: string
+  googlePlayProductId?: string
+  googlePlayBasePlanId?: string
+  googlePlayOrderId?: string
+  // Pré-pagos: a partir de quando a Google aceita um carregamento (top-up).
+  googlePlayAllowExtendAfter?: Date | null
+  // A confirmação (acknowledge) à Google falhou — a reconciliação repete-a.
+  // Sem confirmação em 3 dias a Google reembolsa e revoga a compra.
+  googlePlayAckPending?: boolean
 }
 
 const UserSubscriptionSchema = new Schema<IUserSubscription>(
   {
     tier:             { type: String, enum: ['free', 'pro', 'premium'], default: 'free' },
     status:           { type: String, enum: ['active', 'pending', 'past_due', 'canceled', 'expired'], default: 'active' },
-    provider:         { type: String, enum: ['easypay', 'none'], default: 'none' },
-    paymentMethod:    { type: String, enum: ['cc', 'dd', 'mbway', 'multibanco', 'none'], default: 'none' },
-    billingMode:      { type: String, enum: ['auto', 'push_confirm', 'manual_reference', 'none'], default: 'none' },
+    provider:         { type: String, enum: ['easypay', 'google_play', 'none'], default: 'none' },
+    paymentMethod:    { type: String, enum: ['cc', 'dd', 'mbway', 'multibanco', 'google_play', 'none'], default: 'none' },
+    billingMode:      { type: String, enum: ['auto', 'push_confirm', 'manual_reference', 'google_play', 'none'], default: 'none' },
     autoRenew:        { type: Boolean, default: false },
     currentPeriodEnd: { type: Date, default: null },
     easypaySubscriptionId:    { type: String },
@@ -61,6 +78,12 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
     multibancoExpiresAt:      { type: Date, default: null },
     reminderSentAt:           { type: Date, default: null },
     appliedPaymentIds:        { type: [String], default: [] },
+    googlePlayPurchaseToken:  { type: String },
+    googlePlayProductId:      { type: String },
+    googlePlayBasePlanId:     { type: String },
+    googlePlayOrderId:        { type: String },
+    googlePlayAllowExtendAfter: { type: Date, default: null },
+    googlePlayAckPending:     { type: Boolean, default: false },
   },
   { _id: false }
 )
@@ -115,6 +138,11 @@ export interface IUser extends Document {
   // Fase 10 — moeda em que o utilizador vê os valores (ISO 4217). Só de
   // apresentação: todos os valores continuam guardados em euros.
   displayCurrency: string
+  // Upgrade 01 — identificador da conta enviado à Google em cada compra na
+  // app (`obfuscatedAccountId`): um HMAC do id, nunca o email. Guardado para
+  // as notificações da Google (RTDN) chegarem à conta certa mesmo antes de a
+  // app confirmar a compra (server/utils/googlePlay.ts).
+  playAccountId?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -135,9 +163,13 @@ const UserSchema = new Schema<IUser>(
     termsAcceptedAt:      { type: Date },
     termsVersion:         { type: String },
     displayCurrency:      { type: String, default: 'EUR', uppercase: true, minlength: 3, maxlength: 3 },
+    playAccountId:        { type: String },
   },
   { timestamps: true }
 )
+// Upgrade 01 — uma compra da Google Play pertence a uma só conta.
+UserSchema.index({ 'subscription.googlePlayPurchaseToken': 1 }, { unique: true, sparse: true })
+UserSchema.index({ playAccountId: 1 }, { unique: true, sparse: true })
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
 
 // ─── CATEGORY ────────────────────────────────────────────────────────────────
@@ -452,78 +484,6 @@ RateLimitBucketSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 export const RateLimitBucket: Model<IRateLimitBucket> =
   mongoose.models.RateLimitBucket ||
   mongoose.model<IRateLimitBucket>('RateLimitBucket', RateLimitBucketSchema)
-
-// ─── GOOGLE PLAY — TRANSAÇÕES EXTERNAS (alternative billing only) ────────────
-// Fase 9. A app Android cobra com a EasyPay pelo programa "alternative billing
-// only" da Google (EEE), que obriga a reportar cada transação feita DENTRO da
-// app à Google Play Developer API em até 24 h (context/PLAY-STORE.md, secção
-// 5). Um documento por transação, que serve também de fila de reporte
-// (server/utils/googlePlayBilling.ts):
-//   awaiting_payment → token da Google recebido ao criar o checkout na app,
-//                      à espera da confirmação do pagamento na EasyPay
-//   pending          → pagamento confirmado, falta reportar (ou nova tentativa)
-//   reported         → aceite pela Google
-//   failed           → recusado pela Google (4xx) — precisa de intervenção
-//   expired          → o checkout nunca foi pago
-//   refunded         → reembolso reportado à Google
-// Compras feitas no site não criam documento nenhum: não são transações da app.
-export type GooglePlayTransactionStatus = 'awaiting_payment' | 'pending' | 'reported' | 'failed' | 'expired' | 'refunded'
-
-export interface IGooglePlayTransaction {
-  userId: mongoose.Types.ObjectId
-  kind: 'initial' | 'renewal'
-  status: GooglePlayTransactionStatus
-  // Token da Play Billing Library (só na transação inicial; as renovações
-  // reportam-se pelo id da inicial).
-  token?: string
-  checkoutId?: string
-  // Id do pagamento na EasyPay — nas subscrições por cartão/débito direto é
-  // também o id da subscrição, que identifica a série de renovações.
-  paymentId?: string
-  // Transação inicial da série (só nas renovações).
-  initialExternalTransactionId?: string
-  externalTransactionId?: string
-  tier: 'pro' | 'premium'
-  method: 'cc' | 'dd' | 'mbway' | 'multibanco'
-  periodMonths: number
-  // Valor cobrado ao utilizador, em cêntimos de euro (IVA incluído, se houver).
-  amountCents: number
-  regionCode: string
-  transactionTime?: Date
-  attempts: number
-  lastError?: string
-  reportedAt?: Date
-  refundedAt?: Date
-  createdAt: Date
-  updatedAt: Date
-}
-
-const GooglePlayTransactionSchema = new Schema<IGooglePlayTransaction>(
-  {
-    userId:       { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    kind:         { type: String, enum: ['initial', 'renewal'], required: true },
-    status:       { type: String, enum: ['awaiting_payment', 'pending', 'reported', 'failed', 'expired', 'refunded'], required: true, index: true },
-    token:        { type: String },
-    checkoutId:   { type: String, index: true },
-    paymentId:    { type: String, index: true },
-    initialExternalTransactionId: { type: String },
-    externalTransactionId: { type: String, unique: true, sparse: true },
-    tier:         { type: String, enum: ['pro', 'premium'], required: true },
-    method:       { type: String, enum: ['cc', 'dd', 'mbway', 'multibanco'], required: true },
-    periodMonths: { type: Number, required: true, default: 1 },
-    amountCents:  { type: Number, required: true, min: 0 },
-    regionCode:   { type: String, required: true },
-    transactionTime: { type: Date },
-    attempts:     { type: Number, required: true, default: 0 },
-    lastError:    { type: String },
-    reportedAt:   { type: Date },
-    refundedAt:   { type: Date },
-  },
-  { timestamps: true }
-)
-export const GooglePlayTransaction: Model<IGooglePlayTransaction> =
-  mongoose.models.GooglePlayTransaction ||
-  mongoose.model<IGooglePlayTransaction>('GooglePlayTransaction', GooglePlayTransactionSchema)
 
 // ─── CÂMBIO (cache) ──────────────────────────────────────────────────────────
 // Fase 10 — câmbio EUR→X do dia e lista de moedas suportadas, partilhados por

@@ -37,6 +37,13 @@ export function stubClient(baseUrl: string) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ status }),
       }),
+    // Upgrade 01 — o que a Google devolve para uma compra (subscriptionsv2.get).
+    setGoogleSubscription: (token: string, body: unknown, status = 200) =>
+      fetch(`${baseUrl}/__control/google-subscription`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token, body, status }),
+      }),
     requests: async (): Promise<{ path: string; query: string; method: string; body: any; authorization?: string }[]> =>
       (await fetch(`${baseUrl}/__control/requests`)).json(),
   }

@@ -10,8 +10,6 @@
 // geográfico), art. 5.º, proíbe recusar um meio de pagamento aceite por causa
 // da residência/localização do cliente. Quem não tiver conta portuguesa
 // simplesmente não os usa — cartão/débito direto continuam lá para todos.
-// O país (geolocalização) continua a ser usado noutros sítios, ex. o país
-// fiscal no reporte à Google Play (server/utils/googlePlayBilling.ts).
 export type PrepaidMethod = 'mbway' | 'multibanco'
 
 const PREPAID_METHODS: PrepaidMethod[] = ['mbway', 'multibanco']

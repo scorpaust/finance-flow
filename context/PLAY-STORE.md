@@ -99,16 +99,17 @@ instruções: usar `<APP_URL>/privacy`.
 | Endereço de email | Login | Sim | Gestão da conta | Não |
 | IDs do utilizador | Id interno da conta | Sim | Gestão da conta | Não |
 | Outras informações financeiras | Transações, orçamentos, investimentos, perfil de investidor | Sim | Funcionalidade da app | Não |
-| Histórico de compras | Subscrições compradas (plano, estado, referências de pagamento) | Sim | Gestão da conta, funcionalidade da app | Não |
+| Histórico de compras | Subscrições compradas (plano, estado, referências de pagamento; na app Android, o identificador da compra na Google Play) | Sim | Gestão da conta, funcionalidade da app | Não |
 | Fotos | Recibo/fatura digitalizado (Pro) — enviado à Anthropic para extração, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
 | Ficheiros e documentos | Recibo/fatura em PDF na digitalização — idem, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
 | Outro conteúdo gerado pelo utilizador | Descrições e notas das transações, nomes de categorias/grupos | Sim | Funcionalidade da app | Não |
 | Localização aproximada | País, a partir do IP, só para mostrar os métodos de pagamento — **não guardado** | Sim, processamento efémero | Funcionalidade da app | Não |
 | Registos de falhas / diagnóstico | Sentry (só com `SENTRY_DSN` definido; sem corpos, cookies nem Session Replay) | Sim | Análise e correção de erros | Não |
 
-**Dados de pagamento** (cartão, IBAN, telemóvel MB WAY): introduzidos no
-formulário da EasyPay, **nunca passam pelos nossos servidores** — não se
-declaram como recolhidos pela app.
+**Dados de pagamento**: na app Android o pagamento é feito na própria
+Google Play (Upgrade 01), e no site no formulário da EasyPay (cartão, IBAN,
+telemóvel MB WAY). Nos dois casos **nunca passam pelos nossos servidores**,
+por isso não se declaram como recolhidos pela app.
 
 **Partilha**: Anthropic (IA), EasyPay (pagamentos), Sentry e MongoDB Atlas
 são prestadores que processam dados **em nosso nome** — pelas regras da
@@ -127,56 +128,96 @@ terceiros**.
 - **Permissões**: câmara (digitalização de documentos) e biometria
   (bloqueio da app) — ambas com uso claro na própria app.
 
-## 5. Faturação — pagamentos com EasyPay dentro da app
+## 5. Faturação — Google Play Billing na app Android
 
-**Correção à especificação** (verificado nas páginas da Google a
-2026-09-29): o "programa de pagamentos externos" referido na Fase 2 é hoje
-**só para o Japão**. No EEE, cobrar subscrições digitais dentro da app com um
-processador próprio (a EasyPay) exige o programa **alternative billing
-only**:
+**Decisão atual (2026-10-06, Upgrade 01):** na app Android, a **única**
+forma de pagar é a Google Play Billing. O site mantém a EasyPay (cartão,
+débito direto, MB WAY, Multibanco). Especificação e decisões:
+`context/features/upgrades/01-google-play-billing-android.md`.
 
-- integração **nativa** da Play Billing Library **8+** (obrigatória para apps
-  novas e atualizações desde 31/08/2026; prorrogação possível até 01/11/2026):
-  `isAlternativeBillingOnlyAvailableAsync`,
-  `showAlternativeBillingOnlyInformationDialog` (ecrã informativo da Google
-  na 1.ª compra) e `createAlternativeBillingOnlyReportingDetailsAsync`;
-- **reporte de cada transação** à Google Play Developer API
-  (`externaltransactions`) em até **24 h** — o reporte manual está a ser
-  descontinuado;
-- inscrição por formulário e configuração por país na Play Console; taxa de
-  serviço da Google sobre cada transação (confirmar o valor atual na
-  inscrição).
+**Histórico.** A 2026-09-29 tinha sido escolhido o *alternative billing
+only* (cobrar com a EasyPay dentro da app e reportar cada transação à
+Google). Foi implementado mas nunca ativado: a conta de programador é
+**pessoal** (trabalhador independente) e não é elegível para pagamentos
+externos. Esse código foi retirado no Upgrade 01.
 
-Fontes: [Alternative billing APIs](https://developer.android.com/google/play/billing/alternative),
-[About the program (Japão)](https://developer.android.com/google/play/billing/externalpaymentlinks).
+### Oferta e preços
 
-**Decisão do utilizador (2026-09-29): alternative billing only.** Implementado:
+Os preços são os mesmos no site e na Play: **Pro 7 €/mês** e **Premium
+18 €/mês** (`TIER_PRICE_EUR`). Na Play os preços incluem o IVA do cliente,
+que a Google retém e entrega, e a Google fica ainda com 15%.
 
-- **App (nativo)**: `AlternativeBillingPlugin.java` (Play Billing Library
-  9.1.0) — antes de cada compra confirma a disponibilidade, mostra o ecrã
-  informativo da Google e obtém o token; `composables/useAlternativeBilling.ts`
-  + `pages/subscription/index.vue`. Sem o programa disponível (fora do EEE,
-  sem inscrição aprovada), a app Android **não deixa comprar** e mostra
-  `subscription.androidBillingUnavailable`. No browser nada muda.
-- **Servidor**: `server/utils/googlePlayBilling.ts` + coleção
-  `GooglePlayTransaction` — reporta a transação inicial (com o token), as
-  renovações mensais de cartão/débito direto (mesma série) e os pagamentos
-  MB WAY/Multibanco (`PREPAID`); reembolsos de livre resolução reportados em
-  `admin/refund-delete`. Fila com novas tentativas de hora a hora
-  (`/api/billing/google-play/process-queue`, `.github/workflows/cron.yml`).
-  Compras feitas no site não se reportam. IVA reportado: 0 (isenção, art.
-  53.º CIVA — `BILLING_VAT_RATE`).
-- **Testes**: 5 testes de integração com a Google simulada (token, renovação,
-  PREPAID, compra no site sem reporte, falha + nova tentativa, reembolso).
+| Produto (Play Console) | Base plans |
+|---|---|
+| `pro` | `mensal` (renovação automática), `prepago-1m`, `prepago-3m`, `prepago-6m`, `prepago-12m` |
+| `premium` | os mesmos |
 
-**Passos do utilizador** (fora do código):
-1. Inscrever a app no programa *alternative billing only* (formulário da
-   Google) e ativá-lo para Portugal/EEE na Play Console.
-2. Criar uma conta de serviço no Google Cloud, dar-lhe acesso à app na Play
-   Console (Utilizadores e permissões → "Ver dados financeiros" e "Gerir
-   encomendas") e guardar o JSON em `GOOGLE_PLAY_SERVICE_ACCOUNT` no Netlify.
-3. Adicionar os testadores internos como *license testers* — as transações
-   deles chegam à Google marcadas como teste.
-4. Vigiar o estado `failed` na coleção `GooglePlayTransaction` (o cron regista
-   `google_play.failed_transactions` no log) — são transações que a Google
-   recusou e que têm de ser reportadas à mão.
+- Os pré-pagos custam o mensal × o número de meses, como na web.
+- Os ids têm de bater certo com `shared/playBilling.ts`.
+- **Mudança de plano:**
+  - Pro → Premium: imediata, com `CHARGE_PRORATED_PRICE`;
+  - Premium → Pro: na renovação (`DEFERRED`);
+  - pré-pagos: `CHARGE_FULL_PRICE`, regra da Google.
+
+### Implementação
+
+- **App (nativo):** `PlayBillingPlugin.java` (Play Billing Library 9.1.0) e
+  `composables/usePlayBilling.ts`.
+  - Lê os preços da Google e abre a compra com `obfuscatedAccountId`, um HMAC
+    do id da conta.
+  - Ao abrir a página, recupera compras por confirmar.
+  - Na app não há nenhum caminho para pagar fora da Play: nem EasyPay, nem
+    links para o site.
+- **Servidor:** `server/utils/googlePlay.ts`, com a configuração lida em
+  runtime.
+  - `POST /api/billing/google-play/verify`: lê `subscriptionsv2`, confirma a
+    conta, aplica o plano e faz o acknowledge.
+  - `POST /api/billing/google-play/rtdn`: notificações em tempo real via
+    Pub/Sub push, com o token OIDC verificado.
+  - `POST /api/billing/google-play/reconcile`: cron diário.
+  - Leitura sob pedido em `GET /api/subscription`.
+  - Reembolsos e estornos (`voidedPurchaseNotification`) tiram o plano.
+  - Apagar a conta pára as cobranças (`subscriptionsv2.cancel`).
+  - Livre resolução: `subscriptionsv2.revoke` com reembolso total.
+- **Um plano de cada vez:**
+  - com um plano da web ativo, a app esconde a compra; se acontecer na
+    mesma, é revogada com reembolso;
+  - com um plano da Play ativo, o checkout EasyPay do site recusa (409).
+
+### Passos do utilizador (fora do código)
+
+1. **Perfil de pagamentos**: Play Console → Configuração → Perfil de
+   pagamentos (conta de comerciante, IBAN, dados fiscais).
+2. **Produtos**: Monetizar → Subscrições → criar `pro` e `premium` com os 5
+   base plans cada, aos preços acima, e ativá-los.
+3. **Conta de serviço**:
+   - Google Cloud → ativar a *Google Play Android Developer API* → criar a
+     conta de serviço → chave JSON;
+   - Play Console → Utilizadores e permissões → convidar o email da conta
+     com "Ver dados financeiros" e "Gerir encomendas e subscrições";
+   - Netlify: `GOOGLE_PLAY_SERVICE_ACCOUNT` (o JSON, ou em base64), marcada
+     como secreta.
+4. **Notificações em tempo real (RTDN)**:
+   - Google Cloud Pub/Sub → criar o tópico (por exemplo `play-rtdn`) e dar a
+     `google-play-developer-notifications@system.gserviceaccount.com` a
+     função *Pub/Sub Publisher*;
+   - criar uma subscrição **push** para
+     `https://financeflow-webapp.netlify.app/api/billing/google-play/rtdn`,
+     com **autenticação ativada**: escolher uma conta de serviço para o push
+     e definir a audiência (por exemplo o próprio URL);
+   - Netlify: `GOOGLE_PLAY_RTDN_AUDIENCE` (a audiência) e
+     `GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT` (o email da conta de serviço do
+     push);
+   - Play Console → Monetizar → Configuração da monetização → ativar as
+     notificações com o tópico
+     `projects/<projeto>/topics/play-rtdn` → "Enviar mensagem de teste". O
+     log do Netlify deve mostrar `google_play.rtdn_test`.
+5. **Testadores**: Configuração → Testes de licenças → acrescentar os emails
+   dos testadores. As compras deles não são cobradas, e as renovações
+   mensais de teste acontecem em minutos.
+6. **Base de dados**: correr `npm run db:sync-indexes` contra produção, para
+   criar os índices novos (`subscription.googlePlayPurchaseToken`,
+   `playAccountId`).
+7. **Coleção antiga**: `googleplaytransactions` (alternative billing) pode
+   ser apagada no Atlas. Deve estar vazia: a app nunca deixou comprar sem a
+   inscrição aprovada.

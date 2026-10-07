@@ -5,14 +5,18 @@ import { hasFeature as checkFeature } from '~/shared/features'
 interface SubscriptionState {
   tier: SubscriptionTier
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
-  provider: 'easypay' | 'none'
-  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'none'
-  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'none'
+  provider: 'easypay' | 'google_play' | 'none'
+  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'google_play' | 'none'
+  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'google_play' | 'none'
   autoRenew: boolean
   currentPeriodEnd: string | null
   multibancoEntity?: string
   multibancoReference?: string
   multibancoExpiresAt?: string | null
+  // Upgrade 01 — compra na Google Play (app Android).
+  googlePlayProductId?: string
+  googlePlayBasePlanId?: string
+  googlePlayAllowExtendAfter?: string | null
 }
 
 const DEFAULT_STATE: SubscriptionState = {
@@ -62,10 +66,17 @@ export const useSubscriptionStore = defineStore('subscription', () => {
 
   // MB WAY e Multibanco são pagamentos únicos por período fixo, sem
   // renovação automática (decisão de 2026-09-19) — avisar antes do período
-  // expirar é o único caso em que faz sentido mostrar isto aqui.
+  // expirar é o único caso em que faz sentido mostrar isto aqui. Upgrade 01:
+  // o mesmo para os pré-pagos da Google Play.
+  const isPrepaid = computed(
+    () =>
+      subscription.value.billingMode === 'manual_reference' ||
+      subscription.value.billingMode === 'push_confirm' ||
+      (subscription.value.billingMode === 'google_play' && !subscription.value.autoRenew && subscription.value.status === 'active')
+  )
   const isExpiringSoon = computed(
     () =>
-      (subscription.value.billingMode === 'manual_reference' || subscription.value.billingMode === 'push_confirm') &&
+      isPrepaid.value &&
       daysUntilExpiry.value !== null &&
       // >= 0: depois de expirar o plano já é gratuito (ver effectiveTier); antes,
       // `<= 7` incluía negativos e a faixa mostrava "expira em -1 dias".

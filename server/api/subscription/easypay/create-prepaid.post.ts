@@ -1,14 +1,12 @@
 import { requireAuth } from '../../../utils/auth'
 import { createSinglePaymentCheckout, encodeMerchantKey } from '../../../utils/easypay'
-import { getRequestCountry } from '../../../utils/geo'
 import { TIER_PRICE_EUR } from '../../../../shared/features'
 import { User } from '../../../models'
 import { getServerLocale, serverT } from '../../../utils/i18n'
 import { enforceRateLimit } from '../../../utils/rateLimit'
 import { z } from 'zod'
 import { validateBody } from '../../../utils/validate'
-import { assertNoActiveAutoRenew } from '../../../utils/subscriptionGuard'
-import { registerCheckoutToken } from '../../../utils/googlePlayBilling'
+import { assertNoActiveAutoRenew, assertNoActivePlaySubscription } from '../../../utils/subscriptionGuard'
 
 const VALID_PERIODS = [1, 3, 6, 12] as const
 type Period = (typeof VALID_PERIODS)[number]
@@ -25,7 +23,7 @@ export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
   await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
-  const { tier, method, periodMonths, googlePlayToken } = await validateBody(
+  const { tier, method, periodMonths } = await validateBody(
     event,
     z.object({
       tier: z.enum(['pro', 'premium'], 'subscriptionApi.invalidTier'),
@@ -33,17 +31,14 @@ export default defineEventHandler(async (event) => {
       periodMonths: z
         .number('subscriptionApi.invalidPeriod')
         .refine((v): v is Period => (VALID_PERIODS as readonly number[]).includes(v), 'subscriptionApi.invalidPeriod'),
-      // Fase 9 — só nas compras feitas na app Android: token da Play Billing
-      // Library (alternative billing only), para reportar a transação à Google.
-      googlePlayToken: z.string().trim().min(1).max(4000).optional(),
     })
   )
 
   await assertNoActiveAutoRenew(event, userId)
+  await assertNoActivePlaySubscription(event, userId)
 
   // MB WAY/Multibanco aceites em qualquer país (Fase 9 — ver
-  // shared/paymentMethods.ts). O país só serve para o reporte à Google Play.
-  const country = await getRequestCountry(event)
+  // shared/paymentMethods.ts).
 
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()
   if (!user) throw createError({ statusCode: 404, message: serverT(locale, 'subscriptionApi.userNotFound') })
@@ -59,17 +54,6 @@ export default defineEventHandler(async (event) => {
     customerEmail: user.email,
   })
 
-  if (googlePlayToken) {
-    await registerCheckoutToken({
-      userId,
-      token: googlePlayToken,
-      checkoutId: checkout.id,
-      tier,
-      method,
-      periodMonths,
-      regionCode: country,
-    })
-  }
 
   return { manifest: checkout }
 })

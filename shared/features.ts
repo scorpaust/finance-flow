@@ -5,10 +5,13 @@ export type SubscriptionTier = 'free' | 'pro' | 'premium'
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = ['free', 'pro', 'premium']
 
+// Upgrade 01 (decisão do utilizador, 2026-10-06): o mesmo preço na web e na
+// Google Play, arredondado e a compensar a taxa e o IVA retidos pela Google.
+// Os produtos da Play Console têm de ter estes valores.
 export const TIER_PRICE_EUR: Record<SubscriptionTier, number> = {
   free: 0,
-  pro: 5.0,
-  premium: 12.99,
+  pro: 7,
+  premium: 18,
 }
 
 export const TIER_LABEL: Record<SubscriptionTier, string> = {
@@ -82,9 +85,12 @@ export function effectiveTier(sub: SubscriptionLike | null | undefined, now: Dat
   if (!sub?.tier || sub.tier === 'free') return 'free'
   const end = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : null
   const stillPaid = end !== null && end > now.getTime()
-  const prepaid = sub.billingMode === 'push_confirm' || sub.billingMode === 'manual_reference'
+  // Upgrade 01 — Google Play: o fim do período é o `expiryTime` da Google
+  // (renovações estendem-no por notificação ou reconciliação), por isso a data
+  // manda sempre, como nos pré-pagos.
+  const dateBound = sub.billingMode === 'push_confirm' || sub.billingMode === 'manual_reference' || sub.billingMode === 'google_play'
 
-  if (sub.status === 'active') return prepaid && !stillPaid ? 'free' : sub.tier
+  if (sub.status === 'active') return dateBound && !stillPaid ? 'free' : sub.tier
   if (sub.status === 'canceled' || sub.status === 'past_due') return stillPaid ? sub.tier : 'free'
   return 'free'
 }

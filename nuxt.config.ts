@@ -171,15 +171,9 @@ export default defineNuxtConfig({
     // processo de download/atualização). Sem o ficheiro, `server/utils/geo.ts`
     // devolve sempre `null` (país desconhecido) em vez de rebentar.
     geoliteDbPath: process.env.GEOLITE2_DB_PATH || '',
-    // Fase 9 — alternative billing only (Google Play, EEE): cada compra feita
-    // na app Android é reportada à Google Play Developer API
-    // (server/utils/googlePlayBilling.ts). JSON da conta de serviço (em texto
-    // ou base64); sem ele, os reportes ficam na fila à espera.
-    googlePlayServiceAccount: process.env.GOOGLE_PLAY_SERVICE_ACCOUNT || '',
-    googlePlayPackageName: process.env.GOOGLE_PLAY_PACKAGE_NAME || 'com.dinismcosta.financeflow',
-    // Taxa de IVA incluída nos preços (0.23 = 23%). 0 por omissão: o operador
-    // está isento ao abrigo do art. 53.º do CIVA (decisão de 2026-09-29).
-    billingVatRate: Number(process.env.BILLING_VAT_RATE || '0'),
+    // Upgrade 01 — a configuração da Google Play (GOOGLE_PLAY_*) NÃO passa por
+    // aqui: é lida do ambiente em runtime em server/utils/googlePlay.ts (as
+    // variáveis secretas do Netlify chegam mascaradas ao build local).
     public: {
       // O DSN do Sentry é público por desenho (vai no bundle do client).
       sentryDsn: process.env.SENTRY_DSN || '',

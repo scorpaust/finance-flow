@@ -88,8 +88,13 @@ opcional, é o que serve de prova do consentimento.
    escrito. Guarda os dois emails (o teu e a resposta dele) — ex. numa
    etiqueta/pasta "Reembolsos" — é o único registo que vai existir de que
    ele foi avisado e concordou.
-3. Só depois de receberes essa confirmação: processas o reembolso
-   manualmente no dashboard da EasyPay.
+3. Só depois de receberes essa confirmação, processas o reembolso. O passo
+   depende de onde foi feita a compra:
+   - **Site (EasyPay):** à mão, no dashboard da EasyPay.
+   - **App Android (Google Play):** não há nada a fazer à mão. O passo 4
+     pede o reembolso à Google pela API (revoke com reembolso total) e
+     termina o acesso. Se a resposta trouxer `googlePlayRefundFailed: true`,
+     reembolsa à mão na Play Console (Encomendas).
 4. Chamas o endpoint de administração para apagar a conta e aplicar o
    bloqueio de 6 meses:
    ```bash
@@ -98,9 +103,9 @@ opcional, é o que serve de prova do consentimento.
      -H "x-admin-secret: <o valor de ADMIN_SECRET>" \
      -d '{"email":"cliente@exemplo.com"}'
    ```
-   Cancela primeiro qualquer subscrição com renovação automática na EasyPay
-   (se existir) — se essa cancelação falhar, a conta NÃO é apagada, para não
-   ficares a cobrar alguém já reembolsado.
+   Cancela primeiro qualquer subscrição com renovação automática, na EasyPay
+   ou na Google Play (se existir). Se essa cancelação falhar, a conta NÃO é
+   apagada, para não ficares a cobrar alguém já reembolsado.
 
 ### Modelo de email — PT-PT
 
@@ -318,9 +323,11 @@ pública.
 3. **Passagem a pagamentos reais**: `EASYPAY_ENV=production` e credenciais de
    produção no Netlify, webhook na conta EasyPay de produção, uma subscrição
    real de baixo valor para confirmar, reembolsada a seguir.
-4. **Produção na Play Store**: só depois do programa de pagamentos externos
-   aprovado; rollout faseado 20% → 50% → 100%, pelo menos 48 h em cada passo,
-   a vigiar o Sentry e os registos do Netlify.
+4. **Produção na Play Store**: só com a Google Play Billing configurada
+   (`context/PLAY-STORE.md`, secção 5: produtos, conta de serviço, RTDN) e
+   uma compra de teste de cada tipo feita por um testador de licenças.
+   Rollout faseado 20% → 50% → 100%, pelo menos 48 h em cada passo, a vigiar
+   o Sentry e os registos do Netlify.
 
 ## Rollback
 
@@ -339,3 +346,36 @@ pública.
   Política de Privacidade, `utils/legalContent.ts`) é quem decide e executa
   o rollback; os utilizadores reportam problemas pelo mesmo email.
 
+## Google Play Billing — vigiar e resolver (Upgrade 01)
+
+Compras da app Android. A Google cobra; o servidor só lê o estado e aplica-o
+à conta. Configuração: `context/PLAY-STORE.md`, secção 5.
+
+- **Logs do Netlify** (eventos `google_play.*`):
+  - `synced`: normal;
+  - `ack_failed`: a confirmação à Google falhou. A reconciliação diária
+    repete-a, e a Google reembolsa ao fim de 3 dias sem confirmação. Se
+    persistir, ver a conta de serviço;
+  - `unknown_user`: uma compra que não liga a nenhuma conta;
+  - `web_conflict_revoked`: compra na Play com um plano da web ativo,
+    revogada com reembolso;
+  - `rtdn_not_configured`: falta `GOOGLE_PLAY_RTDN_AUDIENCE`.
+- **As notificações (RTDN) pararam:**
+  - na Play Console → Configuração da monetização → "Enviar mensagem de
+    teste", o log deve mostrar `google_play.rtdn_test`;
+  - se não mostrar, ver a subscrição push no Google Cloud Pub/Sub (URL,
+    autenticação, audiência);
+  - entretanto, a reconciliação diária
+    (`.github/workflows/cron.yml` → `google-play-reconcile`) e a leitura de
+    `/api/subscription` mantêm os planos certos.
+- **Ver as compras de um utilizador:** Play Console → Encomendas, pesquisar
+  pelo id da encomenda (`subscription.googlePlayOrderId` na conta).
+- **Reembolso fora da livre resolução:** pela Play Console (Encomendas →
+  Reembolsar). A Google avisa o servidor (`voidedPurchaseNotification`) e o
+  plano cai sozinho.
+- **Faturação:**
+  - a Google é a vendedora perante o cliente e emite-lhe o recibo;
+  - o operador fatura à Google (Google Commerce Ltd, Irlanda) o valor de
+    cada pagamento mensal. Regras de IVA intracomunitárias: confirmar com o
+    contabilista;
+  - as vendas no site continuam a exigir fatura a cada cliente.

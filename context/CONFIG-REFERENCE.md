@@ -139,12 +139,17 @@ em `context/OPERATIONS.md` ("Deploy web").
 | Variável | Onde | Descrição |
 |---|---|---|
 | `APP_URL` | Netlify + secret do GitHub | URL público de produção, sem barra final (CORS, links, crons) |
-| `CRON_SECRET` | Netlify + secret do GitHub | O mesmo valor nos dois — `.github/workflows/cron.yml` chama `check-expirations` e `market-snapshot` |
+| `CRON_SECRET` | Netlify + secret do GitHub | O mesmo valor nos dois — `.github/workflows/cron.yml` chama `check-expirations`, `market-snapshot` e `google-play/reconcile` |
 | `CAPACITOR_SERVER_URL` | Só na máquina de desenvolvimento | Aponta a app Android para um dev server (`http://…`) — **nunca definida num build de release** |
 | `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | CI (opcional) | Alternativa a `android/keystore.properties` para assinar o release — ver `OPERATIONS.md`, "Keystore Android" |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT` | Netlify | JSON (texto ou base64) da conta de serviço com acesso à app na Play Console — reporta as compras da app Android à Google (alternative billing only, `server/utils/googlePlayBilling.ts`). Sem ele os reportes ficam na fila |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT` | Netlify (secreta) | JSON (texto ou base64) da conta de serviço com acesso à app na Play Console — confirma as compras da app Android na Google Play Billing (`server/utils/googlePlay.ts`, Upgrade 01). Sem ela a app não consegue confirmar compras |
 | `GOOGLE_PLAY_PACKAGE_NAME` | Netlify (opcional) | Por omissão `com.dinismcosta.financeflow` |
-| `BILLING_VAT_RATE` | Netlify (opcional) | IVA incluído nos preços, em fração (0.23 = 23%). Por omissão `0` — operador isento (art. 53.º CIVA, 2026-09-29); mudar se o regime mudar |
+| `GOOGLE_PLAY_RTDN_AUDIENCE` | Netlify | Audiência configurada na subscrição push do Pub/Sub (notificações em tempo real da Google Play). Sem ela, `/api/billing/google-play/rtdn` recusa tudo |
+| `GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT` | Netlify (recomendada) | Email da conta de serviço que assina os pushes do Pub/Sub — só aceita tokens dessa conta |
+
+As variáveis `GOOGLE_PLAY_*` são lidas do ambiente **em runtime**, não do
+`runtimeConfig`: uma variável marcada como secreta no Netlify chega
+mascarada ao build local do CLI (incidente de 2026-10-04 com `MONGODB_URI`).
 
 **Geolocalização em produção**: no Netlify o país vem dos cabeçalhos de
 geolocalização do próprio Netlify (`x-country` / `x-nf-geo`,

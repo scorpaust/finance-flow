@@ -19,9 +19,13 @@ export default async function setup() {
   // vezes nesta sessão numa máquina ocupada — não é o mongod a estar
   // avariado, só lento a arrancar sob carga (ver scripts/e2e-server.mjs).
   const mongo = await MongoMemoryServer.create({ instance: { launchTimeout: 60_000 } })
-  const stub = await startStubProviders()
-  // Fase 9 — conta de serviço Google só de teste (chave gerada a cada execução);
-  // o token OAuth e a Google Play Developer API são o servidor simulado.
+  // Upgrade 01 — chave que assina os pushes do Pub/Sub nos testes (a pública
+  // é servida pelo servidor simulado como se fossem as chaves OIDC da Google).
+  const rtdnKeys = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const rtdnJwk = { ...(rtdnKeys.publicKey.export({ format: 'jwk' }) as object), kid: 'test-kid', alg: 'RS256', use: 'sig' }
+  const stub = await startStubProviders({ jwks: [rtdnJwk] })
+  // Conta de serviço Google só de teste (chave gerada a cada execução); o
+  // token OAuth e a Google Play Developer API são o servidor simulado.
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const googleServiceAccount = JSON.stringify({
     client_email: 'reporter@test.iam.gserviceaccount.com',
@@ -45,6 +49,11 @@ export default async function setup() {
     TWELVE_DATA_API_BASE_URL: stub.baseUrl,
     GOOGLE_PLAY_SERVICE_ACCOUNT: googleServiceAccount,
     GOOGLE_PLAY_API_BASE_URL: stub.baseUrl,
+    GOOGLE_OIDC_CERTS_URL: `${stub.baseUrl}/oauth2/v3/certs`,
+    GOOGLE_PLAY_RTDN_AUDIENCE: 'https://financeflow.test/api/billing/google-play/rtdn',
+    GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT: 'pubsub-push@test.iam.gserviceaccount.com',
+    // Só para os testes assinarem pushes do Pub/Sub (ficheiro temporário, apagado no fim).
+    RTDN_TEST_PRIVATE_KEY: rtdnKeys.privateKey.export({ type: 'pkcs8', format: 'pem' }) as string,
     NODE_ENV: 'test',
     STUB_PROVIDERS_URL: stub.baseUrl,
   }

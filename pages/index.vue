@@ -361,7 +361,7 @@
 <script setup lang="ts">
 import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp } from 'lucide-vue-next'
 import type { Transaction, DocumentScanResult } from '~/types'
-import { greetingPeriod } from '~/shared/greeting'
+import { greetingKey } from '~/shared/greeting'
 
 definePageMeta({ layout: 'default' })
 
@@ -392,13 +392,9 @@ const greetingHour = ref<number | null>(null)
 onMounted(() => {
   greetingHour.value = new Date().getHours()
 })
-const greeting = computed(() => {
-  if (greetingHour.value === null) return t('dashboard.greetingHello')
-  const period = greetingPeriod(greetingHour.value, locale.value)
-  if (period === 'morning') return t('dashboard.greetingMorning')
-  if (period === 'afternoon') return t('dashboard.greetingAfternoon')
-  return t('dashboard.greetingEvening')
-})
+const greeting = computed(() =>
+  t(`dashboard.${greetingHour.value === null ? 'greetingHello' : greetingKey(greetingHour.value, locale.value)}`)
+)
 
 async function loadStats() {
   loading.value = true

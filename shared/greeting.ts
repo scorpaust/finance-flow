@@ -2,8 +2,8 @@
 // LOCAL do dispositivo — nunca a do servidor (UTC no Netlify: às 02:00 em
 // Lisboa o servidor estava na 01:00 e a app dizia "Bom dia"). A hora do
 // telemóvel/computador já está no fuso de cada país; os escalões seguem o uso
-// de cada língua. Entre a meia-noite e as 5h é sempre a saudação da noite.
-export type GreetingPeriod = 'morning' | 'afternoon' | 'evening'
+// de cada língua.
+export type GreetingKey = 'greetingMorning' | 'greetingAfternoon' | 'greetingEvening' | 'greetingHello'
 
 // [início da tarde, início da noite]
 const BOUNDS: Record<string, [number, number]> = {
@@ -15,10 +15,15 @@ const BOUNDS: Record<string, [number, number]> = {
   es: [13, 21], // "buenos días" até ao almoço (tarde, em Espanha); "buenas tardes" até ~21h
 }
 
-export function greetingPeriod(hour: number, locale: string): GreetingPeriod {
+// Madrugada (0h–5h): "Boa noite", "Buenas noches" e "Bonsoir" cumprimentam a
+// essa hora; "Good evening", "Guten Abend" e "Buonasera" soam mal, e "Good
+// night"/"Gute Nacht"/"Buonanotte" são despedidas — nessas línguas, "Olá".
+const NIGHT_GREETS_AS_EVENING = new Set(['pt-PT', 'es', 'fr'])
+
+export function greetingKey(hour: number, locale: string): GreetingKey {
+  if (hour < 5) return NIGHT_GREETS_AS_EVENING.has(locale) ? 'greetingEvening' : 'greetingHello'
   const [afternoon, evening] = BOUNDS[locale] || BOUNDS.en!
-  if (hour < 5) return 'evening'
-  if (hour < afternoon) return 'morning'
-  if (hour < evening) return 'afternoon'
-  return 'evening'
+  if (hour < afternoon) return 'greetingMorning'
+  if (hour < evening) return 'greetingAfternoon'
+  return 'greetingEvening'
 }

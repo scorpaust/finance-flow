@@ -16,7 +16,13 @@
     </style>
 
 
+    <!-- Upgrade 02 — ecrã de arranque (API Splash Screen do Android 12+, e
+         core-splashscreen para o Android 7–11): logótipo no fundo escuro da
+         app, em vez do ícone num fundo claro. O plugin
+         @capacitor/splash-screen mantém-no até o site estar desenhado. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

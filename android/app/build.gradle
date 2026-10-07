@@ -23,8 +23,8 @@ android {
         // Política de versões (context/OPERATIONS.md): versionCode sobe +1 em
         // CADA upload para a Play Console (inteiro, nunca reutilizado);
         // versionName acompanha o "version" do package.json (semver).
-        versionCode 4
-        versionName "1.1.0"
+        versionCode 5
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -47,8 +47,13 @@ android {
             // Sem keystore configurada o release não fica assinado — falha
             // mais abaixo (gradle.taskGraph) em vez de gerar um .aab inútil.
             if (releaseStoreFile) signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Upgrade 02 — R8: remove código e recursos não usados (app mais
+            // pequena e mais rápida a arrancar). As regras que mantêm os
+            // plugins do Capacitor vêm com o próprio Capacitor e a Play
+            // Billing traz as suas; proguard-rules.pro reforça as desta app.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

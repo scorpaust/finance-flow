@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed bottom-0 inset-x-0 z-40 lg:hidden glass-card border-t border-white/[0.08]" style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+  <nav class="fixed bottom-0 inset-x-0 z-40 lg:hidden glass-card border-t border-white/[0.08]" style="padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))">
     <div class="flex items-center justify-around px-1 pt-2 pb-1">
       <NuxtLink
         v-for="item in navItems"

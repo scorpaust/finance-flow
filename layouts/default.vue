@@ -146,7 +146,7 @@
       <!-- Page content — bottom padding no mobile cobre a altura real da
            MobileNav (~4.5rem) + a área de segurança do gesto Android,
            nunca um valor mágico fixo -->
-      <main class="flex-1 overflow-y-auto p-4 lg:p-6 pb-[calc(4.5rem+1rem+env(safe-area-inset-bottom,0px))] lg:pb-6">
+      <main class="flex-1 overflow-y-auto p-4 lg:p-6 pb-[calc(4.5rem+1rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] lg:pb-6">
         <div class="page-frame">
           <slot />
         </div>

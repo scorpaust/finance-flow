@@ -346,6 +346,20 @@ pública.
   Política de Privacidade, `utils/legalContent.ts`) é quem decide e executa
   o rollback; os utilizadores reportam problemas pelo mesmo email.
 
+## Preços — como mudar
+
+Só na **Play Console**: Monetizar com o Google Play → Subscrições → `pro`
+ou `premium` → cada base plan → Preços → **linha de Portugal** (e dos
+outros países do euro), com o valor final já com IVA.
+
+- O site e o checkout EasyPay seguem sozinhos em cerca de 10 minutos.
+- Para confirmar: `GET /api/billing/prices` deve devolver
+  `source: "google_play"` e os valores novos.
+- Uma subscrição EasyPay com renovação automática já criada continua com o
+  valor antigo até ser renovada à mão (cancelar e subscrever de novo).
+- Na Play, a Google trata das subscrições existentes segundo as regras de
+  alteração de preço dela.
+
 ## Google Play Billing — vigiar e resolver (Upgrade 01)
 
 Compras da app Android. A Google cobra; o servidor só lê o estado e aplica-o

@@ -599,16 +599,6 @@
     "descDD": "Renovação automática mensal via mandato de débito direto — IBAN e dados do mandato são pedidos no formulário seguinte, pela própria EasyPay.",
     "descMBWAY": "Pagamento único do período escolhido, confirmado com uma notificação push na app MB WAY. Sem renovação automática.",
     "descMultibanco": "Pagamento único do período escolhido, através de uma referência para pagar no ATM ou homebanking. Sem renovação automática.",
-    "planFreeF1": "Dashboard e KPIs básicos",
-    "planFreeF2": "Até 50 transações/mês",
-    "planFreeF3": "2 categorias personalizadas",
-    "planProF1": "Transações e categorias ilimitadas",
-    "planProF2": "Grupos e orçamentos",
-    "planProF3": "Estatísticas avançadas",
-    "planProF4": "Exportar CSV",
-    "planPremiumF1": "Tudo do Pro",
-    "planPremiumF2": "Previsões com IA (ConvNeXt-1D)",
-    "planPremiumF3": "Suporte prioritário",
     "playAutoRenewActive": "Renovação automática pela Google Play",
     "playAutoRenewCanceled": "Renovação desligada na Google Play — acesso até {date}",
     "playPrepaidActive": "Pagamento único pela Google Play · expira a {date}",
@@ -796,5 +786,21 @@
     "free": "Gratuito",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Painel e indicadores do mês",
+    "transactionsLimit": "Até {n} transações por mês",
+    "categoriesLimit": "{n} categorias personalizadas",
+    "unlimited": "Transações e categorias ilimitadas",
+    "groups": "Grupos e orçamentos com alertas",
+    "statsCsv": "Estatísticas avançadas e exportação CSV",
+    "aiStats": "Interpretação das estatísticas com IA",
+    "documentScan": "Digitalização de recibos e faturas ({n}/mês)",
+    "everythingPro": "Tudo do Pro",
+    "predictions": "Previsões do saldo com IA",
+    "investmentTracker": "Registo dos teus investimentos",
+    "aiInvestmentTips": "Dicas de investimento com IA",
+    "documentScanMore": "Digitalização até {n} documentos/mês",
+    "prioritySupport": "Suporte prioritário"
   }
 }

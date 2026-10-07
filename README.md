@@ -15,7 +15,7 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Dashboard** | KPIs em tempo real, evolução do saldo, top categorias, transações recentes |
 | **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período + distribuição/quartis (Pro+) |
 | **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
-| **Subscrições** | Planos Gratuito/Pro (7€)/Premium (18€). No site via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses); na app Android via Google Play Billing, com a mesma oferta e os mesmos preços — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
+| **Subscrições** | Planos Gratuito/Pro/Premium, com o mesmo preço em todo o lado (definido na Play Console). No site via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses); na app Android via Google Play Billing, com a mesma oferta e os mesmos preços — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
 | **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
 | **Digitalizar documentos** | Foto (Android) ou ficheiro (Android/web) de um recibo/fatura → a IA (Claude Haiku 4.5, vision + PDF) extrai comerciante, data, valor, moeda, tipo e categoria sugerida e **pré-preenche** o formulário de transação — nunca grava sozinha, o utilizador confirma (Pro+, teto mensal por plano) — ver [Digitalizar documentos](#-digitalizar-documentos-com-ia) |
@@ -247,9 +247,12 @@ Output: valor previsto (receita ou despesa)
 
 ## 💳 Subscrições (EasyPay: Cartão/DD + MB WAY + Multibanco)
 
-Três planos — **Gratuito**, **Pro** (7 €/mês) e **Premium** (18 €/mês).
+Três planos — **Gratuito**, **Pro** e **Premium**. Preço igual na web e
+na app: os preços são definidos **só na Play Console** (preço de Portugal, IVA incluído); o servidor lê-os da Google e o site e o checkout EasyPay usam exatamente os mesmos (`server/utils/playPrices.ts`). Sem acesso à Google, vale o último preço lido ou
+`TIER_PRICE_EUR` (`shared/features.ts`).
+
 Na **app Android** paga-se só pela **Google Play Billing** (mensal com
-renovação ou pré-pago de 1/3/6/12 meses, aos mesmos preços — ver
+renovação ou pré-pago de 1/3/6/12 meses — ver
 [context/PLAY-STORE.md](context/PLAY-STORE.md), secção 5). No **site**, um
 único processador (EasyPay), com quatro métodos de pagamento num único
 fluxo de Checkout:
@@ -260,11 +263,9 @@ fluxo de Checkout:
   meses), sem cobrança automática — nenhum dos dois métodos suporta
   renovação recorrente sem ação manual do cliente a cada ciclo. A subscrição
   expira e faz downgrade para `free` se não houver renovação manual antes do
-  fim do período. **Só disponíveis para utilizadores com país detetado =
-  Portugal** (geolocalização por IP, ver [Internacionalização](#-internacionalização))
-  — outros países veem só a opção recorrente, e o servidor rejeita
-  (`403`) um pedido destes métodos vindo de fora de Portugal mesmo que a UI
-  tenha sido adulterada.
+  fim do período. Disponíveis em **todos os países** desde a Fase 9
+  (emigrantes com conta num banco português; Regulamento (UE) 2018/302 — ver
+  [Internacionalização](#-internacionalização)).
 
 O Checkout da EasyPay **não redireciona para fora da app** — o pacote
 client-side [`@easypaypt/checkout-sdk`](https://github.com/Easypay/checkout-sdk)
@@ -281,8 +282,11 @@ utilizador confirmar manualmente um MB WAY/Multibanco `pending`, sem esperar
 pelo webhook.
 
 A matriz de features por plano vive num único sítio,
-[`shared/features.ts`](shared/features.ts) (`FEATURE_MATRIX`, `hasFeature()`),
-partilhado entre client e servidor:
+[`shared/features.ts`](shared/features.ts) (`FEATURE_MATRIX`, `TIER_LIMITS`,
+`hasFeature()`), partilhado entre client e servidor. A lista de
+funcionalidades de cada plano na página de subscrição (`PLAN_HIGHLIGHTS`) é
+gerada a partir dela, com um teste que falha se alguma funcionalidade ficar
+de fora:
 
 - **Client**: `useSubscription()` expõe `tier`/`hasFeature(key)` para UI e
   paywalls (`PaywallModal`, `UpsellBanner`).

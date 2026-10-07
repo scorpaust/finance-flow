@@ -599,16 +599,6 @@
     "descDD": "Automatic monthly renewal via direct debit mandate — IBAN and mandate details are requested in the next form, by EasyPay itself.",
     "descMBWAY": "One-off payment for the chosen period, confirmed with a push notification in the MB WAY app. No auto-renewal.",
     "descMultibanco": "One-off payment for the chosen period, via a reference to pay at an ATM or homebanking. No auto-renewal.",
-    "planFreeF1": "Basic dashboard and KPIs",
-    "planFreeF2": "Up to 50 transactions/month",
-    "planFreeF3": "2 custom categories",
-    "planProF1": "Unlimited transactions and categories",
-    "planProF2": "Groups and budgets",
-    "planProF3": "Advanced statistics",
-    "planProF4": "CSV export",
-    "planPremiumF1": "Everything in Pro",
-    "planPremiumF2": "AI forecasts (ConvNeXt-1D)",
-    "planPremiumF3": "Priority support",
     "playAutoRenewActive": "Auto-renewing through Google Play",
     "playAutoRenewCanceled": "Renewal turned off on Google Play — access until {date}",
     "playPrepaidActive": "One-time payment through Google Play · expires on {date}",
@@ -796,5 +786,21 @@
     "free": "Free",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Dashboard and monthly indicators",
+    "transactionsLimit": "Up to {n} transactions per month",
+    "categoriesLimit": "{n} custom categories",
+    "unlimited": "Unlimited transactions and categories",
+    "groups": "Groups and budgets with alerts",
+    "statsCsv": "Advanced statistics and CSV export",
+    "aiStats": "AI interpretation of your statistics",
+    "documentScan": "Receipt and invoice scanning ({n}/month)",
+    "everythingPro": "Everything in Pro",
+    "predictions": "AI balance forecasts",
+    "investmentTracker": "Track your investments",
+    "aiInvestmentTips": "AI investment tips",
+    "documentScanMore": "Scan up to {n} documents/month",
+    "prioritySupport": "Priority support"
   }
 }

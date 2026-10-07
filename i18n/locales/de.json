@@ -599,16 +599,6 @@
     "descDD": "Automatische monatliche Verlängerung per Lastschriftmandat — IBAN und Mandatsdaten werden im nächsten Formular direkt von EasyPay angefragt.",
     "descMBWAY": "Einmalige Zahlung für den gewählten Zeitraum, bestätigt per Push-Benachrichtigung in der MB WAY App. Ohne automatische Verlängerung.",
     "descMultibanco": "Einmalige Zahlung für den gewählten Zeitraum, über eine Referenz zur Zahlung am Geldautomaten oder per Online-Banking. Ohne automatische Verlängerung.",
-    "planFreeF1": "Basis-Dashboard und Kennzahlen",
-    "planFreeF2": "Bis zu 50 Transaktionen/Monat",
-    "planFreeF3": "2 eigene Kategorien",
-    "planProF1": "Unbegrenzte Transaktionen und Kategorien",
-    "planProF2": "Gruppen und Budgets",
-    "planProF3": "Erweiterte Statistiken",
-    "planProF4": "CSV-Export",
-    "planPremiumF1": "Alles aus Pro",
-    "planPremiumF2": "KI-Prognosen (ConvNeXt-1D)",
-    "planPremiumF3": "Prioritäts-Support",
     "playAutoRenewActive": "Automatische Verlängerung über Google Play",
     "playAutoRenewCanceled": "Verlängerung bei Google Play deaktiviert — Zugang bis {date}",
     "playPrepaidActive": "Einmalzahlung über Google Play · läuft am {date} ab",
@@ -796,5 +786,21 @@
     "free": "Kostenlos",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Dashboard und Monatskennzahlen",
+    "transactionsLimit": "Bis zu {n} Transaktionen pro Monat",
+    "categoriesLimit": "{n} eigene Kategorien",
+    "unlimited": "Unbegrenzte Transaktionen und Kategorien",
+    "groups": "Gruppen und Budgets mit Warnungen",
+    "statsCsv": "Erweiterte Statistiken und CSV-Export",
+    "aiStats": "KI-Auswertung deiner Statistiken",
+    "documentScan": "Belege und Rechnungen scannen ({n}/Monat)",
+    "everythingPro": "Alles aus Pro",
+    "predictions": "KI-Prognosen für deinen Kontostand",
+    "investmentTracker": "Erfassung deiner Investitionen",
+    "aiInvestmentTips": "KI-Anlagetipps",
+    "documentScanMore": "Bis zu {n} Dokumente/Monat scannen",
+    "prioritySupport": "Bevorzugter Support"
   }
 }

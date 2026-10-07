@@ -276,7 +276,7 @@
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
 import { ArrowLeft, Check, Loader2 } from 'lucide-vue-next'
-import { SUBSCRIPTION_TIERS, type SubscriptionTier } from '~/shared/features'
+import { PLAN_HIGHLIGHTS, SUBSCRIPTION_TIERS, type SubscriptionTier } from '~/shared/features'
 import {
   PLAY_MONTHLY_BASE_PLAN,
   PLAY_PACKAGE_NAME,
@@ -363,11 +363,12 @@ const mbwayWaiting = ref(false)
 const checkoutOpen = ref(false)
 const confirming = ref(false)
 
-const planFeatures = computed<Record<SubscriptionTier, string[]>>(() => ({
-  free: [t('subscription.planFreeF1'), t('subscription.planFreeF2'), t('subscription.planFreeF3')],
-  pro: [t('subscription.planProF1'), t('subscription.planProF2'), t('subscription.planProF3'), t('subscription.planProF4')],
-  premium: [t('subscription.planPremiumF1'), t('subscription.planPremiumF2'), t('subscription.planPremiumF3')],
-}))
+// Destaques gerados a partir da matriz de funcionalidades (shared/features.ts).
+const planFeatures = computed<Record<SubscriptionTier, string[]>>(() =>
+  Object.fromEntries(
+    SUBSCRIPTION_TIERS.map((tier) => [tier, PLAN_HIGHLIGHTS[tier].map((h) => t(`planHighlights.${h.id}`, h.params || {}))])
+  ) as Record<SubscriptionTier, string[]>
+)
 
 const { intlLocale } = useLocaleFormat()
 function formatDate(iso: string) {

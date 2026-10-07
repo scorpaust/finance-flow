@@ -599,16 +599,6 @@
     "descDD": "Rinnovo automatico mensile tramite mandato di addebito diretto — IBAN e dati del mandato vengono richiesti nel modulo successivo, direttamente da EasyPay.",
     "descMBWAY": "Pagamento unico per il periodo scelto, confermato con una notifica push nell'app MB WAY. Senza rinnovo automatico.",
     "descMultibanco": "Pagamento unico per il periodo scelto, tramite un riferimento da pagare presso un ATM o home banking. Senza rinnovo automatico.",
-    "planFreeF1": "Dashboard e KPI di base",
-    "planFreeF2": "Fino a 50 transazioni/mese",
-    "planFreeF3": "2 categorie personalizzate",
-    "planProF1": "Transazioni e categorie illimitate",
-    "planProF2": "Gruppi e budget",
-    "planProF3": "Statistiche avanzate",
-    "planProF4": "Esportazione CSV",
-    "planPremiumF1": "Tutto di Pro",
-    "planPremiumF2": "Previsioni IA (ConvNeXt-1D)",
-    "planPremiumF3": "Supporto prioritario",
     "playAutoRenewActive": "Rinnovo automatico tramite Google Play",
     "playAutoRenewCanceled": "Rinnovo disattivato su Google Play — accesso fino al {date}",
     "playPrepaidActive": "Pagamento unico tramite Google Play · scade il {date}",
@@ -796,5 +786,21 @@
     "free": "Gratuito",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Dashboard e indicatori del mese",
+    "transactionsLimit": "Fino a {n} transazioni al mese",
+    "categoriesLimit": "{n} categorie personalizzate",
+    "unlimited": "Transazioni e categorie illimitate",
+    "groups": "Gruppi e budget con avvisi",
+    "statsCsv": "Statistiche avanzate ed esportazione CSV",
+    "aiStats": "Interpretazione delle statistiche con IA",
+    "documentScan": "Scansione di scontrini e fatture ({n}/mese)",
+    "everythingPro": "Tutto del Pro",
+    "predictions": "Previsioni del saldo con IA",
+    "investmentTracker": "Registro dei tuoi investimenti",
+    "aiInvestmentTips": "Consigli d'investimento con IA",
+    "documentScanMore": "Scansione fino a {n} documenti/mese",
+    "prioritySupport": "Assistenza prioritaria"
   }
 }

@@ -143,9 +143,23 @@ externos. Esse código foi retirado no Upgrade 01.
 
 ### Oferta e preços
 
-Os preços são os mesmos no site e na Play: **Pro 7 €/mês** e **Premium
-18 €/mês** (`TIER_PRICE_EUR`). Na Play os preços incluem o IVA do cliente,
-que a Google retém e entrega, e a Google fica ainda com 15%.
+**A Play Console é a única fonte dos preços** (2026-10-07). O servidor lê
+o preço de **Portugal** de cada base plan (IVA incluído) e o site e o
+checkout EasyPay usam exatamente esse valor (`server/utils/playPrices.ts`,
+`GET /api/billing/prices`, cache de 10 minutos). Decisão do utilizador:
+**Pro 8 €/mês, Premium 18 €/mês**, e os pré-pagos ao mensal × meses.
+
+**Atenção ao definir preços:**
+- O "preço predefinido" da Play Console é **sem impostos**. A Google
+  converte-o para cada país e soma o IVA local, arredondando (7 € → 8,49 €
+  em Portugal).
+- Para o cliente pagar um valor exato, edita a **linha de cada país** (em
+  Portugal e nos países do euro, o valor dessa linha já inclui o IVA).
+- Não voltes a aplicar a conversão automática por cima.
+
+Na Play, o IVA é sempre cobrado ao cliente, mesmo com a isenção do art. 53.º
+(a Google é a vendedora perante o consumidor) e a Google fica ainda com 15%
+do valor sem IVA. No site, com a isenção, o operador recebe o preço inteiro.
 
 | Produto (Play Console) | Base plans |
 |---|---|

@@ -10,15 +10,34 @@ cobertos por testes (unitários 51/51, integração 32/32, E2E 4/4, type-check
 apagado. Chega à web e à app Android com o próximo deploy (a escolha da
 moeda é um ecrã do site, não precisa de `.aab` novo).
 
-**Em curso: Upgrade 01 — Google Play Billing na app Android**
-(`context/features/upgrades/01-google-play-billing-android.md`, branch
-`feature/upgrade-01-google-play-billing`). A conta de programador é pessoal e
-não é elegível para pagamentos externos: na app Android paga-se só pela
-Google Play; a web mantém a EasyPay. Preços iguais nos dois: Pro 7 €,
-Premium 18 €. Implementado e testado (unit 58/58, integração 39/39, E2E 5/5),
-app 1.1.0 (versionCode 4). Falta do lado do utilizador: perfil de pagamentos,
-produtos, conta de serviço, RTDN e testadores de licenças na Play Console
-(`context/PLAY-STORE.md`, secção 5), e o teste num dispositivo.
+**Upgrade 01 — Google Play Billing na app Android: em produção** (merge em
+`main` a 2026-10-07; `context/features/upgrades/01-google-play-billing-android.md`).
+A conta de programador é pessoal e não é elegível para pagamentos externos:
+na app Android paga-se só pela Google Play; a web mantém a EasyPay. Play
+Console configurada (produtos, conta de serviço, notificações em tempo real,
+testadores de licenças) e índices criados em produção. Compra de teste feita
+num dispositivo (Pro → Premium → cancelamento → expiração), tudo confirmado
+nos logs. App 1.1.0 (versionCode 4).
+
+Acertos de 2026-10-07, depois do teste:
+- **Preços: a Play Console é a única fonte.** O site e o checkout EasyPay
+  usam o preço de Portugal lido da Google (`server/utils/playPrices.ts`).
+  Decisão: Pro 8 €, Premium 18 €. Falta o utilizador definir esses valores
+  na linha de Portugal (e do euro) de cada base plan: o preço predefinido é
+  sem IVA e dava 8,49 €/21,99 €.
+- **Plano sempre atual:** a app volta a lê-lo ao regressar ao primeiro plano
+  e quando o servidor responde 403 `feature_locked`.
+- **Diversos:**
+  - app antiga sem o plugin pede para atualizar;
+  - saudação pela hora local e por língua;
+  - nomes dos planos traduzidos;
+  - lista de funcionalidades de cada plano gerada da matriz (faltavam os
+    investimentos no Premium);
+  - `/api` desconhecido devolve 404.
+- **Dependências:** overrides novos (`shell-quote`, `source-map-js`,
+  `tinypool`, `@simple-git/argv-parser`). As que ficam em aberto estão em
+  `context/SECURITY-EXCEPTIONS.md`.
+- **Testes:** unitários 64, integração 40, E2E 5.
 
 **A seguir: retomar a Fase 9 (Publicação)**, que ficou em pausa e não está
 concluída. Próximo passo combinado: testes fechados (12+ testadores durante

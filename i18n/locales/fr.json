@@ -599,16 +599,6 @@
     "descDD": "Renouvellement automatique mensuel via mandat de prélèvement — l'IBAN et les détails du mandat sont demandés dans le formulaire suivant, par EasyPay elle-même.",
     "descMBWAY": "Paiement unique pour la période choisie, confirmé par une notification push dans l'app MB WAY. Sans renouvellement automatique.",
     "descMultibanco": "Paiement unique pour la période choisie, via une référence à payer au distributeur ou en banque en ligne. Sans renouvellement automatique.",
-    "planFreeF1": "Tableau de bord et indicateurs de base",
-    "planFreeF2": "Jusqu'à 50 transactions/mois",
-    "planFreeF3": "2 catégories personnalisées",
-    "planProF1": "Transactions et catégories illimitées",
-    "planProF2": "Groupes et budgets",
-    "planProF3": "Statistiques avancées",
-    "planProF4": "Export CSV",
-    "planPremiumF1": "Tout ce qui est dans Pro",
-    "planPremiumF2": "Prévisions par IA (ConvNeXt-1D)",
-    "planPremiumF3": "Support prioritaire",
     "playAutoRenewActive": "Renouvellement automatique via Google Play",
     "playAutoRenewCanceled": "Renouvellement désactivé sur Google Play — accès jusqu’au {date}",
     "playPrepaidActive": "Paiement unique via Google Play · expire le {date}",
@@ -796,5 +786,21 @@
     "free": "Gratuit",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Tableau de bord et indicateurs du mois",
+    "transactionsLimit": "Jusqu’à {n} transactions par mois",
+    "categoriesLimit": "{n} catégories personnalisées",
+    "unlimited": "Transactions et catégories illimitées",
+    "groups": "Groupes et budgets avec alertes",
+    "statsCsv": "Statistiques avancées et export CSV",
+    "aiStats": "Interprétation des statistiques par IA",
+    "documentScan": "Numérisation de reçus et factures ({n}/mois)",
+    "everythingPro": "Tout le plan Pro",
+    "predictions": "Prévisions du solde par IA",
+    "investmentTracker": "Suivi de tes investissements",
+    "aiInvestmentTips": "Conseils d’investissement par IA",
+    "documentScanMore": "Numérisation jusqu’à {n} documents/mois",
+    "prioritySupport": "Support prioritaire"
   }
 }

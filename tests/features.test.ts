@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { effectiveTier, hasFeature, requiredTierFor } from '../shared/features'
+import { ALL_FEATURE_KEYS, PLAN_HIGHLIGHTS, effectiveTier, hasFeature, requiredTierFor } from '../shared/features'
 
 const NOW = new Date('2026-09-24T12:00:00Z')
 const future = new Date('2026-10-24T12:00:00Z')
@@ -53,6 +53,22 @@ describe('effectiveTier — plano que o utilizador realmente pode usar', () => {
     expect(effectiveTier({ tier: 'pro', status: 'past_due', currentPeriodEnd: future }, NOW)).toBe('pro')
     expect(effectiveTier({ tier: 'pro', status: 'past_due', currentPeriodEnd: past }, NOW)).toBe('free')
     expect(effectiveTier({ tier: 'pro', status: 'expired', currentPeriodEnd: future }, NOW)).toBe('free')
+  })
+})
+
+describe('destaques dos planos (página de subscrição)', () => {
+  it('cada funcionalidade aparece no plano mínimo que a desbloqueia', () => {
+    for (const feature of ALL_FEATURE_KEYS) {
+      const tier = requiredTierFor(feature)
+      const listed = PLAN_HIGHLIGHTS[tier].some((h) => h.features?.includes(feature))
+      expect(listed, `${feature} devia estar nos destaques do plano ${tier}`).toBe(true)
+    }
+  })
+
+  it('nenhuma funcionalidade aparece num plano que não a tem', () => {
+    for (const tier of ['free', 'pro', 'premium'] as const) {
+      for (const h of PLAN_HIGHLIGHTS[tier]) for (const f of h.features || []) expect(hasFeature(tier, f)).toBe(true)
+    }
   })
 })
 

@@ -55,30 +55,38 @@ política recente e sujeita a evolução.
 ```ts
 enum SubscriptionTier {
   FREE = 'free',
-  PRO = 'pro',       // 7 €/mês (Upgrade 01; antes 5,00 €)
-  PREMIUM = 'premium' // 18 €/mês (Upgrade 01; antes 12,99 €)
+  PRO = 'pro',       // preço: Play Console (Upgrade 01) — ver nota abaixo
+  PREMIUM = 'premium'
 }
 
 interface UserSubscription {
   tier: SubscriptionTier
   status: 'active' | 'pending' | 'past_due' | 'canceled' | 'expired'
-  provider: 'easypay' | 'none'
-  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'none'
+  provider: 'easypay' | 'google_play' | 'none'
+  paymentMethod: 'cc' | 'dd' | 'mbway' | 'multibanco' | 'google_play' | 'none'
   // 'auto'            = CC/DD via Subscription API nativa da EasyPay — cobrança 100% automática
   // 'push_confirm'    = MB WAY — cobrança disparada pelo backend, confirmada pelo cliente via push a cada ciclo
   // 'manual_reference'= Multibanco — referência gerada automaticamente, paga manualmente pelo cliente
-  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'none'
+  // 'google_play'     = comprado na app Android (Google Play Billing, Upgrade 01)
+  billingMode: 'auto' | 'push_confirm' | 'manual_reference' | 'google_play' | 'none'
   autoRenew: boolean
   currentPeriodEnd: Date | null
 }
 ```
+
+**Preços (Upgrade 01, 2026-10-07):** iguais na web e na app Android. São
+definidos só na Play Console (preço de Portugal, IVA incluído); o servidor
+lê-os da Google (`server/utils/playPrices.ts`, `GET /api/billing/prices`) e o
+site e o checkout EasyPay usam esses valores. `TIER_PRICE_EUR` só serve de
+recurso se a Google não responder. Histórico: 5,00 € / 12,99 € até
+2026-10-06; decisão do utilizador a 2026-10-07: 8 € / 18 €.
 
 `status: 'pending'` cobre tanto uma referência Multibanco por confirmar como
 uma cobrança MB WAY à espera da confirmação push do cliente.
 
 ### Matriz de funcionalidades (referência — afinar na Fase 2)
 
-| Funcionalidade | Free | Pro (7€) | Premium (18€) |
+| Funcionalidade | Free | Pro | Premium |
 |---|---|---|---|
 | Dashboard + KPIs básicos | ✅ | ✅ | ✅ |
 | Transações (limite mensal a definir, ex. 50) | ✅ (limitado) | ✅ (ilimitado) | ✅ (ilimitado) |
@@ -96,7 +104,9 @@ uma cobrança MB WAY à espera da confirmação push do cliente.
 Esta tabela é a **fonte de verdade** e deve existir no código como um objeto
 único partilhado entre client e server (ex. `shared/features.ts`) — nunca
 duplicar a lógica em dois sítios. Em caso de divergência entre esta tabela e o
-código, prevalece `shared/features.ts` (`FEATURE_MATRIX` e `TIER_LIMITS`).
+código, prevalece `shared/features.ts` (`FEATURE_MATRIX` e `TIER_LIMITS`). A
+lista de cada plano na página de subscrição (`PLAN_HIGHLIGHTS`) é gerada a
+partir daí e testada (cada funcionalidade no plano mínimo que a desbloqueia).
 
 ## 4. Arquitetura de feature gating
 

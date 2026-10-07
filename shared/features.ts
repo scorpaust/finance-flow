@@ -5,12 +5,12 @@ export type SubscriptionTier = 'free' | 'pro' | 'premium'
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = ['free', 'pro', 'premium']
 
-// Upgrade 01 (decisão do utilizador, 2026-10-06): o mesmo preço na web e na
-// Google Play, arredondado e a compensar a taxa e o IVA retidos pela Google.
-// Os produtos da Play Console têm de ter estes valores.
+// Só um RECURSO: os preços reais vêm da Play Console (preço de Portugal, IVA
+// incluído — server/utils/playPrices.ts). Usado se a Google não responder.
+// Decisão do utilizador (2026-10-07): Pro 8 €, Premium 18 €.
 export const TIER_PRICE_EUR: Record<SubscriptionTier, number> = {
   free: 0,
-  pro: 7,
+  pro: 8,
   premium: 18,
 }
 
@@ -109,3 +109,40 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
   pro: { transactionsPerMonth: null, customCategories: null, documentScansPerMonth: 30 },
   premium: { transactionsPerMonth: null, customCategories: null, documentScansPerMonth: 100 },
 }
+
+// Destaques de cada plano na página de subscrição (texto em i18n:
+// `planHighlights.<id>`). Gerados a partir da matriz e dos limites acima: cada
+// FeatureKey tem de aparecer no plano mínimo que a desbloqueia — teste em
+// tests/features.test.ts. Antes, a lista era texto solto e ficou para trás
+// (faltavam o registo e as dicas de investimento no Premium, o scan e a IA
+// das estatísticas no Pro).
+export interface PlanHighlight {
+  id: string
+  features?: FeatureKey[]
+  params?: Record<string, number>
+}
+
+export const PLAN_HIGHLIGHTS: Record<SubscriptionTier, PlanHighlight[]> = {
+  free: [
+    { id: 'dashboard' },
+    { id: 'transactionsLimit', params: { n: TIER_LIMITS.free.transactionsPerMonth! } },
+    { id: 'categoriesLimit', params: { n: TIER_LIMITS.free.customCategories! } },
+  ],
+  pro: [
+    { id: 'unlimited' },
+    { id: 'groups', features: ['groups'] },
+    { id: 'statsCsv', features: ['statsAdvanced', 'csvExport'] },
+    { id: 'aiStats', features: ['aiStatsInsights'] },
+    { id: 'documentScan', features: ['documentScan'], params: { n: TIER_LIMITS.pro.documentScansPerMonth } },
+  ],
+  premium: [
+    { id: 'everythingPro' },
+    { id: 'predictions', features: ['predictions'] },
+    { id: 'investmentTracker', features: ['investmentTracker'] },
+    { id: 'aiInvestmentTips', features: ['aiInvestmentTips'] },
+    { id: 'documentScanMore', params: { n: TIER_LIMITS.premium.documentScansPerMonth } },
+    { id: 'prioritySupport', features: ['prioritySupport'] },
+  ],
+}
+
+export const ALL_FEATURE_KEYS = Object.keys(FEATURE_MATRIX) as FeatureKey[]

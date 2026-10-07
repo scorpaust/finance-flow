@@ -599,16 +599,6 @@
     "descDD": "Renovación automática mensual mediante mandato de domiciliación — el IBAN y los datos del mandato se piden en el siguiente formulario, por la propia EasyPay.",
     "descMBWAY": "Pago único del período elegido, confirmado con una notificación push en la app MB WAY. Sin renovación automática.",
     "descMultibanco": "Pago único del período elegido, mediante una referencia a pagar en un cajero o banca electrónica. Sin renovación automática.",
-    "planFreeF1": "Panel y KPI básicos",
-    "planFreeF2": "Hasta 50 transacciones/mes",
-    "planFreeF3": "2 categorías personalizadas",
-    "planProF1": "Transacciones y categorías ilimitadas",
-    "planProF2": "Grupos y presupuestos",
-    "planProF3": "Estadísticas avanzadas",
-    "planProF4": "Exportar CSV",
-    "planPremiumF1": "Todo lo de Pro",
-    "planPremiumF2": "Previsiones con IA (ConvNeXt-1D)",
-    "planPremiumF3": "Soporte prioritario",
     "playAutoRenewActive": "Renovación automática con Google Play",
     "playAutoRenewCanceled": "Renovación desactivada en Google Play — acceso hasta el {date}",
     "playPrepaidActive": "Pago único con Google Play · caduca el {date}",
@@ -796,5 +786,21 @@
     "free": "Gratuito",
     "pro": "Pro",
     "premium": "Premium"
+  },
+  "planHighlights": {
+    "dashboard": "Panel e indicadores del mes",
+    "transactionsLimit": "Hasta {n} transacciones al mes",
+    "categoriesLimit": "{n} categorías personalizadas",
+    "unlimited": "Transacciones y categorías ilimitadas",
+    "groups": "Grupos y presupuestos con alertas",
+    "statsCsv": "Estadísticas avanzadas y exportación CSV",
+    "aiStats": "Interpretación de las estadísticas con IA",
+    "documentScan": "Escaneo de recibos y facturas ({n}/mes)",
+    "everythingPro": "Todo lo de Pro",
+    "predictions": "Previsiones del saldo con IA",
+    "investmentTracker": "Registro de tus inversiones",
+    "aiInvestmentTips": "Consejos de inversión con IA",
+    "documentScanMore": "Escaneo de hasta {n} documentos/mes",
+    "prioritySupport": "Soporte prioritario"
   }
 }

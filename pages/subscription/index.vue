@@ -166,9 +166,9 @@
       <p class="text-white/50 text-sm text-center">
         <template v-if="selectedMethod === 'mbway' || selectedMethod === 'multibanco'">
           {{ t('subscription.totalLabel') }}: <span class="text-brand-300 font-bold">{{ formatPrice(prepaidTotal) }}</span>
-          ({{ periodMonths }} × {{ formatCurrency(TIER_PRICE_EUR[selectedTier], 'EUR') }}, {{ t('subscription.totalSuffix') }}
+          ({{ periodMonths }} {{ periodMonths === 1 ? t('subscription.month') : t('subscription.months') }}, {{ t('subscription.totalSuffix') }}
         </template>
-        <template v-else>{{ formatPrice(TIER_PRICE_EUR[selectedTier]) }}{{ t('subscription.perMonth') }}</template>
+        <template v-else>{{ formatPrice(planPrices.monthlyEur(selectedTier)) }}{{ t('subscription.perMonth') }}</template>
       </p>
 
       <button
@@ -276,7 +276,7 @@
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
 import { ArrowLeft, Check, Loader2 } from 'lucide-vue-next'
-import { SUBSCRIPTION_TIERS, TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
+import { SUBSCRIPTION_TIERS, type SubscriptionTier } from '~/shared/features'
 import {
   PLAY_MONTHLY_BASE_PLAN,
   PLAY_PACKAGE_NAME,
@@ -347,7 +347,7 @@ const METHOD_DESCRIPTION = computed<Record<Method, string>>(() => ({
 const selectedMethod = ref<Method>('cc')
 const PERIODS = [1, 3, 6, 12] as const
 const periodMonths = ref<(typeof PERIODS)[number]>(1)
-const prepaidTotal = computed(() => Math.round(TIER_PRICE_EUR[selectedTier.value] * periodMonths.value * 100) / 100)
+const prepaidTotal = computed(() => planPrices.prepaidEur(selectedTier.value, periodMonths.value))
 
 // Fase 10 — os preços do site são cobrados em euros (EasyPay); noutra moeda
 // de apresentação mostra-se também o aproximado. Mesma fonte que os avisos de

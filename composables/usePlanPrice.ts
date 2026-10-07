@@ -1,5 +1,5 @@
 import { TIER_PRICE_EUR, type SubscriptionTier } from '~/shared/features'
-import { PLAY_MONTHLY_BASE_PLAN, PLAY_PRODUCT_IDS, type PaidTier } from '~/shared/playBilling'
+import { PLAY_MONTHLY_BASE_PLAN, PLAY_PRODUCT_IDS, type PaidTier, type PlayPrepaidPeriod } from '~/shared/playBilling'
 import type { PlayProduct } from '~/composables/usePlayBilling'
 
 // Fonte única do preço mostrado em toda a app (página de subscrição, avisos
@@ -8,10 +8,16 @@ import type { PlayProduct } from '~/composables/usePlayBilling'
 // diferentes para o mesmo plano.
 //   - App Android: o preço da Google Play, tal como a Google o cobra (moeda e
 //     impostos do país do utilizador). Carregado uma vez por sessão.
-//   - Site: o preço em euros da EasyPay (TIER_PRICE_EUR), com o aproximado na
-//     moeda de apresentação (Fase 10): "7,00 € (≈ 7,87 $)".
+//   - Site: o preço em euros que a Google Play cobra em Portugal (lido da Play
+//     Console pelo servidor, /api/billing/prices — o mesmo que o checkout
+//     EasyPay cobra), com o aproximado na moeda de apresentação (Fase 10).
+//     TIER_PRICE_EUR só enquanto o servidor não respondeu.
 const playProducts = ref<PlayProduct[] | null>(null)
 let loading: Promise<void> | null = null
+
+type EurPrices = Record<PaidTier, { monthly: number; prepaid: Record<string, number> }>
+const eurPrices = ref<EurPrices | null>(null)
+let loadingEur: Promise<void> | null = null
 
 export function usePlanPrice() {
   const { isNative } = usePlatform()
@@ -29,6 +35,30 @@ export function usePlanPrice() {
       })
     }
     return loading
+  }
+
+  function ensureEurPrices(): Promise<void> {
+    if (!loadingEur) {
+      loadingEur = $fetch<{ prices: EurPrices }>('/api/billing/prices')
+        .then((r) => {
+          eurPrices.value = r.prices
+        })
+        .catch(() => {
+          loadingEur = null
+        })
+    }
+    return loadingEur
+  }
+  if (import.meta.client) void ensureEurPrices()
+
+  function monthlyEur(tier: SubscriptionTier): number {
+    if (tier === 'free') return 0
+    return eurPrices.value?.[tier as PaidTier]?.monthly ?? TIER_PRICE_EUR[tier]
+  }
+
+  function prepaidEur(tier: SubscriptionTier, months: PlayPrepaidPeriod): number {
+    if (tier === 'free') return 0
+    return eurPrices.value?.[tier as PaidTier]?.prepaid?.[String(months)] ?? Math.round(TIER_PRICE_EUR[tier] * months * 100) / 100
   }
 
   function setPlayProducts(products: PlayProduct[] | null) {
@@ -51,8 +81,8 @@ export function usePlanPrice() {
       const offer = playOffer(tier as PaidTier, PLAY_MONTHLY_BASE_PLAN)
       if (offer) return offer.formattedPrice
     }
-    return formatEur(TIER_PRICE_EUR[tier])
+    return formatEur(monthlyEur(tier))
   }
 
-  return { playProducts, ensurePlayPrices, setPlayProducts, playOffer, formatEur, monthlyPrice }
+  return { playProducts, ensurePlayPrices, ensureEurPrices, setPlayProducts, playOffer, formatEur, monthlyEur, prepaidEur, monthlyPrice }
 }

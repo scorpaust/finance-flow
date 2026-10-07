@@ -47,6 +47,8 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
   // (acknowledge/cancel/revoke).
   let googleStatus = 200
   const googleSubscriptions = new Map<string, StoredResponse>()
+  // Catálogo da Play Console (monetization.subscriptions.get), por produto.
+  const googleProducts = new Map<string, unknown>()
 
   function resetAll() {
     anthropicResponse = {
@@ -57,6 +59,7 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
     requests.length = 0
     googleStatus = 200
     googleSubscriptions.clear()
+    googleProducts.clear()
   }
 
   const server = createServer(async (req, res) => {
@@ -82,6 +85,11 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
     }
     if (path === '/__control/google' && method === 'POST') {
       googleStatus = body.status ?? 200
+      res.writeHead(204).end()
+      return
+    }
+    if (path === '/__control/google-product' && method === 'POST') {
+      googleProducts.set(body.productId, body.body)
       res.writeHead(204).end()
       return
     }
@@ -121,6 +129,13 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
       const stored = googleSubscriptions.get(decodeURIComponent(subGet[1]))
       res.writeHead(stored?.status ?? 404, { 'content-type': 'application/json' })
       res.end(JSON.stringify(stored?.body ?? { error: { code: 404, message: 'not found' } }))
+      return
+    }
+    const productGet = path.match(/^\/androidpublisher\/v3\/applications\/[^/]+\/subscriptions\/([^/:]+)$/)
+    if (productGet && method === 'GET') {
+      const product = googleProducts.get(decodeURIComponent(productGet[1]))
+      res.writeHead(product ? 200 : 404, { 'content-type': 'application/json' })
+      res.end(JSON.stringify(product ?? { error: { code: 404 } }))
       return
     }
     if (path.startsWith('/androidpublisher/')) {

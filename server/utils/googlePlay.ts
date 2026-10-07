@@ -85,7 +85,7 @@ export class PlayApiError extends Error {
   }
 }
 
-async function playFetch<T = any>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function playFetch<T = any>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   const account = readServiceAccount()
   if (!account) {
     throw createError({ statusCode: 503, message: 'Google Play is not configured', data: { error: 'play_not_configured' } })

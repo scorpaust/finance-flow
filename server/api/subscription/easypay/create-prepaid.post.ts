@@ -1,6 +1,6 @@
 import { requireAuth } from '../../../utils/auth'
 import { createSinglePaymentCheckout, encodeMerchantKey } from '../../../utils/easypay'
-import { TIER_PRICE_EUR } from '../../../../shared/features'
+import { getPlanPrices } from '../../../utils/playPrices'
 import { User } from '../../../models'
 import { getServerLocale, serverT } from '../../../utils/i18n'
 import { enforceRateLimit } from '../../../utils/rateLimit'
@@ -43,7 +43,8 @@ export default defineEventHandler(async (event) => {
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()
   if (!user) throw createError({ statusCode: 404, message: serverT(locale, 'subscriptionApi.userNotFound') })
 
-  const value = TIER_PRICE_EUR[tier] * periodMonths
+  // Mesmo preço do pré-pago da Google Play (Portugal) — server/utils/playPrices.ts.
+  const value = (await getPlanPrices()).prices[tier].prepaid[periodMonths]
 
   const checkout = await createSinglePaymentCheckout({
     method: method === 'mbway' ? 'MBW' : 'MB',

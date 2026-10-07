@@ -1005,6 +1005,50 @@ describe('Google Play Billing — compras na app Android (Upgrade 01)', () => {
   })
 })
 
+describe('preços: a Play Console é a única fonte (site e checkout EasyPay)', () => {
+  // Como a Play Console os devolve: preço por país, IVA incluído (Money).
+  const money = (eur: number) => ({ currencyCode: 'EUR', units: String(Math.trunc(eur)), nanos: Math.round((eur % 1) * 1e9) })
+  const product = (monthly: number, prepaid: Record<number, number>) => ({
+    productId: 'x',
+    basePlans: [
+      { basePlanId: 'mensal', regionalConfigs: [{ regionCode: 'ES', price: money(monthly + 1) }, { regionCode: 'PT', price: money(monthly) }] },
+      ...Object.entries(prepaid).map(([m, v]) => ({ basePlanId: `prepago-${m}m`, regionalConfigs: [{ regionCode: 'PT', price: money(v) }] })),
+    ],
+  })
+
+  it('o site mostra e o checkout EasyPay cobra o preço de Portugal da Play Console', async () => {
+    await stub.setGoogleProduct('pro', product(8.49, { 1: 8.49, 3: 24.99, 6: 49.99, 12: 89.99 }))
+    await stub.setGoogleProduct('premium', product(21.99, { 1: 21.99, 3: 64.99, 6: 124.99, 12: 239.99 }))
+
+    const res = await fetch('/api/billing/prices')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.source).toBe('google_play')
+    expect(body.prices.pro.monthly).toBe(8.49)
+    expect(body.prices.premium.monthly).toBe(21.99)
+    expect(body.prices.pro.prepaid['3']).toBe(24.99)
+    expect(body.prices.premium.prepaid['12']).toBe(239.99)
+
+    const { cookie } = await register(uniqueEmail('prices-checkout'))
+    await stub.setEasyPayResponse('POST', '/checkout', { id: 'chk-prices', session: 'sess', config: {} })
+    for (const [path, payload] of [
+      ['create-subscription', { tier: 'premium', method: 'cc' }],
+      ['create-prepaid', { tier: 'pro', method: 'mbway', periodMonths: 3 }],
+    ] as const) {
+      const r = await fetch(`/api/subscription/easypay/${path}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie },
+        body: JSON.stringify(payload),
+      })
+      expect(r.status).toBe(200)
+    }
+    const checkouts = (await stub.requests()).filter((r) => r.method === 'POST' && r.path === '/checkout')
+    const values = checkouts.map((c) => JSON.stringify(c.body))
+    expect(values.some((v) => v.includes('21.99'))).toBe(true)
+    expect(values.some((v) => v.includes('24.99'))).toBe(true)
+  })
+})
+
 describe('moeda de apresentação (Fase 10)', () => {
   // Formato real da Twelve Data: o código está em `symbol`; `currency_quote` é o nome.
   const PAIRS = {

@@ -44,6 +44,13 @@ export function stubClient(baseUrl: string) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ token, body, status }),
       }),
+    // Upgrade 01 — produto da Play Console (preços por país).
+    setGoogleProduct: (productId: string, body: unknown) =>
+      fetch(`${baseUrl}/__control/google-product`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ productId, body }),
+      }),
     requests: async (): Promise<{ path: string; query: string; method: string; body: any; authorization?: string }[]> =>
       (await fetch(`${baseUrl}/__control/requests`)).json(),
   }

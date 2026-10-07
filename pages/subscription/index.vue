@@ -636,6 +636,21 @@ async function buyWithPlay() {
   }
 }
 
+// O estado do plano pode mudar fora desta página — cancelar na Google Play,
+// pagar uma referência Multibanco, outro dispositivo. Sempre que a página
+// abre e sempre que a app/separador volta ao primeiro plano (ex. regresso da
+// Play Store), lê de novo do servidor; o store só o carregava uma vez por sessão.
+function onVisible() {
+  if (document.visibilityState !== 'visible') return
+  if (isNative.value) refreshPlay()
+  else sub.refresh()
+}
+onMounted(() => {
+  sub.refresh()
+  document.addEventListener('visibilitychange', onVisible)
+})
+onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible))
+
 let removePlayListener: (() => Promise<void>) | null = null
 onMounted(async () => {
   if (!isNative.value) return

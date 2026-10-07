@@ -42,7 +42,9 @@ const INDEXES = [
 ]
 
 async function findDuplicates(col, keys, sparse) {
-  const group = Object.fromEntries(Object.keys(keys).map((k) => [k, `$${k}`]))
+  // Os nomes no `_id` do $group não podem ter '.' (campos dentro de
+  // subdocumentos, ex. subscription.googlePlayPurchaseToken) — só o valor.
+  const group = Object.fromEntries(Object.keys(keys).map((k) => [k.replace(/\./g, '_'), `$${k}`]))
   // Num índice sparse, documentos sem o campo não entram no índice — não são duplicados.
   const onlyPresent = sparse ? [{ $match: Object.fromEntries(Object.keys(keys).map((k) => [k, { $exists: true }])) }] : []
   return col

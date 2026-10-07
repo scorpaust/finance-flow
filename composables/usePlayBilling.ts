@@ -1,4 +1,4 @@
-import { registerPlugin } from '@capacitor/core'
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import { PLAY_PRODUCT_IDS } from '~/shared/playBilling'
 
 // Upgrade 01 — ponte para o plugin nativo PlayBillingPlugin.java (Google Play
@@ -61,6 +61,10 @@ export interface PlayConfig {
 }
 
 export function usePlayBilling() {
+  // Versões da app anteriores à 1.1.0 não têm o plugin nativo: a página pede
+  // para atualizar em vez de rebentar ("plugin is not implemented").
+  const available = Capacitor.isPluginAvailable('PlayBilling')
+
   async function loadConfig(): Promise<PlayConfig> {
     return $fetch<PlayConfig>('/api/billing/google-play/config')
   }
@@ -106,5 +110,5 @@ export function usePlayBilling() {
     return PlayBilling.addListener('purchasesUpdated', (data) => cb(data.purchases || []))
   }
 
-  return { loadConfig, loadProducts, purchase: (opts: Parameters<PlayBillingPlugin['purchase']>[0]) => PlayBilling.purchase(opts), verify, recoverUnacknowledged, onPurchasesUpdated }
+  return { available, loadConfig, loadProducts, purchase: (opts: Parameters<PlayBillingPlugin['purchase']>[0]) => PlayBilling.purchase(opts), verify, recoverUnacknowledged, onPurchasesUpdated }
 }

@@ -75,6 +75,7 @@
     "acceptTerms": "Ich habe die {terms} und die {privacy} gelesen und akzeptiere sie."
   },
   "dashboard": {
+    "greetingHello": "Hallo",
     "greetingMorning": "Guten Morgen",
     "greetingAfternoon": "Guten Tag",
     "greetingEvening": "Guten Abend",
@@ -626,6 +627,7 @@
     "playCurrentPlan": "Das ist dein aktueller Plan. Zum Kündigen oder Ändern der Zahlung nutze Google Play.",
     "playExtendFrom": "Du kannst ab {date} verlängern.",
     "playUnavailable": "Käufe sind in dieser Installation nicht verfügbar. Installiere die App über Google Play und versuche es erneut.",
+    "playUpdateApp": "Um über Google Play zu abonnieren, aktualisiere die FinanceFlow-App im Play Store auf die neueste Version.",
     "playLoading": "Google-Play-Preise werden geladen…",
     "playPriceNote": "Google-Play-Preis in deiner Währung, inklusive Steuern.",
     "playPendingPayment": "Zahlung ausstehend: Der Plan wird aktiv, sobald Google Play die Zahlung bestätigt.",

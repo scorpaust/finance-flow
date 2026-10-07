@@ -183,6 +183,7 @@
       <p v-if="playLoading" class="text-white/40 text-sm text-center flex items-center justify-center gap-2">
         <Loader2 class="w-4 h-4 animate-spin" /> {{ t('subscription.playLoading') }}
       </p>
+      <p v-else-if="!play.available" class="text-white/50 text-sm text-center">{{ t('subscription.playUpdateApp') }}</p>
       <p v-else-if="!playProducts" class="text-white/50 text-sm text-center">{{ t('subscription.playUnavailable') }}</p>
       <template v-else>
         <div>
@@ -654,6 +655,10 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 let removePlayListener: (() => Promise<void>) | null = null
 onMounted(async () => {
   if (!isNative.value) return
+  if (!play.available) {
+    playConfig.value = await play.loadConfig().catch(() => null)
+    return
+  }
   playLoading.value = true
   try {
     const [config, products] = await Promise.all([play.loadConfig().catch(() => null), play.loadProducts()])

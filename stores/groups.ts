@@ -22,6 +22,11 @@ export const useGroupsStore = defineStore('groups', () => {
     loading.value = true
     try {
       groups.value = await $fetch<Group[]>('/api/groups')
+    } catch (e: any) {
+      // Plano já sem acesso a grupos (ex. subscrição expirada entretanto): o
+      // plugin subscription-sync atualiza o plano e a página mostra o bloqueio.
+      if (e?.data?.data?.error !== 'feature_locked') throw e
+      groups.value = []
     } finally {
       loading.value = false
     }

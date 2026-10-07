@@ -361,6 +361,7 @@
 <script setup lang="ts">
 import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp } from 'lucide-vue-next'
 import type { Transaction, DocumentScanResult } from '~/types'
+import { greetingPeriod } from '~/shared/greeting'
 
 definePageMeta({ layout: 'default' })
 
@@ -368,7 +369,7 @@ const auth = useAuthStore()
 const finance = useFinanceStore()
 const toast = useToastStore()
 const { formatCurrency, formatCompact, formatMonthYear } = useFormatters()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const ml = useMLPrediction()
 const isTraining = ml.isTraining
 
@@ -382,17 +383,20 @@ const editTx = ref<Transaction | null>(null)
 const scanPrefill = ref<DocumentScanResult | null>(null)
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Utilizador')
-// Fase 8, ponto 11 — "Hydration text content mismatch" visto no Android:
-// `new Date()` chamado dentro do computed corria uma vez no servidor (SSR) e
-// outra vez no cliente (hidratação), com resultados diferentes sempre que a
-// hora mudasse de escalão entre as duas (ou o fuso horário do servidor não
-// coincidisse com o do telemóvel). `useState` fixa o valor calculado no
-// servidor e reutiliza-o na hidratação — só muda numa navegação nova.
-const greetingHour = useState('dashboard-greeting-hour', () => new Date().getHours())
+// A hora vem só do dispositivo (fuso do país do utilizador), lida depois de
+// montar: no servidor (SSR) a hora é UTC e dava "Bom dia" às 02:00 em
+// Lisboa. Até lá mostra "Olá", o mesmo no servidor e na hidratação — sem o
+// "Hydration text content mismatch" da Fase 8, ponto 11. Escalões por língua
+// em shared/greeting.ts.
+const greetingHour = ref<number | null>(null)
+onMounted(() => {
+  greetingHour.value = new Date().getHours()
+})
 const greeting = computed(() => {
-  const h = greetingHour.value
-  if (h < 12) return t('dashboard.greetingMorning')
-  if (h < 18) return t('dashboard.greetingAfternoon')
+  if (greetingHour.value === null) return t('dashboard.greetingHello')
+  const period = greetingPeriod(greetingHour.value, locale.value)
+  if (period === 'morning') return t('dashboard.greetingMorning')
+  if (period === 'afternoon') return t('dashboard.greetingAfternoon')
   return t('dashboard.greetingEvening')
 })
 

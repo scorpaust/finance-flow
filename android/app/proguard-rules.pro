@@ -28,6 +28,20 @@
 -keep class com.dinismcosta.financeflow.** { *; }
 -keep public class * extends com.getcapacitor.Plugin { *; }
 
+# 1.2.1 — a câmara fechava a app na 1.2.0: a biblioteca da Ionic usada pelo
+# @capacitor/camera (io.ionic.libs.ioncameralib) passa os parâmetros entre
+# ecrãs por serialização (Gson), que depende dos nomes das classes e campos —
+# o R8 tinha-os renomeado (IONCAMRCameraParameters → g4.a). Os plugins nativos
+# e as bibliotecas que trazem ficam intactos; o R8 continua a otimizar o resto.
+-keep class io.ionic.libs.** { *; }
+-keep class com.capacitorjs.plugins.** { *; }
+-keep class ee.forgr.biometric.** { *; }
+-keep class com.google.gson.** { *; }
+-keepattributes Signature,*Annotation*,EnclosingMethod,InnerClasses
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
 # Números de linha nos erros (Play Console / Sentry), sem o nome do ficheiro.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile

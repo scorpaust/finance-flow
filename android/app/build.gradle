@@ -23,8 +23,8 @@ android {
         // Política de versões (context/OPERATIONS.md): versionCode sobe +1 em
         // CADA upload para a Play Console (inteiro, nunca reutilizado);
         // versionName acompanha o "version" do package.json (semver).
-        versionCode 5
-        versionName "1.2.0"
+        versionCode 6
+        versionName "1.2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

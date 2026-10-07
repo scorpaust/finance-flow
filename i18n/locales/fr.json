@@ -534,7 +534,7 @@
   "paywall": {
     "featureTier": "Fonctionnalité {tier}",
     "availableFrom": "{feature} est disponible à partir du forfait",
-    "perMonthPrice": "({price} €/mois).",
+    "perMonthPrice": "({price}/mois).",
     "notNow": "Pas maintenant"
   },
   "upsellBanner": {

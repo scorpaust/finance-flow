@@ -349,14 +349,12 @@ const PERIODS = [1, 3, 6, 12] as const
 const periodMonths = ref<(typeof PERIODS)[number]>(1)
 const prepaidTotal = computed(() => Math.round(TIER_PRICE_EUR[selectedTier.value] * periodMonths.value * 100) / 100)
 
-// Fase 10 — os preços são cobrados em euros (EasyPay); noutra moeda de
-// apresentação mostra-se também o valor aproximado: "5,00 € (≈ 5,62 $)".
+// Fase 10 — os preços do site são cobrados em euros (EasyPay); noutra moeda
+// de apresentação mostra-se também o aproximado. Mesma fonte que os avisos de
+// funcionalidade bloqueada (composables/usePlanPrice.ts).
 const { formatCurrency } = useFormatters()
-const fx = useCurrencyStore()
-function formatPrice(eur: number): string {
-  const inEur = formatCurrency(eur, 'EUR')
-  return fx.currency === 'EUR' ? inEur : `${inEur} (≈ ${formatCurrency(eur)})`
-}
+const planPrices = usePlanPrice()
+const formatPrice = planPrices.formatEur
 
 const submitting = ref(false)
 const canceling = ref(false)
@@ -579,15 +577,7 @@ const playAction = computed<{ kind: 'buy' | 'change' | 'topup' | 'current' | 'wa
 })
 
 // Preço mensal nos cartões: na app, o da Google (moeda e impostos do país).
-function planPrice(tier: SubscriptionTier): string {
-  if (isNative.value && tier !== 'free') {
-    const monthly = playProducts.value
-      ?.find((p) => p.productId === PLAY_PRODUCT_IDS[tier as PaidTier])
-      ?.offers.find((o) => o.basePlanId === PLAY_MONTHLY_BASE_PLAN)
-    if (monthly) return monthly.formattedPrice
-  }
-  return formatPrice(TIER_PRICE_EUR[tier])
-}
+const planPrice = planPrices.monthlyPrice
 
 async function refreshPlay() {
   await sub.refresh()
@@ -667,6 +657,7 @@ onMounted(async () => {
     const [config, products] = await Promise.all([play.loadConfig().catch(() => null), play.loadProducts()])
     playConfig.value = config
     playProducts.value = config ? products : null
+    planPrices.setPlayProducts(playProducts.value)
     // Compras que a Google tem mas que o servidor ainda não confirmou.
     if (await play.recoverUnacknowledged()) await refreshPlay()
     const handle = await play.onPurchasesUpdated(async (purchases) => {

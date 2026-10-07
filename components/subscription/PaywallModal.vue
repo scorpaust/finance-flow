@@ -10,7 +10,7 @@
         <p class="text-white/50 text-sm mt-2">
           {{ t('paywall.availableFrom', { feature: featureLabel }) }}
           <span class="text-brand-300 font-semibold">{{ t(`tiers.${requiredTier}`) }}</span>
-          {{ t('paywall.perMonthPrice', { price: TIER_PRICE_EUR[requiredTier].toFixed(2).replace('.', ',') }) }}
+          {{ t('paywall.perMonthPrice', { price: monthlyPrice(requiredTier) }) }}
         </p>
 
         <div class="flex gap-3 mt-6">
@@ -27,7 +27,6 @@
 <script setup lang="ts">
 import { Lock, Sparkles } from 'lucide-vue-next'
 import type { SubscriptionTier } from '~/shared/features'
-import { TIER_PRICE_EUR } from '~/shared/features'
 
 const props = defineProps<{
   requiredTier: SubscriptionTier
@@ -36,6 +35,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
+// O mesmo preço da página de subscrição: na app, o da Google Play.
+const { monthlyPrice, ensurePlayPrices } = usePlanPrice()
+onMounted(() => ensurePlayPrices())
 
 function goToCheckout() {
   emit('close')

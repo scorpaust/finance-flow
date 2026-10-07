@@ -4,6 +4,7 @@
 // Documentação consultada via Context7 (/websites/easypay_pt).
 
 import type { CheckoutManifest } from '@easypaypt/checkout-sdk'
+import { EASYPAY_START_MARGIN_MS, easypayDateTime } from '../../shared/easypayDate'
 import { logEvent } from './logger'
 
 // Fase 8 — o mesmo tratamento já aplicado à Anthropic
@@ -107,11 +108,6 @@ export function decodeMerchantKey(
 // desta chamada É o `CheckoutManifest` (`{ id, session, config }`).
 export type EasyPayCheckoutManifest = CheckoutManifest
 
-// EasyPay espera datas no formato "Y-m-d H:i" (ex. start_time), não ISO 8601.
-function easypayDateTime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
 
 // Para DD, o `sdd_mandate` (IBAN/titular/telefone) NÃO é pré-preenchido por
 // nós — o próprio formulário hospedado da EasyPay pede esses dados ao
@@ -136,7 +132,7 @@ export async function createSubscriptionCheckout(opts: {
         currency: 'EUR',
         key: opts.key,
         frequency: '1M',
-        start_time: easypayDateTime(new Date()),
+        start_time: easypayDateTime(new Date(Date.now() + EASYPAY_START_MARGIN_MS)),
         unlimited_payments: true,
         capture_now: true,
         retries: 2,

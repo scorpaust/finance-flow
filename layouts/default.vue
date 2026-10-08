@@ -85,7 +85,7 @@
     <Transition name="fade">
       <div
         v-if="sidebarOpen && isMobile"
-        class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
+        class="fixed inset-0 z-30 bg-black/75 lg:hidden"
         @click="sidebarOpen = false"
       />
     </Transition>

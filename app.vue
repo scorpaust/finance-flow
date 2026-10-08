@@ -5,18 +5,17 @@
          v-if/v-else branch right after hydration settles can corrupt the
          DOM (Vue nests the newly-revealed branch inside the old one). -->
     <div
-      v-show="auth.loading"
+      v-show="showLoadingScreen"
       class="fixed inset-0 z-[200] flex items-center justify-center auth-bg pt-[var(--safe-area-inset-top,_env(safe-area-inset-top,_0px))] pb-[var(--safe-area-inset-bottom,_env(safe-area-inset-bottom,_0px))]"
     >
-      <div class="flex flex-col items-center gap-4 animate-fade-in">
-        <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center neon-brand animate-bounce-subtle">
+      <!-- Upgrade 03 — um só elemento animado (os 3 pontos pulsam juntos, só
+           opacidade); o logótipo e o contentor ficam parados. -->
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center neon-brand">
           <span class="text-3xl">💹</span>
         </div>
-        <div class="flex gap-1.5">
-          <div v-for="i in 3" :key="i"
-            class="w-2 h-2 rounded-full bg-brand-400 animate-bounce"
-            :style="{ animationDelay: (i - 1) * 0.15 + 's' }"
-          />
+        <div class="flex gap-1.5 animate-pulse">
+          <div v-for="i in 3" :key="i" class="w-2 h-2 rounded-full bg-brand-400" />
         </div>
         <p class="text-white/30 text-sm font-medium">{{ t('common.loading') }}</p>
       </div>
@@ -42,6 +41,19 @@ useHead({
 })
 const auth = useAuthStore()
 const appLock = useAppLockStore()
+const route = useRoute()
+
+// Upgrade 03 — o ecrã de carregamento tapava o login (e /privacy, /terms) até o
+// JS carregar e /api/auth/session responder: era isso que atrasava o LCP. Numa
+// rota pública sem cookie de sessão no pedido sabemos já no SSR que não há
+// sessão, por isso não há nada a esperar. O cookie é httpOnly — só o servidor o
+// lê; o resultado viaja no payload para a hidratação dar o mesmo HTML. Com
+// cookie (pode haver sessão) fica tudo como antes.
+const hadSessionCookie = useState('had-session-cookie', () => !!useCookie('session').value)
+const PUBLIC_ROUTES = ['/login', '/privacy', '/terms']
+const showLoadingScreen = computed(() =>
+  auth.loading && !(PUBLIC_ROUTES.some(r => route.path.startsWith(r)) && !hadSessionCookie.value)
+)
 
 // A sessão é carregada por plugins/init.client.ts antes da 1.ª navegação; o
 // bloqueio biométrico inicia-se só aqui (nunca no SSR/hidratação — ver

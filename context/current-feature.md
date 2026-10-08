@@ -1,8 +1,19 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/10-FASE-10-moeda-de-apresentacao.md -->
+<!-- Ver especificação completa em context/features/upgrades/03-desempenho-visual-telemovel.md -->
 
 ## Estado
+
+**Upgrade 03 — desempenho visual em telemóvel: Concluída** (2026-10-09;
+`context/features/upgrades/03-desempenho-visual-telemovel.md`). Os 3
+critérios de aceitação cumpridos: login em telemóvel no PageSpeed Insights
+**100** de desempenho, LCP **0,9 s** (antes 98 e 2,0 s); acessibilidade,
+boas práticas e SEO 100; em computador o aspeto é o mesmo. Testes:
+unitários 67/67, E2E 5/5, type-check 0 erros. Branch
+`feature/upgrade-03-desempenho-telemovel` mergeado em `main` e apagado.
+Só web — não precisa de `.aab` novo (a app Android carrega o site).
+
+**Fase 10 — moeda de apresentação: concluída.**
 
 **Concluída** (2026-10-01) — os 5 critérios de aceitação abaixo cumpridos e
 cobertos por testes (unitários 51/51, integração 32/32, E2E 4/4, type-check
@@ -59,28 +70,43 @@ internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`;
 `android-web/offline.html` via `server.errorPath`),
 ficha da loja e declarações da Play Console. Google Play Billing configurada
 e testada (Upgrade 01). Por fazer: testes fechados, atualizar a declaração de
-segurança dos dados (pagamentos pela Google Play), Lighthouse
-(a CSP já é obrigatória desde 2026-10-03, validada sem violações), produção com rollout faseado. Histórico
+segurança dos dados (pagamentos pela Google Play), desempenho em telemóvel
+(Upgrade 03 — o resto do Lighthouse já está em 100; a CSP é obrigatória desde
+2026-10-03, validada sem violações), produção com rollout faseado. Histórico
 completo abaixo.
 
 ## Objetivos
 
-FASE 10 — Moeda de apresentação: o utilizador escolhe em Configurações a
-moeda em que vê todos os valores da app (121 moedas suportadas pela Twelve
-Data), convertidos ao câmbio do dia. Os dados continuam em euros.
+UPGRADE 03 — Desempenho visual em telemóvel: login com desempenho **≥ 85** e
+LCP **≤ 2,5 s** em telemóvel (Lighthouse, CPU calibrado), sem mudar o aspeto
+em computador.
 
-Decisões já tomadas (ver especificação): euro como moeda base (nunca se
-reescrevem os dados), câmbio do dia para tudo, preços das subscrições em € com
-o aproximado, fornecedor Twelve Data.
+Decisão do utilizador (2026-10-08): pode mudar o aspeto em telemóvel.
+
+Tarefas (ver especificação):
+- [x] Desfoque de fundo só em ecrãs grandes: abaixo de 1024 px, `glass-card`,
+      modais, toasts, botões de vidro e barra de navegação trocam o
+      `backdrop-filter` por um fundo mais opaco da mesma cor; sem desfoque com
+      `prefers-reduced-motion`.
+- [x] Login: menos partículas em ecrã pequeno (nenhuma com
+      `prefers-reduced-motion`), halo por gradiente radial, entradas mais
+      curtas.
+- [x] Ecrã de carregamento global (`app.vue`): só um elemento animado.
+- [x] Contraste do texto sem desfoque (acessibilidade a 100).
+- [ ] Lighthouse antes/depois (login, privacidade e, se der, uma página com
+      sessão), números registados na especificação — feito em local; falta
+      a Netlify.
+- [x] E2E sem regressões (5/5).
+
+Fora de âmbito: o design system em computador; medir automaticamente as
+páginas com sessão (tentar PageSpeed Insights com chave de API, ou o
+Lighthouse do DevTools à mão).
 
 ## Critérios de aceitação
 
-- Mudar a moeda altera todos os valores sem recarregar dados; a escolha
-  mantém-se entre web e Android
-- Voltar ao euro mostra exatamente os mesmos valores
-- Transação criada noutra moeda fica em euros com o valor/moeda originais
-- Fornecedor de câmbio em baixo não parte a app
-- Testes unitários, de integração e E2E
+- [x] Login ≥ 85 de desempenho em telemóvel (PSI: 100, LCP 0,9 s)
+- [x] Acessibilidade, boas práticas e SEO continuam em 100
+- [x] Em computador, o aspeto é o mesmo
 
 ## Histórico
 
@@ -2288,3 +2314,73 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   USD a 1,1245 e BRL a 5,86883 com o câmbio do dia, moeda inválida recusada,
   escolha guardada na conta.
 
+- 2026-10-08: Definido como funcionalidade atual — UPGRADE 03 (Desempenho
+  visual em telemóvel), especificação em
+  `context/features/upgrades/03-desempenho-visual-telemovel.md`. Ponto de
+  partida (Lighthouse em telemóvel, CPU calibrado): login 69 (LCP 4,1 s, TBT
+  330 ms), privacidade 87; acessibilidade, boas práticas e SEO em 100 depois
+  do commit `5ce176e`. Decisão do utilizador: o aspeto em telemóvel pode
+  mudar. Estado: não iniciado.
+- 2026-10-08: Branch `feature/upgrade-03-desempenho-telemovel` criado a
+  partir de `main`. Estado passa a "Em progresso". Implementado:
+  - **Vidro só em computador** (`assets/css/main.css`): abaixo de 1024 px, e
+    com `prefers-reduced-motion` em qualquer tamanho, cartões/botões de
+    vidro, gráficos, modais e toasts sem `backdrop-filter`, com um fundo
+    quase opaco da cor que o vidro tinha sobre `surface-900`; orbs sem
+    `blur-3xl` nem animação (máscara radial). Fundos dos modais (menu em
+    telemóvel, grupos) sem desfoque e mais escuros.
+  - **Login:** 6 partículas em ecrã pequeno (18 em computador, nenhuma com
+    `prefers-reduced-motion`), halo por gradiente radial em telemóvel, ícone
+    só salta em computador, entrada do cartão em 150 ms em telemóvel.
+  - **Ecrã de carregamento (`app.vue`):** um só elemento animado; e deixa de
+    tapar as rotas públicas quando o pedido não traz cookie `session` (era
+    o que atrasava o LCP do login — esperava pelo JS e por
+    `/api/auth/session`).
+  - **Fontes:** sem itálico nem preload (o `@nuxt/fonts` 0.14 pré-carregava
+    o Inter itálico latin-ext, 91 KB, nunca usado) — −114 KB por página.
+  - **Medição local** (A/B com o `main`, números na especificação): login
+    69 → 70, privacidade 72 → 80; desenho −15 a −30%; acessibilidade, boas
+    práticas e SEO a 100. Os números absolutos locais não servem para o
+    critério ≥ 85 (rede simulada e máquina a 100% de CPU) — falta medir na
+    Netlify (deploy de pré-visualização, a confirmar com o utilizador).
+  - **Regressão apanhada pelo E2E e corrigida:** com o login visível antes
+    da hidratação, um clique em "Criar conta" nesse intervalo perdia-se.
+    Separadores e formulário de credenciais ficam `disabled` até ao
+    `onMounted`.
+  - Testes: unitários 67/67, E2E 5/5, type-check 0 erros. Nota: com a
+    máquina a 100% de CPU o servidor E2E em dev não arrancou dentro dos
+    600 s do `webServer` (duas vezes) — corrido com o servidor arrancado e
+    aquecido à mão; reutilizar o mesmo servidor em duas corridas esgota o
+    limitador `auth-register-ip` (falso negativo, não é defeito).
+- 2026-10-08: **Upgrade 03 medido na Netlify** com um deploy de rascunho
+  (`https://upgrade-03--financeflow-webapp.netlify.app`, `--alias`, a
+  produção não mudou; cópia do `scripts/deploy-netlify.mjs` sem `--prod`,
+  o script do repositório ficou igual). Mediana de 5 corridas contra a
+  produção: login 68 → 73 e, depois de tirar a animação de entrada do
+  cartão em telemóvel (começava em opacity 0 e só pintava depois da
+  hidratação), 62 → 69 com LCP 4,14 → 3,15 s; privacidade 74 → 82, LCP
+  3,43 → 2,81 s; −108 KB por página. Acessibilidade, boas práticas e SEO a
+  100. **Critério ≥ 85 ainda não demonstrado:** o índice de CPU da máquina
+  estava em ~220–285 (calibração original ~390) e o que resta no login é
+  sobretudo JS. PageSpeed Insights sem chave estava sem quota — precisa de
+  chave de API para um número independente da máquina.
+- 2026-10-08: **PageSpeed Insights** (corrido pelo utilizador no site do
+  PSI) sobre a produção — ainda **sem** o Upgrade 03 —: login em telemóvel
+  **98**, LCP 2,0 s, TBT 30 ms, acessibilidade/boas práticas/SEO 100. Num
+  dispositivo-padrão o objetivo (≥ 85, LCP ≤ 2,5 s) já estava cumprido; o
+  69 de partida vinha da máquina de teste. Falta o PSI sobre o rascunho
+  (`https://upgrade-03--financeflow-webapp.netlify.app/login`) para
+  confirmar que o upgrade não piora, antes do merge.
+- 2026-10-08: **PSI sobre o rascunho** (utilizador): login em telemóvel
+  **100** de desempenho, LCP **0,9 s** (produção: 98, LCP 2,0 s). A
+  acessibilidade desceu para 97 (sem landmark `<main>` — o ecrã de
+  carregamento escondia-o antes); corrigido no login e em `LegalDocument`
+  (privacidade/termos). Rascunho volta a ser publicado para confirmar 100.
+- 2026-10-09: PSI do rascunho depois do `<main>` (utilizador):
+  acessibilidade **100**. **Os 3 critérios de aceitação do Upgrade 03 estão
+  cumpridos** (login 100 de desempenho, LCP 0,9 s; acessibilidade, boas
+  práticas e SEO 100; computador igual). Falta commit, merge em `main` e
+  deploy em produção, a decidir pelo utilizador.
+- 2026-10-09: **Upgrade 03 concluído**, a pedido do utilizador. Branch
+  `feature/upgrade-03-desempenho-telemovel` mergeado em `main` e apagado;
+  deploy em produção a seguir.

@@ -277,15 +277,22 @@ export default defineNuxtConfig({
   },
 
   // Só os pesos realmente usados (Tailwind font-normal…font-bold) e os
-  // alfabetos latinos (as 6 línguas da app); preload da fonte principal de cada família.
+  // alfabetos latinos (as 6 línguas da app). Upgrade 03 — sem itálico (a app
+  // não o usa) e sem preload: com `preload: true` o módulo (0.14, só aceita
+  // true/false) pré-carregava a 1.ª face de cada família — o Inter itálico
+  // latin-ext (91 KB, nunca usado) e o latin-ext do Space Grotesk — a competir
+  // com o JS em rede lenta antes do 1.º desenho. As @font-face vão inline no
+  // HTML, por isso o browser pede o subset `latin` logo no 1.º layout; as
+  // fallbacks com métricas ajustadas evitam saltos (CLS).
   fonts: {
     families: [
-      { name: 'Inter', weights: [400, 500, 600, 700] },
-      { name: 'Space Grotesk', weights: [400, 500, 600, 700] },
+      { name: 'Inter', weights: [400, 500, 600, 700], styles: ['normal'] },
+      { name: 'Space Grotesk', weights: [400, 500, 600, 700], styles: ['normal'] },
     ],
     defaults: {
+      styles: ['normal'],
       subsets: ['latin', 'latin-ext'],
-      preload: true,
+      preload: false,
     },
   },
 

@@ -115,7 +115,7 @@
     <!-- Group detail drawer -->
     <Transition name="slide">
       <div v-if="selectedGroup" class="fixed inset-y-0 right-0 z-50 w-full max-w-lg">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="selectedGroup = null" />
+        <div class="absolute inset-0 bg-black/75 lg:bg-black/60 lg:backdrop-blur-sm motion-reduce:backdrop-blur-none" @click="selectedGroup = null" />
         <div class="relative h-full glass-card border-l border-white/10 flex flex-col overflow-hidden">
           <!-- Drawer header -->
           <div class="flex items-center gap-4 p-6 border-b border-white/[0.08] shrink-0">

@@ -107,22 +107,35 @@ alerta de percentagem dos grupos.
    - campos editáveis, um botão "Aplicar limites" e um botão "Desfazer"
      (guarda os limites anteriores).
 
-### Decisões a tomar (utilizador)
+### Decisões (utilizador, 2026-10-08)
 
-1. **Plano:** Premium, como as previsões, ou Pro?
-2. **Fundo de maneio por omissão:** percentagem da receita mensal (proposta
-   10%) ou um valor fixo (por exemplo 1 mês de gastos fixos)? Editável pelo
-   utilizador em ambos os casos.
-3. **Meta de poupança:** opcional, com 0% por omissão? Ou proposta de 10%?
-4. **Onde aparece:** na página de Previsões, em Grupos, ou nas duas?
-5. **Atualização:** só quando o utilizador pede, ou também uma sugestão
-   automática no início de cada mês?
+1. **Plano: Premium** (o Pro não tem acesso). Nova chave na matriz:
+   `aiBudget: 'premium'`. O destaque do plano entra em `PLAN_HIGHLIGHTS`.
+2. **Fundo de maneio por omissão: 10% da receita mensal**, editável pelo
+   utilizador.
+3. **Meta de poupança por omissão: 10%**, editável (pode pôr 0%).
+4. **Onde aparece:** é gestão orçamental, não previsões. Fica na página
+   **Grupos e orçamentos** (`/groups`), onde já se definem os limites, como
+   um cartão "Orçamento sugerido por IA" no topo da página.
+   - Também aparece numa vista simples das categorias, porque os limites
+     das categorias também são preenchidos.
+   - Um utilizador Pro vê o cartão bloqueado (paywall Premium).
+5. **Só a pedido do utilizador, uma vez por mês civil** (no fuso de Lisboa,
+   como o resto do servidor).
+   - O pedido fica registado por conta e por mês, e um segundo pedido no
+     mesmo mês é recusado com uma mensagem a dizer quando pode voltar a
+     pedir.
+   - Entretanto, a proposta do mês continua visível e pode ser aplicada ou
+     desfeita as vezes que quiser.
+   - Não há sugestão automática.
 
-### Tarefas B (depois das decisões)
+### Tarefas B
 
-- [ ] `POST /api/insights/budget` (`requireFeature`, rate limit e cache de
-      24 h, como as outras funções de IA): agregados, cálculo determinístico,
-      IA e validação.
+- [ ] `POST /api/insights/budget` (`requireFeature('aiBudget')`):
+  - agregados, cálculo determinístico, IA e validação;
+  - **um pedido por conta por mês civil**: nova coleção, ou um campo com o
+    mês do último pedido. A proposta guardada é devolvida por
+    `GET /api/insights/budget` durante o resto do mês.
 - [ ] Classificação fixa/variável:
   - `recurrence` das transações;
   - regularidade (coeficiente de variação);

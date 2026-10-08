@@ -31,7 +31,15 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// Lighthouse (2026-10-08) — <html lang> e descrição da página no idioma ativo
+// (leitores de ecrã escolhem a pronúncia pela língua; a descrição aparece nos
+// resultados de pesquisa).
+useHead({
+  htmlAttrs: { lang: () => locale.value },
+  meta: [{ name: 'description', content: () => t('meta.description') }],
+})
 const auth = useAuthStore()
 const appLock = useAppLockStore()
 

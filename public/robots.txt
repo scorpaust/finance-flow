@@ -1,0 +1,7 @@
+# FinanceFlow — só as páginas públicas interessam a motores de pesquisa;
+# o resto exige sessão. A API nunca é indexada.
+User-agent: *
+Allow: /login
+Allow: /privacy
+Allow: /terms
+Disallow: /api/

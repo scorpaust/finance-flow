@@ -802,5 +802,8 @@
     "aiInvestmentTips": "AI investment tips",
     "documentScanMore": "Scan up to {n} documents/month",
     "prioritySupport": "Priority support"
+  },
+  "meta": {
+    "description": "FinanceFlow: track spending, budgets and investments, with AI forecasts and insights."
   }
 }

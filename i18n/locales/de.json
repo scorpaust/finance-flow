@@ -802,5 +802,8 @@
     "aiInvestmentTips": "KI-Anlagetipps",
     "documentScanMore": "Bis zu {n} Dokumente/Monat scannen",
     "prioritySupport": "Bevorzugter Support"
+  },
+  "meta": {
+    "description": "FinanceFlow: Ausgaben, Budgets und Investitionen im Blick, mit KI-Prognosen und -Analysen."
   }
 }

@@ -802,5 +802,8 @@
     "aiInvestmentTips": "Conseils d’investissement par IA",
     "documentScanMore": "Numérisation jusqu’à {n} documents/mois",
     "prioritySupport": "Support prioritaire"
+  },
+  "meta": {
+    "description": "FinanceFlow : suis tes dépenses, budgets et investissements, avec prévisions et analyses par IA."
   }
 }

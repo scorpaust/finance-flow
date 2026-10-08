@@ -21,6 +21,10 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
+    // Lighthouse (2026-10-08) — fontes servidas pelo próprio site, em vez do
+    // CSS do Google Fonts que bloqueava o primeiro desenho (~1 s em telemóvel)
+    // e obrigava a dois domínios externos na CSP. Descarregadas no build.
+    '@nuxt/fonts',
     // Fase 8, ponto 8 — monitorização de erros. Só carrega com SENTRY_DSN
     // definido: sem DSN a app não instrumenta nem envia nada (dev/testes
     // nunca poluem o projeto Sentry, e um DSN em falta nunca parte o build).
@@ -212,8 +216,8 @@ export default defineNuxtConfig({
         'Content-Security-Policy': [
           "default-src 'self'",
           "script-src 'self' 'unsafe-inline'",
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "font-src 'self' data: https://fonts.gstatic.com",
+          "style-src 'self' 'unsafe-inline'",
+          "font-src 'self' data:",
           "img-src 'self' data: blob: https:",
           "connect-src 'self' https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://pay.easypay.pt https://pay.sandbox.easypay.pt",
           "frame-src https://pay.easypay.pt https://pay.sandbox.easypay.pt",
@@ -272,18 +276,23 @@ export default defineNuxtConfig({
     },
   },
 
+  // Só os pesos realmente usados (Tailwind font-normal…font-bold) e os
+  // alfabetos latinos (as 6 línguas da app); preload da fonte principal de cada família.
+  fonts: {
+    families: [
+      { name: 'Inter', weights: [400, 500, 600, 700] },
+      { name: 'Space Grotesk', weights: [400, 500, 600, 700] },
+    ],
+    defaults: {
+      subsets: ['latin', 'latin-ext'],
+      preload: true,
+    },
+  },
+
   app: {
     head: {
       title: 'FinanceFlow',
       link: [
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        // Só os pesos realmente usados (Tailwind font-normal…font-bold);
-        // 300/800/900 não aparecem em lado nenhum e eram descarregados à mesma.
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap',
-        },
         // Mesmo logótipo do ícone Android/manifest PWA (Fase 4, tarefa 6) —
         // sem isto o browser não tinha favicon explícito nenhum.
         { rel: 'icon', type: 'image/svg+xml', href: '/icons/icon-192x192.svg' },

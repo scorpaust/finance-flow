@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen auth-bg flex items-center justify-center p-4 relative overflow-hidden">
+  <main class="min-h-screen auth-bg flex items-center justify-center p-4 relative overflow-hidden">
     <button
       v-if="auth.isAuthenticated"
       class="absolute top-4 right-4 z-20 btn-secondary text-sm py-2 px-4 flex items-center gap-2"
@@ -12,19 +12,35 @@
     <div class="orb w-[500px] h-[500px] bg-brand-700 -top-40 -left-40 opacity-30" style="animation-delay:0s" />
     <div class="orb w-[400px] h-[400px] bg-purple-700 -bottom-32 -right-32 opacity-25" style="animation-delay:-4s" />
 
+    <!-- Upgrade 03 — em ecrã pequeno só as primeiras partículas; nenhuma com
+         prefers-reduced-motion. Feito em CSS (não em JS) para o SSR e a
+         hidratação darem o mesmo HTML. -->
     <div
       v-for="p in particles"
       :key="p.id"
-      class="absolute w-1 h-1 rounded-full bg-brand-400/40 animate-float pointer-events-none"
+      :class="[
+        'absolute w-1 h-1 rounded-full bg-brand-400/40 animate-float pointer-events-none motion-reduce:hidden',
+        p.id >= MOBILE_PARTICLES && 'max-lg:hidden',
+      ]"
       :style="{ left: p.x + '%', top: p.y + '%', animationDelay: p.delay + 's', animationDuration: p.dur + 's' }"
     />
 
-    <div class="relative z-10 w-full max-w-md animate-scale-in">
-      <div class="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-purple-600/20 rounded-4xl blur-2xl" />
+    <!-- Sem animação de entrada em telemóvel (Upgrade 03): começava em
+         opacity 0 e o 1.º frame só era pintado depois da hidratação — o
+         cartão ficava invisível até lá e o LCP preso ao JS (medido na
+         Netlify: 1.º desenho 1,3 s depois do DOMContentLoaded). -->
+    <div class="relative z-10 w-full max-w-md animate-scale-in max-lg:animate-none">
+      <!-- Halo: em computador o desfoque original; em telemóvel um gradiente
+           radial com a mesma cor, sem filtro (Upgrade 03). -->
+      <div class="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-purple-600/20 rounded-4xl blur-2xl hidden lg:block" />
+      <div
+        class="absolute -inset-8 pointer-events-none lg:hidden"
+        style="background: radial-gradient(closest-side, rgba(79, 70, 229, 0.22), rgba(147, 51, 234, 0.12) 70%, transparent)"
+      />
 
       <div class="relative glass-card rounded-4xl p-8 sm:p-10">
         <div class="text-center mb-8">
-          <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center neon-brand animate-bounce-subtle">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center neon-brand lg:animate-bounce-subtle">
             <span class="text-4xl">💹</span>
           </div>
           <h1 class="font-display font-bold text-3xl text-white mb-2">FinanceFlow</h1>
@@ -33,12 +49,17 @@
           </p>
         </div>
 
+        <!-- Upgrade 03 — o login já aparece antes da hidratação (o ecrã de
+             carregamento deixou de o tapar); até lá os controlos ficam
+             desativados, senão um toque em "Criar conta" ou o texto escrito
+             antes de o Vue assumir perdiam-se. -->
         <div v-if="step === 'credentials'" class="grid grid-cols-2 gap-1 bg-surface-700/50 rounded-2xl p-1 mb-6">
           <button
             type="button"
             data-testid="login-tab-login"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'login' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
+            :disabled="!hydrated"
             @click="setMode('login')"
           >
             {{ t('auth.loginTab') }}
@@ -48,98 +69,101 @@
             data-testid="login-tab-register"
             class="py-2.5 rounded-xl text-sm font-semibold transition-all"
             :class="mode === 'register' ? 'bg-brand-600 text-white shadow-glow-sm' : 'text-white/50 hover:text-white'"
+            :disabled="!hydrated"
             @click="setMode('register')"
           >
             {{ t('auth.registerTab') }}
           </button>
         </div>
 
-        <form v-if="step === 'credentials'" class="space-y-4" @submit.prevent="submit">
-          <div v-if="mode === 'register'">
-            <label class="form-label">{{ t('auth.nameLabel') }}</label>
-            <div class="relative">
-              <User class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input
-                v-model="form.name"
-                type="text"
-                data-testid="login-name"
-                class="form-input pl-9"
-                autocomplete="name"
-                :placeholder="t('auth.namePlaceholder')"
-              />
+        <form v-if="step === 'credentials'" @submit.prevent="submit">
+          <fieldset :disabled="!hydrated" class="space-y-4 min-w-0 m-0 p-0 border-0">
+            <div v-if="mode === 'register'">
+              <label class="form-label">{{ t('auth.nameLabel') }}</label>
+              <div class="relative">
+                <User class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <input
+                  v-model="form.name"
+                  type="text"
+                  data-testid="login-name"
+                  class="form-input pl-9"
+                  autocomplete="name"
+                  :placeholder="t('auth.namePlaceholder')"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label class="form-label">{{ t('auth.emailLabel') }}</label>
-            <div class="relative">
-              <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <div>
+              <label class="form-label">{{ t('auth.emailLabel') }}</label>
+              <div class="relative">
+                <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <input
+                  v-model="form.email"
+                  type="email"
+                  data-testid="login-email"
+                  class="form-input pl-9"
+                  autocomplete="email"
+                  placeholder="nome@email.com"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">{{ t('auth.passwordLabel') }}</label>
+              <div class="relative">
+                <Lock class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <input
+                  v-model="form.password"
+                  type="password"
+                  data-testid="login-password"
+                  class="form-input pl-9"
+                  :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+                  :placeholder="t('auth.passwordPlaceholder')"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Aceitação explícita: desmarcada por omissão e obrigatória (validada
+                 também no servidor). Só no registo. -->
+            <label v-if="mode === 'register'" class="flex items-start gap-3 cursor-pointer">
               <input
-                v-model="form.email"
-                type="email"
-                data-testid="login-email"
-                class="form-input pl-9"
-                autocomplete="email"
-                placeholder="nome@email.com"
+                v-model="form.acceptTerms"
+                type="checkbox"
+                data-testid="login-accept-terms"
+                class="mt-0.5 w-4 h-4 shrink-0 accent-brand-500"
                 required
               />
+              <i18n-t keypath="auth.acceptTerms" tag="span" class="text-white/60 text-xs leading-relaxed">
+                <template #terms>
+                  <NuxtLink to="/terms" target="_blank" class="underline hover:text-white">{{ t('legal.terms') }}</NuxtLink>
+                </template>
+                <template #privacy>
+                  <NuxtLink to="/privacy" target="_blank" class="underline hover:text-white">{{ t('legal.privacy') }}</NuxtLink>
+                </template>
+              </i18n-t>
+            </label>
+
+            <div
+              v-if="errorMessage"
+              class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
+            >
+              <AlertCircle class="w-4 h-4 shrink-0" />
+              {{ errorMessage }}
             </div>
-          </div>
 
-          <div>
-            <label class="form-label">{{ t('auth.passwordLabel') }}</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input
-                v-model="form.password"
-                type="password"
-                data-testid="login-password"
-                class="form-input pl-9"
-                :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-                :placeholder="t('auth.passwordPlaceholder')"
-                required
-              />
-            </div>
-          </div>
-
-          <!-- Aceitação explícita: desmarcada por omissão e obrigatória (validada
-               também no servidor). Só no registo. -->
-          <label v-if="mode === 'register'" class="flex items-start gap-3 cursor-pointer">
-            <input
-              v-model="form.acceptTerms"
-              type="checkbox"
-              data-testid="login-accept-terms"
-              class="mt-0.5 w-4 h-4 shrink-0 accent-brand-500"
-              required
-            />
-            <i18n-t keypath="auth.acceptTerms" tag="span" class="text-white/60 text-xs leading-relaxed">
-              <template #terms>
-                <NuxtLink to="/terms" target="_blank" class="underline hover:text-white">{{ t('legal.terms') }}</NuxtLink>
-              </template>
-              <template #privacy>
-                <NuxtLink to="/privacy" target="_blank" class="underline hover:text-white">{{ t('legal.privacy') }}</NuxtLink>
-              </template>
-            </i18n-t>
-          </label>
-
-          <div
-            v-if="errorMessage"
-            class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
-          >
-            <AlertCircle class="w-4 h-4 shrink-0" />
-            {{ errorMessage }}
-          </div>
-
-          <button
-            :disabled="loading"
-            data-testid="login-submit"
-            class="btn-primary w-full flex items-center justify-center gap-2"
-            type="submit"
-          >
-            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
-            <LogIn v-else class="w-4 h-4" />
-            {{ loading ? t('auth.submitting') : mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister') }}
-          </button>
+            <button
+              :disabled="loading"
+              data-testid="login-submit"
+              class="btn-primary w-full flex items-center justify-center gap-2"
+              type="submit"
+            >
+              <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+              <LogIn v-else class="w-4 h-4" />
+              {{ loading ? t('auth.submitting') : mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister') }}
+            </button>
+          </fieldset>
         </form>
 
         <!-- Fase 8, ponto 3 — segundo passo do login quando a conta tem 2FA ativo -->
@@ -199,7 +223,7 @@
         </p>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
@@ -234,6 +258,12 @@ watch(
   { immediate: true }
 )
 
+// false no SSR e na hidratação (mesmo HTML dos dois lados); true quando o Vue
+// já trata os eventos — ver o comentário dos separadores no template.
+const hydrated = ref(false)
+onMounted(() => { hydrated.value = true })
+
+const MOBILE_PARTICLES = 6
 const particles = Array.from({ length: 18 }, (_, i) => {
   const seed = i + 1
   return {

@@ -347,6 +347,50 @@
   }
 }
 
+/* Upgrade 03 — desempenho em telemóvel. O backdrop-filter (vidro) e o
+   filter: blur das orbs eram o grosso do custo de desenho (Lighthouse
+   2026-10-08). Abaixo de 1024px, e com prefers-reduced-motion em qualquer
+   tamanho, o vidro passa a um fundo quase opaco com a cor que o vidro tinha
+   sobre surface-900 (branco 8%/3% → #222235/#16162a), e as orbs passam a uma
+   máscara radial estática. Em computador fica tudo como estava. */
+@media (max-width: 1023px), (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .glass-card-hover,
+  .btn-secondary,
+  .btn-icon,
+  .stat-card,
+  .chart-wrapper,
+  .modal-content,
+  .toast {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(135deg, rgba(34, 34, 53, 0.96), rgba(22, 22, 42, 0.96));
+  }
+
+  .glass-card-hover:hover {
+    background: linear-gradient(135deg, rgba(44, 44, 61, 0.96), rgba(29, 29, 48, 0.96));
+  }
+
+  .form-input,
+  .form-select {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .modal-overlay {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .orb {
+    filter: none;
+    animation: none;
+    -webkit-mask-image: radial-gradient(closest-side, #000 0%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 0%, transparent 100%);
+  }
+}
+
 /* Chart.js global overrides */
 canvas {
   @apply !max-w-full;

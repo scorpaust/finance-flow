@@ -46,6 +46,19 @@ Há três problemas reais:
 - [ ] Alternativa com tendência: regressão linear sobre os meses completos,
       limitada (não projeta valores negativos nem saltos maiores do que o
       máximo histórico). A média só se usa quando não há tendência.
+- [ ] **Um só mínimo, dito da mesma forma em todo o lado.** Hoje há três
+      números diferentes:
+  - página vazia: "pelo menos 3 meses" (`predictions.emptyHint`);
+  - aviso ao gerar: "pelo menos 2 meses" (`predictions.toastMinData`);
+  - o modelo de IA, na realidade: 5 meses.
+
+  Proposta:
+  - **2 meses completos** para a previsão simples (tendência);
+  - **5 meses completos** para o modelo de IA;
+  - a página diz quantos meses completos há e o que cada patamar
+    desbloqueia;
+  - os números vêm de uma constante partilhada, para não voltarem a
+    divergir.
 - [ ] Testes unitários das funções puras: meses completos, tendência, limites.
 
 ## Parte B — Orçamento sugerido por IA (nova funcionalidade)

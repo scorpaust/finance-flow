@@ -38,7 +38,7 @@
     "@sentry/nuxt": "^10.75.3",
     "@sgratzl/chartjs-chart-boxplot": "^4.4.5",
     "@tensorflow/tfjs": "^4.20.0",
-    "@vueuse/nuxt": "^10.9.0",
+    "@vueuse/nuxt": "^15.0.0",
     "chart.js": "^4.4.2",
     "date-fns": "^3.6.0",
     "lucide-vue-next": "^0.383.0",

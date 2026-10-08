@@ -39,11 +39,15 @@ Acertos de 2026-10-07, depois do teste:
   `context/SECURITY-EXCEPTIONS.md`.
 - **Testes:** unitários 64, integração 40, E2E 5.
 
-**Upgrade 02 — ecrã de arranque, barra de estado e R8 (app 1.2.0,
-versionCode 5):** implementado (`context/features/upgrades/02-splash-barra-estado-r8.md`).
-O `.aab` ficou 42% mais pequeno. Falta o utilizador carregar a 1.2.0 nos
-testes fechados e fazer o teste manual: arranque, barra de estado, modo de
-avião, biometria, câmara e compra de teste.
+**Upgrade 02 — ecrã de arranque, barra de estado e R8: app 1.2.2
+(versionCode 7)** (`context/features/upgrades/02-splash-barra-estado-r8.md`).
+O `.aab` ficou 40% mais pequeno do que a 1.1.0.
+- A 1.2.0 tinha a câmara partida pelo R8 (anotações do Capacitor apagadas).
+- Na 1.2.2 está corrigida e testada no telemóvel por cabo (build de
+  release): arranque, biometria, transações e câmara com a IA.
+- Falta: carregar a 1.2.2 nos testes fechados, e testar as compras e o
+  modo de avião na versão instalada pela Play. Antes, desinstalar a build
+  de teste, que tem outra assinatura.
 
 **A seguir: retomar a Fase 9 (Publicação)**, que ficou em pausa e não está
 concluída. Próximo passo combinado: testes fechados (12+ testadores durante
@@ -53,8 +57,9 @@ internet, splash/barra de estado, otimização R8, correções do feedback). Fei
 internos (`.aab` 1.0.0 e 1.0.1 assinados, pacote `com.dinismcosta.financeflow`;
 1.0.2 / versionCode 3 gerada a 2026-10-01 com o ecrã sem internet —
 `android-web/offline.html` via `server.errorPath`),
-ficha da loja e declarações da Play Console. Por fazer: testes fechados,
-configuração da Google Play Billing (Upgrade 01), Lighthouse
+ficha da loja e declarações da Play Console. Google Play Billing configurada
+e testada (Upgrade 01). Por fazer: testes fechados, atualizar a declaração de
+segurança dos dados (pagamentos pela Google Play), Lighthouse
 (a CSP já é obrigatória desde 2026-10-03, validada sem violações), produção com rollout faseado. Histórico
 completo abaixo.
 

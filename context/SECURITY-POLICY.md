@@ -51,6 +51,10 @@ Abrange:
 
 - **Uma vez por ano**, obter o certificado de conformidade PCI DSS (AOC) da
   EasyPay e guardá-lo junto desta política.
+  - **Verificado a 2026-10-08:** a EasyPay declara-se **"Certificado
+    PCI-DSS Level 1"** em https://www.easypay.pt/meios-de-pagamento (secção
+    de meios de pagamento e FAQ).
+  - Próxima verificação: outubro de 2027.
 - Um fornecedor novo que toque em dados pessoais ou de pagamento só entra
   depois de ser acrescentado a esta tabela, à política de privacidade e à
   declaração de segurança de dados da Google Play.
@@ -61,7 +65,8 @@ Abrange:
   Netlify, MongoDB Atlas, Cloudflare, GitHub, Google Play Console e
   Anthropic. Se houver mais pessoas, cada uma tem uma conta própria.
   Contas partilhadas de administração são proibidas.
-- **2FA obrigatória** em todas essas consolas.
+- **2FA obrigatória** em todas essas consolas (confirmado pelo responsável a
+  2026-10-08).
 - **Palavras-passe**:
   - únicas por serviço, longas e aleatórias, guardadas num gestor de
     palavras-passe;

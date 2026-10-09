@@ -12,11 +12,10 @@ e decisões do utilizador fechadas (commits `37d9803`, `a05a6f6`,
 partir de `main` a 2026-10-09. Partes A e B implementadas e os 3 critérios
 de aceitação cobertos por testes: unitários 99/99, integração 47/47, E2E 6/6,
 type-check 0 erros. Merge em `main` e deploy em produção a 2026-10-09;
-contas `tester-*` com 6 meses de dados. Falta: `git push` (sem acesso SSH
-neste terminal), atualizar a descrição do Premium na ficha da Play Console
-(texto em `context/PLAY-STORE.md`), rever as traduções legais, e mudar a
-password do utilizador `app-prod` do Atlas (foi partilhada na conversa).
-Só web — não precisa de `.aab` novo.
+contas `tester-*` com 6 meses de dados. Feito pelo utilizador: `git push`,
+descrição do Premium na Play Console, revisão das traduções legais e nova
+password do `app-prod` (Netlify + secret do backup no GitHub). Só web — não
+precisa de `.aab` novo.
 
 **Upgrade 03 — desempenho visual em telemóvel: Concluída** (2026-10-09;
 `context/features/upgrades/03-desempenho-visual-telemovel.md`). Os 3
@@ -2490,3 +2489,11 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   alimentação e o combustível variam mais, para não serem classificados
   como fixos. As propostas de teste pedidas na verificação foram apagadas
   (`--reset-budget`): o tester Premium pode pedir a sua.
+- 2026-10-09: **Password do `app-prod` mudada** (tinha sido partilhada na
+  conversa). Mudar a `MONGODB_URI` na Netlify não chega às funções já
+  publicadas: a produção deu 500 (`bad auth`) das 14:15 até ao redeploy
+  (`npm run deploy:netlify`), que resolveu. Lição: mudar no Atlas, na
+  Netlify e redeploy logo a seguir. A app aberta durante a falha ficou com
+  o plano Gratuito e sem dados até recarregar. O utilizador fez também o
+  `git push`, a ficha da Play Console, a revisão das traduções legais e o
+  secret do backup. Upgrade 04 fechado.

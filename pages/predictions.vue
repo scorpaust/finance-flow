@@ -50,10 +50,10 @@
         </div>
         <div class="flex gap-3 flex-wrap">
           <div class="text-center">
-            <p class="text-brand-400 font-bold text-sm">{{ historicalMonths }}</p>
+            <p class="text-brand-400 font-bold text-sm" data-testid="predictions-complete-months">{{ historicalMonths }}</p>
             <p class="text-white/30 text-xs">{{ t('predictions.monthsOfData') }}</p>
           </div>
-          <div class="text-center" v-if="result">
+          <div class="text-center" v-if="result && result.confidence != null">
             <p class="text-emerald-400 font-bold text-sm">{{ (result.confidence * 100).toFixed(0) }}%</p>
             <p class="text-white/30 text-xs">{{ t('predictions.confidence') }}</p>
           </div>
@@ -98,6 +98,18 @@
 
     <!-- Results -->
     <template v-if="result && !isTraining">
+      <!-- Upgrade 04 — previsão simples: diz porquê e quantos meses faltam -->
+      <div
+        v-if="result.modelType !== 'convnext'"
+        data-testid="predictions-simple-notice"
+        class="glass-card rounded-3xl p-4 border border-yellow-500/20 flex items-start gap-3"
+      >
+        <Info class="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+        <p class="text-white/70 text-sm">
+          {{ t('predictions.simpleNotice', { needed: PREDICTION_MIN_MONTHS.model, have: result.completeMonths }) }}
+        </p>
+      </div>
+
       <!-- Forecast cards -->
       <div data-testid="predictions-result">
         <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
@@ -154,9 +166,10 @@
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-emerald-400 inline-block" />{{ t('predictions.legendIncome') }}</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm bg-rose-400 inline-block" />{{ t('predictions.legendExpense') }}</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 rounded-sm border-b-2 border-dashed border-brand-400 inline-block" />{{ t('predictions.legendForecast') }}</span>
+            <span v-if="currentMonth" class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full border-2 border-white/60 inline-block" />{{ t('predictions.legendCurrent') }}</span>
           </div>
         </div>
-        <ForecastChart :historical="historicalData" :forecasts="result.forecasts" />
+        <ForecastChart :historical="historicalData" :forecasts="result.forecasts" :current="currentMonth" />
       </div>
 
       <!-- Trends + Insights -->
@@ -206,9 +219,11 @@
           </div>
           <div class="mt-4 bg-surface-700/30 rounded-2xl p-4">
             <p class="text-white/50 text-xs font-medium mb-1">{{ t('predictions.modelUsed') }}</p>
-            <p class="text-brand-400 font-semibold text-sm">{{ result.modelType }}</p>
+            <p class="text-brand-400 font-semibold text-sm" data-testid="predictions-method">{{ t(`predictions.method.${result.modelType}`) }}</p>
             <p class="text-white/30 text-xs mt-1">
-              {{ t('predictions.confidenceBasedOn', { pct: (result.confidence * 100).toFixed(0), months: historicalMonths }) }}
+              {{ result.confidence != null
+                ? t('predictions.confidenceBasedOn', { pct: (result.confidence * 100).toFixed(0), months: result.completeMonths })
+                : t('predictions.basedOnMonths', { months: result.completeMonths }) }}
             </p>
           </div>
         </div>
@@ -243,7 +258,10 @@
       <button class="btn-primary flex items-center gap-2 mx-auto" @click="runPrediction">
         <Brain class="w-4 h-4" /> {{ t('predictions.startPrediction') }}
       </button>
-      <p class="text-white/20 text-xs mt-4">{{ t('predictions.emptyHint') }}</p>
+      <p class="text-white/30 text-xs mt-4" data-testid="predictions-empty-hint">
+        {{ t('predictions.emptyHint', { simple: PREDICTION_MIN_MONTHS.simple, model: PREDICTION_MIN_MONTHS.model }) }}
+        <template v-if="monthsLoaded">{{ t('predictions.emptyHave', { have: historicalMonths }) }}</template>
+      </p>
     </div>
 
     <PaywallModal
@@ -258,8 +276,9 @@
 <script setup lang="ts">
 import {
   Brain, Loader2, Cpu, TrendingUp, TrendingDown, Minus,
-  Activity, Lightbulb, ArrowLeft,
+  Activity, Lightbulb, ArrowLeft, Info,
 } from 'lucide-vue-next'
+import { PREDICTION_MIN_MONTHS } from '~/shared/forecast'
 
 definePageMeta({ layout: 'default' })
 
@@ -275,9 +294,28 @@ const sub = useSubscription()
 const showPaywall = ref(false)
 
 const result = ref<any>(null)
+// Só meses completos; o mês em curso vem à parte (Upgrade 04).
 const historicalData = ref<any[]>([])
+const currentMonth = ref<{ month: string; income: number; expense: number } | null>(null)
 const historicalMonths = ref(0)
+const monthsLoaded = ref(false)
 const predictionRunId = ref(0)
+
+async function loadData() {
+  const data = await $fetch<any>('/api/predictions/data', { params: { months: 12 } })
+  historicalData.value = data.monthlySeries
+  currentMonth.value = data.currentMonth || null
+  historicalMonths.value = data.monthlySeries.length
+  monthsLoaded.value = true
+  return data
+}
+
+// A página diz logo quantos meses completos há (e o que cada patamar
+// desbloqueia), antes de o utilizador carregar no botão.
+const canPredict = computed(() => sub.hasFeature('predictions'))
+watch(canPredict, (allowed) => {
+  if (allowed && !monthsLoaded.value) loadData().catch(() => {})
+}, { immediate: true })
 
 const trainingSteps = computed(() => [
   { icon: '📊', label: t('predictions.stepData'), threshold: 10 },
@@ -298,12 +336,10 @@ async function runPrediction() {
 
   const runId = ++predictionRunId.value
   try {
-    const data = await $fetch<any>('/api/predictions/data', { params: { months: 12 } })
-    historicalData.value = data.monthlySeries
-    historicalMonths.value = data.monthlySeries.length
+    const data = await loadData()
 
-    if (historicalMonths.value < 2) {
-      toast.error(t('predictions.toastMinData'))
+    if (historicalMonths.value < PREDICTION_MIN_MONTHS.simple) {
+      toast.error(t('predictions.toastMinData', { min: PREDICTION_MIN_MONTHS.simple, have: historicalMonths.value }))
       return
     }
 

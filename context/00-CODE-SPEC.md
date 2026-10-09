@@ -102,6 +102,7 @@ uma cobrança MB WAY à espera da confirmação push do cliente.
 | Estatísticas avançadas (gráficos completos) | básico | ✅ | ✅ |
 | Exportar CSV | ❌ | ✅ | ✅ |
 | Previsões IA / ML (ConvNeXt-1D) | ❌ | ❌ | ✅ |
+| Orçamento sugerido por IA (Upgrade 04; 1 pedido por mês) | ❌ | ❌ | ✅ |
 | Interpretação de estatísticas com IA (Fase 3) | ❌ | ✅ | ✅ |
 | Digitalizar recibos/faturas com IA (Fase 5; teto mensal de documentos: Pro 30, Premium 100) | ❌ | ✅ | ✅ |
 | Registo de investimentos (Fase 6) | ❌ | ❌ | ✅ |

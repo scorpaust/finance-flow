@@ -362,6 +362,7 @@
 import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp } from 'lucide-vue-next'
 import type { Transaction, DocumentScanResult } from '~/types'
 import { greetingKey } from '~/shared/greeting'
+import { PREDICTION_MIN_MONTHS } from '~/shared/forecast'
 
 definePageMeta({ layout: 'default' })
 
@@ -450,8 +451,9 @@ async function runDashboardPrediction() {
     const data = await $fetch<any>('/api/predictions/data', { params: { months: 12 } })
     const monthlySeries = data.monthlySeries || []
 
-    if (monthlySeries.length < 2) {
-      toast.error(t('dashboard.toastPredictionErrorMinData'))
+    // Só meses completos (Upgrade 04) — o mesmo mínimo da página de previsões.
+    if (monthlySeries.length < PREDICTION_MIN_MONTHS.simple) {
+      toast.error(t('predictions.toastMinData', { min: PREDICTION_MIN_MONTHS.simple, have: monthlySeries.length }))
       return
     }
 

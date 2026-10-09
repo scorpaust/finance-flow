@@ -14,7 +14,8 @@ PWA full-stack para gestão de finanças pessoais com previsões por deep learni
 | **Grupos** | Agrupamento de transações com teto mensal/semanal, alertas de percentagem, stats e drawer de detalhe |
 | **Dashboard** | KPIs em tempo real, evolução do saldo, top categorias, transações recentes |
 | **Estatísticas** | Gráficos Bar/Area/Donut/Horizontal + tabela mensal + totais por período + distribuição/quartis (Pro+) |
-| **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium) |
+| **Previsões IA** | ConvNeXt-1D (TensorFlow.js, browser) — previsão 3 meses c/ intervalos confiança (Premium). Só meses completos (o mês em curso aparece à parte); com 2–4 meses completos, previsão simples pela tendência (Upgrade 04) |
+| **Orçamento sugerido por IA** | Em `/groups` (Premium): limite mensal proposto para cada categoria e grupo a partir das receitas, dos gastos fixos, do fundo de maneio e da meta de poupança; ajustar, aplicar e desfazer. 1 pedido por mês civil — ver [Insights com IA](#-insights-com-ia) |
 | **Subscrições** | Planos Gratuito/Pro/Premium, com o mesmo preço em todo o lado (definido na Play Console). No site via EasyPay — Cartão/Débito Direto (auto-renovação real), MB WAY e Multibanco (pagamento único de 1/3/6/12 meses); na app Android via Google Play Billing, com a mesma oferta e os mesmos preços — ver [Subscrições](#-subscrições-easypay-cartãodd--mb-way--multibanco) |
 | **Insights com IA** | Interpretação de estatísticas (Pro+) e dicas de investimento educativas por perfil de risco (Premium), via Anthropic — ver [Insights com IA](#-insights-com-ia) |
 | **Registo de investimentos** | Portfolio pessoal em `/investimento` (Premium): cada posição com inicial, data, reforço e situação, rentabilidade calculada (nunca guardada) por posição e no total, e ações rápidas "Reforçar" / "Atualizar situação". As dicas de IA podem ter em conta a carteira, só em agregado — ver [Registo de investimentos](#-registo-de-investimentos) |
@@ -322,10 +323,19 @@ agregados já calculados no servidor:
   (`InvestmentTipsCache`, invalidada quando o perfil, o portfolio ou o mercado
   mudam, ou passadas 24 h), e podem opcionalmente ter em conta um resumo
   agregado do portfolio — ver [Registo de investimentos](#-registo-de-investimentos).
+- **Orçamento sugerido** (`/groups`, exclusivo Premium, Upgrade 04) — com
+  3+ meses completos de despesas, propõe um limite mensal por categoria e por
+  grupo. O cálculo é da app (`shared/budget.ts`: fixos intactos, cortes
+  primeiro nas despesas discricionárias, soma nunca acima da receita
+  disponível); a IA só ajusta dentro desses limites e explica, e o servidor
+  volta a verificar tudo (se falhar ou sair dos limites, fica a proposta da
+  app). Um pedido por conta por mês civil (`AiBudgetProposal`); aplicar grava
+  `monthlyLimit` das categorias e grupos e guarda os anteriores para desfazer.
 
 Detalhe completo em
-[`context/features/03-FASE-3-insights-ia.md`](context/features/03-FASE-3-insights-ia.md) e
-[`context/features/06-FASE-6-registo-investimentos.md`](context/features/06-FASE-6-registo-investimentos.md).
+[`context/features/03-FASE-3-insights-ia.md`](context/features/03-FASE-3-insights-ia.md),
+[`context/features/06-FASE-6-registo-investimentos.md`](context/features/06-FASE-6-registo-investimentos.md) e
+[`context/features/upgrades/04-orcamento-ia-e-previsoes.md`](context/features/upgrades/04-orcamento-ia-e-previsoes.md).
 
 ---
 

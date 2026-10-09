@@ -4,7 +4,8 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createSign } from 'node:crypto'
-import { User, Category, Transaction, TransactionGroup, Investment, FxCache } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal } from '../../server/models/index'
+import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
 function anthropicTextResponse(data: unknown) {
@@ -1134,6 +1135,217 @@ describe('moeda de apresentação (Fase 10)', () => {
     expect(res.status).toBe(200)
     const tx = await Transaction.findOne({ userId: user!._id, description: 'Em dólares' }).lean()
     expect(tx).toMatchObject({ amount: 90, currency: 'USD', originalAmount: 100, exchangeRate: 0.9 })
+  })
+})
+
+describe('orçamento sugerido por IA (Upgrade 04)', () => {
+  // Descrição que NUNCA pode chegar à IA (só agregados por categoria).
+  const SECRET_DESCRIPTION = 'Consulta privada dr-xyz'
+
+  // 3 meses completos (ou `months`) de: salário 2000, renda 900 recorrente,
+  // comida 380/450/520 e lazer 300/400/350 (num grupo "Diversão"); mais
+  // despesas no mês em curso, que não podem contar.
+  async function seedHistory(email: string, months = 3) {
+    const user = await User.findOne({ email })
+    const userId = user!._id
+    const [salary, rent, food, fun] = await Category.create([
+      { userId, name: 'Pay', type: 'income' },
+      { userId, name: 'Rent', type: 'expense' },
+      { userId, name: 'Food', type: 'expense' },
+      { userId, name: 'Fun leisure', type: 'expense' },
+    ])
+    const group = await TransactionGroup.create({ userId, name: 'Diversão' })
+    await Category.updateOne({ _id: fun._id }, { $set: { groupId: group._id } })
+
+    const thisMonth = currentMonthKey()
+    const dateOf = (monthsAgo: number) => new Date(`${addMonths(thisMonth, -monthsAgo)}-15T00:00:00Z`)
+    const food3 = [380, 450, 520]
+    const fun3 = [300, 400, 350]
+    const docs: any[] = []
+    for (let i = 0; i < months; i++) {
+      const base = { userId, date: dateOf(months - i), currency: 'EUR' }
+      docs.push(
+        { ...base, type: 'income', amount: 2000, description: 'Salário', categoryId: salary._id, recurrence: 'monthly' },
+        { ...base, type: 'expense', amount: 900, description: 'Renda', categoryId: rent._id, recurrence: 'monthly' },
+        { ...base, type: 'expense', amount: food3[i % 3], description: SECRET_DESCRIPTION, categoryId: food._id },
+        { ...base, type: 'expense', amount: fun3[i % 3], description: 'Cinema', categoryId: fun._id },
+      )
+    }
+    // Mês em curso: um gasto enorme que, se contasse, estragava as médias.
+    docs.push({ userId, date: dateOf(0), currency: 'EUR', type: 'expense', amount: 5000, description: 'Mês em curso', categoryId: food._id })
+    await Transaction.insertMany(docs)
+    return { userId, rent, food, fun, group }
+  }
+
+  async function premiumUser(label: string, months = 3) {
+    const email = uniqueEmail(label)
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+    const seeded = await seedHistory(email, months)
+    return { email, cookie, ...seeded }
+  }
+
+  const post = (path: string, cookie: string, body?: unknown) =>
+    fetch(path, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+
+  it('é só Premium: o Pro recebe 403 em todos os endpoints', async () => {
+    const email = uniqueEmail('budget-pro')
+    const { cookie } = await register(email)
+    await setTier(email, 'pro')
+    expect((await fetch('/api/insights/budget', { headers: { cookie } })).status).toBe(403)
+    expect((await post('/api/insights/budget', cookie, {})).status).toBe(403)
+    expect((await post('/api/budget/apply', cookie, { categories: [], groups: [] })).status).toBe(403)
+  })
+
+  it('com menos de 3 meses completos recusa, e o pedido não conta para o limite do mês', async () => {
+    const { cookie, userId } = await premiumUser('budget-2m', 2)
+    const state = await (await fetch('/api/insights/budget', { headers: { cookie } })).json()
+    expect(state.completeMonths).toBe(2)
+    expect(state.minMonths).toBe(3)
+    expect(state.canRequest).toBe(false)
+
+    const res = await post('/api/insights/budget', cookie, {})
+    expect(res.status).toBe(400)
+    expect(await AiBudgetProposal.countDocuments({ userId })).toBe(0)
+    expect((await stub.requests()).filter((r) => r.path === '/v1/messages')).toHaveLength(0)
+  })
+
+  it('IA com resposta válida: usa os ajustes, só envia agregados, 1 pedido por mês, aplicar e desfazer', async () => {
+    const { cookie, rent, food, fun, group } = await premiumUser('budget-ai')
+    await stub.setAnthropicResponse(
+      anthropicTextResponse({
+        overview: 'Orçamento equilibrado.',
+        categories: [
+          { ref: 'c1', limit: 900, note: 'Renda mantém-se.' },
+          { ref: 'c2', limit: 430, note: 'Pequeno corte na comida.' },
+          { ref: 'c3', limit: 270, note: 'Menos saídas.' },
+        ],
+      })
+    )
+
+    const res = await post('/api/insights/budget', cookie, { workingCapitalPct: 10, savingsPct: 10 })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    const p = body.proposal
+    expect(p.source).toBe('ai')
+    expect(p.overview).toBe('Orçamento equilibrado.')
+    expect(p.summary).toMatchObject({ expectedIncome: 2000, workingCapital: 200, savings: 200, available: 1600, fixedTotal: 900 })
+    const limits = Object.fromEntries(p.categories.map((l: any) => [l.name, l.limit]))
+    expect(limits).toEqual({ Rent: 900, Food: 430, 'Fun leisure': 270 })
+    expect(p.categories.find((l: any) => l.name === 'Rent').kind).toBe('fixed')
+    // O mês em curso (5000 em comida) não entrou na média.
+    expect(p.categories.find((l: any) => l.name === 'Food').mean).toBe(450)
+    expect(p.groups).toEqual([expect.objectContaining({ name: 'Diversão', limit: 270, alertThreshold: 80 })])
+    expect(body.canRequest).toBe(false)
+
+    // Nenhuma descrição de transação foi enviada à IA.
+    const calls = (await stub.requests()).filter((r) => r.path === '/v1/messages')
+    expect(calls).toHaveLength(1)
+    const sent = JSON.stringify(calls[0].body)
+    expect(sent).not.toContain(SECRET_DESCRIPTION)
+    expect(sent).not.toContain('Cinema')
+    expect(sent).toContain('Food')
+
+    // Segundo pedido no mesmo mês: recusado, sem nova chamada à IA.
+    const again = await post('/api/insights/budget', cookie, {})
+    expect(again.status).toBe(429)
+    expect((await stub.requests()).filter((r) => r.path === '/v1/messages')).toHaveLength(1)
+    const state = await (await fetch('/api/insights/budget', { headers: { cookie } })).json()
+    expect(state.proposal.categories).toHaveLength(3)
+
+    // Aplicar (com um ajuste do utilizador) e desfazer.
+    await Category.updateOne({ _id: food._id }, { $set: { monthlyLimit: 123 } })
+    const applied = await post('/api/budget/apply', cookie, {
+      categories: [
+        { id: String(rent._id), monthlyLimit: 900 },
+        { id: String(food._id), monthlyLimit: 440 },
+        { id: String(fun._id), monthlyLimit: 270 },
+      ],
+      groups: [{ id: String(group._id), monthlyLimit: 270, alertThreshold: 85 }],
+    })
+    expect(applied.status).toBe(200)
+    expect((await Category.findById(food._id).lean())!.monthlyLimit).toBe(440)
+    expect(await TransactionGroup.findById(group._id).lean()).toMatchObject({ monthlyLimit: 270, alertThreshold: 85 })
+
+    // Aplicar outra vez não perde o ponto de partida.
+    await post('/api/budget/apply', cookie, { categories: [{ id: String(food._id), monthlyLimit: 400 }], groups: [] })
+
+    const undone = await post('/api/budget/undo', cookie)
+    expect(undone.status).toBe(200)
+    expect((await Category.findById(food._id).lean())!.monthlyLimit).toBe(123)
+    expect((await Category.findById(rent._id).lean())!.monthlyLimit).toBe(0)
+    expect(await TransactionGroup.findById(group._id).lean()).toMatchObject({ monthlyLimit: 0, alertThreshold: 80 })
+    expect((await post('/api/budget/undo', cookie)).status).toBe(409)
+  })
+
+  it('IA fora dos limites (soma acima do disponível): fica a proposta determinística', async () => {
+    const { cookie } = await premiumUser('budget-over')
+    await stub.setAnthropicResponse(
+      anthropicTextResponse({ overview: 'x', categories: [{ ref: 'c2', limit: 1500, note: 'Mais comida.' }] })
+    )
+    const body = await (await post('/api/insights/budget', cookie, {})).json()
+    expect(body.proposal.source).toBe('deterministic')
+    expect(body.proposal.overview).toBeNull()
+    const limits = Object.fromEntries(body.proposal.categories.map((l: any) => [l.name, l.limit]))
+    // Disponível 1600: renda 900 intacta, comida na média, lazer cortado primeiro.
+    expect(limits).toEqual({ Rent: 900, Food: 450, 'Fun leisure': 250 })
+    expect(body.proposal.categories.every((l: any) => !l.note)).toBe(true)
+  })
+
+  it('IA com erro: fica a proposta determinística e o pedido do mês conta', async () => {
+    const { cookie } = await premiumUser('budget-err')
+    await stub.setAnthropicResponse({ error: { type: 'overloaded_error' } }, 529)
+    const res = await post('/api/insights/budget', cookie, { savingsPct: 0 })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.proposal.source).toBe('deterministic')
+    expect(body.proposal.summary.available).toBe(1800)
+    const total = body.proposal.categories.reduce((s: number, l: any) => s + l.limit, 0)
+    expect(total).toBeLessThanOrEqual(body.proposal.summary.available)
+    expect((await post('/api/insights/budget', cookie, {})).status).toBe(429)
+  })
+
+  it('recusa percentagens e limites inválidos, e ignora ids de outra conta', async () => {
+    const a = await premiumUser('budget-a')
+    const b = await premiumUser('budget-b')
+    expect((await post('/api/insights/budget', a.cookie, { workingCapitalPct: 80 })).status).toBe(400)
+    await stub.setAnthropicResponse({ error: { type: 'api_error' } }, 500)
+    expect((await post('/api/insights/budget', a.cookie, {})).status).toBe(200)
+
+    expect((await post('/api/budget/apply', a.cookie, { categories: [{ id: String(a.food._id), monthlyLimit: -1 }] })).status).toBe(400)
+    const res = await post('/api/budget/apply', a.cookie, { categories: [{ id: String(b.food._id), monthlyLimit: 1 }] })
+    expect(res.status).toBe(200)
+    expect((await res.json()).applied.categories).toBe(0)
+    expect((await Category.findById(b.food._id).lean())!.monthlyLimit).toBe(0)
+  })
+})
+
+describe('previsões: só meses completos (Upgrade 04)', () => {
+  it('o mês em curso vem à parte e não entra em monthlySeries', async () => {
+    const email = uniqueEmail('pred-complete')
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+    const user = await User.findOne({ email })
+    const category = await Category.create({ userId: user!._id, name: 'Stuff', type: 'expense' })
+    const thisMonth = currentMonthKey()
+    await Transaction.insertMany(
+      [2, 1, 0].map((monthsAgo) => ({
+        userId: user!._id,
+        type: 'expense',
+        amount: 100 + monthsAgo,
+        description: 'x',
+        categoryId: category._id,
+        date: new Date(`${addMonths(thisMonth, -monthsAgo)}-10T00:00:00Z`),
+      }))
+    )
+    const data = await (await fetch('/api/predictions/data', { headers: { cookie } })).json()
+    expect(data.monthlySeries.map((m: any) => m.month)).toEqual([addMonths(thisMonth, -2), addMonths(thisMonth, -1)])
+    expect(data.currentMonth).toMatchObject({ month: thisMonth, expense: 100 })
+    expect(data.meta.minMonths).toEqual({ simple: 2, model: 5 })
   })
 })
 

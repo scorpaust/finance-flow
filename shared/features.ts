@@ -30,6 +30,7 @@ export type FeatureKey =
   | 'aiInvestmentTips'
   | 'documentScan'
   | 'investmentTracker'
+  | 'aiBudget'
 
 // Tier mínimo que desbloqueia cada feature.
 const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
@@ -51,6 +52,10 @@ const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
   // enquanto subi-lo com utilizadores já a ter dados registados não é.
   // Chave própria, separada de aiInvestmentTips, para os dois poderem divergir.
   investmentTracker: 'premium',
+  // Upgrade 04 — orçamento sugerido por IA (limites por categoria e grupo),
+  // só Premium (decisão do utilizador de 2026-10-08, ver
+  // context/features/upgrades/04-orcamento-ia-e-previsoes.md).
+  aiBudget: 'premium',
 }
 
 const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, premium: 2 }
@@ -140,6 +145,7 @@ export const PLAN_HIGHLIGHTS: Record<SubscriptionTier, PlanHighlight[]> = {
   premium: [
     { id: 'everythingPro' },
     { id: 'predictions', features: ['predictions'] },
+    { id: 'aiBudget', features: ['aiBudget'] },
     { id: 'investmentTracker', features: ['investmentTracker'] },
     { id: 'aiInvestmentTips', features: ['aiInvestmentTips'] },
     { id: 'documentScanMore', params: { n: TIER_LIMITS.premium.documentScansPerMonth } },

@@ -1,8 +1,20 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/03-desempenho-visual-telemovel.md -->
+<!-- Ver especificação completa em context/features/upgrades/04-orcamento-ia-e-previsoes.md -->
 
 ## Estado
+
+**Upgrade 04 — orçamento sugerido por IA e correções às previsões: Em
+progresso** (definido a 2026-10-09;
+`context/features/upgrades/04-orcamento-ia-e-previsoes.md`). Especificação
+e decisões do utilizador fechadas (commits `37d9803`, `a05a6f6`,
+`6208f25`). Branch `feature/upgrade-04-orcamento-ia-previsoes`, criado a
+partir de `main` a 2026-10-09. Partes A e B implementadas e os 3 critérios
+de aceitação cobertos por testes: unitários 99/99, integração 47/47, E2E 6/6,
+type-check 0 erros. Falta: rever no browser, commit, merge e deploy
+(decisão do utilizador), e atualizar a descrição do Premium na ficha da
+Play Console (texto em `context/PLAY-STORE.md`). Só web — não precisa de
+`.aab` novo.
 
 **Upgrade 03 — desempenho visual em telemóvel: Concluída** (2026-10-09;
 `context/features/upgrades/03-desempenho-visual-telemovel.md`). Os 3
@@ -77,36 +89,63 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 03 — Desempenho visual em telemóvel: login com desempenho **≥ 85** e
-LCP **≤ 2,5 s** em telemóvel (Lighthouse, CPU calibrado), sem mudar o aspeto
-em computador.
+UPGRADE 04 — duas partes:
 
-Decisão do utilizador (2026-10-08): pode mudar o aspeto em telemóvel.
+- **A. Previsões corrigidas:** só meses completos (o mês atual aparece como
+  "em curso"), alternativa com tendência em vez da média plana, e
+  mensagens claras sobre quantos meses faltam. Origem: no `tester-premium`
+  a previsão deu 3 meses iguais (4 meses de dados, o último a meio; o
+  modelo precisa de 5 e caiu na média repetida).
+- **B. Orçamento sugerido por IA (nova):** com 3+ meses completos, a IA
+  propõe o limite mensal de cada categoria e grupo a partir das receitas,
+  dos gastos fixos, do fundo de maneio e da meta de poupança. O utilizador
+  ajusta, aplica e pode desfazer.
 
-Tarefas (ver especificação):
-- [x] Desfoque de fundo só em ecrãs grandes: abaixo de 1024 px, `glass-card`,
-      modais, toasts, botões de vidro e barra de navegação trocam o
-      `backdrop-filter` por um fundo mais opaco da mesma cor; sem desfoque com
-      `prefers-reduced-motion`.
-- [x] Login: menos partículas em ecrã pequeno (nenhuma com
-      `prefers-reduced-motion`), halo por gradiente radial, entradas mais
-      curtas.
-- [x] Ecrã de carregamento global (`app.vue`): só um elemento animado.
-- [x] Contraste do texto sem desfoque (acessibilidade a 100).
-- [ ] Lighthouse antes/depois (login, privacidade e, se der, uma página com
-      sessão), números registados na especificação — feito em local; falta
-      a Netlify.
-- [x] E2E sem regressões (5/5).
+Decisões do utilizador (2026-10-08):
+- Só **Premium** (`aiBudget: 'premium'` na matriz, destaque em
+  `PLAN_HIGHLIGHTS`); o Pro vê o cartão bloqueado.
+- Fundo de maneio por omissão **10%** da receita, poupança por omissão
+  **10%** (pode ser 0%); ambos editáveis.
+- Fica em **Grupos e orçamentos** (`/groups`), cartão no topo, e numa vista
+  simples das categorias.
+- **Só a pedido, um pedido por conta por mês civil** (fuso de Lisboa); a
+  proposta do mês continua visível e pode ser aplicada/desfeita à vontade.
+  Sem sugestão automática.
 
-Fora de âmbito: o design system em computador; medir automaticamente as
-páginas com sessão (tentar PageSpeed Insights com chave de API, ou o
-Lighthouse do DevTools à mão).
+Tarefas A (ver especificação):
+- [x] `/api/predictions/data` indica o mês atual incompleto; treino e médias
+      só com meses completos; mês atual no gráfico como "em curso".
+- [x] Sem meses para o modelo: texto traduzido com quantos meses faltam,
+      método em linguagem simples, sem percentagem de confiança.
+- [x] Alternativa com tendência (regressão linear limitada: sem negativos
+      nem saltos acima do máximo histórico); média só sem tendência.
+- [x] Um só mínimo numa constante partilhada: **2 meses completos** para a
+      previsão simples, **5** para o modelo de IA (hoje a app diz 3, o
+      aviso 2 e o modelo precisa de 5).
+- [x] Testes unitários das funções puras.
+
+Tarefas B (ver especificação):
+- [x] `POST /api/insights/budget` (`requireFeature('aiBudget')`): agregados,
+      cálculo determinístico, IA (Anthropic, só agregados) e validação;
+      limite de um pedido por mês; `GET` devolve a proposta do mês.
+- [x] Classificação fixa/variável (`recurrence`, coeficiente de variação,
+      categorias tipicamente fixas).
+- [x] `POST /api/budget/apply` com os limites anteriores guardados para
+      "Desfazer".
+- [x] Cartão no cliente: 6 línguas, moeda de apresentação, nota de
+      privacidade da IA, paywall Premium.
+- [x] Testes unitários, de integração (Anthropic simulada: válida, fora dos
+      limites, erro) e E2E (pedir, aplicar, ver os limites nos grupos).
 
 ## Critérios de aceitação
 
-- [x] Login ≥ 85 de desempenho em telemóvel (PSI: 100, LCP 0,9 s)
-- [x] Acessibilidade, boas práticas e SEO continuam em 100
-- [x] Em computador, o aspeto é o mesmo
+- [x] Previsões: nunca usam o mês atual incompleto. Explicam claramente
+      quando usam a alternativa e quantos meses faltam. A alternativa
+      segue a tendência.
+- [x] Orçamento: só aparece com 3+ meses completos. A soma dos limites
+      nunca passa a receita disponível. Os fixos não são cortados. Aplicar
+      e desfazer funcionam.
+- [x] Nenhuma descrição de transação é enviada à IA.
 
 ## Histórico
 
@@ -2384,3 +2423,54 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
 - 2026-10-09: **Upgrade 03 concluído**, a pedido do utilizador. Branch
   `feature/upgrade-03-desempenho-telemovel` mergeado em `main` e apagado;
   deploy em produção a seguir.
+- 2026-10-09: Definido como funcionalidade atual — UPGRADE 04 (Orçamento
+  sugerido por IA e correções às previsões), especificação em
+  `context/features/upgrades/04-orcamento-ia-e-previsoes.md`. Parte A
+  corrige as previsões (meses completos, alternativa com tendência, mínimo
+  único de 2/5 meses); parte B é a nova funcionalidade de orçamento por IA.
+  Decisões do utilizador registadas na especificação (Premium, fundo de
+  maneio 10%, poupança 10%, em `/groups`, um pedido por mês civil).
+  Estado: não iniciado.
+- 2026-10-09: Branch `feature/upgrade-04-orcamento-ia-previsoes` criado a
+  partir de `main`. Estado passa a "Em progresso". Implementado (detalhe na
+  especificação, secção "Implementação"):
+  - **Previsões (parte A):** `shared/forecast.ts` com o mínimo único
+    (2 meses completos para a previsão simples, 5 para o modelo) e o mês em
+    curso no fuso de Lisboa. `/api/predictions/data` devolve só meses
+    completos e o mês atual à parte (pontos ocos no gráfico). A alternativa
+    segue a tendência (regressão linear limitada), não mostra confiança e
+    diz quantos meses faltam para o modelo.
+  - **Orçamento sugerido (parte B):** cálculo determinístico em
+    `shared/budget.ts`, IA em `server/utils/aiBudget.ts` (só agregados,
+    validada no servidor, a proposta da app fica se a IA falhar ou sair dos
+    limites). Endpoints `GET/POST /api/insights/budget`,
+    `POST /api/budget/apply` e `/undo`; um pedido por conta por mês civil
+    (`AiBudgetProposal`). Cartão no topo de `/groups` (paywall Premium para
+    o Pro) e vista simples dos limites das categorias.
+  - **Plano Premium:** `aiBudget: 'premium'`, destaque nas 6 línguas, ficha
+    da loja, `00-CODE-SPEC.md` e README atualizados.
+  - **Privacidade:** a Política de Privacidade (ponto 5) passa a dizer o
+    que o orçamento sugerido envia à IA, e os Termos (ponto 5) incluem-no
+    nos conteúdos gerados por IA; data 2026-10-09. Apagar a conta apaga
+    também as propostas.
+  - **Textos legais nas 6 línguas** (reparo do utilizador): Política de
+    Privacidade e Termos traduzidos para FR, DE, IT e ES a partir da versão
+    EN (`utils/legal/*.ts`); sai a nota "só disponível em português e
+    inglês". Traduções sem revisão de um jurista, como o resto do texto.
+  - **Testes:** unitários 96/96 (novos: `forecast`, `budget`; atualizado
+    `mlPrediction`), integração 47/47 (7 novos: Pro bloqueado, < 3 meses,
+    IA válida + aplicar/desfazer, IA fora dos limites, IA com erro,
+    validação, meses completos), E2E 6/6 (novo `budget-flow`; o
+    `main-flow` passa a semear 2 meses completos), type-check 0 erros.
+    Notas: o E2E chama uma "Anthropic" falsa no servidor de controlo
+    (sempre erro → proposta da app), nunca a real; o spec novo usa um IP
+    próprio (limite de 5 registos por IP); um servidor Nuxt órfão dos
+    testes de integração bloqueou a 1.ª corrida do E2E (terminado à mão).
+- 2026-10-09: **Dados de teste para os testers** (pedido do utilizador: 6
+  meses de dados para verem tudo). `scripts/seed-test-accounts.mjs`: 6 meses
+  completos + mês em curso, categorias e grupos reutilizados pelo nome,
+  carteira de 3 investimentos se não houver nenhuma, etiqueta `dados-teste`
+  (repetir não duplica), `--dry`, `--replace`, `--reset-budget`. Testado
+  numa base em memória. As contas `tester` estão em `financeflow-prod`, a
+  que as credenciais locais não têm acesso — o utilizador corre o script com
+  a ligação de produção (instruções em `context/OPERATIONS.md`).

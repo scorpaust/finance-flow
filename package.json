@@ -86,6 +86,9 @@
     "simple-git": {
       "@simple-git/argv-parser": "^2.0.1"
     },
-    "tinypool": "^2.2.0"
+    "tinypool": "^2.2.0",
+    "fontless": {
+      "esbuild": "^0.28.1"
+    }
   }
 }

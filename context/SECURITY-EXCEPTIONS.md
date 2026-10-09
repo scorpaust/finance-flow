@@ -12,7 +12,7 @@ condições:
 As que chegam à produção corrigem-se sempre (`overrides` no
 `package.json`).
 
-Revisto a 2026-10-07 (alertas do Dependabot de 2026-10-04 e 2026-10-07).
+Revisto a 2026-10-09 (alertas do Dependabot de 2026-10-04, 2026-10-07 e 2026-10-08).
 
 ## Corrigidas por `overrides`
 
@@ -26,6 +26,7 @@ Revisto a 2026-10-07 (alertas do Dependabot de 2026-10-04 e 2026-10-07).
 | `source-map-js` | alta | ^1.2.2 — **estava no servidor de produção** |
 | `tinypool` | crítica | ^2.2.0 (testado com vitest 3: unit, integração e E2E verdes) |
 | `simple-git` → `@simple-git/argv-parser` | crítica | ^2.0.1 |
+| `fontless` → `esbuild` | baixa | ^0.28.1 — leitura de ficheiros no servidor de desenvolvimento do esbuild em Windows (GHSA-g7r4-m6w7-qqqr, afeta 0.27.3–0.28.0). Só a cópia 0.27.7 do `fontless` (`@nuxt/fonts` 0.14, que fixa `esbuild ^0.27`) estava no intervalo; o `fontless` só usa `transform`, nunca `serve`. Os 0.25.12 do `@nuxtjs/i18n` e do `vitest` estão fora do intervalo |
 
 ## Em aberto
 

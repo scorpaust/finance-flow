@@ -399,9 +399,13 @@ Compras da app Android. A Google cobra; o servidor só lê o estado e aplica-o
 `scripts/seed-test-accounts.mjs` põe 6 meses **completos** de receitas e
 despesas realistas (e o mês em curso até hoje) em contas que já existem, para
 os testers verem tudo: previsões com o modelo de IA (≥ 5 meses completos),
-orçamento sugerido (≥ 3), estatísticas, grupos ("Casa", "Saídas e lazer") e
+orçamento sugerido (≥ 3), estatísticas, dois grupos (casa; saídas e lazer) e
 uma carteira de 3 investimentos (só se a conta não tiver nenhum). Não cria
-contas nem muda o plano.
+contas nem muda o plano. Deteta a língua da conta pelas categorias por
+omissão que já tem e usa essas (nunca cria duplicados noutra língua).
+
+Contas de teste em produção: `tester-free`, `tester-pro` e
+`tester-premium` `@example.com` (semeadas a 2026-10-09).
 
 ```bash
 # 1. ver o que faria (não escreve nada)

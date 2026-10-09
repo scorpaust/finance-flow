@@ -4,17 +4,19 @@
 
 ## Estado
 
-**Upgrade 04 — orçamento sugerido por IA e correções às previsões: Em
-progresso** (definido a 2026-10-09;
+**Upgrade 04 — orçamento sugerido por IA e correções às previsões:
+Concluída e em produção** (deploy de 2026-10-09) (definido a 2026-10-09;
 `context/features/upgrades/04-orcamento-ia-e-previsoes.md`). Especificação
 e decisões do utilizador fechadas (commits `37d9803`, `a05a6f6`,
 `6208f25`). Branch `feature/upgrade-04-orcamento-ia-previsoes`, criado a
 partir de `main` a 2026-10-09. Partes A e B implementadas e os 3 critérios
 de aceitação cobertos por testes: unitários 99/99, integração 47/47, E2E 6/6,
-type-check 0 erros. Falta: rever no browser, commit, merge e deploy
-(decisão do utilizador), e atualizar a descrição do Premium na ficha da
-Play Console (texto em `context/PLAY-STORE.md`). Só web — não precisa de
-`.aab` novo.
+type-check 0 erros. Merge em `main` e deploy em produção a 2026-10-09;
+contas `tester-*` com 6 meses de dados. Falta: `git push` (sem acesso SSH
+neste terminal), atualizar a descrição do Premium na ficha da Play Console
+(texto em `context/PLAY-STORE.md`), rever as traduções legais, e mudar a
+password do utilizador `app-prod` do Atlas (foi partilhada na conversa).
+Só web — não precisa de `.aab` novo.
 
 **Upgrade 03 — desempenho visual em telemóvel: Concluída** (2026-10-09;
 `context/features/upgrades/03-desempenho-visual-telemovel.md`). Os 3
@@ -2474,3 +2476,17 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   numa base em memória. As contas `tester` estão em `financeflow-prod`, a
   que as credenciais locais não têm acesso — o utilizador corre o script com
   a ligação de produção (instruções em `context/OPERATIONS.md`).
+- 2026-10-09: **Upgrade 04 em produção**, a pedido do utilizador. Merge do
+  branch em `main` (`e5e8120`, branch apagado) e `npm run deploy:netlify`.
+  Verificado na produção com a conta `tester-premium`: previsões com 6
+  meses completos e o mês em curso à parte; orçamento sugerido gerado pela
+  IA real (`source: ai`, notas em português), segundo pedido no mesmo mês
+  recusado (429). `git push` falhou (sem chave SSH neste terminal).
+- 2026-10-09: **Dados de teste semeados em produção** nas contas
+  `tester-free`, `tester-pro` e `tester-premium` (`--replace`: as 23
+  transações antigas de cada uma saíram). As contas têm as categorias por
+  omissão em inglês, por isso o script passou a detetar a língua da conta
+  (sem criar duplicados) e a escrever grupos e descrições nessa língua; a
+  alimentação e o combustível variam mais, para não serem classificados
+  como fixos. As propostas de teste pedidas na verificação foram apagadas
+  (`--reset-budget`): o tester Premium pode pedir a sua.

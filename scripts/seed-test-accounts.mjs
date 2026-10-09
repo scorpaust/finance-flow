@@ -18,8 +18,8 @@
  *
  * Só mexe em contas que já existem (não cria contas nem muda o plano). Os
  * dados gerados levam a etiqueta `dados-teste`: correr outra vez substitui-os
- * em vez de os duplicar. Categorias e grupos são reutilizados pelo nome (os
- * nomes por omissão em português); a carteira só é criada se a conta não
+ * em vez de os duplicar. Usa as categorias por omissão na língua em que a
+ * conta foi criada (deteta-a pelos nomes) e reutiliza grupos pelo nome; a carteira só é criada se a conta não
  * tiver nenhum investimento. Os valores são sempre os mesmos (gerador com
  * semente fixa) e o mês em curso pára no dia de hoje.
  */
@@ -59,21 +59,69 @@ function rng(seed) {
 }
 const round2 = (v) => Math.round(v * 100) / 100
 
-// Categorias por omissão da app (pt-PT, server/utils/defaultCategories.ts).
-const CATEGORIES = {
-  salary: { name: 'Salário', type: 'income', icon: '💰', color: '#10b981' },
-  otherIncome: { name: 'Outros rendimentos', type: 'income', icon: '📈', color: '#22c55e' },
-  housing: { name: 'Habitação', type: 'expense', icon: '🏠', color: '#f43f5e' },
-  groceries: { name: 'Alimentação', type: 'expense', icon: '🛒', color: '#f97316' },
-  transport: { name: 'Transportes', type: 'expense', icon: '🚗', color: '#eab308' },
-  health: { name: 'Saúde', type: 'expense', icon: '💊', color: '#ec4899' },
-  bills: { name: 'Contas da casa', type: 'expense', icon: '💡', color: '#3b82f6' },
-  leisure: { name: 'Lazer', type: 'expense', icon: '🎮', color: '#06b6d4' },
-  shopping: { name: 'Compras', type: 'expense', icon: '🛍️', color: '#a855f7' },
+// Categorias por omissão da app, nas 6 línguas (as mesmas de
+// server/utils/defaultCategories.ts — manter iguais). A conta é criada na
+// língua em que se registou; o script deteta-a pelos nomes que já tem e usa
+// as categorias dessa língua, sem criar duplicados noutra.
+const CATEGORY_STYLE = {
+  salary: { type: 'income', icon: '💰', color: '#10b981' },
+  otherIncome: { type: 'income', icon: '📈', color: '#22c55e' },
+  housing: { type: 'expense', icon: '🏠', color: '#f43f5e' },
+  groceries: { type: 'expense', icon: '🛒', color: '#f97316' },
+  transport: { type: 'expense', icon: '🚗', color: '#eab308' },
+  health: { type: 'expense', icon: '💊', color: '#ec4899' },
+  bills: { type: 'expense', icon: '💡', color: '#3b82f6' },
+  leisure: { type: 'expense', icon: '🎮', color: '#06b6d4' },
+  shopping: { type: 'expense', icon: '🛍️', color: '#a855f7' },
+}
+const CATEGORY_NAMES = {
+  'pt-PT': { salary: 'Salário', otherIncome: 'Outros rendimentos', housing: 'Habitação', groceries: 'Alimentação', transport: 'Transportes', health: 'Saúde', bills: 'Contas da casa', leisure: 'Lazer', shopping: 'Compras' },
+  en: { salary: 'Salary', otherIncome: 'Other income', housing: 'Housing', groceries: 'Groceries', transport: 'Transport', health: 'Health', bills: 'Bills & utilities', leisure: 'Leisure', shopping: 'Shopping' },
+  fr: { salary: 'Salaire', otherIncome: 'Autres revenus', housing: 'Logement', groceries: 'Alimentation', transport: 'Transports', health: 'Santé', bills: 'Factures', leisure: 'Loisirs', shopping: 'Achats' },
+  de: { salary: 'Gehalt', otherIncome: 'Sonstige Einnahmen', housing: 'Wohnen', groceries: 'Lebensmittel', transport: 'Verkehr', health: 'Gesundheit', bills: 'Nebenkosten', leisure: 'Freizeit', shopping: 'Einkäufe' },
+  it: { salary: 'Stipendio', otherIncome: 'Altre entrate', housing: 'Casa', groceries: 'Spesa alimentare', transport: 'Trasporti', health: 'Salute', bills: 'Bollette', leisure: 'Tempo libero', shopping: 'Acquisti' },
+  es: { salary: 'Salario', otherIncome: 'Otros ingresos', housing: 'Vivienda', groceries: 'Alimentación', transport: 'Transporte', health: 'Salud', bills: 'Facturas', leisure: 'Ocio', shopping: 'Compras' },
+}
+const GROUP_NAMES = {
+  'pt-PT': { home: 'Casa', outings: 'Saídas e lazer' },
+  en: { home: 'Home', outings: 'Going out' },
+  fr: { home: 'Maison', outings: 'Sorties et loisirs' },
+  de: { home: 'Zuhause', outings: 'Ausgehen und Freizeit' },
+  it: { home: 'Casa e bollette', outings: 'Uscite e svago' },
+  es: { home: 'Hogar', outings: 'Salidas y ocio' },
 }
 const GROUPS = {
-  home: { name: 'Casa', color: '#f43f5e', categories: ['housing', 'bills'] },
-  outings: { name: 'Saídas e lazer', color: '#06b6d4', categories: ['leisure'] },
+  home: { color: '#f43f5e', categories: ['housing', 'bills'] },
+  outings: { color: '#06b6d4', categories: ['leisure'] },
+}
+// Descrições das transações: PT-PT para contas em português, inglês nas outras.
+const DESCRIPTIONS = {
+  'pt-PT': {
+    salary: 'Salário', extra: 'Trabalho extra', rent: 'Renda', electricity: 'Eletricidade', internet: 'Internet e telemóvel',
+    water: 'Água', pass: 'Passe', gym: 'Ginásio', supermarket: 'Supermercado', fuel: 'Combustível', pharmacy: 'Farmácia',
+    dinner: 'Jantar fora', cinema: 'Cinema', restaurant: 'Restaurante', streaming: 'Streaming', clothes: 'Roupa', home: 'Casa e decoração',
+  },
+  en: {
+    salary: 'Salary', extra: 'Side job', rent: 'Rent', electricity: 'Electricity', internet: 'Internet and phone',
+    water: 'Water', pass: 'Transit pass', gym: 'Gym', supermarket: 'Supermarket', fuel: 'Fuel', pharmacy: 'Pharmacy',
+    dinner: 'Dinner out', cinema: 'Cinema', restaurant: 'Restaurant', streaming: 'Streaming', clothes: 'Clothes', home: 'Home and decor',
+  },
+}
+
+const norm = (v) => String(v).trim().toLocaleLowerCase()
+// Língua das categorias da conta: a que tem mais nomes por omissão em comum.
+function detectLocale(existingNames) {
+  const names = new Set(existingNames.map(norm))
+  let best = 'pt-PT'
+  let bestHits = 0
+  for (const [locale, map] of Object.entries(CATEGORY_NAMES)) {
+    const hits = Object.values(map).filter((n) => names.has(norm(n))).length
+    if (hits > bestHits) {
+      best = locale
+      bestHits = hits
+    }
+  }
+  return best
 }
 
 // 'YYYY-MM' do mês em curso em Lisboa (como o servidor, shared/forecast.ts).
@@ -88,7 +136,7 @@ function currentMonthKey(now = new Date()) {
 
 // Transações de um mês. `i` = 0 é o mais antigo; o mês em curso é i = MONTHS.
 // Datas ao meio-dia UTC de um dia do calendário (como a app as grava, um dia).
-function monthTransactions({ year, month, i, maxDay, rand }) {
+function monthTransactions({ year, month, i, maxDay, rand, text }) {
   const out = []
   const day = (d) => (d <= maxDay ? new Date(Date.UTC(year, month - 1, d, 12)) : null)
   const add = (key, type, amount, description, d, recurrence = 'none') => {
@@ -98,29 +146,30 @@ function monthTransactions({ year, month, i, maxDay, rand }) {
   const between = (min, max) => min + rand() * (max - min)
 
   // Receitas: salário com aumento a meio do período, extras ocasionais.
-  add('salary', 'income', i >= 3 ? 1950 : 1850, 'Salário', 1, 'monthly')
-  if (i % 3 === 1) add('otherIncome', 'income', between(150, 350), 'Trabalho extra', 20)
+  add('salary', 'income', i >= 3 ? 1950 : 1850, text.salary, 1, 'monthly')
+  if (i % 3 === 1) add('otherIncome', 'income', between(150, 350), text.extra, 20)
 
   // Fixas (recorrentes ou muito regulares).
-  add('housing', 'expense', 650, 'Renda', 2, 'monthly')
-  add('bills', 'expense', between(55, 75), 'Eletricidade', 8)
-  add('bills', 'expense', 32, 'Internet e telemóvel', 9, 'monthly')
-  add('bills', 'expense', between(18, 26), 'Água', 12)
-  add('transport', 'expense', 40, 'Passe', 1, 'monthly')
-  add('health', 'expense', 35, 'Ginásio', 3, 'monthly')
+  add('housing', 'expense', 650, text.rent, 2, 'monthly')
+  add('bills', 'expense', between(55, 75), text.electricity, 8)
+  add('bills', 'expense', 32, text.internet, 9, 'monthly')
+  add('bills', 'expense', between(18, 26), text.water, 12)
+  add('transport', 'expense', 40, text.pass, 1, 'monthly')
+  add('health', 'expense', 35, text.gym, 3, 'monthly')
 
-  // Variáveis: a alimentação sobe um pouco ao longo dos meses (tendência).
-  for (const d of [4, 11, 18, 25]) add('groceries', 'expense', between(55, 70) + i * 3, 'Supermercado', d)
-  add('transport', 'expense', between(35, 60), 'Combustível', 14)
-  if (rand() > 0.4) add('health', 'expense', between(12, 40), 'Farmácia', 16)
+  // Variáveis (variação > 10% de mês para mês, para não passarem por fixas);
+  // a alimentação sobe um pouco ao longo dos meses (tendência).
+  for (const d of [4, 11, 18, 25]) add('groceries', 'expense', between(35, 105) + i * 3, text.supermarket, d)
+  add('transport', 'expense', between(15, 95), text.fuel, 14)
+  if (rand() > 0.4) add('health', 'expense', between(12, 40), text.pharmacy, 16)
 
   // Discricionárias.
-  add('leisure', 'expense', between(25, 45), 'Jantar fora', 7)
-  add('leisure', 'expense', between(12, 22), 'Cinema', 15)
-  add('leisure', 'expense', between(30, 70), 'Restaurante', 22)
-  add('leisure', 'expense', 11, 'Streaming', 10, 'monthly')
-  add('shopping', 'expense', between(30, 90), 'Roupa', 13)
-  if (i % 2 === 0) add('shopping', 'expense', between(60, 160), 'Casa e decoração', 24)
+  add('leisure', 'expense', between(25, 45), text.dinner, 7)
+  add('leisure', 'expense', between(12, 22), text.cinema, 15)
+  add('leisure', 'expense', between(30, 70), text.restaurant, 22)
+  add('leisure', 'expense', 11, text.streaming, 10, 'monthly')
+  add('shopping', 'expense', between(30, 90), text.clothes, 13)
+  if (i % 2 === 0) add('shopping', 'expense', between(60, 160), text.home, 24)
 
   return out
 }
@@ -142,11 +191,15 @@ for (const email of emails) {
   const now = new Date()
   console.log(`\n▶ ${email} (plano ${user.subscription?.tier || 'free'}/${user.subscription?.status || '—'})`)
 
-  // Categorias: reutiliza pelo nome, cria as que faltarem.
+  // Categorias: as por omissão na língua da conta; cria só as que faltarem.
   const existingCats = await db.collection('categories').find({ userId }).toArray()
+  const locale = detectLocale(existingCats.map((c) => c.name))
+  const text = DESCRIPTIONS[locale] || DESCRIPTIONS.en
+  console.log(`  língua das categorias: ${locale}`)
   const catId = {}
-  for (const [key, c] of Object.entries(CATEGORIES)) {
-    const found = existingCats.find((x) => x.name.toLowerCase() === c.name.toLowerCase())
+  for (const [key, style] of Object.entries(CATEGORY_STYLE)) {
+    const c = { name: CATEGORY_NAMES[locale][key], ...style }
+    const found = existingCats.find((x) => norm(x.name) === norm(c.name))
     if (found) {
       catId[key] = found._id
     } else {
@@ -162,8 +215,9 @@ for (const email of emails) {
 
   // Grupos: reutiliza pelo nome; as categorias sem grupo passam a pertencer-lhe.
   const existingGroups = await db.collection('transactiongroups').find({ userId }).toArray()
-  for (const g of Object.values(GROUPS)) {
-    let groupId = existingGroups.find((x) => x.name.toLowerCase() === g.name.toLowerCase())?._id
+  for (const [gkey, gStyle] of Object.entries(GROUPS)) {
+    const g = { ...gStyle, name: GROUP_NAMES[locale][gkey] }
+    let groupId = existingGroups.find((x) => norm(x.name) === norm(g.name))?._id
     if (!groupId) {
       groupId = new mongoose.Types.ObjectId()
       console.log(`  + grupo ${g.name}`)
@@ -189,7 +243,7 @@ for (const email of emails) {
     const year = Math.floor(total / 12)
     const month = (total % 12) + 1
     const maxDay = i === MONTHS ? todayLisbon : 31
-    for (const t of monthTransactions({ year, month, i, maxDay: Math.min(maxDay, new Date(Date.UTC(year, month, 0)).getUTCDate()), rand })) {
+    for (const t of monthTransactions({ year, month, i, maxDay: Math.min(maxDay, new Date(Date.UTC(year, month, 0)).getUTCDate()), rand, text })) {
       txs.push({
         userId,
         type: t.type,

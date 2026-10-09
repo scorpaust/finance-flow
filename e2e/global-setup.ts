@@ -32,6 +32,7 @@ export default async function globalSetup() {
     await page.waitForURL('**/', { timeout: 120_000 })
 
     await page.goto(`${base}/predictions`, { timeout: 120_000 })
+    await page.goto(`${base}/groups`, { timeout: 120_000 })
     await page.goto(`${base}/subscription`, { timeout: 120_000 })
     await page.goto(`${base}/settings`, { timeout: 120_000 })
   } catch {

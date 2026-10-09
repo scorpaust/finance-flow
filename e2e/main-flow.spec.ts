@@ -78,9 +78,11 @@ test('registo, criar transação, paywall sem Premium, acesso após upgrade', as
   await page.getByTestId('tx-submit').click()
   await expect(page.getByTestId('tx-submit')).toHaveCount(0) // modal fechou
 
-  // Previsões exigem 2 meses distintos de dados (pages/predictions.vue) — a
-  // transação criada agora só dá 1; semeia um 2.º mês diretamente na BD.
+  // Previsões exigem 2 meses COMPLETOS (shared/forecast.ts, Upgrade 04) — a
+  // transação criada agora é do mês em curso, que não conta; semeia os 2
+  // meses anteriores diretamente na BD.
   await seedPastTransaction(email, 1, 30)
+  await seedPastTransaction(email, 2, 25)
 
   await page.goto('/predictions')
   await page.waitForLoadState('networkidle')

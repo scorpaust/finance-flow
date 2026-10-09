@@ -36,6 +36,9 @@
       </button>
     </div>
 
+    <!-- Upgrade 04 — orçamento sugerido por IA (Premium; o Pro vê-o bloqueado) -->
+    <AiBudgetCard @applied="onBudgetApplied" />
+
     <!-- Groups grid -->
     <div v-if="groupsStore.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SkeletonBlock v-for="i in 6" :key="i" rounded="3xl" class="h-36" />
@@ -64,6 +67,7 @@
             <div>
               <p class="font-semibold text-white text-sm">{{ g.name }}</p>
               <p v-if="g.description" class="text-white/40 text-xs truncate max-w-32">{{ g.description }}</p>
+              <p v-if="g.monthlyLimit" class="text-white/40 text-xs" data-testid="group-limit">{{ t('groups.previewLimit', { amount: formatCurrency(g.monthlyLimit) }) }}</p>
             </div>
           </div>
           <div class="flex gap-1 items-center" @click.stop>
@@ -111,6 +115,9 @@
         <Plus class="w-4 h-4 inline mr-1" /> {{ t('groups.createFirst') }}
       </button>
     </div>
+
+    <!-- Limites das categorias (vista simples) -->
+    <CategoryLimitsCard ref="categoryLimitsRef" />
 
     <!-- Group detail drawer -->
     <Transition name="slide">
@@ -322,6 +329,13 @@ const selectedGroup = ref<Group | null>(null)
 const groupDetail = ref<any>(null)
 const loadingDetail = ref(false)
 const confirmDeleteId = ref<string | null>(null)
+const categoryLimitsRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+// Aplicar/desfazer o orçamento sugerido muda os limites dos grupos e das categorias.
+function onBudgetApplied() {
+  groupsStore.fetchGroups()
+  categoryLimitsRef.value?.reload()
+}
 
 const form = reactive({
   name: '',

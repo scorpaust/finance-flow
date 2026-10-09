@@ -4,8 +4,10 @@
  * integração (tests/integration/globalSetup.ts): MongoDB em memória,
  * isolado do Atlas — nunca toca em dados reais.
  *
- * Os dois specs E2E atuais (main-flow, i18n-flow) nunca chegam a chamar a
- * Anthropic/EasyPay/Twelve Data (a subida de plano usa uma escrita direta à
+ * Os specs E2E nunca chegam à Anthropic/EasyPay/Twelve Data reais: o
+ * orçamento sugerido do Upgrade 04 chama a "Anthropic" deste servidor de
+ * controlo, que responde sempre com erro (ver `/v1/messages` abaixo), e a
+ * subida de plano usa uma escrita direta à
  * BD, não o checkout real da EasyPay — ver o comentário em
  * e2e/main-flow.spec.ts sobre essa decisão) — por isso, ao contrário dos
  * testes de integração, este script não arranca o servidor simulado
@@ -152,6 +154,52 @@ async function startControlServer(mongoUri) {
       return
     }
 
+    // Upgrade 04 — 3 meses completos para o orçamento sugerido: salário,
+    // renda recorrente, comida e lazer (este num grupo "Diversão").
+    if (path === '/__e2e/seed-budget-history' && req.method === 'POST') {
+      const user = await db.collection('users').findOne({ email: body.email })
+      if (!user) {
+        res.writeHead(404).end()
+        return
+      }
+      const now = new Date()
+      const base = { userId: user._id, icon: '💰', color: '#6366f1', isDefault: false, order: 99, monthlyLimit: 0, createdAt: now, updatedAt: now }
+      const group = await db.collection('transactiongroups').insertOne({
+        userId: user._id, name: 'Diversão E2E', color: '#06b6d4', monthlyLimit: 0, weeklyLimit: 0, alertThreshold: 80, createdAt: now, updatedAt: now,
+      })
+      const cats = await db.collection('categories').insertMany([
+        { ...base, name: 'Pay E2E', type: 'income', groupId: null },
+        { ...base, name: 'Rent E2E', type: 'expense', groupId: null },
+        { ...base, name: 'Food E2E', type: 'expense', groupId: null },
+        { ...base, name: 'Leisure E2E', type: 'expense', groupId: group.insertedId },
+      ])
+      const [pay, rent, food, fun] = Object.values(cats.insertedIds)
+      const food3 = [380, 450, 520]
+      const fun3 = [300, 400, 350]
+      const docs = []
+      for (let i = 0; i < 3; i++) {
+        const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (3 - i), 15))
+        const tx = { userId: user._id, date, tags: [], groupId: null, currency: 'EUR', originalAmount: null, exchangeRate: null, createdAt: now, updatedAt: now }
+        docs.push(
+          { ...tx, type: 'income', amount: 2000, description: 'Salário', categoryId: pay, recurrence: 'monthly' },
+          { ...tx, type: 'expense', amount: 900, description: 'Renda', categoryId: rent, recurrence: 'monthly' },
+          { ...tx, type: 'expense', amount: food3[i], description: 'Supermercado', categoryId: food, recurrence: 'none' },
+          { ...tx, type: 'expense', amount: fun3[i], description: 'Cinema', categoryId: fun, recurrence: 'none' },
+        )
+      }
+      await db.collection('transactions').insertMany(docs)
+      res.writeHead(204).end()
+      return
+    }
+
+    // Upgrade 04 — a "Anthropic" do E2E (ANTHROPIC_API_BASE_URL aponta para
+    // aqui): responde sempre com erro, para o orçamento sugerido usar a
+    // proposta determinística da app. Nunca há chamadas reais.
+    if (path === '/v1/messages') {
+      res.writeHead(503, { 'content-type': 'application/json' }).end(JSON.stringify({ error: { type: 'overloaded_error' } }))
+      return
+    }
+
     res.writeHead(404).end()
   })
 
@@ -182,6 +230,7 @@ async function main() {
     EASYPAY_ACCOUNT_ID: 'e2e-account',
     EASYPAY_API_KEY: 'e2e-key',
     ANTHROPIC_API_KEY: 'e2e-key',
+    ANTHROPIC_API_BASE_URL: `http://127.0.0.1:${CONTROL_PORT}`,
     TWELVE_DATA_API_KEY: 'e2e-key',
     // Sem GEOLITE2_DB_PATH: país fica sempre desconhecido, nunca Portugal —
     // ver server/utils/geo.ts e a nota em e2e/i18n-flow.spec.ts sobre o que

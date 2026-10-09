@@ -7,7 +7,12 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-10-07";
+export const LEGAL_UPDATED = "2026-10-09";
+
+import { legalFr } from "./legal/fr";
+import { legalDe } from "./legal/de";
+import { legalIt } from "./legal/it";
+import { legalEs } from "./legal/es";
 
 export type LegalDocKey = "privacy" | "terms";
 export interface LegalSection {
@@ -19,10 +24,13 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-// Só PT-PT e EN estão escritos; os outros idiomas mostram EN (nota na página).
-type Content = Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }>;
+// As 6 línguas da app. PT-PT e EN estão aqui; FR, DE, IT e ES em
+// utils/legal/*.ts (traduções da versão EN). Mudar um texto legal é mudá-lo
+// nas 6 línguas.
+export type LegalLocale = "pt-PT" | "en" | "fr" | "de" | "it" | "es";
+type Content = Record<LegalDocKey, Record<LegalLocale, LegalDoc>>;
 
-export const LEGAL_CONTENT: Content = {
+const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
   privacy: {
     "pt-PT": {
       title: "Política de Privacidade",
@@ -70,6 +78,7 @@ export const LEGAL_CONTENT: Content = {
           p: [
             "Interpretação de estatísticas (planos Pro e Premium): enviamos valores agregados (totais por mês e por categoria) e nomes de categorias — nunca as descrições das tuas transações.",
             "Dicas de investimento (plano Premium): enviamos as respostas do teu perfil de investidor, um resumo agregado das tuas finanças e o contexto de mercado do dia. Neste momento não enviamos nenhum dado do teu registo de investimentos (portfolio); se isso vier a mudar, esta política é atualizada antes.",
+            "Orçamento sugerido (plano Premium): enviamos, por categoria de despesa, o nome e os totais mensais já calculados (média, mínimo, máximo), a receita mensal esperada e as percentagens de fundo de maneio e de poupança que escolhes — nunca as descrições das tuas transações. Só quando pedes uma proposta, no máximo uma vez por mês.",
             "Digitalização de documentos (planos Pro e Premium): a imagem ou PDF que carregas é enviado à Anthropic para extrair os campos, é processado em memória e não é guardado por nós. Evita carregar documentos com dados pessoais que não sejam necessários (por exemplo, NIF ou morada num recibo de vencimento).",
             "O conteúdo gerado por IA é meramente informativo e pode conter erros; não constitui aconselhamento financeiro.",
           ],
@@ -159,6 +168,7 @@ export const LEGAL_CONTENT: Content = {
           p: [
             "Statistics insights (Pro and Premium plans): we send aggregated figures (totals per month and category) and category names — never the descriptions of your transactions.",
             "Investment tips (Premium plan): we send your investor-profile answers, an aggregated summary of your finances and the day’s market context. We do not currently send any data from your investment records (portfolio); if that changes, this policy is updated first.",
+            "Suggested budget (Premium plan): for each expense category we send its name and already-calculated monthly totals (average, minimum, maximum), your expected monthly income and the working-capital and savings percentages you choose — never the descriptions of your transactions. Only when you ask for a proposal, at most once a month.",
             "Document scanning (Pro and Premium plans): the image or PDF you upload is sent to Anthropic to extract the fields, processed in memory and not stored by us. Avoid uploading documents with personal data that is not needed (for example tax ID or address on a payslip).",
             "AI-generated content is for information only, may contain errors and is not financial advice.",
           ],
@@ -239,7 +249,7 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "5. Conteúdo gerado por IA e informação financeira",
           p: [
-            "As interpretações de estatísticas, dicas de investimento, previsões e a leitura automática de documentos são geradas por sistemas automáticos, têm carácter meramente informativo e educativo e podem conter erros.",
+            "As interpretações de estatísticas, dicas de investimento, previsões, o orçamento sugerido e a leitura automática de documentos são geradas por sistemas automáticos, têm carácter meramente informativo e educativo e podem conter erros.",
             "Nada na app constitui aconselhamento financeiro, de investimento, fiscal ou jurídico, nem uma recomendação personalizada para comprar ou vender qualquer produto financeiro. As decisões e os riscos são teus. Revê sempre os dados extraídos de um documento antes de os guardares.",
           ],
         },
@@ -311,7 +321,7 @@ export const LEGAL_CONTENT: Content = {
         {
           h: "5. AI-generated content and financial information",
           p: [
-            "Statistics insights, investment tips, forecasts and automatic document reading are produced by automated systems, are for information and education only and may contain errors.",
+            "Statistics insights, investment tips, forecasts, the suggested budget and automatic document reading are produced by automated systems, are for information and education only and may contain errors.",
             "Nothing in the app is financial, investment, tax or legal advice, or a personal recommendation to buy or sell any financial product. Decisions and risks are yours. Always review data extracted from a document before saving it.",
           ],
         },
@@ -349,4 +359,14 @@ export const LEGAL_CONTENT: Content = {
       ],
     },
   },
+};
+
+const FR = legalFr(LEGAL_UPDATED);
+const DE = legalDe(LEGAL_UPDATED);
+const IT = legalIt(LEGAL_UPDATED);
+const ES = legalEs(LEGAL_UPDATED);
+
+export const LEGAL_CONTENT: Content = {
+  privacy: { ...PT_EN.privacy, fr: FR.privacy, de: DE.privacy, it: IT.privacy, es: ES.privacy },
+  terms: { ...PT_EN.terms, fr: FR.terms, de: DE.terms, it: IT.terms, es: ES.terms },
 };

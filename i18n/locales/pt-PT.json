@@ -137,7 +137,6 @@
     "toastTransactionDeleted": "Transação eliminada",
     "toastDeleteError": "Erro ao eliminar transação",
     "toastPredictionSuccess": "Previsão concluída",
-    "toastPredictionErrorMinData": "Precisas de pelo menos 2 meses de dados para fazer previsões",
     "toastPredictionError": "Erro na previsão",
     "confirmDeleteTransaction": "Eliminar esta transação?"
   },
@@ -370,6 +369,68 @@
     "editAria": "Editar grupo",
     "deleteAria": "Eliminar grupo",
     "closeAria": "Fechar"
+  },
+  "aiBudget": {
+    "title": "Orçamento sugerido por IA",
+    "lockedDescription": "A IA propõe um limite mensal para cada categoria e grupo a partir das tuas receitas, dos gastos fixos e do fundo de maneio — disponível no plano Premium.",
+    "paywallFeatureLabel": "O orçamento sugerido por IA",
+    "intro": "A IA propõe um limite mensal para cada categoria e grupo, tendo em conta as tuas receitas, os gastos fixos (que não se cortam), o fundo de maneio e a meta de poupança. Revês, ajustas e aplicas com um toque.",
+    "needMonths": "São precisos {min} meses completos de despesas para pedir uma proposta (tens {have}). O mês em curso não conta.",
+    "pending": "A proposta deste mês está a ser preparada. Volta daqui a pouco.",
+    "workingCapitalLabel": "Fundo de maneio",
+    "workingCapitalHelp": "Parte da receita que fica livre para imprevistos, para não chegares ao fim do mês a zero.",
+    "savingsLabel": "Meta de poupança",
+    "savingsHelp": "Parte da receita a pôr de lado todos os meses (pode ser 0%).",
+    "requestButton": "Pedir proposta à IA",
+    "requesting": "A preparar a proposta...",
+    "oncePerMonth": "Podes pedir uma proposta por mês.",
+    "privacyNote": "A IA só recebe totais por categoria — as descrições das tuas transações nunca são enviadas.",
+    "summaryIncome": "Receita esperada",
+    "summaryFixed": "Gastos fixos",
+    "summaryWorkingCapital": "Fundo de maneio ({pct}%)",
+    "summarySavings": "Poupança ({pct}%)",
+    "summaryAvailable": "Disponível para gastar",
+    "statusTight": "A receita disponível é curta: alguns limites ficaram abaixo do que costumas gastar.",
+    "statusFixedExceed": "Os gastos fixos já passam a receita disponível. Experimenta baixar a meta de poupança ou o fundo de maneio no próximo pedido.",
+    "sourceAi": "Proposta ajustada pela IA.",
+    "sourceDeterministic": "A IA não respondeu a tempo — esta proposta usa só o cálculo da app, com as mesmas regras.",
+    "categoriesTitle": "Limites por categoria",
+    "groupsTitle": "Limites por grupo",
+    "groupsHelp": "O limite de cada grupo segue os das categorias que o compõem; o alerta avisa-te ao chegar a essa percentagem.",
+    "colCategory": "Categoria",
+    "colAverage": "Média",
+    "colLimit": "Limite ({currency})",
+    "colDiff": "Diferença",
+    "limitAria": "Limite mensal de {name}",
+    "alertAria": "Alerta de {name} (%)",
+    "kind": {
+      "fixed": "fixa",
+      "variable": "variável",
+      "discretionary": "a cortar primeiro"
+    },
+    "reason": {
+      "fixed": "Gasto fixo — fica com o valor atual.",
+      "kept": "Mantém a tua média.",
+      "cut": "Reduzido para caber na receita disponível.",
+      "cutDiscretionary": "Reduzido primeiro: é um gasto que podes adiar ou cortar.",
+      "belowFloor": "Muito reduzido: a receita disponível não chega para a média."
+    },
+    "total": "Total: {total} de {available} disponíveis",
+    "overAvailable": "passa a receita disponível",
+    "noLines": "Não há despesas nos últimos meses completos para propor limites.",
+    "apply": "Aplicar limites",
+    "undo": "Desfazer",
+    "appliedAt": "Aplicado a {date}",
+    "toastApplied": "Limites aplicados!",
+    "toastUndone": "Limites anteriores repostos",
+    "toastError": "Não foi possível guardar os limites",
+    "nextRequest": "Próxima proposta a partir de {date}",
+    "errorGeneric": "Não foi possível carregar o orçamento sugerido. Tenta novamente daqui a pouco."
+  },
+  "categoryLimits": {
+    "title": "Limites das categorias",
+    "subtitle": "Quanto já gastaste este mês em cada categoria com limite",
+    "spent": "{spent} de {limit}"
   },
   "investment": {
     "assetClass": {
@@ -646,7 +707,7 @@
     "runPrediction": "Executar Previsão",
     "modelName": "ConvNeXt-1D Financial Forecaster",
     "modelDescription": "Convoluções 1D depthwise-separáveis + Layer Normalization + Residual connections — Inspirado na arquitetura ConvNeXt adaptada para séries temporais financeiras",
-    "monthsOfData": "meses de dados",
+    "monthsOfData": "meses completos",
     "confidence": "confiança",
     "trainingModel": "A treinar modelo...",
     "initializing": "A inicializar...",
@@ -674,19 +735,18 @@
     "emptyTitle": "Pronto para prever o futuro?",
     "emptyDescription": "O modelo ConvNeXt-1D vai analisar os teus dados históricos e gerar previsões de receitas e despesas para os próximos 3 meses.",
     "startPrediction": "Iniciar Previsão IA",
-    "emptyHint": "Precisas de pelo menos 3 meses de dados",
+    "emptyHint": "Previsão simples a partir de {simple} meses completos; modelo de IA a partir de {model}. O mês em curso não conta.",
     "paywallFeatureLabel": "Previsões com IA",
     "trendUp": "Crescente",
     "trendDown": "Decrescente",
     "trendStable": "Estável",
-    "toastMinData": "Precisas de pelo menos 2 meses de dados para fazer previsões",
+    "toastMinData": "São precisos pelo menos {min} meses completos para fazer previsões (tens {have})",
     "toastTimeout": "O treino demorou demasiado. Tenta novamente mais tarde.",
     "toastFallback": "Modelo IA falhou — a usar previsão linear. ({error})",
     "toastSuccess": "Previsão concluída! 🎯",
     "toastError": "Erro na previsão",
     "toastCanceled": "Treino cancelado",
     "insights": {
-      "insufficientData": "Dados insuficientes para o modelo ConvNeXt. A usar média dos últimos meses.",
       "deficit": "⚠️ Défice previsto no próximo mês. Considera reduzir despesas.",
       "balanceImprove": "📈 O modelo prevê melhoria significativa no saldo.",
       "expenseRising": "📊 Despesas em tendência crescente nos últimos meses.",
@@ -696,7 +756,16 @@
       "savingsLow": "💡 Taxa de poupança abaixo dos 10%. Otimiza despesas fixas.",
       "savingsExcellent": "🌟 Taxa de poupança excelente! Padrão financeiro muito saudável.",
       "stable": "✅ Padrão financeiro estável. Continua com o bom trabalho!"
-    }
+    },
+    "simpleNotice": "Previsão simples: são precisos {needed} meses completos para o modelo de IA (tens {have}). Até lá, a previsão segue a tendência dos teus meses completos.",
+    "legendCurrent": "Mês em curso",
+    "method": {
+      "convnext": "Modelo de IA (ConvNeXt-1D)",
+      "trend": "Tendência dos últimos meses",
+      "average": "Média dos últimos meses"
+    },
+    "basedOnMonths": "Baseado em {months} meses completos",
+    "emptyHave": "Tens {have}."
   },
   "statsInsights": {
     "title": "Interpretação com IA",
@@ -777,7 +846,6 @@
   "legal": {
     "back": "Voltar",
     "draftNotice": "Rascunho — este texto ainda não foi revisto por um jurista e tem campos por preencher.",
-    "englishOnly": "Este documento só está disponível em português e inglês; a mostrar a versão em inglês.",
     "terms": "Termos de Serviço",
     "privacy": "Política de Privacidade",
     "complaintsBook": "Livro de Reclamações Eletrónico"
@@ -798,6 +866,7 @@
     "documentScan": "Digitalização de recibos e faturas ({n}/mês)",
     "everythingPro": "Tudo do Pro",
     "predictions": "Previsões do saldo com IA",
+    "aiBudget": "Orçamento sugerido por IA (limites por categoria e grupo)",
     "investmentTracker": "Registo dos teus investimentos",
     "aiInvestmentTips": "Dicas de investimento com IA",
     "documentScanMore": "Digitalização até {n} documentos/mês",

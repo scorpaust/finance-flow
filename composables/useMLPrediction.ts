@@ -2,7 +2,18 @@
  * useMLPrediction — ConvNeXt-1D for financial time-series forecasting
  * Client-only (TensorFlow.js runs in the browser).
  * Architecture: depthwise-separable Conv1D + LayerNorm + Residual (ConvNeXt-style)
+ *
+ * Upgrade 04 — recebe só meses COMPLETOS (o servidor separa o mês em curso).
+ * Abaixo de PREDICTION_MIN_MONTHS.model usa a previsão simples de
+ * shared/forecast.ts (tendência limitada, ou média sem tendência), sem
+ * percentagem de confiança.
  */
+import { PREDICTION_MIN_MONTHS, addMonths, forecastSeries } from '~/shared/forecast'
+
+// 'convnext' = modelo de IA; 'trend'/'average' = previsão simples. A página
+// traduz a chave (`predictions.method.*`) — nunca mostra o nome interno.
+export type PredictionMethod = 'convnext' | 'trend' | 'average'
+
 export function useMLPrediction() {
   const { t } = useI18n()
   const isTraining  = ref(false)
@@ -69,7 +80,7 @@ export function useMLPrediction() {
     monthlySeries: Array<{ month: string; income: number; expense: number; balance: number }>,
     forecastMonths = 3
   ) {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || monthlySeries.length < PREDICTION_MIN_MONTHS.model) {
       return simpleForecast(monthlySeries, forecastMonths)
     }
 
@@ -96,11 +107,8 @@ export function useMLPrediction() {
       statusMsg.value = 'A treinar modelo...'
 
       const EPOCHS  = 24
+      // Com PREDICTION_MIN_MONTHS.model (5) meses: janela de 3 e 2 exemplos de treino.
       const SEQ_LEN = Math.min(6, Math.max(3, monthlySeries.length - 2))
-
-      if (monthlySeries.length < SEQ_LEN + 2) {
-        return simpleForecast(monthlySeries, forecastMonths)
-      }
 
       const results: Record<string, Array<{ value: number; lower: number; upper: number }>> = {}
 
@@ -108,11 +116,6 @@ export function useMLPrediction() {
         const raw = monthlySeries.map(m => m[key])
         const { normalized, min, max } = normalize(raw)
         const { X, y } = makeSequences(normalized, SEQ_LEN)
-
-        if (X.length < 2) {
-          results[key] = simpleForecastSeries(raw, forecastMonths)
-          continue
-        }
 
         const xT = tf.tensor3d(X)
         const yT = tf.tensor2d(y)
@@ -167,11 +170,9 @@ export function useMLPrediction() {
       }
 
       // Build forecast array
-      const last       = monthlySeries[monthlySeries.length - 1]?.month || ''
-      const [ly, lm]   = last.split('-').map(Number)
+      const last       = monthlySeries[monthlySeries.length - 1].month
       const forecasts  = Array.from({ length: forecastMonths }, (_, i) => {
-        const d  = new Date(ly, lm + i)
-        const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const mk  = addMonths(last, i + 1)
         const inc = results.income?.[i]  ?? { value: 0, lower: 0, upper: 0 }
         const exp = results.expense?.[i] ?? { value: 0, lower: 0, upper: 0 }
         return { month: mk, income: inc, expense: exp, balance: inc.value - exp.value }
@@ -188,8 +189,9 @@ export function useMLPrediction() {
           expense: expSlope > 0.04 ? 'up' : expSlope < -0.04 ? 'down' : 'stable',
         },
         insights:    generateInsights(forecasts, monthlySeries, incSlope, expSlope),
-        confidence:  parseFloat(Math.min(0.95, 0.72 + monthlySeries.length * 0.018).toFixed(2)),
-        modelType:   'ConvNeXt-1D (TensorFlow.js)',
+        confidence:  parseFloat(Math.min(0.95, 0.72 + monthlySeries.length * 0.018).toFixed(2)) as number | null,
+        modelType:   'convnext' as PredictionMethod,
+        completeMonths: monthlySeries.length,
       }
     } catch (e: any) {
       error.value = e?.message || 'Prediction failed'
@@ -208,39 +210,31 @@ export function useMLPrediction() {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
-  function simpleForecastSeries(
-    values: number[],
-    n: number
-  ): Array<{ value: number; lower: number; upper: number }> {
-    const avg = values.slice(-3).reduce((s, v) => s + v, 0) / Math.min(3, values.length)
-    return Array.from({ length: n }, (_, i) => ({
-      value: avg,
-      lower: avg * (0.88 - i * 0.03),
-      upper: avg * (1.12 + i * 0.03),
+  // Previsão simples: tendência limitada ou média (shared/forecast.ts), com
+  // um intervalo que alarga a cada mês. Sem percentagem de confiança — não há
+  // modelo que a calcule.
+  function simpleForecast(series: Array<{ month: string; income: number; expense: number; balance: number }>, n: number) {
+    const inc = forecastSeries(series.map(m => m.income), n)
+    const exp = forecastSeries(series.map(m => m.expense), n)
+    const band = (v: number, i: number) => ({ value: v, lower: v * (0.88 - i * 0.03), upper: v * (1.12 + i * 0.03) })
+    const last = series[series.length - 1]?.month
+    const forecasts = Array.from({ length: n }, (_, i) => ({
+      month:   last ? addMonths(last, i + 1) : '',
+      income:  band(inc.values[i], i),
+      expense: band(exp.values[i], i),
+      balance: inc.values[i] - exp.values[i],
     }))
-  }
-
-  function simpleForecast(series: any[], n: number) {
-    const last3 = series.slice(-3)
-    const avgI  = last3.reduce((s: number, m: any) => s + m.income,  0) / (last3.length || 1)
-    const avgE  = last3.reduce((s: number, m: any) => s + m.expense, 0) / (last3.length || 1)
-    const last  = series[series.length - 1]?.month || ''
-    const [ly, lm] = last.split('-').map(Number)
+    const incSlope = linearSlope(series.map(m => m.income))
+    const expSlope = linearSlope(series.map(m => m.expense))
+    const trendOf = (method: string, slope: number) =>
+      method === 'trend' ? (slope > 0 ? 'up' as const : 'down' as const) : 'stable' as const
     return {
-      forecasts: Array.from({ length: n }, (_, i) => {
-        const d  = new Date(ly, lm + i)
-        const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        return {
-          month:   mk,
-          income:  { value: avgI, lower: avgI * 0.87, upper: avgI * 1.13 },
-          expense: { value: avgE, lower: avgE * 0.87, upper: avgE * 1.13 },
-          balance: avgI - avgE,
-        }
-      }),
-      trend:      { income: 'stable' as const, expense: 'stable' as const },
-      insights:   [t('predictions.insights.insufficientData')],
-      confidence: 0.58,
-      modelType:  'LinearAverage (fallback)',
+      forecasts,
+      trend: { income: trendOf(inc.method, incSlope), expense: trendOf(exp.method, expSlope) },
+      insights:   series.length ? generateInsights(forecasts, series, incSlope, expSlope) : [],
+      confidence: null as number | null,
+      modelType:  (inc.method === 'trend' || exp.method === 'trend' ? 'trend' : 'average') as PredictionMethod,
+      completeMonths: series.length,
     }
   }
 
@@ -263,8 +257,9 @@ export function useMLPrediction() {
   ): string[] {
     const insights: string[] = []
     const nextBal   = forecasts[0]?.balance ?? 0
-    const avgBal    = history.slice(-3).reduce((s, m) => s + m.balance, 0) / 3
-    const avgInc    = history.slice(-3).reduce((s, m) => s + m.income,  0) / 3
+    const recent    = history.slice(-3)
+    const avgBal    = recent.reduce((s, m) => s + m.balance, 0) / (recent.length || 1)
+    const avgInc    = recent.reduce((s, m) => s + m.income,  0) / (recent.length || 1)
     const savRate   = avgInc > 0 ? avgBal / avgInc : 0
 
     if (nextBal < 0)

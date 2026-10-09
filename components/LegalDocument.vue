@@ -11,7 +11,6 @@
       >
         {{ t('legal.draftNotice') }}
       </div>
-      <p v-if="!hasOwnLanguage" class="text-white/40 text-xs">{{ t('legal.englishOnly') }}</p>
 
       <h1 class="font-display font-bold text-3xl text-white">{{ content.title }}</h1>
 
@@ -25,14 +24,16 @@
 
 <script setup lang="ts">
 import { ArrowLeft } from 'lucide-vue-next'
-import { LEGAL_CONTENT, LEGAL_IS_DRAFT, type LegalDocKey } from '~/utils/legalContent'
+import { LEGAL_CONTENT, LEGAL_IS_DRAFT, type LegalDocKey, type LegalLocale } from '~/utils/legalContent'
 
 const props = defineProps<{ doc: LegalDocKey }>()
 const { t, locale } = useI18n()
 
-// Só PT-PT e EN estão escritos; qualquer outro idioma cai em EN (com nota).
-const hasOwnLanguage = computed(() => locale.value === 'pt-PT' || locale.value === 'en')
-const content = computed(() => LEGAL_CONTENT[props.doc][locale.value === 'pt-PT' ? 'pt-PT' : 'en'])
+// Escritos nas 6 línguas da app; um idioma desconhecido cai em EN.
+const content = computed(() => {
+  const docs = LEGAL_CONTENT[props.doc]
+  return docs[locale.value as LegalLocale] || docs.en
+})
 
 useHead({ title: computed(() => content.value.title) })
 </script>

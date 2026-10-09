@@ -33,20 +33,20 @@ Há três problemas reais:
 
 ### Tarefas A
 
-- [ ] O servidor (`/api/predictions/data`) indica qual é o mês atual
+- [x] O servidor (`/api/predictions/data`) indica qual é o mês atual
       incompleto. A previsão treina e calcula médias só com **meses
       completos**. O mês atual aparece no gráfico como "em curso",
       separado.
-- [ ] Sem meses suficientes para o modelo:
+- [x] Sem meses suficientes para o modelo:
   - texto claro e traduzido: "Previsão simples: são precisos 5 meses
     completos para o modelo de IA (tens N)";
   - nome do método em linguagem simples ("Média dos últimos meses"), e não
     o nome interno;
   - sem percentagem de confiança inventada.
-- [ ] Alternativa com tendência: regressão linear sobre os meses completos,
+- [x] Alternativa com tendência: regressão linear sobre os meses completos,
       limitada (não projeta valores negativos nem saltos maiores do que o
       máximo histórico). A média só se usa quando não há tendência.
-- [ ] **Um só mínimo, dito da mesma forma em todo o lado.** Hoje há três
+- [x] **Um só mínimo, dito da mesma forma em todo o lado.** Hoje há três
       números diferentes:
   - página vazia: "pelo menos 3 meses" (`predictions.emptyHint`);
   - aviso ao gerar: "pelo menos 2 meses" (`predictions.toastMinData`);
@@ -59,7 +59,7 @@ Há três problemas reais:
     desbloqueia;
   - os números vêm de uma constante partilhada, para não voltarem a
     divergir.
-- [ ] Testes unitários das funções puras: meses completos, tendência, limites.
+- [x] Testes unitários das funções puras: meses completos, tendência, limites.
 
 ## Parte B — Orçamento sugerido por IA (nova funcionalidade)
 
@@ -131,32 +131,122 @@ alerta de percentagem dos grupos.
 
 ### Tarefas B
 
-- [ ] `POST /api/insights/budget` (`requireFeature('aiBudget')`):
+- [x] `POST /api/insights/budget` (`requireFeature('aiBudget')`):
   - agregados, cálculo determinístico, IA e validação;
   - **um pedido por conta por mês civil**: nova coleção, ou um campo com o
     mês do último pedido. A proposta guardada é devolvida por
     `GET /api/insights/budget` durante o resto do mês.
-- [ ] Classificação fixa/variável:
+- [x] Classificação fixa/variável:
   - `recurrence` das transações;
   - regularidade (coeficiente de variação);
   - categorias tipicamente fixas (Habitação, Contas).
-- [ ] `POST /api/budget/apply`, com os limites anteriores guardados para
+- [x] `POST /api/budget/apply`, com os limites anteriores guardados para
       "Desfazer".
-- [ ] Cartão no cliente, com textos nas 6 línguas, valores na moeda de
+- [x] Cartão no cliente, com textos nas 6 línguas, valores na moeda de
       apresentação (Fase 10) e a mesma nota de privacidade da IA.
-- [ ] **Testes:**
+- [x] **Testes:**
   - unitários: algoritmo de repartição, fixos intactos, soma ≤ disponível,
     3 meses mínimos;
   - integração: Anthropic simulada com resposta válida, fora dos limites e
     com erro;
   - E2E: pedir a proposta, aplicar e ver os limites nos grupos.
 
+## Implementação (2026-10-09)
+
+Branch `feature/upgrade-04-orcamento-ia-previsoes`.
+
+### Parte A — previsões
+
+- `shared/forecast.ts`, partilhado pelo servidor e pelo client:
+  - `PREDICTION_MIN_MONTHS` (`{ simple: 2, model: 5 }`);
+  - mês em curso no fuso de Lisboa (`currentMonthKey`);
+  - `splitCompleteMonths` e `forecastSeries`.
+- `/api/predictions/data`:
+  - `monthlySeries` só com meses completos (também exclui meses futuros);
+  - o mês em curso vem em `currentMonth`;
+  - `meta.minMonths`.
+- Previsão simples:
+  - regressão linear sobre os meses completos;
+  - sem tendência (variação < 4% por mês face à média), usa a média dos
+    últimos 3 meses;
+  - limites: nunca negativa, e cada mês projetado não se afasta do
+    anterior mais do que a maior variação mensal do histórico.
+  - Interpretação de "saltos maiores do que o máximo histórico". Limitar
+    ao valor máximo achatava qualquer tendência a subir.
+- Página e dashboard:
+  - método traduzido (`predictions.method.*`);
+  - sem percentagem de confiança na previsão simples;
+  - aviso "são precisos 5 meses completos (tens N)";
+  - a página mostra logo quantos meses completos há e o que cada patamar
+    desbloqueia;
+  - no gráfico, o mês em curso aparece como pontos ocos.
+
+### Parte B — orçamento sugerido
+
+- **Cálculo** (`shared/budget.ts`, puro):
+  - janela: os últimos 6 meses completos com movimentos;
+  - receita esperada: a média dos últimos 3 meses, ou a tendência se for
+    mais baixa (não conta com aumentos ainda por chegar);
+  - fixa = pista pelo nome (Habitação/Contas nas 6 línguas, renda,
+    seguro…), ≥ 50% recorrente, ou presente em todos os meses com
+    variação < 10%;
+  - limite dos fixos: o maior entre o último mês e a média;
+  - variáveis: a média;
+  - cortes proporcionais até ao piso (50% do mínimo histórico),
+    primeiro nas discricionárias;
+  - se nem assim couber, desce abaixo do piso e o estado fica `tight`;
+  - se os fixos já passam o disponível: variáveis a 0 e estado
+    `fixedExceedAvailable`;
+  - limite de cada grupo: o gasto do grupo em cada categoria, escalado
+    como o limite dessa categoria. A soma dos grupos nunca passa a das
+    categorias. Alerta a 90% se o grupo for sobretudo fixo, senão 80%.
+- **IA** (`server/utils/aiBudget.ts`):
+  - recebe referências `c1…` com nome, tipo, média/mediana/mín/máx, piso e
+    limite proposto, na moeda de apresentação;
+  - devolve `{ overview, categories: [{ ref, limit, note }] }`;
+  - o limite que devolver para um fixo é ignorado;
+  - referência desconhecida, valor inválido, abaixo do piso ou soma acima
+    do disponível → fica a proposta da app (`source: 'deterministic'`).
+    Erro da Anthropic → o mesmo.
+- **Endpoints**:
+  - `GET`/`POST /api/insights/budget` (`requireFeature('aiBudget')`). O
+    POST aceita `workingCapitalPct`/`savingsPct` de 0 a 50.
+  - `POST /api/budget/apply` e `POST /api/budget/undo`.
+- **Um pedido por mês**: coleção `AiBudgetProposal` com
+  `_id = ${userId}:${YYYY-MM}`.
+  - O pedido fica registado antes de gerar.
+  - Um segundo pedido no mesmo mês → 429, com a data a partir da qual
+    pode voltar a pedir.
+  - Com menos de 3 meses → 400, e o pedido não conta.
+  - Um pedido que ficou a meio há mais de 2 minutos não bloqueia o mês.
+- **Desfazer**:
+  - repõe os limites de antes da 1.ª aplicação do mês;
+  - aplicar várias vezes mantém esse ponto de partida.
+- **Cliente** (`/groups`):
+  - `AiBudgetCard` no topo: paywall para o Pro, percentagens, resumo,
+    tabelas editáveis, total contra o disponível, Aplicar/Desfazer;
+  - `CategoryLimitsCard`: vista simples dos limites das categorias com o
+    gasto do mês;
+  - os cartões dos grupos passam a mostrar o teto mensal.
+- **Plano Premium**:
+  - `aiBudget: 'premium'` e destaque `planHighlights.aiBudget` nas 6
+    línguas;
+  - ficha da loja (`context/PLAY-STORE.md`), `00-CODE-SPEC.md` e README.
+- **Privacidade**:
+  - Política de Privacidade, ponto 5: o que o orçamento sugerido envia à
+    IA; Termos, ponto 5: o orçamento sugerido entre os conteúdos gerados por IA;
+  - os dois documentos passam a existir nas 6 línguas (FR, DE, IT e ES em
+    `utils/legal/*.ts`, traduzidos da versão EN); antes, essas 4 línguas
+    mostravam a versão inglesa com uma nota;
+  - data atualizada para 2026-10-09;
+  - a conta apagada também apaga as propostas.
+
 ## Critérios de aceitação
 
-- [ ] Previsões: nunca usam o mês atual incompleto. Explicam claramente
+- [x] Previsões: nunca usam o mês atual incompleto. Explicam claramente
       quando usam a alternativa e quantos meses faltam. A alternativa
       segue a tendência.
-- [ ] Orçamento: só aparece com 3+ meses completos. A soma dos limites
+- [x] Orçamento: só aparece com 3+ meses completos. A soma dos limites
       nunca passa a receita disponível. Os fixos não são cortados. Aplicar
       e desfazer funcionam.
-- [ ] Nenhuma descrição de transação é enviada à IA.
+- [x] Nenhuma descrição de transação é enviada à IA.

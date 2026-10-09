@@ -33,6 +33,8 @@ pagamentos e investimentos). **Email de contacto**: o publicado nos Termos.
   >
   > **Premium**
   > • Previsões do teu saldo com um modelo de IA que corre no teu dispositivo
+  > • Orçamento sugerido por IA: um limite mensal para cada categoria e grupo,
+  > a partir das tuas receitas, dos gastos fixos e do fundo de maneio
   > • Registo da tua carteira de investimentos
   > • Dicas educativas de investimento adaptadas ao teu perfil
   >
@@ -71,12 +73,12 @@ Geradas por `node scripts/store-assets.mjs` a partir de `assets/icon-only.svg`
   dados de exemplo genéricos, PT-PT). Os mesmos 4 ecrãs (painel, transações,
   estatísticas, investimentos) em cada secção da Play Console:
 
-  | Secção | Ficheiros | Tamanho |
-  |---|---|---|
-  | Telemóvel (2–8; 4+ com ≥1080 px para a promoção) | `phone-*.png` | 1080×1920 (9:16) |
-  | Tablet de 7" | `tablet7-*.png` | 1224×2176 (9:16) |
-  | Tablet de 10" (lados ≥1080 px) | `tablet10-*.png` | 2560×1440 (16:9) |
-  | Chromebook (4–8, lados ≥1080 px) | `chromebook-*.png` | 1920×1080 (16:9) |
+  | Secção                                           | Ficheiros          | Tamanho          |
+  | ------------------------------------------------ | ------------------ | ---------------- |
+  | Telemóvel (2–8; 4+ com ≥1080 px para a promoção) | `phone-*.png`      | 1080×1920 (9:16) |
+  | Tablet de 7"                                     | `tablet7-*.png`    | 1224×2176 (9:16) |
+  | Tablet de 10" (lados ≥1080 px)                   | `tablet10-*.png`   | 2560×1440 (16:9) |
+  | Chromebook (4–8, lados ≥1080 px)                 | `chromebook-*.png` | 1920×1080 (16:9) |
 
 ## 2. Classificação de conteúdo (questionário IARC)
 
@@ -93,18 +95,18 @@ eliminação**: na app (Configurações → Privacidade e dados) e, sem a app,
 pelo email de contacto — a Play Console exige um URL público com essas
 instruções: usar `<APP_URL>/privacy`.
 
-| Tipo de dado (Play) | O que é na app | Recolhido | Finalidade | Opcional |
-|---|---|---|---|---|
-| Nome | Nome da conta | Sim | Gestão da conta | Não |
-| Endereço de email | Login | Sim | Gestão da conta | Não |
-| IDs do utilizador | Id interno da conta | Sim | Gestão da conta | Não |
-| Outras informações financeiras | Transações, orçamentos, investimentos, perfil de investidor | Sim | Funcionalidade da app | Não |
-| Histórico de compras | Subscrições compradas (plano, estado, referências de pagamento; na app Android, o identificador da compra na Google Play) | Sim | Gestão da conta, funcionalidade da app | Não |
-| Fotos | Recibo/fatura digitalizado (Pro) — enviado à Anthropic para extração, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
-| Ficheiros e documentos | Recibo/fatura em PDF na digitalização — idem, **não guardado** | Sim, processamento efémero | Funcionalidade da app | Sim |
-| Outro conteúdo gerado pelo utilizador | Descrições e notas das transações, nomes de categorias/grupos | Sim | Funcionalidade da app | Não |
-| Localização aproximada | País, a partir do IP, só para mostrar os métodos de pagamento — **não guardado** | Sim, processamento efémero | Funcionalidade da app | Não |
-| Registos de falhas / diagnóstico | Sentry (só com `SENTRY_DSN` definido; sem corpos, cookies nem Session Replay) | Sim | Análise e correção de erros | Não |
+| Tipo de dado (Play)                   | O que é na app                                                                                                            | Recolhido                  | Finalidade                             | Opcional |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------- | -------- |
+| Nome                                  | Nome da conta                                                                                                             | Sim                        | Gestão da conta                        | Não      |
+| Endereço de email                     | Login                                                                                                                     | Sim                        | Gestão da conta                        | Não      |
+| IDs do utilizador                     | Id interno da conta                                                                                                       | Sim                        | Gestão da conta                        | Não      |
+| Outras informações financeiras        | Transações, orçamentos, investimentos, perfil de investidor                                                               | Sim                        | Funcionalidade da app                  | Não      |
+| Histórico de compras                  | Subscrições compradas (plano, estado, referências de pagamento; na app Android, o identificador da compra na Google Play) | Sim                        | Gestão da conta, funcionalidade da app | Não      |
+| Fotos                                 | Recibo/fatura digitalizado (Pro) — enviado à Anthropic para extração, **não guardado**                                    | Sim, processamento efémero | Funcionalidade da app                  | Sim      |
+| Ficheiros e documentos                | Recibo/fatura em PDF na digitalização — idem, **não guardado**                                                            | Sim, processamento efémero | Funcionalidade da app                  | Sim      |
+| Outro conteúdo gerado pelo utilizador | Descrições e notas das transações, nomes de categorias/grupos                                                             | Sim                        | Funcionalidade da app                  | Não      |
+| Localização aproximada                | País, a partir do IP, só para mostrar os métodos de pagamento — **não guardado**                                          | Sim, processamento efémero | Funcionalidade da app                  | Não      |
+| Registos de falhas / diagnóstico      | Sentry (só com `SENTRY_DSN` definido; sem corpos, cookies nem Session Replay)                                             | Sim                        | Análise e correção de erros            | Não      |
 
 **Dados de pagamento**: na app Android o pagamento é feito na própria
 Google Play (Upgrade 01), e no site no formulário da EasyPay (cartão, IBAN,
@@ -135,8 +137,8 @@ forma de pagar é a Google Play Billing. O site mantém a EasyPay (cartão,
 débito direto, MB WAY, Multibanco). Especificação e decisões:
 `context/features/upgrades/01-google-play-billing-android.md`.
 
-**Histórico.** A 2026-09-29 tinha sido escolhido o *alternative billing
-only* (cobrar com a EasyPay dentro da app e reportar cada transação à
+**Histórico.** A 2026-09-29 tinha sido escolhido o _alternative billing
+only_ (cobrar com a EasyPay dentro da app e reportar cada transação à
 Google). Foi implementado mas nunca ativado: a conta de programador é
 **pessoal** (trabalhador independente) e não é elegível para pagamentos
 externos. Esse código foi retirado no Upgrade 01.
@@ -149,22 +151,23 @@ checkout EasyPay usam exatamente esse valor (`server/utils/playPrices.ts`,
 `GET /api/billing/prices`, cache de 10 minutos). Preços finais (decisão do
 utilizador, 2026-10-07), confirmados na API da Google:
 
-| | Mensal | 1 mês | 3 meses | 6 meses | 12 meses |
-|---|---|---|---|---|---|
-| **Pro** | 8,49 € | 8,49 € | 23,99 € (−6%) | 45,99 € (−10%) | 84,99 € (−17%) |
+|             | Mensal  | 1 mês   | 3 meses       | 6 meses         | 12 meses        |
+| ----------- | ------- | ------- | ------------- | --------------- | --------------- |
+| **Pro**     | 8,49 €  | 8,49 €  | 23,99 € (−6%) | 45,99 € (−10%)  | 84,99 € (−17%)  |
 | **Premium** | 21,99 € | 21,99 € | 59,99 € (−9%) | 114,99 € (−13%) | 219,99 € (−17%) |
 
 Valores introduzidos na Play Console (campo **sem IVA**; a Google soma 23%
 e arredonda — acima de ~50 € só aceita valores acabados em 4,99/9,99):
 
-| Plano base | Pro | Premium |
-|---|---|---|
-| `mensal`, `prepago-1m` | 6,90 | 17,88 |
-| `prepago-3m` | 19,50 | (59,99 € após arredondamento) |
-| `prepago-6m` | 37,39 | 93,49 |
-| `prepago-12m` | 69,10 | 178,85 |
+| Plano base             | Pro   | Premium                       |
+| ---------------------- | ----- | ----------------------------- |
+| `mensal`, `prepago-1m` | 6,90  | 17,88                         |
+| `prepago-3m`           | 19,50 | (59,99 € após arredondamento) |
+| `prepago-6m`           | 37,39 | 93,49                         |
+| `prepago-12m`          | 69,10 | 178,85                        |
 
 **Atenção ao definir preços:**
+
 - O "preço predefinido" da Play Console é **sem impostos**. A Google
   converte-o para cada país e soma o IVA local, arredondando (7 € → 8,49 €
   em Portugal).
@@ -176,10 +179,10 @@ Na Play, o IVA é sempre cobrado ao cliente, mesmo com a isenção do art. 53.º
 (a Google é a vendedora perante o consumidor) e a Google fica ainda com 15%
 do valor sem IVA. No site, com a isenção, o operador recebe o preço inteiro.
 
-| Produto (Play Console) | Base plans |
-|---|---|
-| `pro` | `mensal` (renovação automática), `prepago-1m`, `prepago-3m`, `prepago-6m`, `prepago-12m` |
-| `premium` | os mesmos |
+| Produto (Play Console) | Base plans                                                                               |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| `pro`                  | `mensal` (renovação automática), `prepago-1m`, `prepago-3m`, `prepago-6m`, `prepago-12m` |
+| `premium`              | os mesmos                                                                                |
 
 - Os pré-pagos custam o mensal × o número de meses, como na web.
 - Os ids têm de bater certo com `shared/playBilling.ts`.
@@ -220,7 +223,7 @@ do valor sem IVA. No site, com a isenção, o operador recebe o preço inteiro.
 2. **Produtos**: Monetizar → Subscrições → criar `pro` e `premium` com os 5
    base plans cada, aos preços acima, e ativá-los.
 3. **Conta de serviço**:
-   - Google Cloud → ativar a *Google Play Android Developer API* → criar a
+   - Google Cloud → ativar a _Google Play Android Developer API_ → criar a
      conta de serviço → chave JSON;
    - Play Console → Utilizadores e permissões → convidar o email da conta
      com "Ver dados financeiros" e "Gerir encomendas e subscrições";
@@ -229,7 +232,7 @@ do valor sem IVA. No site, com a isenção, o operador recebe o preço inteiro.
 4. **Notificações em tempo real (RTDN)**:
    - Google Cloud Pub/Sub → criar o tópico (por exemplo `play-rtdn`) e dar a
      `google-play-developer-notifications@system.gserviceaccount.com` a
-     função *Pub/Sub Publisher*;
+     função _Pub/Sub Publisher_;
    - criar uma subscrição **push** para
      `https://financeflow-webapp.netlify.app/api/billing/google-play/rtdn`,
      com **autenticação ativada**: escolher uma conta de serviço para o push

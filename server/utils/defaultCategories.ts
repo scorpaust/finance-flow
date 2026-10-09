@@ -142,3 +142,27 @@ export async function seedDefaultCategories(userId: unknown, locale: ServerLocal
     )
   )
 }
+
+// Upgrade 04 — pista para o orçamento sugerido (shared/budget.ts): Habitação e
+// Contas são tipicamente fixas; Lazer, Compras e restaurantes são as primeiras
+// a cortar. Reconhece os nomes por omissão nas 6 línguas (a conta pode ter
+// sido criada noutra língua) e algumas palavras comuns em categorias próprias.
+const FIXED_KEYS: DefaultCategoryKey[] = ['housing', 'bills']
+const DISCRETIONARY_KEYS: DefaultCategoryKey[] = ['leisure', 'shopping']
+const FIXED_WORDS = /\b(renda|rent|loyer|miete|affitto|alquiler|hipoteca|mortgage|cr[eé]dito habita|seguro|insurance|assurance|versicherung|assicurazion|condom[ií]nio)/i
+const DISCRETIONARY_WORDS = /(restaura|ristorant|caf[eé]s?\b|takeaway|take-away|fast.?food|bares\b|\bbars?\b|lazer|leisure|loisir|freizeit|svago|ocio|divers[aã]o|entretenimento|entertainment|shopping|compras|vestu[aá]rio|roupa|clothing|viage(m|ns)|travel|f[eé]rias|hobbies?)/i
+
+function normalizeName(name: string): string {
+  return name.trim().toLocaleLowerCase()
+}
+
+export function budgetHintForCategory(name: string): 'fixed' | 'discretionary' | null {
+  const n = normalizeName(name)
+  for (const names of Object.values(NAMES)) {
+    if (FIXED_KEYS.some((k) => normalizeName(names[k]) === n)) return 'fixed'
+    if (DISCRETIONARY_KEYS.some((k) => normalizeName(names[k]) === n)) return 'discretionary'
+  }
+  if (FIXED_WORDS.test(name)) return 'fixed'
+  if (DISCRETIONARY_WORDS.test(name)) return 'discretionary'
+  return null
+}

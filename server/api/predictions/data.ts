@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { readMonthsQuery } from '../../utils/queryFilters'
 import { Transaction } from '../../models'
 import { requireFeature } from '../../utils/requireFeature'
+import { currentMonthKey, splitCompleteMonths, PREDICTION_MIN_MONTHS } from '../../../shared/forecast'
 
 export default defineEventHandler(async (event) => {
   const { userId } = await requireFeature(event, 'predictions')
@@ -71,18 +72,27 @@ export default defineEventHandler(async (event) => {
     monthlyMap[key][r._id.type as 'income' | 'expense'] = r.total
   }
 
-  const monthlySeries = Object.entries(monthlyMap)
+  const allMonths = Object.entries(monthlyMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, val]) => ({ month, ...val, balance: val.income - val.expense }))
 
+  // Upgrade 04 — o mês em curso está incompleto (a 8 de outubro só tem o
+  // salário e a renda): puxava as médias para baixo e ensinava ao modelo uma
+  // "queda" no fim da série. `monthlySeries` leva só meses completos; o mês
+  // atual vai à parte, para o gráfico o mostrar como "em curso".
+  const thisMonth = currentMonthKey(now)
+  const { complete, current } = splitCompleteMonths(allMonths, thisMonth)
+
   return {
     dailySeries,
-    monthlySeries,
+    monthlySeries: complete,
+    currentMonth: current || { month: thisMonth, income: 0, expense: 0, balance: 0 },
     meta: {
       start: rangeStart.toISOString().split('T')[0],
       end: now.toISOString().split('T')[0],
       totalDays: dailySeries.length,
-      totalMonths: monthlySeries.length,
+      totalMonths: complete.length,
+      minMonths: PREDICTION_MIN_MONTHS,
     },
   }
 })

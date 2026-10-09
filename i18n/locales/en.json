@@ -137,7 +137,6 @@
     "toastTransactionDeleted": "Transaction deleted",
     "toastDeleteError": "Error deleting transaction",
     "toastPredictionSuccess": "Forecast complete",
-    "toastPredictionErrorMinData": "You need at least 2 months of data to run a forecast",
     "toastPredictionError": "Error running forecast",
     "confirmDeleteTransaction": "Delete this transaction?"
   },
@@ -370,6 +369,68 @@
     "editAria": "Edit group",
     "deleteAria": "Delete group",
     "closeAria": "Close"
+  },
+  "aiBudget": {
+    "title": "AI-suggested budget",
+    "lockedDescription": "The AI suggests a monthly limit for each category and group based on your income, fixed costs and working capital — available on the Premium plan.",
+    "paywallFeatureLabel": "The AI-suggested budget",
+    "intro": "The AI suggests a monthly limit for each category and group, taking into account your income, fixed costs (never cut), working capital and savings goal. Review, adjust and apply in one tap.",
+    "needMonths": "You need {min} complete months of expenses to ask for a proposal (you have {have}). The current month doesn't count.",
+    "pending": "This month's proposal is being prepared. Check back shortly.",
+    "workingCapitalLabel": "Working capital",
+    "workingCapitalHelp": "Part of your income kept free for the unexpected, so you don't reach the end of the month at zero.",
+    "savingsLabel": "Savings goal",
+    "savingsHelp": "Part of your income to set aside every month (can be 0%).",
+    "requestButton": "Ask the AI for a proposal",
+    "requesting": "Preparing the proposal...",
+    "oncePerMonth": "You can ask for one proposal per month.",
+    "privacyNote": "The AI only receives totals per category — your transaction descriptions are never sent.",
+    "summaryIncome": "Expected income",
+    "summaryFixed": "Fixed costs",
+    "summaryWorkingCapital": "Working capital ({pct}%)",
+    "summarySavings": "Savings ({pct}%)",
+    "summaryAvailable": "Available to spend",
+    "statusTight": "Available income is tight: some limits are below what you usually spend.",
+    "statusFixedExceed": "Your fixed costs already exceed the available income. Try a lower savings goal or working capital next time.",
+    "sourceAi": "Proposal adjusted by the AI.",
+    "sourceDeterministic": "The AI didn't respond in time — this proposal uses only the app's calculation, with the same rules.",
+    "categoriesTitle": "Limits by category",
+    "groupsTitle": "Limits by group",
+    "groupsHelp": "Each group's limit follows the limits of its categories; the alert warns you when you reach that percentage.",
+    "colCategory": "Category",
+    "colAverage": "Average",
+    "colLimit": "Limit ({currency})",
+    "colDiff": "Difference",
+    "limitAria": "Monthly limit for {name}",
+    "alertAria": "Alert for {name} (%)",
+    "kind": {
+      "fixed": "fixed",
+      "variable": "variable",
+      "discretionary": "cut first"
+    },
+    "reason": {
+      "fixed": "Fixed cost — keeps its current amount.",
+      "kept": "Keeps your average.",
+      "cut": "Reduced to fit the available income.",
+      "cutDiscretionary": "Reduced first: a cost you can postpone or cut.",
+      "belowFloor": "Heavily reduced: the available income doesn't cover the average."
+    },
+    "total": "Total: {total} of {available} available",
+    "overAvailable": "exceeds the available income",
+    "noLines": "There are no expenses in the last complete months to suggest limits.",
+    "apply": "Apply limits",
+    "undo": "Undo",
+    "appliedAt": "Applied on {date}",
+    "toastApplied": "Limits applied!",
+    "toastUndone": "Previous limits restored",
+    "toastError": "Couldn't save the limits",
+    "nextRequest": "Next proposal from {date}",
+    "errorGeneric": "Couldn't load the suggested budget. Please try again shortly."
+  },
+  "categoryLimits": {
+    "title": "Category limits",
+    "subtitle": "How much you've spent this month in each category with a limit",
+    "spent": "{spent} of {limit}"
   },
   "investment": {
     "assetClass": {
@@ -646,7 +707,7 @@
     "runPrediction": "Run Forecast",
     "modelName": "ConvNeXt-1D Financial Forecaster",
     "modelDescription": "Depthwise-separable 1D convolutions + Layer Normalization + Residual connections — Inspired by the ConvNeXt architecture adapted for financial time series",
-    "monthsOfData": "months of data",
+    "monthsOfData": "complete months",
     "confidence": "confidence",
     "trainingModel": "Training model...",
     "initializing": "Initializing...",
@@ -674,19 +735,18 @@
     "emptyTitle": "Ready to predict the future?",
     "emptyDescription": "The ConvNeXt-1D model will analyze your historical data and generate income and expense forecasts for the next 3 months.",
     "startPrediction": "Start AI Forecast",
-    "emptyHint": "You need at least 3 months of data",
+    "emptyHint": "Simple forecast from {simple} complete months; AI model from {model}. The current month doesn't count.",
     "paywallFeatureLabel": "AI forecasts",
     "trendUp": "Rising",
     "trendDown": "Falling",
     "trendStable": "Stable",
-    "toastMinData": "You need at least 2 months of data to run a forecast",
+    "toastMinData": "You need at least {min} complete months to run a forecast (you have {have})",
     "toastTimeout": "Training took too long. Please try again later.",
     "toastFallback": "AI model failed — using a linear forecast instead. ({error})",
     "toastSuccess": "Forecast complete! 🎯",
     "toastError": "Error running forecast",
     "toastCanceled": "Training canceled",
     "insights": {
-      "insufficientData": "Not enough data for the ConvNeXt model. Using the average of the last few months instead.",
       "deficit": "⚠️ Deficit expected next month. Consider cutting expenses.",
       "balanceImprove": "📈 The model predicts a significant improvement in your balance.",
       "expenseRising": "📊 Expenses trending upward over the last few months.",
@@ -696,7 +756,16 @@
       "savingsLow": "💡 Savings rate below 10%. Optimize your fixed expenses.",
       "savingsExcellent": "🌟 Excellent savings rate! Very healthy financial pattern.",
       "stable": "✅ Stable financial pattern. Keep up the good work!"
-    }
+    },
+    "simpleNotice": "Simple forecast: the AI model needs {needed} complete months (you have {have}). Until then, the forecast follows the trend of your complete months.",
+    "legendCurrent": "Current month",
+    "method": {
+      "convnext": "AI model (ConvNeXt-1D)",
+      "trend": "Trend of recent months",
+      "average": "Average of recent months"
+    },
+    "basedOnMonths": "Based on {months} complete months",
+    "emptyHave": "You have {have}."
   },
   "statsInsights": {
     "title": "AI Interpretation",
@@ -777,7 +846,6 @@
   "legal": {
     "back": "Back",
     "draftNotice": "Draft — this text has not yet been reviewed by a lawyer and has fields still to fill in.",
-    "englishOnly": "This document is only available in Portuguese and English; showing the English version.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "complaintsBook": "Electronic Complaints Book"
@@ -798,6 +866,7 @@
     "documentScan": "Receipt and invoice scanning ({n}/month)",
     "everythingPro": "Everything in Pro",
     "predictions": "AI balance forecasts",
+    "aiBudget": "AI-suggested budget (limits by category and group)",
     "investmentTracker": "Track your investments",
     "aiInvestmentTips": "AI investment tips",
     "documentScanMore": "Scan up to {n} documents/month",

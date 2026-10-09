@@ -393,3 +393,30 @@ Compras da app Android. A Google cobra; o servidor só lê o estado e aplica-o
     cada pagamento mensal. Regras de IVA intracomunitárias: confirmar com o
     contabilista;
   - as vendas no site continuam a exigir fatura a cada cliente.
+
+## Dados de teste nas contas dos testers (Upgrade 04)
+
+`scripts/seed-test-accounts.mjs` põe 6 meses **completos** de receitas e
+despesas realistas (e o mês em curso até hoje) em contas que já existem, para
+os testers verem tudo: previsões com o modelo de IA (≥ 5 meses completos),
+orçamento sugerido (≥ 3), estatísticas, grupos ("Casa", "Saídas e lazer") e
+uma carteira de 3 investimentos (só se a conta não tiver nenhum). Não cria
+contas nem muda o plano.
+
+```bash
+# 1. ver o que faria (não escreve nada)
+MONGODB_URI=<uri-de-produção> MONGODB_DB_NAME=financeflow-prod \
+  node scripts/seed-test-accounts.mjs --dry email1 email2
+# 2. aplicar
+MONGODB_URI=<uri-de-produção> MONGODB_DB_NAME=financeflow-prod \
+  node scripts/seed-test-accounts.mjs --replace --reset-budget email1 email2
+```
+
+- As transações geradas levam a etiqueta `dados-teste`; correr outra vez
+  substitui-as (não duplica).
+- `--replace` apaga **todas** as transações da conta antes — usar em contas
+  que já tinham dados de teste antigos, senão somam-se nos mesmos meses.
+- `--reset-budget` apaga a proposta de orçamento sugerido do mês, para o
+  tester poder pedir outra (1 pedido por mês).
+- As credenciais do `.env` local não têm acesso a `financeflow-prod`: é
+  preciso a ligação de produção (a mesma do backup).

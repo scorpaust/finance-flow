@@ -508,3 +508,54 @@ const FxCacheSchema = new Schema<IFxCache>(
 export const FxCache: Model<IFxCache> =
   mongoose.models.FxCache || mongoose.model<IFxCache>('FxCache', FxCacheSchema)
 
+
+// ─── AI BUDGET PROPOSAL ──────────────────────────────────────────────────────
+// Upgrade 04 — orçamento sugerido por IA: UM pedido por conta por mês civil
+// (fuso de Lisboa). O `_id` é `${userId}:${YYYY-MM}` — a unicidade do pedido do
+// mês vem do índice `_id` (mesmo motivo de DocumentScanUsage). Guarda a
+// proposta (visível o resto do mês) e, depois de aplicada, os limites
+// anteriores para "Desfazer". Valores em euros.
+export interface IAiBudgetProposal extends Document<string> {
+  userId: mongoose.Types.ObjectId
+  month: string
+  status: 'pending' | 'ready'
+  settings: { workingCapitalPct: number; savingsPct: number }
+  summary?: Record<string, unknown>
+  categories?: Record<string, unknown>[]
+  groups?: Record<string, unknown>[]
+  // 'ai' = a IA ajustou e passou na validação; 'deterministic' = só o cálculo
+  // da app (a IA falhou ou saiu dos limites).
+  source?: 'ai' | 'deterministic'
+  overview?: string | null
+  locale?: string
+  // Limites antes da 1.ª aplicação (só os que a aplicação mudou); null depois
+  // de "Desfazer" ou se nunca foi aplicada.
+  previousLimits?: {
+    categories: { id: string; monthlyLimit: number }[]
+    groups: { id: string; monthlyLimit: number; alertThreshold: number }[]
+  } | null
+  appliedAt?: Date | null
+  createdAt: Date
+  generatedAt?: Date | null
+}
+
+const AiBudgetProposalSchema = new Schema<IAiBudgetProposal>({
+  _id:            { type: String },
+  userId:         { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  month:          { type: String, required: true },
+  status:         { type: String, enum: ['pending', 'ready'], required: true },
+  settings:       { type: Schema.Types.Mixed, required: true },
+  summary:        { type: Schema.Types.Mixed },
+  categories:     { type: [Schema.Types.Mixed], default: undefined },
+  groups:         { type: [Schema.Types.Mixed], default: undefined },
+  source:         { type: String, enum: ['ai', 'deterministic'] },
+  overview:       { type: String, default: null },
+  locale:         { type: String },
+  previousLimits: { type: Schema.Types.Mixed, default: null },
+  appliedAt:      { type: Date, default: null },
+  createdAt:      { type: Date, required: true },
+  generatedAt:    { type: Date, default: null },
+})
+export const AiBudgetProposal: Model<IAiBudgetProposal> =
+  mongoose.models.AiBudgetProposal ||
+  mongoose.model<IAiBudgetProposal>('AiBudgetProposal', AiBudgetProposalSchema)

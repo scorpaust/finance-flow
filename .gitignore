@@ -45,3 +45,7 @@ backups/
 *.jks
 *.keystore
 keystore.properties
+
+# Chaves de contas de serviço (Google Cloud) — nunca no repositório
+financeflow-play-*.json
+*-service-account*.json

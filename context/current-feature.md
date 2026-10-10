@@ -4,7 +4,7 @@
 
 ## Estado
 
-**Upgrade 05 — recuperação de password (e domínio próprio): Em progresso**
+**Upgrade 05 — recuperação de password (e domínio próprio): Em produção** (deploy de 2026-10-10)
 (definido a 2026-10-10; `context/features/upgrades/05-recuperacao-password.md`).
 Decisões do utilizador: opção A (Resend + domínio próprio), domínio
 `financeflow-webapp.pt` (site em `https://www.financeflow-webapp.pt`, emails de
@@ -12,7 +12,10 @@ Decisões do utilizador: opção A (Resend + domínio próprio), domínio
 mudar a password termina as sessões noutros dispositivos. Branch
 `feature/upgrade-05-recuperacao-password`. Domínio, DNS, Resend, webhooks
 (EasyPay, Pub/Sub) e links da Play Console já configurados pelo utilizador;
-falta o deploy (leva o `APP_URL` novo) e o `.aab` 1.2.3.
+deploy feito a 2026-10-10 (`APP_URL` novo ativo). Falta: o utilizador
+testar a recuperação com o próprio email (caixa de entrada/spam), carregar o
+`.aab` 1.2.3 nos testes fechados e acrescentar o DMARC quando a Resend
+verificar o domínio.
 
 **Upgrade 04 — orçamento sugerido por IA e correções às previsões:
 Concluída e em produção** (deploy de 2026-10-09) (definido a 2026-10-09;
@@ -119,8 +122,8 @@ Tarefas (ver especificação):
       SECURITY-POLICY, README).
 - [x] Testes: unitários 110/110, integração 53/53, E2E 7/7, type-check 0.
 - [x] `.aab` 1.2.3 (versionCode 8) gerado e assinado.
-- [ ] Deploy; `.aab` nos testes fechados (utilizador); DMARC depois de a
-      Resend verificar o domínio (utilizador).
+- [x] Deploy (2026-10-10).
+- [ ] `.aab` nos testes fechados, teste com email real e DMARC (utilizador).
 
 ## Critérios de aceitação
 
@@ -2522,4 +2525,13 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   avaliação na app — sem testemunhos inventados, que a Google proíbe), 08
   (primeiros passos e ajuda), 09 (feedback e suporte na app) e 10 (funções
   da Netlify sem o limite de 4 KB).
+- 2026-10-10: `GOOGLE_PLAY_SERVICE_ACCOUNT` reduzida pelo utilizador
+  (`client_email` + `private_key`: 2 365 → 1 821 bytes; total das variáveis
+  ~3,2 KB). **Deploy do Upgrade 05 em produção.** Verificado: páginas
+  `/forgot-password` e `/reset-password`; `forgot` responde o mesmo para um
+  email sem conta (~2 s, tempo mínimo); `reset` com token falso → 400; CORS
+  com o `APP_URL` novo (`www.financeflow-webapp.pt`); login; RTDN 401 (pede
+  autenticação, como deve); Política de Privacidade com a Resend; preços
+  lidos da Google Play (`source: google_play`, a conta de serviço reduzida
+  autentica).
 

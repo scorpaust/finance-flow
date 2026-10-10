@@ -32,19 +32,43 @@
 como no Upgrade 03), e B a seguir, se o tempo de build continuar a ser um
 problema.
 
+## Implementação (2026-10-10)
+
+- **Causa:** o Nitro 2 só escolhe o preset `netlify` (Functions v2) quando a
+  `compatibilityDate` do projeto é ≥ 2024-05-07 (nitropack
+  `presets/netlify/preset.mjs` e `presets/_resolve.mjs`). O projeto não tinha
+  data, e o Nuxt usava `2024-04-03`, por isso escolhia o `netlify-legacy`.
+- **Correção:** `compatibilityDate: '2024-05-07'` em `nuxt.config.ts`.
+  - A data não muda mais nada no Nitro 2 (só a escolha de presets).
+  - A pasta das funções é a mesma (`.netlify/functions-internal`), por isso o
+    script de deploy só ganhou `--alias <nome>` para rascunhos.
+- **Rascunho** `https://upgrade-10--financeflow-webapp.netlify.app`, com o
+  build a confirmar "Nitro preset: netlify". Testado:
+  - páginas públicas;
+  - login e sessão (dois cookies), painel com SSR, subscrição, transações,
+    previsões, orçamento por IA;
+  - país detetado (PT → MB WAY e Multibanco: os cabeçalhos `x-nf-*`
+    continuam a chegar);
+  - preços lidos da Google Play;
+  - recuperação de password;
+  - endpoint RTDN (401 sem autenticação).
+
 ## Tarefas (opção A)
 
-- [ ] `nuxt.config.ts`: `nitro.preset = 'netlify'`; ajustar
-      `scripts/deploy-netlify.mjs` à nova pasta das funções.
-- [ ] Deploy de rascunho: login, 2FA, webhooks (EasyPay, RTDN), crons,
-      orçamento por IA, digitalização de documentos, recuperação de
-      password.
-- [ ] Confirmar que a variável de teste de 5 KB (soma) deixa de ser recusada.
-- [ ] Atualizar `context/OPERATIONS.md` ("Deploy web") e
+- [x] `nuxt.config.ts`: `compatibilityDate: '2024-05-07'` (em vez de forçar
+      `nitro.preset`: assim a deteção automática continua a funcionar); o
+      script de deploy só precisou de `--alias`.
+- [x] Deploy de rascunho testado: páginas, login e sessão, orçamento por IA,
+      RTDN (sem autenticação), preços da Google Play, recuperação de
+      password, país. Não testados no rascunho: 2FA, crons e digitalização de
+      documentos (não dependem do tipo de função; verificar em produção se
+      houver dúvidas).
+- [ ] Confirmar com uma variável de teste que a soma acima de 4 KB é aceite (depois do deploy de produção).
+- [x] Atualizar `context/OPERATIONS.md` ("Deploy web") e
       `CONFIG-REFERENCE.md`.
 
 ## Critérios de aceitação
 
 - [ ] Deploy aceite com mais de 4 KB de variáveis.
-- [ ] Todos os fluxos acima a funcionar no rascunho antes de ir para
+- [x] Os fluxos testados a funcionar no rascunho antes de ir para
       produção.

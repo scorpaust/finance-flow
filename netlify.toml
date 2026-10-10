@@ -1,5 +1,6 @@
 # Fase 9 — deploy de produção no Netlify (decisão do utilizador, 2026-09-29).
-# O Nitro deteta o Netlify e gera funções serverless (preset netlify-legacy);
+# O Nitro deteta o Netlify e gera funções serverless (preset `netlify`, Functions
+# v2, desde o Upgrade 10 — ver `compatibilityDate` em nuxt.config.ts);
 # `dist/` fica com os ficheiros estáticos. Variáveis de ambiente de produção
 # (segredos incluídos) configuram-se no painel do Netlify, nunca aqui — lista
 # completa em context/CONFIG-REFERENCE.md.

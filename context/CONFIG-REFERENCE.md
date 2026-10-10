@@ -133,8 +133,10 @@ envio no projeto — ver `context/features/08-FASE-8-seguranca-qualidade.md`).
 ## Fase 9 — Publicação
 
 **Alojamento de produção: Netlify** (decisão do utilizador, 2026-09-29).
-Nuxt SSR corre em funções serverless (preset `netlify-legacy`, detetado
-automaticamente); build definido em `netlify.toml`. Endereço:
+Nuxt SSR corre em funções serverless — preset Nitro `netlify` (Functions v2)
+desde o Upgrade 10, ativado por `compatibilityDate: '2024-05-07'` em
+`nuxt.config.ts`; antes era o `netlify-legacy` (compatível com AWS Lambda), em
+que todas as variáveis juntas não podiam passar de 4 KB; build definido em `netlify.toml`. Endereço:
 `https://www.financeflow-webapp.pt` (domínio próprio desde 2026-10-10, Upgrade
 05 — o mesmo valor em `APP_URL` e em `capacitor.config.ts`). O apex
 `financeflow-webapp.pt` redireciona para o `www`; o antigo

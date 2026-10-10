@@ -289,6 +289,13 @@ repor uma chave de upload, e só com Play App Signing ativo.
   script afasta o `.env`, faz o build, troca as ligações por cópias, apaga o
   zip já gerado e publica com `--no-build`. Demora ~45 min nesta máquina. Com
   o repositório ligado ao Netlify (build no Linux deles) nada disto é preciso.
+- **Rascunho antes de produção**: `npm run deploy:netlify -- --alias <nome>`
+  publica em `https://<nome>--financeflow-webapp.netlify.app` sem mudar a
+  produção (mesmas variáveis e mesma base de dados — usar as contas
+  `tester-*`). Usado no Upgrade 10.
+- **Funções**: preset Nitro `netlify` (Functions v2, Upgrade 10). Se um build
+  mostrar `netlify-legacy`, a `compatibilityDate` de `nuxt.config.ts` foi
+  perdida — com o legacy volta o limite de 4 KB nas variáveis.
 - Configuração do build: `netlify.toml` (raiz). O site está ligado ao
   projeto (`.netlify/state.json`), subdomínio
   `financeflow-webapp.netlify.app` (decisão de 2026-09-29, até haver

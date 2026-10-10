@@ -2507,3 +2507,19 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   (`android/app/build/outputs/bundle/release/app-release.aab`). Nota: o
   `JAVA_HOME` da máquina aponta para o JDK 17 e o Capacitor 8 exige o 21 —
   o build correu com o JDK 21 do PATH (`JAVA_HOME` só nesse comando).
+- 2026-10-10: Merge em `main` (`be34bc7`). **Deploy recusado pela Netlify**:
+  as variáveis de ambiente passaram o limite de 4 KB do modo de
+  compatibilidade com Lambda (as duas da Resend foram a gota de água; a
+  `GOOGLE_PLAY_SERVICE_ACCOUNT` sozinha tem ~2,4 KB). A produção ficou na
+  versão anterior, sem falhas. Correção: o utilizador guarda na Netlify só
+  `client_email` e `private_key` desse JSON (o código só usa esses dois);
+  depois, novo deploy. Solução de fundo especificada no Upgrade 10.
+- 2026-10-10: **Relatório dos testes fechados** (Testers Community): sem
+  crashes nem falhas; sugestões sobre a ficha da loja (ASO) e o idioma.
+  Especificados os Upgrades 06 (idioma: seletor antes de entrar, acompanhar
+  o telemóvel, textos fixos em português nas Previsões e na biometria,
+  categorias por omissão), 07 (ficha da loja nas 6 línguas e pedido de
+  avaliação na app — sem testemunhos inventados, que a Google proíbe), 08
+  (primeiros passos e ajuda), 09 (feedback e suporte na app) e 10 (funções
+  da Netlify sem o limite de 4 KB).
+

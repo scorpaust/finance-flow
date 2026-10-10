@@ -11,6 +11,8 @@ const LIMITS = { title: 30, short: 80, full: 4000 }
 
 function blocks(locale: string): string[] {
   const md = readFileSync(join(__dirname, '..', 'assets', 'store', 'listing', `${locale}.md`), 'utf8')
+    // O Git no Windows pode extrair os ficheiros com CRLF.
+    .replace(/\r\n/g, '\n')
   return [...md.matchAll(/```\n([\s\S]*?)\n```/g)].map((m) => m[1])
 }
 

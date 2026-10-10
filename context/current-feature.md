@@ -4,10 +4,10 @@
 
 ## Estado
 
-**Upgrade 10 — funções da Netlify sem o limite de 4 KB: Em progresso**
+**Upgrade 10 — funções da Netlify sem o limite de 4 KB: Em produção** (deploy de 2026-10-10)
 (2026-10-10; `context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md`).
-Branch `feature/upgrade-10-funcoes-netlify`. Rascunho testado com o preset
-`netlify`; falta o deploy de produção.
+Merge `ec51d36`; produção com o preset `netlify` e verificada. Falta só
+confirmar, com uma variável de teste, que mais de 4 KB passam (opcional).
 
 **Upgrade 06 — idioma: Concluída e em produção** (deploy de 2026-10-10;
 `context/features/upgrades/06-idioma.md`, a partir do relatório dos testes
@@ -122,7 +122,7 @@ Tarefas:
 - [x] `npm run deploy:netlify -- --alias <nome>` para rascunhos.
 - [x] Rascunho testado (páginas, sessão, país, Google Play, recuperação,
       orçamento por IA).
-- [ ] Deploy de produção e verificação.
+- [x] Deploy de produção e verificação.
 
 ## Critérios de aceitação
 
@@ -2559,4 +2559,9 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   com "Nitro preset: netlify" e testado: páginas, login/sessão, painel SSR,
   subscrição, transações, previsões, orçamento por IA, país (PT → MB WAY e
   Multibanco), preços da Google Play, recuperação de password, RTDN.
+- 2026-10-10: **Upgrade 10 em produção** (merge `ec51d36`). O build confirmou
+  "Nitro preset: netlify". Verificado em `www.financeflow-webapp.pt`: páginas,
+  login, painel SSR, transações, país (PT → MB WAY e Multibanco), preços da
+  Google Play, recuperação de password, RTDN (401), webhook EasyPay (200) e o
+  antigo `.netlify.app` (apps ≤ 1.2.2).
 

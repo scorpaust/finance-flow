@@ -88,12 +88,12 @@ export function useMLPrediction() {
     isTraining.value = true
     progress.value   = 0
     error.value      = null
-    statusMsg.value  = 'A carregar TF.js...'
+    statusMsg.value  = t('predictions.status.loading')
 
     try {
       // Dynamic import — keeps TF.js out of SSR bundle
       const tf = await import('@tensorflow/tfjs')
-      statusMsg.value = 'A inicializar backend...'
+      statusMsg.value = t('predictions.status.initializing')
 
       // O backend WebGL do TF.js pode não ser estável em todas as WebViews
       // Android (crashes de contexto GL em dispositivos com pouca RAM). Em
@@ -104,7 +104,7 @@ export function useMLPrediction() {
         await tf.setBackend('cpu')
       }
       await tf.ready()
-      statusMsg.value = 'A treinar modelo...'
+      statusMsg.value = t('predictions.status.training')
 
       const EPOCHS  = 24
       // Com PREDICTION_MIN_MONTHS.model (5) meses: janela de 3 e 2 exemplos de treino.

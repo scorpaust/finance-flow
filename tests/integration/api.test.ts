@@ -1496,3 +1496,49 @@ describe('recuperação e alteração de password (Upgrade 05)', () => {
     expect((await fetch('/api/auth/password/change', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).status).toBe(401)
   })
 })
+
+describe('tradução das categorias por omissão (Upgrade 06)', () => {
+  const translate = (cookie: string, locale: string, dryRun = false) =>
+    fetch('/api/categories/translate-defaults', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ locale, dryRun }),
+    })
+
+  it('traduz só as nunca renomeadas; dryRun não muda nada; nome ocupado fica como está', async () => {
+    const email = uniqueEmail('translate-cats')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const before = await Category.find({ userId: user!._id }).lean()
+    expect(before.map((c) => c.name)).toContain('Housing')
+
+    // Uma renomeada à mão e uma categoria própria com o nome que "Leisure" teria.
+    await Category.updateOne({ userId: user!._id, name: 'Groceries' }, { $set: { name: 'Supermercado do bairro' } })
+    await Category.create({ userId: user!._id, name: 'Lazer', type: 'expense', isDefault: false })
+
+    const dry = await translate(cookie, 'pt-PT', true)
+    expect(dry.status).toBe(200)
+    const dryBody = await dry.json()
+    expect(dryBody.count).toBe(DEFAULT_CATEGORY_COUNT - 2)
+    expect((await Category.find({ userId: user!._id, name: 'Habitação' }).lean())).toHaveLength(0)
+
+    const real = await (await translate(cookie, 'pt-PT')).json()
+    expect(real.count).toBe(DEFAULT_CATEGORY_COUNT - 2)
+    const names = (await Category.find({ userId: user!._id }).lean()).map((c) => c.name)
+    expect(names).toContain('Habitação')
+    expect(names).toContain('Salário')
+    expect(names).toContain('Supermercado do bairro')
+    expect(names).toContain('Leisure')
+    expect(names.filter((n) => n === 'Lazer')).toHaveLength(1)
+
+    // Outra vez para a mesma língua: nada a fazer. E de volta ao inglês funciona.
+    expect((await (await translate(cookie, 'pt-PT')).json()).count).toBe(0)
+    expect((await (await translate(cookie, 'en')).json()).count).toBe(DEFAULT_CATEGORY_COUNT - 2)
+  })
+
+  it('recusa sem sessão e com uma língua que não existe', async () => {
+    expect((await fetch('/api/categories/translate-defaults', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ locale: 'pt-PT' }) })).status).toBe(401)
+    const { cookie } = await register(uniqueEmail('translate-bad'))
+    expect((await translate(cookie, 'xx')).status).toBe(400)
+  })
+})

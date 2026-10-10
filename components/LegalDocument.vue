@@ -1,9 +1,12 @@
 <template>
   <main class="min-h-screen auth-bg p-4 sm:p-8">
     <article class="max-w-3xl mx-auto glass-card rounded-4xl p-6 sm:p-10 space-y-6">
-      <NuxtLink to="/login" class="btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2">
-        <ArrowLeft class="w-4 h-4" /> {{ t('legal.back') }}
-      </NuxtLink>
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <NuxtLink to="/login" class="btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2">
+          <ArrowLeft class="w-4 h-4" /> {{ t('legal.back') }}
+        </NuxtLink>
+        <LanguageSwitcher />
+      </div>
 
       <div
         v-if="LEGAL_IS_DRAFT"

@@ -113,8 +113,8 @@
     "kpiIncome": "Revenus (mois)",
     "kpiExpense": "Dépenses (mois)",
     "kpiSavingsRate": "Taux d'épargne",
-    "forecastTitle": "Prévisions par deep learning",
-    "forecastDescription": "ConvNeXt-1D avec TensorFlow.js pour prévoir les revenus, dépenses et le solde des 3 prochains mois.",
+    "forecastTitle": "Prévisions par IA",
+    "forecastDescription": "Une prévision de tes revenus, dépenses et solde pour les 3 prochains mois, faite sur ton appareil.",
     "forecastRun": "Lancer la prévision",
     "forecastTraining": "Entraînement...",
     "forecastDetail": "Voir le détail",
@@ -173,7 +173,11 @@
     "language": {
       "title": "Langue",
       "description": "Langue de l'interface — n'affecte pas les moyens de paiement disponibles, qui dépendent du pays détecté.",
-      "label": "Langue de l'application"
+      "label": "Langue de l'application",
+      "translateCategories": "Catégories par défaut avec leur nom d'origine : {count}. Les traduire dans cette langue ?",
+      "translateYes": "Traduire",
+      "translateNo": "Pas maintenant",
+      "translateDone": "Catégories traduites"
     },
     "twoFactor": {
       "title": "Authentification à deux facteurs",
@@ -245,7 +249,14 @@
       "retry": "Vérifier à nouveau",
       "statusEnabled": "Verrouillage actif",
       "statusDisabled": "Verrouillage désactivé",
-      "disable": "Désactiver le verrouillage"
+      "disable": "Désactiver le verrouillage",
+      "reason": {
+        "notNative": "Le verrouillage biométrique ne fonctionne que dans l'app Android.",
+        "checking": "Vérification de la biométrie du téléphone...",
+        "noBiometrics": "Ce téléphone n'a ni empreinte ni visage enregistré, ou pas de verrouillage d'écran.",
+        "pluginError": "Impossible de communiquer avec la biométrie du téléphone. Réessaie."
+      },
+      "technicalDetails": "Détails techniques"
     },
     "account": {
       "title": "Confidentialité et données",
@@ -727,17 +738,17 @@
   "predictions": {
     "backToDashboard": "Retour au tableau de bord",
     "title": "Prévisions par IA",
-    "subtitle": "Modèle ConvNeXt-1D entraîné sur tes données historiques",
+    "subtitle": "Un modèle d'IA apprend de ton historique et prévoit les mois à venir",
     "cancel": "Annuler",
     "training": "Entraînement...",
     "runPrediction": "Lancer la prévision",
-    "modelName": "ConvNeXt-1D Financial Forecaster",
-    "modelDescription": "Convolutions 1D depthwise-separable + Layer Normalization + connexions résiduelles — Inspiré de l'architecture ConvNeXt adaptée aux séries temporelles financières",
+    "modelName": "Prévision par IA",
+    "modelDescription": "Fonctionne sur ton appareil : tes données ne le quittent pas pour faire la prévision. Plus tu as de mois complets, meilleure est la prévision.",
     "monthsOfData": "mois complets",
     "confidence": "confiance",
     "trainingModel": "Entraînement du modèle...",
     "initializing": "Initialisation...",
-    "epoch": "Époque {current}/{total}",
+    "epoch": "Étape {current} sur {total}",
     "stepData": "Données",
     "stepModel": "Modèle",
     "stepTraining": "Entraînement",
@@ -759,7 +770,7 @@
     "confidenceBasedOn": "Confiance : {pct}% — basé sur {months} mois de données",
     "insightsTitle": "Analyses de l'IA",
     "emptyTitle": "Prêt à prédire l'avenir ?",
-    "emptyDescription": "Le modèle ConvNeXt-1D va analyser tes données historiques et générer des prévisions de revenus et dépenses pour les 3 prochains mois.",
+    "emptyDescription": "L'IA va analyser ton historique et prévoir tes revenus et dépenses des 3 prochains mois.",
     "startPrediction": "Lancer la prévision IA",
     "emptyHint": "Prévision simple à partir de {simple} mois complets ; modèle d'IA à partir de {model}. Le mois en cours ne compte pas.",
     "paywallFeatureLabel": "Les prévisions par IA",
@@ -786,12 +797,17 @@
     "simpleNotice": "Prévision simple : le modèle d'IA a besoin de {needed} mois complets (tu en as {have}). En attendant, la prévision suit la tendance de tes mois complets.",
     "legendCurrent": "Mois en cours",
     "method": {
-      "convnext": "Modèle d'IA (ConvNeXt-1D)",
+      "convnext": "Modèle d'IA",
       "trend": "Tendance des derniers mois",
       "average": "Moyenne des derniers mois"
     },
     "basedOnMonths": "Basé sur {months} mois complets",
-    "emptyHave": "Tu en as {have}."
+    "emptyHave": "Tu en as {have}.",
+    "status": {
+      "loading": "Préparation du modèle d'IA...",
+      "initializing": "Préparation de ton appareil...",
+      "training": "Apprentissage à partir de ton historique..."
+    }
   },
   "statsInsights": {
     "title": "Interprétation par IA",

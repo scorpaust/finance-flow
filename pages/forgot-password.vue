@@ -1,6 +1,7 @@
 <template>
   <main class="min-h-screen auth-bg flex items-center justify-center p-4">
     <div class="w-full max-w-md glass-card rounded-4xl p-8 sm:p-10">
+      <div class="flex justify-end mb-4"><LanguageSwitcher /></div>
       <h1 class="font-display font-bold text-2xl text-white mb-2">{{ t('passwordReset.forgotTitle') }}</h1>
       <p class="text-white/50 text-sm leading-relaxed mb-6">{{ t('passwordReset.forgotDescription') }}</p>
 

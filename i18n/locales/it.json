@@ -113,8 +113,8 @@
     "kpiIncome": "Entrate (mese)",
     "kpiExpense": "Uscite (mese)",
     "kpiSavingsRate": "Tasso di risparmio",
-    "forecastTitle": "Previsioni con deep learning",
-    "forecastDescription": "ConvNeXt-1D con TensorFlow.js per prevedere entrate, uscite e saldo dei prossimi 3 mesi.",
+    "forecastTitle": "Previsioni con IA",
+    "forecastDescription": "Una previsione di entrate, spese e saldo per i prossimi 3 mesi, fatta sul tuo dispositivo.",
     "forecastRun": "Esegui previsione",
     "forecastTraining": "Addestramento...",
     "forecastDetail": "Vedi dettagli",
@@ -173,7 +173,11 @@
     "language": {
       "title": "Lingua",
       "description": "Lingua dell'interfaccia — non influisce sui metodi di pagamento disponibili, che dipendono dal paese rilevato.",
-      "label": "Lingua dell'app"
+      "label": "Lingua dell'app",
+      "translateCategories": "Categorie predefinite con il nome originale: {count}. Tradurle in questa lingua?",
+      "translateYes": "Traduci",
+      "translateNo": "Non ora",
+      "translateDone": "Categorie tradotte"
     },
     "twoFactor": {
       "title": "Autenticazione a due fattori",
@@ -245,7 +249,14 @@
       "retry": "Ricontrolla",
       "statusEnabled": "Blocco attivo",
       "statusDisabled": "Blocco disattivato",
-      "disable": "Disattiva il blocco"
+      "disable": "Disattiva il blocco",
+      "reason": {
+        "notNative": "Il blocco biometrico funziona solo nell'app Android.",
+        "checking": "Verifica della biometria del telefono...",
+        "noBiometrics": "Questo telefono non ha impronte o volto registrati, oppure non ha il blocco schermo.",
+        "pluginError": "Impossibile comunicare con la biometria del telefono. Riprova."
+      },
+      "technicalDetails": "Dettagli tecnici"
     },
     "account": {
       "title": "Privacy e dati",
@@ -727,17 +738,17 @@
   "predictions": {
     "backToDashboard": "Torna alla dashboard",
     "title": "Previsioni IA",
-    "subtitle": "Modello ConvNeXt-1D addestrato con i tuoi dati storici",
+    "subtitle": "Un modello di IA impara dal tuo storico e prevede i prossimi mesi",
     "cancel": "Annulla",
     "training": "Addestramento...",
     "runPrediction": "Esegui previsione",
-    "modelName": "ConvNeXt-1D Financial Forecaster",
-    "modelDescription": "Convoluzioni 1D depthwise-separable + Layer Normalization + connessioni residuali — Ispirato all'architettura ConvNeXt adattata alle serie temporali finanziarie",
+    "modelName": "Previsione con IA",
+    "modelDescription": "Funziona sul tuo dispositivo: i tuoi dati non escono per fare la previsione. Più mesi completi hai, migliore è la previsione.",
     "monthsOfData": "mesi completi",
     "confidence": "affidabilità",
     "trainingModel": "Addestramento del modello...",
     "initializing": "Inizializzazione...",
-    "epoch": "Epoca {current}/{total}",
+    "epoch": "Passo {current} di {total}",
     "stepData": "Dati",
     "stepModel": "Modello",
     "stepTraining": "Addestramento",
@@ -759,7 +770,7 @@
     "confidenceBasedOn": "Affidabilità: {pct}% — basata su {months} mesi di dati",
     "insightsTitle": "Approfondimenti IA",
     "emptyTitle": "Pronto a prevedere il futuro?",
-    "emptyDescription": "Il modello ConvNeXt-1D analizzerà i tuoi dati storici e genererà previsioni di entrate e uscite per i prossimi 3 mesi.",
+    "emptyDescription": "L'IA analizzerà il tuo storico e prevederà entrate e spese dei prossimi 3 mesi.",
     "startPrediction": "Avvia previsione IA",
     "emptyHint": "Previsione semplice da {simple} mesi completi; modello di IA da {model}. Il mese in corso non conta.",
     "paywallFeatureLabel": "Le previsioni IA",
@@ -786,12 +797,17 @@
     "simpleNotice": "Previsione semplice: il modello di IA ha bisogno di {needed} mesi completi (ne hai {have}). Nel frattempo, la previsione segue l'andamento dei tuoi mesi completi.",
     "legendCurrent": "Mese in corso",
     "method": {
-      "convnext": "Modello di IA (ConvNeXt-1D)",
+      "convnext": "Modello di IA",
       "trend": "Andamento degli ultimi mesi",
       "average": "Media degli ultimi mesi"
     },
     "basedOnMonths": "Basato su {months} mesi completi",
-    "emptyHave": "Ne hai {have}."
+    "emptyHave": "Ne hai {have}.",
+    "status": {
+      "loading": "Preparazione del modello di IA...",
+      "initializing": "Preparazione del tuo dispositivo...",
+      "training": "Apprendimento dal tuo storico..."
+    }
   },
   "statsInsights": {
     "title": "Interpretazione con IA",

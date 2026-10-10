@@ -2,8 +2,9 @@
  * Fase 9 — imagens da ficha da Google Play, geradas a partir do logótipo
  * (assets/icon-only.svg, Fase 4):
  *   assets/store/play-icon-512.png              ícone 512×512 (PNG 32 bits)
- *   assets/store/feature-graphic-pt-PT.png      gráfico de funcionalidades 1024×500
- *   assets/store/feature-graphic-en.png         (PNG 24 bits, sem transparência)
+ *   assets/store/feature-graphic-<língua>.png   gráfico de funcionalidades 1024×500
+ *                                               (PNG 24 bits, sem transparência),
+ *                                               nas 6 línguas da app (Upgrade 07)
  *
  * Uso: node scripts/store-assets.mjs
  *
@@ -44,6 +45,23 @@ const COPY = {
   en: {
     tagline: 'Personal finance, budgets and AI forecasts',
     bullets: ['Spending & budgets', 'AI forecasts', 'Investment portfolio'],
+  },
+  // Upgrade 07 — até ~50 caracteres na frase (cabe à direita do logótipo).
+  fr: {
+    tagline: 'Finances personnelles, budgets et prévisions IA',
+    bullets: ['Dépenses et budgets', 'Prévisions par IA', "Portefeuille d'investissements"],
+  },
+  de: {
+    tagline: 'Haushaltsbuch, Budgets und KI-Prognosen',
+    bullets: ['Ausgaben & Budgets', 'KI-Prognosen', 'Anlageportfolio'],
+  },
+  it: {
+    tagline: 'Finanze personali, budget e previsioni IA',
+    bullets: ['Spese e budget', 'Previsioni con IA', 'Portafoglio investimenti'],
+  },
+  es: {
+    tagline: 'Finanzas personales, presupuestos y previsiones IA',
+    bullets: ['Gastos y presupuestos', 'Previsiones con IA', 'Cartera de inversiones'],
   },
 }
 

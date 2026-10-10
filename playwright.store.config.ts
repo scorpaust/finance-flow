@@ -8,5 +8,7 @@ export default defineConfig({
   ...base,
   testDir: './store-screenshots',
   reporter: [['list']],
-  timeout: 600_000,
+  // Por língua (Upgrade 07): a 1.ª língua da corrida paga a compilação das
+  // páginas pelo servidor de dev, e 10 min não chegaram numa máquina carregada.
+  timeout: 1_200_000,
 })

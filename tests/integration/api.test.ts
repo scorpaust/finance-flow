@@ -1542,3 +1542,29 @@ describe('tradução das categorias por omissão (Upgrade 06)', () => {
     expect((await translate(cookie, 'xx')).status).toBe(400)
   })
 })
+
+describe('pedido de avaliação na Google Play (Upgrade 07)', () => {
+  const ask = (cookie: string) => fetch('/api/account/review-prompt', { method: 'POST', headers: { cookie } })
+
+  it('só com 30+ dias e 10+ transações, e uma única vez por conta', async () => {
+    const email = uniqueEmail('review')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    expect(await (await ask(cookie)).json()).toEqual({ prompt: false })
+
+    // 10 transações, mas a conta é nova.
+    const category = await Category.findOne({ userId: user!._id, type: 'expense' })
+    await Transaction.insertMany(
+      Array.from({ length: 10 }, (_, i) => ({ userId: user!._id, type: 'expense', amount: 5 + i, description: 'x', categoryId: category!._id, date: new Date() }))
+    )
+    expect(await (await ask(cookie)).json()).toEqual({ prompt: false })
+
+    // Conta com 31 dias (direto na coleção, sem os timestamps do mongoose).
+    await User.collection.updateOne({ _id: user!._id }, { $set: { createdAt: new Date(Date.now() - 31 * 86_400_000) } })
+    expect(await (await ask(cookie)).json()).toEqual({ prompt: true })
+    expect(await (await ask(cookie)).json()).toEqual({ prompt: false })
+    expect((await User.findById(user!._id).lean())!.reviewPromptedAt).toBeTruthy()
+
+    expect((await fetch('/api/account/review-prompt', { method: 'POST' })).status).toBe(401)
+  })
+})

@@ -147,6 +147,9 @@ export interface IUser extends Document {
   // Mudar ou recuperar a password incrementa-a, e as sessões abertas noutros
   // dispositivos deixam de valer. Contas sem o campo: 0.
   sessionVersion?: number
+  // Upgrade 07 — quando foi pedida a avaliação na Google Play (In-App Review).
+  // Pedida no máximo uma vez por conta.
+  reviewPromptedAt?: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -169,6 +172,7 @@ const UserSchema = new Schema<IUser>(
     displayCurrency:      { type: String, default: 'EUR', uppercase: true, minlength: 3, maxlength: 3 },
     playAccountId:        { type: String },
     sessionVersion:       { type: Number, default: 0 },
+    reviewPromptedAt:     { type: Date, default: null },
   },
   { timestamps: true }
 )

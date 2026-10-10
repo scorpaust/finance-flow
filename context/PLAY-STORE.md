@@ -12,52 +12,32 @@ pagamentos e investimentos). **Email de contacto**: o publicado nos Termos.
 (pública, sem login). **Site**: `https://www.financeflow-webapp.pt`
 (mudados na Play Console a 2026-10-10, Upgrade 05).
 
-### PT-PT
+### Textos da ficha nas 6 línguas (Upgrade 07)
 
-- **Título** (máx. 30): `FinanceFlow: Finanças Pessoais`
-- **Descrição curta** (máx. 80):
-  `Controla gastos, orçamentos e investimentos, com previsões e dicas por IA.`
-- **Descrição completa**:
+Prontos a colar, um ficheiro por língua, com as palavras-chave usadas:
+`assets/store/listing/{pt-PT,en,fr,de,it,es}.md` (título, descrição curta e
+descrição completa). Os limites da Play (30 / 80 / 4000 caracteres), os 3
+planos, o aviso de que não é aconselhamento financeiro e a ausência de
+testemunhos são verificados por `tests/storeListing.test.ts`.
 
-  > O FinanceFlow ajuda-te a perceber para onde vai o teu dinheiro.
-  >
-  > **Grátis**
-  > • Regista receitas e despesas em segundos, com categorias prontas a usar
-  > • Painel com saldo, gastos do mês e evolução ao longo do tempo
-  > • Gráficos por categoria
-  >
-  > **Pro**
-  > • Transações ilimitadas e categorias próprias
-  > • Grupos de orçamento com limites mensais e semanais e alertas
-  > • Estatísticas avançadas e exportação em CSV
-  > • Interpretação das tuas estatísticas por IA
-  > • Digitalização de recibos e faturas: tira uma foto e a transação fica preenchida
-  >
-  > **Premium**
-  > • Previsões do teu saldo com um modelo de IA que corre no teu dispositivo
-  > • Orçamento sugerido por IA: um limite mensal para cada categoria e grupo,
-  > a partir das tuas receitas, dos gastos fixos e do fundo de maneio
-  > • Registo da tua carteira de investimentos
-  > • Dicas educativas de investimento adaptadas ao teu perfil
-  >
-  > **Privacidade e segurança**
-  > • Autenticação de dois fatores e bloqueio por biometria
-  > • Exporta ou apaga todos os teus dados a qualquer momento
-  > • À IA só chegam totais já calculados — nunca as descrições das tuas transações
-  >
-  > Disponível em português, inglês, francês, alemão, italiano e espanhol.
-  >
-  > As dicas de investimento são conteúdo educativo, não aconselhamento financeiro.
+| Língua | Título |
+|---|---|
+| PT-PT | FinanceFlow: Orçamento Pessoal |
+| EN | FinanceFlow: Budget & Expenses |
+| FR | FinanceFlow: Budget & Dépenses |
+| DE | FinanceFlow: Budget & Ausgaben |
+| IT | FinanceFlow: Budget e Spese |
+| ES | FinanceFlow: Control de Gastos |
 
-### EN
+**Na Play Console:** Crescimento → Presença na loja → Fichas da loja
+principais → **Gerir traduções** → acrescentar inglês (EUA), francês, alemão,
+italiano e espanhol (Espanha), e colar em cada uma os textos e as imagens da
+língua. A versão PT-PT substitui a anterior.
 
-- **Title**: `FinanceFlow: Personal Finance`
-- **Short description**:
-  `Track spending, budgets and investments, with AI forecasts and insights.`
-- **Full description**: tradução direta da versão PT-PT acima (manter as
-  mesmas funcionalidades por plano e a frase final sobre aconselhamento
-  financeiro). As restantes 4 línguas podem ficar para depois — a Play
-  Console mostra a versão EN por omissão.
+**Sem testemunhos na ficha** (sugeridos pelos testers): a política de
+metadados da Google proíbe testemunhos de utilizadores na descrição. Em vez
+disso, a app pede uma avaliação real (In-App Review, a partir da 1.2.4) a
+quem já a usa há 30 dias e tem 10 transações, uma única vez.
 
 ### Imagens
 
@@ -67,12 +47,12 @@ Geradas por `node scripts/store-assets.mjs` a partir de `assets/icon-only.svg`
 - **Ícone da app** 512×512, PNG 32 bits: `assets/store/play-icon-512.png` —
   quadrado, sem cantos arredondados (a Play Store aplica a sua máscara).
 - **Gráfico de funcionalidades** 1024×500, PNG 24 bits sem transparência:
-  `assets/store/feature-graphic-pt-PT.png` (ficha PT-PT) e
-  `assets/store/feature-graphic-en.png` (ficha EN).
-- **Capturas de ecrã** — `assets/store/screenshots/`, geradas por
-  `npm run store:screenshots` (`store-screenshots/store.spec.ts`: servidor
-  de testes com MongoDB em memória, conta Premium "Ana"/`ana@exemplo.pt` e
-  dados de exemplo genéricos, PT-PT). Os mesmos 4 ecrãs (painel, transações,
+  `assets/store/feature-graphic-<língua>.png`, nas 6 línguas (Upgrade 07).
+- **Capturas de ecrã** — `assets/store/screenshots/<língua>/`, geradas por
+  `npm run store:screenshots` nas 6 línguas (Upgrade 07; só uma:
+  `STORE_LOCALE=en npm run store:screenshots`). `store-screenshots/store.spec.ts`:
+  servidor de testes com MongoDB em memória, conta Premium "Ana" e dados de
+  exemplo genéricos traduzidos (descrições e nomes dos investimentos). Os mesmos 4 ecrãs (painel, transações,
   estatísticas, investimentos) em cada secção da Play Console:
 
   | Secção                                           | Ficheiros          | Tamanho          |

@@ -1,6 +1,6 @@
 {
   "name": "finance-app",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -24,6 +24,7 @@
     "deploy:netlify": "node scripts/deploy-netlify.mjs"
   },
   "dependencies": {
+    "@capacitor-community/in-app-review": "^8.0.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/camera": "^8.2.4",

@@ -1,8 +1,12 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md -->
+<!-- Ver especificação completa em context/features/upgrades/07-ficha-da-loja-aso.md -->
 
 ## Estado
+
+**Upgrade 07 — ficha da loja (ASO) nas 6 línguas: Em progresso** (2026-10-10;
+`context/features/upgrades/07-ficha-da-loja-aso.md`). Branch
+`feature/upgrade-07-ficha-loja`.
 
 **Upgrade 10 — funções da Netlify sem o limite de 4 KB: Em produção** (deploy de 2026-10-10)
 (2026-10-10; `context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md`).
@@ -112,22 +116,25 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 10 — o servidor passa às funções modernas da Netlify (preset
-`netlify`, Functions v2), sem o limite de 4 KB nas variáveis de ambiente que
-recusou o deploy do Upgrade 05.
+UPGRADE 07 — a ficha da Play Store completa e com palavras-chave nas 6
+línguas, com imagens na língua de cada ficha, e avaliações reais pedidas
+dentro da app (sem testemunhos inventados).
 
 Tarefas:
-- [x] `compatibilityDate: '2024-05-07'` em `nuxt.config.ts` (causa: sem data,
-      o Nitro escolhia o `netlify-legacy`).
-- [x] `npm run deploy:netlify -- --alias <nome>` para rascunhos.
-- [x] Rascunho testado (páginas, sessão, país, Google Play, recuperação,
-      orçamento por IA).
-- [x] Deploy de produção e verificação.
+- [x] Textos nas 6 línguas (`assets/store/listing/`), com o teste dos limites.
+- [x] Capturas de ecrã e gráfico de funcionalidades nas 6 línguas.
+- [x] Pedido de avaliação (In-App Review) com as regras da Google.
+- [x] Integração 56/56, E2E 9/9, capturas nas 6 línguas (16 cada), `.aab`
+      1.2.4 (versionCode 9, com o plugin). Merge e deploy a seguir.
+- [ ] Utilizador: colar as fichas e as imagens na Play Console (Gerir
+      traduções) e carregar o `.aab`.
 
 ## Critérios de aceitação
 
-- [ ] Deploy aceite com mais de 4 KB de variáveis.
-- [x] Todos os fluxos a funcionar no rascunho antes de ir para produção.
+- [ ] Ficha completa nas 6 línguas, com as funcionalidades atuais.
+- [x] Capturas de ecrã na língua de cada ficha.
+- [x] O pedido de avaliação aparece no máximo uma vez e nunca depois de um
+      erro.
 
 ## Histórico
 
@@ -2564,4 +2571,20 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   login, painel SSR, transações, país (PT → MB WAY e Multibanco), preços da
   Google Play, recuperação de password, RTDN (401), webhook EasyPay (200) e o
   antigo `.netlify.app` (apps ≤ 1.2.2).
+- 2026-10-10: Definido como funcionalidade atual — UPGRADE 07. Branch
+  `feature/upgrade-07-ficha-loja`. Fichas nas 6 línguas em
+  `assets/store/listing/` (título com a palavra-chave mais procurada em cada
+  língua; o teste dos limites apanhou a descrição curta IT com 81
+  caracteres), capturas de ecrã e gráfico de funcionalidades nas 6 línguas,
+  pedido de avaliação na app (`@capacitor-community/in-app-review`, conta com
+  30+ dias e 10+ transações, uma vez). Unitários 130/130, type-check 0.
+- 2026-10-11: Integração 56/56 (novo: pedido de avaliação só com 30+ dias e
+  10+ transações, uma vez), E2E 9/9, capturas nas 6 línguas. O inglês falhou
+  na 1.ª corrida por tempo (10 min; era a 1.ª língua depois do PT, com o
+  servidor de dev ainda a compilar páginas): limite passou a 20 min e foi
+  gerado à parte (`STORE_LOCALE=en`). Apagadas as 16 capturas PT antigas da
+  raiz de `assets/store/screenshots/` (agora em `pt-PT/`). `.aab` 1.2.4
+  (versionCode 9) com o `@capacitor-community/in-app-review`. Notado (fora
+  deste upgrade): o formato compacto dos valores põe sempre o símbolo depois
+  ("3.7k €"), mesmo em inglês.
 

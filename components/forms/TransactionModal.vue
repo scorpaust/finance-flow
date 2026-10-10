@@ -309,6 +309,7 @@ const toast   = useToastStore()
 const { t }   = useI18n()
 
 const saving     = ref(false)
+const { maybeAskForReview } = useInAppReview()
 const loadingCats = ref(false)
 const formError  = ref('')
 const tagInput   = ref('')
@@ -456,6 +457,8 @@ async function handleSubmit() {
       await finance.updateTransaction(props.transaction._id, payload)
     } else {
       await finance.createTransaction(payload)
+      // Upgrade 07 — momento positivo: talvez pedir a avaliação na loja.
+      void maybeAskForReview()
     }
     emit('saved')
   } catch (e: any) {

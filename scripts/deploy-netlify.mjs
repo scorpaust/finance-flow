@@ -1,6 +1,8 @@
 /**
  * Fase 9 — deploy de produção no Netlify a partir desta máquina (Windows).
- * Uso: npm run deploy:netlify
+ * Uso: npm run deploy:netlify                     (produção)
+ *      npm run deploy:netlify -- --alias upgrade-10  (rascunho em
+ *        https://upgrade-10--financeflow-webapp.netlify.app — a produção não muda)
  *
  * Três cuidados que um `netlify deploy --build` simples não tem:
  *  1. Afasta o `.env` local durante o build — o Nuxt lia-o e metia valores de
@@ -29,6 +31,13 @@ const FUNCTIONS_DIR = '.netlify/functions-internal'
 // empacotar a função a partir da pasta já corrigida.
 const BUNDLED_DIR = '.netlify/functions'
 const heldEnv = join(tmpdir(), `financeflow-dotenv-${Date.now()}`)
+// Upgrade 10 — rascunho com um nome fixo, para testar sem tocar na produção.
+const aliasIndex = process.argv.indexOf('--alias')
+const alias = aliasIndex >= 0 ? process.argv[aliasIndex + 1] : null
+if (aliasIndex >= 0 && !/^[a-z0-9-]{1,37}$/.test(alias || '')) {
+  console.error('--alias precisa de um nome (letras minúsculas, números e hífenes)')
+  process.exit(1)
+}
 let envMoved = false
 
 function run(args) {
@@ -80,7 +89,7 @@ try {
   restoreEnv()
   materializeLinks()
   rmSync(BUNDLED_DIR, { recursive: true, force: true })
-  run(['deploy', '--prod', '--no-build', '--dir', 'dist', '--functions', FUNCTIONS_DIR])
+  run(['deploy', ...(alias ? ['--alias', alias] : ['--prod']), '--no-build', '--dir', 'dist', '--functions', FUNCTIONS_DIR])
 } finally {
   restoreEnv()
 }

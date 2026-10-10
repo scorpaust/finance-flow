@@ -1,4 +1,11 @@
 export default defineNuxtConfig({
+  // Upgrade 10 — funções modernas da Netlify (preset Nitro `netlify`,
+  // Functions v2). Sem data, o Nuxt usa 2024-04-03 e o Nitro escolhia o
+  // `netlify-legacy` (compatível com AWS Lambda), onde todas as variáveis de
+  // ambiente juntas não podem passar de 4 KB — o deploy do Upgrade 05 foi
+  // recusado por isso. O preset moderno exige esta data (nitropack
+  // presets/netlify/preset.mjs); a data não muda mais nada no Nitro 2.
+  compatibilityDate: '2024-05-07',
   // Desligadas quando a app corre pela infraestrutura de testes/capturas
   // (scripts/e2e-server.mjs define E2E_PORT): o botão flutuante das devtools
   // aparecia nas capturas da Play Store e pode tapar elementos nos testes.
@@ -29,8 +36,8 @@ export default defineNuxtConfig({
     // definido: sem DSN a app não instrumenta nem envia nada (dev/testes
     // nunca poluem o projeto Sentry, e um DSN em falta nunca parte o build).
     // Fase 8, ponto 8 — o alvo de deploy real é o Netlify (Nitro gera funções
-    // serverless, confirmado pelo preset `netlify-legacy` detetado a partir de
-    // .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
+    // serverless (preset `netlify-legacy` até ao Upgrade 10, `netlify` desde
+    // então) a partir de .netlify/ neste projeto — NÃO um node-server persistente em Docker, como
     // uma versão anterior desta nota presumia sem confirmar). Num serverless o
     // CLI flag `--import` não é aplicável (não há um comando de arranque
     // nosso a controlar) — `autoInjectServerSentry: 'top-level-import'` injeta

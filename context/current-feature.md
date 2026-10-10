@@ -1,8 +1,13 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/06-idioma.md -->
+<!-- Ver especificação completa em context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md -->
 
 ## Estado
+
+**Upgrade 10 — funções da Netlify sem o limite de 4 KB: Em progresso**
+(2026-10-10; `context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md`).
+Branch `feature/upgrade-10-funcoes-netlify`. Rascunho testado com o preset
+`netlify`; falta o deploy de produção.
 
 **Upgrade 06 — idioma: Concluída e em produção** (deploy de 2026-10-10;
 `context/features/upgrades/06-idioma.md`, a partir do relatório dos testes
@@ -107,29 +112,22 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 06 — a app nunca mostra uma língua que a pessoa não escolheu nem
-percebe: seletor antes de entrar, a língua automática acompanha o telemóvel,
-nenhum texto fixo noutra língua.
+UPGRADE 10 — o servidor passa às funções modernas da Netlify (preset
+`netlify`, Functions v2), sem o limite de 4 KB nas variáveis de ambiente que
+recusou o deploy do Upgrade 05.
 
 Tarefas:
-- [x] `shared/locale.ts` + `plugins/locale.ts` (origem `auto`/`user`; cookies
-      antigos = `user`); correção da ordem de preferência.
-- [x] `LanguageSwitcher` no login, na recuperação de password e nas páginas
-      legais.
-- [x] Tradução das categorias por omissão nunca renomeadas (Definições).
-- [x] Textos fixos traduzidos (Previsões, biometria) e Previsões sem jargão.
-- [x] Testes unitários (124/124, novos `locale`, `i18nConsistency`),
-      type-check 0.
-- [x] Integração 55/55 (2 novos), E2E 9/9 (novo `language-flow`).
-- [x] Deploy (só web, sem `.aab` novo).
+- [x] `compatibilityDate: '2024-05-07'` em `nuxt.config.ts` (causa: sem data,
+      o Nitro escolhia o `netlify-legacy`).
+- [x] `npm run deploy:netlify -- --alias <nome>` para rascunhos.
+- [x] Rascunho testado (páginas, sessão, país, Google Play, recuperação,
+      orçamento por IA).
+- [ ] Deploy de produção e verificação.
 
 ## Critérios de aceitação
 
-- [x] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
-      antes de criar conta.
-- [x] Com a língua automática, mudar a língua do telemóvel muda a da app na
-      visita seguinte; uma escolha manual nunca é substituída.
-- [x] Nenhum texto visível em português quando a app está noutra língua.
+- [ ] Deploy aceite com mais de 4 KB de variáveis.
+- [x] Todos os fluxos a funcionar no rascunho antes de ir para produção.
 
 ## Histórico
 
@@ -2552,4 +2550,13 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   "hi-IN, es" → espanhol; "ja-JP" → inglês; cookie antigo sem origem fica
   (pt-PT com telemóvel em inglês continua em português); língua automática
   acompanha o telemóvel (de → en). Seletor presente no login. Concluída.
+- 2026-10-10: Definido como funcionalidade atual — UPGRADE 10. Causa
+  encontrada no código do Nitro: o preset moderno `netlify` exige
+  `compatibilityDate` ≥ 2024-05-07; o projeto não tinha data (o Nuxt usava
+  2024-04-03), por isso saía o `netlify-legacy`. Correção:
+  `compatibilityDate: '2024-05-07'`. Script de deploy com `--alias` para
+  rascunhos. Rascunho `upgrade-10--financeflow-webapp.netlify.app` publicado
+  com "Nitro preset: netlify" e testado: páginas, login/sessão, painel SSR,
+  subscrição, transações, previsões, orçamento por IA, país (PT → MB WAY e
+  Multibanco), preços da Google Play, recuperação de password, RTDN.
 

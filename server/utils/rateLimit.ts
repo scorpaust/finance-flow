@@ -62,6 +62,20 @@ async function hit(key: string, windowMs: number): Promise<{ count: number; expi
   }
 }
 
+// Upgrade 05 — quota só por identidade (sem o IP), para limites que não podem
+// depender da origem: ex. emails de recuperação para a mesma conta, pedidos a
+// partir de muitos IPs. Não lança erro — devolve false quando já não há quota,
+// e quem chama decide a resposta (na recuperação, a mesma resposta genérica).
+export async function withinIdentityQuota(opts: { name: string; identity: string; limit: number; windowSeconds: number }): Promise<boolean> {
+  void ensureTtlIndex()
+  const bucket = await hit(`${opts.name}:id:${hashIdentifier(opts.identity)}`, opts.windowSeconds * 1000)
+  if (bucket.count > opts.limit) {
+    logEvent('warn', 'security.rate_limited', { limiter: opts.name })
+    return false
+  }
+  return true
+}
+
 // Lança 429 se o limite for excedido; caso contrário incrementa e deixa seguir.
 export async function enforceRateLimit(event: H3Event, opts: RateLimitOptions): Promise<void> {
   void ensureTtlIndex()

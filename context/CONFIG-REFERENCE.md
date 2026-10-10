@@ -72,6 +72,10 @@ projeto (ver `pages/subscription/index.vue`).
 
 | Variável | Descrição |
 |---|---|
+| `RESEND_API_KEY` | Upgrade 05 — chave da Resend (permissão "Sending access", domínio `mail.financeflow-webapp.pt`) para os emails da conta: recuperação de password e aviso de password alterada (`server/utils/email.ts`). Lida em runtime (não no `runtimeConfig`). Sem ela os emails não são enviados (só ficam no log) |
+| `EMAIL_FROM` | Upgrade 05 — remetente dos emails: `FinanceFlow <noreply@mail.financeflow-webapp.pt>` |
+| `EMAIL_REPLY_TO` | Upgrade 05 — opcional, endereço para onde vão as respostas aos emails |
+| `RESEND_API_BASE_URL` | Só nos testes (integração e E2E apontam para o servidor simulado). Nunca definir em produção |
 | `ANTHROPIC_API_KEY` | Chave da API Anthropic (`claude-haiku-4-5`) — interpretação de estatísticas e dicas de investimento (Fase 3), digitalização de documentos (Fase 5). Só no servidor, nunca em `public` |
 | `TWELVE_DATA_API_KEY` | Chave gratuita da Twelve Data — snapshot diário de mercado para as dicas de investimento (Fase 3); também o câmbio das transações em moeda estrangeira (Fase 7) e da moeda de apresentação (Fase 10: lista de moedas e taxa EUR→X do dia, em cache na coleção `fxcaches`, um pedido por moeda por dia) |
 | `INVESTMENT_TIPS_INCLUDE_PORTFOLIO` | `true` para as dicas de investimento receberem um resumo **agregado** do portfolio registado (Fase 6, tarefa 6 — nunca nomes nem valores por posição). Por omissão desligada (`false`); **só ligar em produção depois da validação jurídica** (ver `06-FASE-6-registo-investimentos.md`, decisão 8) |
@@ -131,8 +135,13 @@ envio no projeto — ver `context/features/08-FASE-8-seguranca-qualidade.md`).
 **Alojamento de produção: Netlify** (decisão do utilizador, 2026-09-29).
 Nuxt SSR corre em funções serverless (preset `netlify-legacy`, detetado
 automaticamente); build definido em `netlify.toml`. Endereço:
-`https://financeflow-webapp.netlify.app` (subdomínio do Netlify até haver
-domínio próprio — o mesmo valor em `APP_URL` e em `capacitor.config.ts`).
+`https://www.financeflow-webapp.pt` (domínio próprio desde 2026-10-10, Upgrade
+05 — o mesmo valor em `APP_URL` e em `capacitor.config.ts`). O apex
+`financeflow-webapp.pt` redireciona para o `www`; o antigo
+`https://financeflow-webapp.netlify.app` continua a servir o mesmo site (as
+versões ≤ 1.2.2 da app Android carregam-no) — não lhe pôr um redirecionamento
+enquanto houver utilizadores nessas versões. **Mudar uma variável no Netlify
+só tem efeito depois de um novo deploy.**
 Todas as variáveis acima configuram-se no painel do Netlify; passos completos
 em `context/OPERATIONS.md` ("Deploy web").
 

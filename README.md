@@ -112,6 +112,8 @@ A app usa autenticação **local** — sem OAuth externo. Regista uma conta dire
 
 Suporta opcionalmente autenticação de dois fatores (2FA) por app autenticadora (TOTP — Google Authenticator, Authy, 1Password, etc.), ativável nas Configurações. Ver `server/utils/twoFactor.ts` e [`context/features/08-FASE-8-seguranca-qualidade.md`](context/features/08-FASE-8-seguranca-qualidade.md) (ponto 3).
 
+**Recuperação de password** (Upgrade 05): "Esqueci-me da password" no login envia por email (Resend, `server/utils/email.ts`) um link de uso único válido 30 minutos (`/reset-password`; na base de dados só o hash do token). A resposta é sempre a mesma, exista ou não a conta. Em Configurações → Password altera-se a password com sessão iniciada. Mudar ou recuperar a password termina as sessões noutros dispositivos: o cookie leva a `sessionVersion` do utilizador, verificada em `requireAuth`. Ver [`context/features/upgrades/05-recuperacao-password.md`](context/features/upgrades/05-recuperacao-password.md).
+
 ---
 
 ## 📁 Estrutura

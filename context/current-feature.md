@@ -1,8 +1,18 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/04-orcamento-ia-e-previsoes.md -->
+<!-- Ver especificação completa em context/features/upgrades/05-recuperacao-password.md -->
 
 ## Estado
+
+**Upgrade 05 — recuperação de password (e domínio próprio): Em progresso**
+(definido a 2026-10-10; `context/features/upgrades/05-recuperacao-password.md`).
+Decisões do utilizador: opção A (Resend + domínio próprio), domínio
+`financeflow-webapp.pt` (site em `https://www.financeflow-webapp.pt`, emails de
+`noreply@mail.financeflow-webapp.pt`); link válido 30 minutos; recuperar ou
+mudar a password termina as sessões noutros dispositivos. Branch
+`feature/upgrade-05-recuperacao-password`. Domínio, DNS, Resend, webhooks
+(EasyPay, Pub/Sub) e links da Play Console já configurados pelo utilizador;
+falta o deploy (leva o `APP_URL` novo) e o `.aab` 1.2.3.
 
 **Upgrade 04 — orçamento sugerido por IA e correções às previsões:
 Concluída e em produção** (deploy de 2026-10-09) (definido a 2026-10-09;
@@ -90,63 +100,37 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 04 — duas partes:
+UPGRADE 05 — quem se esquece da password recupera o acesso sozinho, por email;
+"Alterar password" nas Definições; sessões revogáveis. A app passa a usar o
+domínio próprio `https://www.financeflow-webapp.pt`.
 
-- **A. Previsões corrigidas:** só meses completos (o mês atual aparece como
-  "em curso"), alternativa com tendência em vez da média plana, e
-  mensagens claras sobre quantos meses faltam. Origem: no `tester-premium`
-  a previsão deu 3 meses iguais (4 meses de dados, o último a meio; o
-  modelo precisa de 5 e caiu na média repetida).
-- **B. Orçamento sugerido por IA (nova):** com 3+ meses completos, a IA
-  propõe o limite mensal de cada categoria e grupo a partir das receitas,
-  dos gastos fixos, do fundo de maneio e da meta de poupança. O utilizador
-  ajusta, aplica e pode desfazer.
-
-Decisões do utilizador (2026-10-08):
-- Só **Premium** (`aiBudget: 'premium'` na matriz, destaque em
-  `PLAN_HIGHLIGHTS`); o Pro vê o cartão bloqueado.
-- Fundo de maneio por omissão **10%** da receita, poupança por omissão
-  **10%** (pode ser 0%); ambos editáveis.
-- Fica em **Grupos e orçamentos** (`/groups`), cartão no topo, e numa vista
-  simples das categorias.
-- **Só a pedido, um pedido por conta por mês civil** (fuso de Lisboa); a
-  proposta do mês continua visível e pode ser aplicada/desfeita à vontade.
-  Sem sugestão automática.
-
-Tarefas A (ver especificação):
-- [x] `/api/predictions/data` indica o mês atual incompleto; treino e médias
-      só com meses completos; mês atual no gráfico como "em curso".
-- [x] Sem meses para o modelo: texto traduzido com quantos meses faltam,
-      método em linguagem simples, sem percentagem de confiança.
-- [x] Alternativa com tendência (regressão linear limitada: sem negativos
-      nem saltos acima do máximo histórico); média só sem tendência.
-- [x] Um só mínimo numa constante partilhada: **2 meses completos** para a
-      previsão simples, **5** para o modelo de IA (hoje a app diz 3, o
-      aviso 2 e o modelo precisa de 5).
-- [x] Testes unitários das funções puras.
-
-Tarefas B (ver especificação):
-- [x] `POST /api/insights/budget` (`requireFeature('aiBudget')`): agregados,
-      cálculo determinístico, IA (Anthropic, só agregados) e validação;
-      limite de um pedido por mês; `GET` devolve a proposta do mês.
-- [x] Classificação fixa/variável (`recurrence`, coeficiente de variação,
-      categorias tipicamente fixas).
-- [x] `POST /api/budget/apply` com os limites anteriores guardados para
-      "Desfazer".
-- [x] Cartão no cliente: 6 línguas, moeda de apresentação, nota de
-      privacidade da IA, paywall Premium.
-- [x] Testes unitários, de integração (Anthropic simulada: válida, fora dos
-      limites, erro) e E2E (pedir, aplicar, ver os limites nos grupos).
+Tarefas (ver especificação):
+- [x] `User.sessionVersion` assinado no cookie e verificado em `requireAuth`
+      (cookies antigos contam como versão 0).
+- [x] `POST /api/auth/password/forgot` (resposta e tempo iguais com ou sem
+      conta; limites por IP e por conta), `/reset` (token de uso único,
+      30 min, só o hash na base de dados), `/change` (com a password atual).
+- [x] Emails pela Resend (`server/utils/email.ts`), modelos nas 6 línguas.
+- [x] Páginas `/forgot-password` e `/reset-password`, link no login, cartão
+      "Password" nas Definições; textos nas 6 línguas.
+- [x] Política de Privacidade (Resend como subcontratante) nas 6 línguas.
+- [x] App Android 1.2.3 a carregar o domínio novo.
+- [x] Documentação (CONFIG-REFERENCE, OPERATIONS, PLAY-STORE,
+      SECURITY-POLICY, README).
+- [x] Testes: unitários 110/110, integração 53/53, E2E 7/7, type-check 0.
+- [x] `.aab` 1.2.3 (versionCode 8) gerado e assinado.
+- [ ] Deploy; `.aab` nos testes fechados (utilizador); DMARC depois de a
+      Resend verificar o domínio (utilizador).
 
 ## Critérios de aceitação
 
-- [x] Previsões: nunca usam o mês atual incompleto. Explicam claramente
-      quando usam a alternativa e quantos meses faltam. A alternativa
-      segue a tendência.
-- [x] Orçamento: só aparece com 3+ meses completos. A soma dos limites
-      nunca passa a receita disponível. Os fixos não são cortados. Aplicar
-      e desfazer funcionam.
-- [x] Nenhuma descrição de transação é enviada à IA.
+- [ ] Quem se esqueceu da password recupera o acesso sozinho, por email, em
+      menos de 2 minutos.
+- [ ] O formulário não revela se um email tem conta.
+- [ ] O link expira em 30 minutos e só funciona uma vez.
+- [ ] Depois de mudar a password, as sessões antigas deixam de funcionar.
+- [ ] O 2FA continua a ser pedido depois da recuperação.
+- [ ] Os emails chegam à caixa de entrada (não ao spam) em Gmail e Outlook.
 
 ## Histórico
 
@@ -2497,3 +2481,29 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   o plano Gratuito e sem dados até recarregar. O utilizador fez também o
   `git push`, a ficha da Play Console, a revisão das traduções legais e o
   secret do backup. Upgrade 04 fechado.
+- 2026-10-10: Definido como funcionalidade atual — UPGRADE 05 (recuperação
+  de password), especificação em
+  `context/features/upgrades/05-recuperacao-password.md`. Opções comparadas
+  (Resend, Brevo, Gmail SMTP, Amazon SES, sem email); o utilizador escolheu a
+  Resend com domínio próprio e registou `financeflow-webapp.pt`.
+- 2026-10-10: **Domínio próprio configurado** pelo utilizador, verificado
+  daqui: DNS (Netlify + Resend), certificado Let's Encrypt, `www` como
+  domínio principal (o apex redireciona — primeiro tinha ficado o apex, e
+  os webhooks que apontavam para `www` recebiam 308; corrigido), webhook
+  EasyPay e endpoint do Pub/Sub a responder no domínio novo, links da Play
+  Console. O `.netlify.app` continua a servir o site (app ≤ 1.2.2).
+- 2026-10-10: Branch `feature/upgrade-05-recuperacao-password` criado a
+  partir de `main`. Estado passa a "Em progresso". Implementado: sessões
+  com versão, endpoints `forgot`/`reset`/`change`, emails pela Resend nas 6
+  línguas, páginas e cartão nas Definições, Política de Privacidade (Resend,
+  6 línguas, data 2026-10-10), app Android 1.2.3 (versionCode 8) com o
+  domínio novo, documentação. Testes unitários 110/110 (novo
+  `passwordReset`), type-check 0 erros.
+- 2026-10-10: Testes de integração 53/53 (6 novos: mesma resposta com e sem
+  conta, link de uso único que termina as sessões, link expirado/inventado,
+  link novo invalida o anterior e no máximo 3 emails/hora por conta, 2FA
+  mantém-se, alterar password), E2E 7/7 (novo `password-reset-flow`; a
+  "Resend" do E2E é o servidor de controlo). `.aab` 1.2.3 gerado
+  (`android/app/build/outputs/bundle/release/app-release.aab`). Nota: o
+  `JAVA_HOME` da máquina aponta para o JDK 17 e o Capacitor 8 exige o 21 —
+  o build correu com o JDK 21 do PATH (`JAVA_HOME` só nesse comando).

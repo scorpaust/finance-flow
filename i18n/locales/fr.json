@@ -58,6 +58,7 @@
     "emailLabel": "Email",
     "passwordLabel": "Mot de passe",
     "passwordPlaceholder": "8 caractères minimum",
+    "forgotPassword": "Mot de passe oublié ?",
     "submitLogin": "Se connecter",
     "submitRegister": "Créer le compte",
     "submitting": "Authentification...",
@@ -73,6 +74,23 @@
     "twoFactorSubmit": "Vérifier",
     "twoFactorBackButton": "Retour à la connexion",
     "acceptTerms": "J'ai lu et j'accepte les {terms} et la {privacy}."
+  },
+  "passwordReset": {
+    "forgotTitle": "Récupérer ton mot de passe",
+    "forgotDescription": "Indique l'e-mail de ton compte. Nous t'enverrons un lien pour définir un nouveau mot de passe.",
+    "forgotSubmit": "Envoyer le lien",
+    "forgotSent": "S'il existe un compte avec cet e-mail, nous avons envoyé un lien pour définir un nouveau mot de passe. Vérifie aussi tes spams. Le lien est valable 30 minutes.",
+    "backToLogin": "Retour à la connexion",
+    "resetTitle": "Définir un nouveau mot de passe",
+    "resetDescription": "Choisis un nouveau mot de passe pour ton compte. Tu devras te reconnecter sur tous tes appareils.",
+    "newPasswordLabel": "Nouveau mot de passe",
+    "confirmPasswordLabel": "Confirmer le nouveau mot de passe",
+    "resetSubmit": "Enregistrer le nouveau mot de passe",
+    "missingToken": "Ce lien est incomplet. Ouvre à nouveau le lien de l'e-mail ou demandes-en un nouveau.",
+    "askNewLink": "Demander un nouveau lien",
+    "tooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "mismatch": "Les mots de passe ne correspondent pas",
+    "doneNotice": "Mot de passe modifié. Tu peux maintenant te connecter avec ton nouveau mot de passe."
   },
   "dashboard": {
     "greetingHello": "Bonjour",
@@ -180,6 +198,14 @@
       "toastEnabled": "Authentification à deux facteurs activée",
       "toastDisabled": "Authentification à deux facteurs désactivée",
       "errorGeneric": "Une erreur est survenue — réessaie"
+    },
+    "password": {
+      "title": "Mot de passe",
+      "description": "Modifie le mot de passe de ton compte. Les sessions ouvertes sur tes autres appareils seront fermées.",
+      "openButton": "Modifier le mot de passe",
+      "currentLabel": "Mot de passe actuel",
+      "saveButton": "Enregistrer",
+      "toastChanged": "Mot de passe modifié"
     },
     "title": "Paramètres",
     "subtitle": "Gère les catégories, les groupes et les préférences",

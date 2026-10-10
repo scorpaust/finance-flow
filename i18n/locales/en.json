@@ -58,6 +58,7 @@
     "emailLabel": "Email",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Minimum 8 characters",
+    "forgotPassword": "Forgot your password?",
     "submitLogin": "Sign in",
     "submitRegister": "Create account",
     "submitting": "Authenticating...",
@@ -73,6 +74,23 @@
     "twoFactorSubmit": "Verify",
     "twoFactorBackButton": "Back to sign in",
     "acceptTerms": "I have read and accept the {terms} and the {privacy}."
+  },
+  "passwordReset": {
+    "forgotTitle": "Recover your password",
+    "forgotDescription": "Enter your account's email. We'll send you a link to set a new password.",
+    "forgotSubmit": "Send link",
+    "forgotSent": "If there is an account with this email, we've sent a link to set a new password. Check your spam folder too. The link is valid for 30 minutes.",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Set a new password",
+    "resetDescription": "Choose a new password for your account. You'll need to sign in again on all your devices.",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm the new password",
+    "resetSubmit": "Save new password",
+    "missingToken": "This link is incomplete. Open the link in the email again or ask for a new one.",
+    "askNewLink": "Ask for a new link",
+    "tooShort": "Password must be at least 8 characters",
+    "mismatch": "Passwords don't match",
+    "doneNotice": "Password changed. You can now sign in with your new password."
   },
   "dashboard": {
     "greetingHello": "Hello",
@@ -180,6 +198,14 @@
       "toastEnabled": "Two-factor authentication enabled",
       "toastDisabled": "Two-factor authentication disabled",
       "errorGeneric": "Something went wrong — try again"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change your account password. Sessions open on other devices will be signed out.",
+      "openButton": "Change password",
+      "currentLabel": "Current password",
+      "saveButton": "Save",
+      "toastChanged": "Password changed"
     },
     "title": "Settings",
     "subtitle": "Manage categories, groups and preferences",

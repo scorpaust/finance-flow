@@ -45,6 +45,7 @@
     <CurrencyCard />
 
     <!-- Segurança (Fase 8, ponto 3) -->
+    <ChangePasswordCard />
     <TwoFactorCard />
     <BiometricLockCard />
     <AccountDataCard />

@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createSign } from 'node:crypto'
-import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -1349,3 +1349,150 @@ describe('previsões: só meses completos (Upgrade 04)', () => {
   })
 })
 
+
+describe('recuperação e alteração de password (Upgrade 05)', () => {
+  const NEW_PASSWORD = `${TEST_PASSWORD}-nova`
+
+  const forgot = (email: string, ipFor = email) =>
+    fetch('/api/auth/password/forgot', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': fakeIpFor(ipFor) },
+      body: JSON.stringify({ email }),
+    })
+
+  async function emailsTo(address: string) {
+    return (await stub.requests()).filter((r) => r.path === '/emails' && r.body?.to?.[0] === address)
+  }
+
+  async function resetTokenFor(address: string): Promise<string> {
+    const sent = await emailsTo(address)
+    const match = String(sent[sent.length - 1]?.body?.text || '').match(/reset-password\?token=([A-Za-z0-9_-]+)/)
+    if (!match) throw new Error('email de recuperação sem link')
+    return match[1]
+  }
+
+  const reset = (token: string, password: string) =>
+    fetch('/api/auth/password/reset', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    })
+
+  it('mesma resposta para email com e sem conta; só a conta existente recebe o link', async () => {
+    const email = uniqueEmail('forgot')
+    await register(email)
+    const unknown = uniqueEmail('forgot-ninguem')
+
+    const a = await forgot(email)
+    const b = await forgot(unknown)
+    expect(a.status).toBe(200)
+    expect(b.status).toBe(200)
+    expect(await a.json()).toEqual(await b.json())
+
+    const sent = await emailsTo(email)
+    expect(sent).toHaveLength(1)
+    expect(sent[0].authorization).toBe('Bearer re_test')
+    expect(sent[0].body.from).toContain('noreply@mail.example.test')
+    expect(sent[0].body.text).toContain('https://app.example.test/reset-password?token=')
+    expect(await emailsTo(unknown)).toHaveLength(0)
+    // Na base de dados só o hash do token, nunca o token em claro.
+    const token = await resetTokenFor(email)
+    const stored = await PasswordResetToken.find({}).lean()
+    expect(stored.some((t) => String(t._id) === token)).toBe(false)
+  })
+
+  it('o link define a nova password, só funciona uma vez e termina as sessões antigas', async () => {
+    const email = uniqueEmail('reset')
+    const { cookie: oldSession } = await register(email)
+    expect((await fetch('/api/transactions', { headers: { cookie: oldSession } })).status).toBe(200)
+
+    await forgot(email)
+    const token = await resetTokenFor(email)
+    const done = await reset(token, NEW_PASSWORD)
+    expect(done.status).toBe(200)
+
+    expect((await login(email, TEST_PASSWORD)).status).toBe(401)
+    expect((await login(email, NEW_PASSWORD)).status).toBe(200)
+    // A sessão aberta antes da recuperação deixou de valer.
+    expect((await fetch('/api/transactions', { headers: { cookie: oldSession } })).status).toBe(401)
+    const session = await (await fetch('/api/auth/session', { headers: { cookie: oldSession } })).json()
+    expect(session.user).toBeNull()
+
+    // Segunda utilização do mesmo link.
+    const again = await reset(token, `${NEW_PASSWORD}-2`)
+    expect(again.status).toBe(400)
+    expect((await again.json()).data?.error).toBe('invalid_reset_link')
+
+    // Aviso de password alterada.
+    const sent = await emailsTo(email)
+    expect(sent.some((r) => /alterada|changed/i.test(r.body.subject))).toBe(true)
+  })
+
+  it('link expirado, inventado ou malformado é recusado', async () => {
+    const email = uniqueEmail('reset-exp')
+    await register(email)
+    await forgot(email)
+    const token = await resetTokenFor(email)
+    await PasswordResetToken.updateMany({}, { $set: { expiresAt: new Date(Date.now() - 1000) } })
+    expect((await reset(token, NEW_PASSWORD)).status).toBe(400)
+    expect((await reset('A'.repeat(43), NEW_PASSWORD)).status).toBe(400)
+    expect((await reset('curto', NEW_PASSWORD)).status).toBe(400)
+    expect((await login(email, TEST_PASSWORD)).status).toBe(200)
+  })
+
+  it('pedir um link novo invalida o anterior; no máximo 3 emails por hora para a mesma conta', async () => {
+    const email = uniqueEmail('reset-quota')
+    await register(email)
+    await forgot(email, `${email}-1`)
+    const first = await resetTokenFor(email)
+    await forgot(email, `${email}-2`)
+    const second = await resetTokenFor(email)
+    expect(first).not.toBe(second)
+    expect((await reset(first, NEW_PASSWORD)).status).toBe(400)
+
+    // Mais pedidos a partir de outros IPs: a mesma resposta, mas sem email.
+    await forgot(email, `${email}-3`)
+    const res = await forgot(email, `${email}-4`)
+    expect(res.status).toBe(200)
+    expect(await emailsTo(email)).toHaveLength(3)
+  })
+
+  it('a recuperação não desliga o 2FA', async () => {
+    const email = uniqueEmail('reset-2fa')
+    await register(email)
+    await forgot(email)
+    const token = await resetTokenFor(email)
+    await User.updateOne({ email }, { $set: { twoFactorEnabled: true } })
+    expect((await reset(token, NEW_PASSWORD)).status).toBe(200)
+    const res = await login(email, NEW_PASSWORD)
+    expect(res.status).toBe(200)
+    expect((await res.json()).twoFactorRequired).toBe(true)
+  })
+
+  it('alterar password nas Definições: pede a atual, mantém esta sessão e termina as outras', async () => {
+    const email = uniqueEmail('change')
+    const { cookie: sessionA } = await register(email)
+    const sessionB = extractCookies((await login(email, TEST_PASSWORD)).headers.get('set-cookie'))
+
+    const change = (cookie: string, currentPassword: string, newPassword: string) =>
+      fetch('/api/auth/password/change', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+
+    expect((await change(sessionA, WRONG_PASSWORD, NEW_PASSWORD)).status).toBe(400)
+    expect((await change(sessionA, TEST_PASSWORD, TEST_PASSWORD)).status).toBe(400)
+
+    const ok = await change(sessionA, TEST_PASSWORD, NEW_PASSWORD)
+    expect(ok.status).toBe(200)
+    const newCookie = extractCookies(ok.headers.get('set-cookie'))
+    expect((await fetch('/api/transactions', { headers: { cookie: newCookie } })).status).toBe(200)
+    expect((await fetch('/api/transactions', { headers: { cookie: sessionB } })).status).toBe(401)
+    expect((await fetch('/api/transactions', { headers: { cookie: sessionA } })).status).toBe(401)
+    expect((await login(email, NEW_PASSWORD)).status).toBe(200)
+    expect((await emailsTo(email)).length).toBe(1)
+
+    expect((await fetch('/api/auth/password/change', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).status).toBe(401)
+  })
+})

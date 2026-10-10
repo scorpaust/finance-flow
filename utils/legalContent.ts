@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-10-09";
+export const LEGAL_UPDATED = "2026-10-10";
 
 import { legalFr } from "./legal/fr";
 import { legalDe } from "./legal/de";
@@ -68,6 +68,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
             "Google (Google Play) — distribuição da app Android e pagamento das subscrições compradas dentro dela. A Google trata esses pagamentos como vendedora, segundo a sua própria política de privacidade; para associar a compra à tua conta enviamos-lhe só um identificador cifrado da conta (nunca o teu nome, email ou dados financeiros da app).",
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
+            "Resend — envio dos emails da conta (por exemplo, o link para definir uma nova password). Só recebe o teu endereço de email e o conteúdo dessas mensagens.",
             "Twelve Data — dados de mercado e taxas de câmbio. Só recebe símbolos de mercado e pares de moedas, nunca dados pessoais nem os teus valores.",
             "Sentry — monitorização de erros técnicos; configurada para não enviar o conteúdo dos pedidos, cookies nem cabeçalhos.",
             "Alguns destes fornecedores podem ter subprocessadores ou infraestrutura fora do Espaço Económico Europeu; nesses casos aplicam-se as salvaguardas previstas no RGPD, nomeadamente as cláusulas contratuais-tipo aprovadas pela Comissão Europeia.",
@@ -158,6 +159,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
             "Google (Google Play) — distribution of the Android app and payment of subscriptions bought inside it. Google handles those payments as the seller, under its own privacy policy; to link the purchase to your account we only send Google an encrypted account identifier (never your name, email or financial data from the app).",
             "Anthropic — provider of the AI model used for the features described in section 5.",
+            "Resend — sending of account emails (for example, the link to set a new password). It only receives your email address and the content of those messages.",
             "Twelve Data — market data and exchange rates. It only receives market symbols and currency pairs, never personal data or your amounts.",
             "Sentry — technical error monitoring, configured not to send request content, cookies or headers.",
             "Some of these providers may have subprocessors or infrastructure outside the European Economic Area; in that case the safeguards required by the GDPR apply, in particular the European Commission's Standard Contractual Clauses.",

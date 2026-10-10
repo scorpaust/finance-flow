@@ -1,7 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   // /privacy e /terms têm de ser públicas: são obrigatórias para a Play Store
-  // e têm de ser legíveis antes de criar conta.
-  const publicRoutes = ['/login', '/privacy', '/terms']
+  // e têm de ser legíveis antes de criar conta. Upgrade 05 — a recuperação de
+  // password também (quem a usa não tem sessão).
+  const publicRoutes = ['/login', '/privacy', '/terms', '/forgot-password', '/reset-password']
   const isPublic = publicRoutes.some(r => to.path.startsWith(r))
   if (isPublic) return
 

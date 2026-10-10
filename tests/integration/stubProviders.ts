@@ -106,6 +106,14 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
     // ── Respostas simuladas dos fornecedores ────────────────────────────────
     requests.push({ path, query, method, body, authorization: req.headers.authorization })
 
+    // Upgrade 05 — a "Resend": aceita sempre; os testes leem o email (e o link
+    // de recuperação) pela lista de pedidos (`/__control/requests`).
+    if (path === '/emails' && method === 'POST') {
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ id: `email-${requests.length}` }))
+      return
+    }
+
     if (path === '/v1/messages') {
       res.writeHead(anthropicResponse.status, { 'content-type': 'application/json' })
       res.end(JSON.stringify(anthropicResponse.body))

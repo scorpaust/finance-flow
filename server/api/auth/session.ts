@@ -3,7 +3,7 @@ import { User, RefundedAccount } from '../../models'
 import { seedDefaultCategories } from '../../utils/defaultCategories'
 import { validateBody } from '../../utils/validate'
 import { enforceRateLimit } from '../../utils/rateLimit'
-import { issueSession, issuePending2fa, clearAppSession, readSession } from '../../utils/session'
+import { issueSession, issuePending2fa, clearAppSession, readValidSession } from '../../utils/session'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { hashPassword, verifyPassword } from '../../utils/password'
 import { logEvent, hashIdentifier } from '../../utils/logger'
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   const locale = getServerLocale(event)
 
   if (method === 'GET') {
-    const userId = readSession(event)
+    const userId = await readValidSession(event)
     if (!userId) return { user: null }
 
     const user = await User.findById(userId).select('name email image twoFactorEnabled').lean()
@@ -120,7 +120,7 @@ export default defineEventHandler(async (event) => {
       return { twoFactorRequired: true }
     }
 
-    issueSession(event, user._id.toString())
+    issueSession(event, user._id.toString(), user.sessionVersion ?? 0)
     return { user: toPublicUser(user) }
   }
 

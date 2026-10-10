@@ -58,6 +58,7 @@
     "emailLabel": "Correo",
     "passwordLabel": "Contraseña",
     "passwordPlaceholder": "Mínimo 8 caracteres",
+    "forgotPassword": "¿Has olvidado la contraseña?",
     "submitLogin": "Entrar",
     "submitRegister": "Crear cuenta",
     "submitting": "Autenticando...",
@@ -73,6 +74,23 @@
     "twoFactorSubmit": "Verificar",
     "twoFactorBackButton": "Volver al inicio de sesión",
     "acceptTerms": "He leído y acepto los {terms} y la {privacy}."
+  },
+  "passwordReset": {
+    "forgotTitle": "Recuperar la contraseña",
+    "forgotDescription": "Indica el email de tu cuenta. Te enviaremos un enlace para establecer una nueva contraseña.",
+    "forgotSubmit": "Enviar enlace",
+    "forgotSent": "Si existe una cuenta con este email, hemos enviado un enlace para establecer una nueva contraseña. Revisa también la carpeta de spam. El enlace es válido durante 30 minutos.",
+    "backToLogin": "Volver al inicio de sesión",
+    "resetTitle": "Establecer una nueva contraseña",
+    "resetDescription": "Elige una nueva contraseña para tu cuenta. Tendrás que volver a iniciar sesión en todos tus dispositivos.",
+    "newPasswordLabel": "Nueva contraseña",
+    "confirmPasswordLabel": "Confirmar la nueva contraseña",
+    "resetSubmit": "Guardar nueva contraseña",
+    "missingToken": "Este enlace está incompleto. Vuelve a abrir el enlace del email o pide uno nuevo.",
+    "askNewLink": "Pedir un nuevo enlace",
+    "tooShort": "La contraseña debe tener al menos 8 caracteres",
+    "mismatch": "Las contraseñas no coinciden",
+    "doneNotice": "Contraseña cambiada. Ya puedes iniciar sesión con la nueva contraseña."
   },
   "dashboard": {
     "greetingHello": "Hola",
@@ -180,6 +198,14 @@
       "toastEnabled": "Autenticación de dos factores activada",
       "toastDisabled": "Autenticación de dos factores desactivada",
       "errorGeneric": "Algo salió mal — inténtalo de nuevo"
+    },
+    "password": {
+      "title": "Contraseña",
+      "description": "Cambia la contraseña de tu cuenta. Se cerrarán las sesiones abiertas en otros dispositivos.",
+      "openButton": "Cambiar contraseña",
+      "currentLabel": "Contraseña actual",
+      "saveButton": "Guardar",
+      "toastChanged": "Contraseña cambiada"
     },
     "title": "Ajustes",
     "subtitle": "Gestiona categorías, grupos y preferencias",

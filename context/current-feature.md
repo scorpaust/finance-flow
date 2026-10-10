@@ -4,7 +4,7 @@
 
 ## Estado
 
-**Upgrade 06 — idioma: Em progresso** (2026-10-10;
+**Upgrade 06 — idioma: Concluída e em produção** (deploy de 2026-10-10;
 `context/features/upgrades/06-idioma.md`, a partir do relatório dos testes
 fechados). Branch `feature/upgrade-06-idioma`.
 
@@ -121,15 +121,15 @@ Tarefas:
 - [x] Testes unitários (124/124, novos `locale`, `i18nConsistency`),
       type-check 0.
 - [x] Integração 55/55 (2 novos), E2E 9/9 (novo `language-flow`).
-- [ ] Deploy (só web, sem `.aab` novo).
+- [x] Deploy (só web, sem `.aab` novo).
 
 ## Critérios de aceitação
 
-- [ ] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
+- [x] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
       antes de criar conta.
-- [ ] Com a língua automática, mudar a língua do telemóvel muda a da app na
+- [x] Com a língua automática, mudar a língua do telemóvel muda a da app na
       visita seguinte; uma escolha manual nunca é substituída.
-- [ ] Nenhum texto visível em português quando a app está noutra língua.
+- [x] Nenhum texto visível em português quando a app está noutra língua.
 
 ## Histórico
 
@@ -2547,4 +2547,9 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   língua automática acompanha o telemóvel). O E2E apanhou uma escolha de
   língua feita antes da hidratação, que se perdia; o seletor fica desativado
   até a página estar pronta (como o formulário do login, Upgrade 03).
+- 2026-10-10: **Upgrade 06 em produção** (merge `3922c7e`, deploy). Verificado
+  no site real pelo `Accept-Language`: "de-AT, en" → alemão (antes inglês);
+  "hi-IN, es" → espanhol; "ja-JP" → inglês; cookie antigo sem origem fica
+  (pt-PT com telemóvel em inglês continua em português); língua automática
+  acompanha o telemóvel (de → en). Seletor presente no login. Concluída.
 

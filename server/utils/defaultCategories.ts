@@ -166,3 +166,19 @@ export function budgetHintForCategory(name: string): 'fixed' | 'discretionary' |
   if (DISCRETIONARY_WORDS.test(name)) return 'discretionary'
   return null
 }
+
+// Upgrade 06 — ao mudar a língua da app, as categorias por omissão que nunca
+// foram renomeadas podem acompanhá-la. "Nunca renomeada" = `isDefault` e o
+// nome é ainda um dos nomes por omissão (em qualquer língua) da mesma chave.
+export function defaultCategoryKeyForName(name: string): DefaultCategoryKey | null {
+  const n = normalizeName(name)
+  for (const names of Object.values(NAMES)) {
+    const key = (Object.keys(names) as DefaultCategoryKey[]).find((k) => normalizeName(names[k]) === n)
+    if (key) return key
+  }
+  return null
+}
+
+export function defaultCategoryName(key: DefaultCategoryKey, locale: ServerLocale): string {
+  return (NAMES[locale] || NAMES.en)[key]
+}

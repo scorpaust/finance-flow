@@ -113,8 +113,8 @@
     "kpiIncome": "Einnahmen (Monat)",
     "kpiExpense": "Ausgaben (Monat)",
     "kpiSavingsRate": "Sparquote",
-    "forecastTitle": "Prognosen mit Deep Learning",
-    "forecastDescription": "ConvNeXt-1D mit TensorFlow.js zur Prognose von Einnahmen, Ausgaben und Saldo der nächsten 3 Monate.",
+    "forecastTitle": "KI-Prognosen",
+    "forecastDescription": "Eine Prognose deiner Einnahmen, Ausgaben und deines Saldos für die nächsten 3 Monate, auf deinem Gerät erstellt.",
     "forecastRun": "Prognose ausführen",
     "forecastTraining": "Training läuft...",
     "forecastDetail": "Details ansehen",
@@ -173,7 +173,11 @@
     "language": {
       "title": "Sprache",
       "description": "Sprache der Oberfläche — betrifft nicht die verfügbaren Zahlungsmethoden, die vom erkannten Land abhängen.",
-      "label": "App-Sprache"
+      "label": "App-Sprache",
+      "translateCategories": "Standardkategorien mit ursprünglichem Namen: {count}. In diese Sprache übersetzen?",
+      "translateYes": "Übersetzen",
+      "translateNo": "Jetzt nicht",
+      "translateDone": "Kategorien übersetzt"
     },
     "twoFactor": {
       "title": "Zwei-Faktor-Authentifizierung",
@@ -245,7 +249,14 @@
       "retry": "Erneut prüfen",
       "statusEnabled": "Sperre aktiv",
       "statusDisabled": "Sperre aus",
-      "disable": "Sperre ausschalten"
+      "disable": "Sperre ausschalten",
+      "reason": {
+        "notNative": "Die biometrische Sperre funktioniert nur in der Android-App.",
+        "checking": "Biometrie des Telefons wird geprüft...",
+        "noBiometrics": "Auf diesem Telefon ist kein Fingerabdruck oder Gesicht registriert, oder es gibt keine Bildschirmsperre.",
+        "pluginError": "Die Biometrie des Telefons ist nicht erreichbar. Versuch es noch einmal."
+      },
+      "technicalDetails": "Technische Details"
     },
     "account": {
       "title": "Datenschutz und Daten",
@@ -727,17 +738,17 @@
   "predictions": {
     "backToDashboard": "Zurück zur Übersicht",
     "title": "KI-Prognosen",
-    "subtitle": "ConvNeXt-1D-Modell, trainiert mit deinen historischen Daten",
+    "subtitle": "Ein KI-Modell lernt aus deinem Verlauf und prognostiziert die kommenden Monate",
     "cancel": "Abbrechen",
     "training": "Wird trainiert...",
     "runPrediction": "Prognose ausführen",
-    "modelName": "ConvNeXt-1D Financial Forecaster",
-    "modelDescription": "Depthwise-separable 1D-Faltungen + Layer Normalization + Residual-Verbindungen — inspiriert von der ConvNeXt-Architektur, angepasst für finanzielle Zeitreihen",
+    "modelName": "KI-Prognose",
+    "modelDescription": "Läuft auf deinem Gerät: Deine Daten verlassen es für die Prognose nicht. Je mehr vollständige Monate du hast, desto besser die Prognose.",
     "monthsOfData": "vollständige Monate",
     "confidence": "Konfidenz",
     "trainingModel": "Modell wird trainiert...",
     "initializing": "Wird initialisiert...",
-    "epoch": "Epoche {current}/{total}",
+    "epoch": "Schritt {current} von {total}",
     "stepData": "Daten",
     "stepModel": "Modell",
     "stepTraining": "Training",
@@ -759,7 +770,7 @@
     "confidenceBasedOn": "Konfidenz: {pct}% — basierend auf {months} Monaten an Daten",
     "insightsTitle": "KI-Erkenntnisse",
     "emptyTitle": "Bereit, die Zukunft vorherzusagen?",
-    "emptyDescription": "Das ConvNeXt-1D-Modell analysiert deine historischen Daten und erstellt Einnahmen- und Ausgabenprognosen für die nächsten 3 Monate.",
+    "emptyDescription": "Die KI analysiert deinen Verlauf und prognostiziert deine Einnahmen und Ausgaben für die nächsten 3 Monate.",
     "startPrediction": "KI-Prognose starten",
     "emptyHint": "Einfache Prognose ab {simple} vollständigen Monaten; KI-Modell ab {model}. Der laufende Monat zählt nicht.",
     "paywallFeatureLabel": "KI-Prognosen",
@@ -786,12 +797,17 @@
     "simpleNotice": "Einfache Prognose: Das KI-Modell braucht {needed} vollständige Monate (du hast {have}). Bis dahin folgt die Prognose dem Trend deiner vollständigen Monate.",
     "legendCurrent": "Laufender Monat",
     "method": {
-      "convnext": "KI-Modell (ConvNeXt-1D)",
+      "convnext": "KI-Modell",
       "trend": "Trend der letzten Monate",
       "average": "Durchschnitt der letzten Monate"
     },
     "basedOnMonths": "Basierend auf {months} vollständigen Monaten",
-    "emptyHave": "Du hast {have}."
+    "emptyHave": "Du hast {have}.",
+    "status": {
+      "loading": "KI-Modell wird vorbereitet...",
+      "initializing": "Dein Gerät wird vorbereitet...",
+      "training": "Lernt aus deinem Verlauf..."
+    }
   },
   "statsInsights": {
     "title": "KI-Interpretation",

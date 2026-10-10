@@ -1,8 +1,12 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/05-recuperacao-password.md -->
+<!-- Ver especificação completa em context/features/upgrades/06-idioma.md -->
 
 ## Estado
+
+**Upgrade 06 — idioma: Em progresso** (2026-10-10;
+`context/features/upgrades/06-idioma.md`, a partir do relatório dos testes
+fechados). Branch `feature/upgrade-06-idioma`.
 
 **Upgrade 05 — recuperação de password (e domínio próprio): Em produção** (deploy de 2026-10-10)
 (definido a 2026-10-10; `context/features/upgrades/05-recuperacao-password.md`).
@@ -103,37 +107,29 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 05 — quem se esquece da password recupera o acesso sozinho, por email;
-"Alterar password" nas Definições; sessões revogáveis. A app passa a usar o
-domínio próprio `https://www.financeflow-webapp.pt`.
+UPGRADE 06 — a app nunca mostra uma língua que a pessoa não escolheu nem
+percebe: seletor antes de entrar, a língua automática acompanha o telemóvel,
+nenhum texto fixo noutra língua.
 
-Tarefas (ver especificação):
-- [x] `User.sessionVersion` assinado no cookie e verificado em `requireAuth`
-      (cookies antigos contam como versão 0).
-- [x] `POST /api/auth/password/forgot` (resposta e tempo iguais com ou sem
-      conta; limites por IP e por conta), `/reset` (token de uso único,
-      30 min, só o hash na base de dados), `/change` (com a password atual).
-- [x] Emails pela Resend (`server/utils/email.ts`), modelos nas 6 línguas.
-- [x] Páginas `/forgot-password` e `/reset-password`, link no login, cartão
-      "Password" nas Definições; textos nas 6 línguas.
-- [x] Política de Privacidade (Resend como subcontratante) nas 6 línguas.
-- [x] App Android 1.2.3 a carregar o domínio novo.
-- [x] Documentação (CONFIG-REFERENCE, OPERATIONS, PLAY-STORE,
-      SECURITY-POLICY, README).
-- [x] Testes: unitários 110/110, integração 53/53, E2E 7/7, type-check 0.
-- [x] `.aab` 1.2.3 (versionCode 8) gerado e assinado.
-- [x] Deploy (2026-10-10).
-- [ ] `.aab` nos testes fechados, teste com email real e DMARC (utilizador).
+Tarefas:
+- [x] `shared/locale.ts` + `plugins/locale.ts` (origem `auto`/`user`; cookies
+      antigos = `user`); correção da ordem de preferência.
+- [x] `LanguageSwitcher` no login, na recuperação de password e nas páginas
+      legais.
+- [x] Tradução das categorias por omissão nunca renomeadas (Definições).
+- [x] Textos fixos traduzidos (Previsões, biometria) e Previsões sem jargão.
+- [x] Testes unitários (124/124, novos `locale`, `i18nConsistency`),
+      type-check 0.
+- [x] Integração 55/55 (2 novos), E2E 9/9 (novo `language-flow`).
+- [ ] Deploy (só web, sem `.aab` novo).
 
 ## Critérios de aceitação
 
-- [ ] Quem se esqueceu da password recupera o acesso sozinho, por email, em
-      menos de 2 minutos.
-- [ ] O formulário não revela se um email tem conta.
-- [ ] O link expira em 30 minutos e só funciona uma vez.
-- [ ] Depois de mudar a password, as sessões antigas deixam de funcionar.
-- [ ] O 2FA continua a ser pedido depois da recuperação.
-- [ ] Os emails chegam à caixa de entrada (não ao spam) em Gmail e Outlook.
+- [ ] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
+      antes de criar conta.
+- [ ] Com a língua automática, mudar a língua do telemóvel muda a da app na
+      visita seguinte; uma escolha manual nunca é substituída.
+- [ ] Nenhum texto visível em português quando a app está noutra língua.
 
 ## Histórico
 
@@ -2534,4 +2530,21 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   autenticação, como deve); Política de Privacidade com a Resend; preços
   lidos da Google Play (`source: google_play`, a conta de serviço reduzida
   autentica).
+- 2026-10-10: **Upgrade 05 fechado** pelo utilizador (recuperação testada com
+  email real, DMARC, `.aab` 1.2.3 nos testes fechados, `git push`).
+- 2026-10-10: Definido como funcionalidade atual — UPGRADE 06 (idioma).
+  Branch `feature/upgrade-06-idioma`. Implementado: lógica de língua em
+  `shared/locale.ts` (a origem `auto` acompanha o telemóvel; escolha manual e
+  cookies antigos ficam), seletor no login e páginas públicas, tradução das
+  categorias por omissão nunca renomeadas, textos fixos traduzidos e
+  Previsões sem jargão. Os testes encontraram um defeito antigo: com o
+  telemóvel em "de-AT, en" a app escolhia inglês (procurava um código exato em
+  toda a lista antes de olhar para a 1.ª língua); corrigido. Unitários
+  124/124, type-check 0.
+- 2026-10-10: Integração 55/55 (tradução das categorias: só as nunca
+  renomeadas, `dryRun`, nome ocupado, sem sessão/língua inválida), E2E 9/9
+  (novo `language-flow`: escolher a língua no login antes de criar conta, e a
+  língua automática acompanha o telemóvel). O E2E apanhou uma escolha de
+  língua feita antes da hidratação, que se perdia; o seletor fica desativado
+  até a página estar pronta (como o formulário do login, Upgrade 03).
 

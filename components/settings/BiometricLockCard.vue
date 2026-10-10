@@ -8,7 +8,11 @@
     <p class="text-white/40 text-xs mb-4">{{ t('settings.biometric.description') }}</p>
     <div v-if="!lock.supported" class="space-y-3">
       <p class="text-amber-300 text-xs">{{ t('settings.biometric.unavailable') }}</p>
-      <p v-if="lock.reason" class="text-white/50 text-xs break-words">{{ lock.reason }}</p>
+      <p v-if="lock.reasonCode" class="text-white/60 text-xs">{{ t(`settings.biometric.reason.${lock.reasonCode}`) }}</p>
+      <details v-if="lock.reason" class="text-white/40 text-xs">
+        <summary class="cursor-pointer">{{ t('settings.biometric.technicalDetails') }}</summary>
+        <p class="mt-1 break-words font-mono">{{ lock.reason }}</p>
+      </details>
       <button class="btn-secondary text-sm py-2" type="button" @click="lock.reconcile()">
         {{ t('settings.biometric.retry') }}
       </button>

@@ -113,8 +113,8 @@
     "kpiIncome": "Ingresos (mes)",
     "kpiExpense": "Gastos (mes)",
     "kpiSavingsRate": "Tasa de ahorro",
-    "forecastTitle": "Previsiones con deep learning",
-    "forecastDescription": "ConvNeXt-1D con TensorFlow.js para prever ingresos, gastos y saldo de los próximos 3 meses.",
+    "forecastTitle": "Previsiones con IA",
+    "forecastDescription": "Una previsión de tus ingresos, gastos y saldo para los próximos 3 meses, hecha en tu dispositivo.",
     "forecastRun": "Ejecutar previsión",
     "forecastTraining": "Entrenando...",
     "forecastDetail": "Ver detalle",
@@ -173,7 +173,11 @@
     "language": {
       "title": "Idioma",
       "description": "Idioma de la interfaz — no afecta a los métodos de pago disponibles, que dependen del país detectado.",
-      "label": "Idioma de la app"
+      "label": "Idioma de la app",
+      "translateCategories": "Categorías predeterminadas con su nombre original: {count}. ¿Traducirlas a este idioma?",
+      "translateYes": "Traducir",
+      "translateNo": "Ahora no",
+      "translateDone": "Categorías traducidas"
     },
     "twoFactor": {
       "title": "Autenticación de dos factores",
@@ -245,7 +249,14 @@
       "retry": "Volver a comprobar",
       "statusEnabled": "Bloqueo activo",
       "statusDisabled": "Bloqueo desactivado",
-      "disable": "Desactivar el bloqueo"
+      "disable": "Desactivar el bloqueo",
+      "reason": {
+        "notNative": "El bloqueo biométrico solo funciona en la app Android.",
+        "checking": "Comprobando la biometría del teléfono...",
+        "noBiometrics": "Este teléfono no tiene huella ni rostro registrados, o no tiene bloqueo de pantalla.",
+        "pluginError": "No se pudo comunicar con la biometría del teléfono. Inténtalo de nuevo."
+      },
+      "technicalDetails": "Detalles técnicos"
     },
     "account": {
       "title": "Privacidad y datos",
@@ -727,17 +738,17 @@
   "predictions": {
     "backToDashboard": "Volver al panel",
     "title": "Previsiones con IA",
-    "subtitle": "Modelo ConvNeXt-1D entrenado con tus datos históricos",
+    "subtitle": "Un modelo de IA aprende de tu historial y prevé los próximos meses",
     "cancel": "Cancelar",
     "training": "Entrenando...",
     "runPrediction": "Ejecutar previsión",
-    "modelName": "ConvNeXt-1D Financial Forecaster",
-    "modelDescription": "Convoluciones 1D depthwise-separable + Layer Normalization + conexiones residuales — Inspirado en la arquitectura ConvNeXt adaptada a series temporales financieras",
+    "modelName": "Previsión con IA",
+    "modelDescription": "Funciona en tu dispositivo: tus datos no salen de él para hacer la previsión. Cuantos más meses completos tengas, mejor será la previsión.",
     "monthsOfData": "meses completos",
     "confidence": "confianza",
     "trainingModel": "Entrenando el modelo...",
     "initializing": "Inicializando...",
-    "epoch": "Época {current}/{total}",
+    "epoch": "Paso {current} de {total}",
     "stepData": "Datos",
     "stepModel": "Modelo",
     "stepTraining": "Entrenamiento",
@@ -759,7 +770,7 @@
     "confidenceBasedOn": "Confianza: {pct}% — basada en {months} meses de datos",
     "insightsTitle": "Información de la IA",
     "emptyTitle": "¿Listo para predecir el futuro?",
-    "emptyDescription": "El modelo ConvNeXt-1D analizará tus datos históricos y generará previsiones de ingresos y gastos para los próximos 3 meses.",
+    "emptyDescription": "La IA analizará tu historial y preverá tus ingresos y gastos de los próximos 3 meses.",
     "startPrediction": "Iniciar previsión con IA",
     "emptyHint": "Previsión simple a partir de {simple} meses completos; modelo de IA a partir de {model}. El mes en curso no cuenta.",
     "paywallFeatureLabel": "Las previsiones con IA",
@@ -786,12 +797,17 @@
     "simpleNotice": "Previsión simple: el modelo de IA necesita {needed} meses completos (tienes {have}). Mientras tanto, la previsión sigue la tendencia de tus meses completos.",
     "legendCurrent": "Mes en curso",
     "method": {
-      "convnext": "Modelo de IA (ConvNeXt-1D)",
+      "convnext": "Modelo de IA",
       "trend": "Tendencia de los últimos meses",
       "average": "Media de los últimos meses"
     },
     "basedOnMonths": "Basado en {months} meses completos",
-    "emptyHave": "Tienes {have}."
+    "emptyHave": "Tienes {have}.",
+    "status": {
+      "loading": "Preparando el modelo de IA...",
+      "initializing": "Preparando tu dispositivo...",
+      "training": "Aprendiendo de tu historial..."
+    }
   },
   "statsInsights": {
     "title": "Interpretación con IA",

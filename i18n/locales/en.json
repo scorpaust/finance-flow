@@ -113,8 +113,8 @@
     "kpiIncome": "Income (month)",
     "kpiExpense": "Expenses (month)",
     "kpiSavingsRate": "Savings Rate",
-    "forecastTitle": "Deep learning forecasts",
-    "forecastDescription": "ConvNeXt-1D with TensorFlow.js to forecast income, expenses and balance for the next 3 months.",
+    "forecastTitle": "AI forecasts",
+    "forecastDescription": "A forecast of your income, expenses and balance for the next 3 months, made on your device.",
     "forecastRun": "Run forecast",
     "forecastTraining": "Training...",
     "forecastDetail": "View details",
@@ -173,7 +173,11 @@
     "language": {
       "title": "Language",
       "description": "Interface language — does not affect the payment methods available, which depend on your detected country.",
-      "label": "App language"
+      "label": "App language",
+      "translateCategories": "Default categories with their original name: {count}. Translate them to this language?",
+      "translateYes": "Translate",
+      "translateNo": "Not now",
+      "translateDone": "Categories translated"
     },
     "twoFactor": {
       "title": "Two-factor authentication",
@@ -245,7 +249,14 @@
       "retry": "Check again",
       "statusEnabled": "Lock on",
       "statusDisabled": "Lock off",
-      "disable": "Turn lock off"
+      "disable": "Turn lock off",
+      "reason": {
+        "notNative": "Biometric lock only works in the Android app.",
+        "checking": "Checking your phone's biometrics...",
+        "noBiometrics": "This phone has no fingerprint or face enrolled, or no screen lock.",
+        "pluginError": "Couldn't reach your phone's biometrics. Please try again."
+      },
+      "technicalDetails": "Technical details"
     },
     "account": {
       "title": "Privacy and data",
@@ -727,17 +738,17 @@
   "predictions": {
     "backToDashboard": "Back to dashboard",
     "title": "AI Forecasts",
-    "subtitle": "ConvNeXt-1D model trained on your historical data",
+    "subtitle": "An AI model learns from your history and forecasts the coming months",
     "cancel": "Cancel",
     "training": "Training...",
     "runPrediction": "Run Forecast",
-    "modelName": "ConvNeXt-1D Financial Forecaster",
-    "modelDescription": "Depthwise-separable 1D convolutions + Layer Normalization + Residual connections — Inspired by the ConvNeXt architecture adapted for financial time series",
+    "modelName": "AI forecast",
+    "modelDescription": "Runs on your device: your data never leaves it to make the forecast. The more complete months you have, the better the forecast.",
     "monthsOfData": "complete months",
     "confidence": "confidence",
     "trainingModel": "Training model...",
     "initializing": "Initializing...",
-    "epoch": "Epoch {current}/{total}",
+    "epoch": "Step {current} of {total}",
     "stepData": "Data",
     "stepModel": "Model",
     "stepTraining": "Training",
@@ -759,7 +770,7 @@
     "confidenceBasedOn": "Confidence: {pct}% — based on {months} months of data",
     "insightsTitle": "AI Insights",
     "emptyTitle": "Ready to predict the future?",
-    "emptyDescription": "The ConvNeXt-1D model will analyze your historical data and generate income and expense forecasts for the next 3 months.",
+    "emptyDescription": "The AI will analyze your history and forecast your income and expenses for the next 3 months.",
     "startPrediction": "Start AI Forecast",
     "emptyHint": "Simple forecast from {simple} complete months; AI model from {model}. The current month doesn't count.",
     "paywallFeatureLabel": "AI forecasts",
@@ -786,12 +797,17 @@
     "simpleNotice": "Simple forecast: the AI model needs {needed} complete months (you have {have}). Until then, the forecast follows the trend of your complete months.",
     "legendCurrent": "Current month",
     "method": {
-      "convnext": "AI model (ConvNeXt-1D)",
+      "convnext": "AI model",
       "trend": "Trend of recent months",
       "average": "Average of recent months"
     },
     "basedOnMonths": "Based on {months} complete months",
-    "emptyHave": "You have {have}."
+    "emptyHave": "You have {have}.",
+    "status": {
+      "loading": "Getting the AI model ready...",
+      "initializing": "Preparing your device...",
+      "training": "Learning from your history..."
+    }
   },
   "statsInsights": {
     "title": "AI Interpretation",

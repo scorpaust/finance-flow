@@ -6,66 +6,51 @@
 //
 // Corre em SSR e no client (sem sufixo `.server`/`.client`), sempre antes de
 // qualquer página renderizar, para a 1.ª resposta já vir no idioma certo
-// (evita mismatch de hidratação). Lógica:
-//   1. Cookie `financeflow_locale` já existe e é um dos 6 suportados → usa-o
-//      (cobre tanto deteção anterior como escolha manual nas Configurações).
-//   2. Sem cookie → deteta a partir do `Accept-Language` (SSR) ou
-//      `navigator.languages` (client), por correspondência exata do código
-//      completo (ex. "pt-PT") e depois só pela língua (ex. "pt" → "pt-PT");
-//      sem correspondência, cai em EN. Grava o resultado no cookie — nunca
-//      mais volta a detetar depois disso.
+// (evita mismatch de hidratação). Lógica (Upgrade 06, shared/locale.ts):
+//   1. Língua escolhida à mão (cookie `financeflow_locale` com origem `user`,
+//      ou um cookie antigo sem origem) → usa-a, sempre.
+//   2. Caso contrário → deteta a partir do `Accept-Language` (SSR) ou
+//      `navigator.languages` (client), primeiro pelo código completo (ex.
+//      "pt-PT") e depois só pela língua (ex. "pt" → "pt-PT"); sem
+//      correspondência, inglês. Grava o resultado com origem `auto` e volta a
+//      detetar na visita seguinte (acompanha a língua do telemóvel).
 // Fora de um componente Vue (`setup()`), a composable `useI18n()` do
 // vue-i18n rebenta com "Must be called at the top of a `setup` function"
 // (verificado em teste real nesta sessão) — plugins usam antes
 // `nuxtApp.$i18n`, a mesma instância global (Composer), sem essa restrição.
-// A lista de códigos suportados está duplicada aqui de propósito (em vez de
-// ler `nuxtApp.$i18n.locales`, cujo formato exato não vale a pena arriscar):
+// A lista de códigos suportados está em shared/locale.ts (em vez de ler
+// `nuxtApp.$i18n.locales`, cujo formato exato não vale a pena arriscar):
 // manter sincronizada com `nuxt.config.ts` → `i18n.locales`.
-const SUPPORTED_LOCALES = ['pt-PT', 'en', 'fr', 'de', 'it', 'es']
+
+// Upgrade 06 — a lógica passou para shared/locale.ts (testada): a deteção
+// volta a correr enquanto a língua for "automática" (cookie
+// `financeflow_locale_source=auto`), para acompanhar a língua do telemóvel;
+// uma escolha manual (ou um cookie antigo, sem origem) fica sempre.
+import {
+  LOCALE_COOKIE,
+  LOCALE_COOKIE_MAX_AGE,
+  LOCALE_SOURCE_COOKIE,
+  parseAcceptLanguage,
+  resolveLocale,
+} from '~/shared/locale'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const i18n = nuxtApp.$i18n as { locale: { value: string }; setLocale: (code: string) => Promise<void> }
-  const supported = SUPPORTED_LOCALES
-
-  const cookie = useCookie<string | null>('financeflow_locale', {
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: 'lax',
-  })
-
-  if (cookie.value && supported.includes(cookie.value)) {
-    if (i18n.locale.value !== cookie.value) await i18n.setLocale(cookie.value)
-    return
-  }
+  const cookieOpts = { maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: 'lax' as const }
+  const cookie = useCookie<string | null>(LOCALE_COOKIE, cookieOpts)
+  const source = useCookie<string | null>(LOCALE_SOURCE_COOKIE, cookieOpts)
 
   let candidates: string[] = []
   if (import.meta.server) {
-    const headers = useRequestHeaders(['accept-language'])
-    candidates = (headers['accept-language'] || '')
-      .split(',')
-      .map((part) => part.split(';')[0].trim())
-      .filter(Boolean)
+    candidates = parseAcceptLanguage(useRequestHeaders(['accept-language'])['accept-language'])
   } else if (typeof navigator !== 'undefined') {
     candidates = navigator.languages ? [...navigator.languages] : [navigator.language]
   }
 
-  const detected = matchLocale(candidates, supported) || 'en'
-  if (i18n.locale.value !== detected) await i18n.setLocale(detected)
-  cookie.value = detected
+  const decision = resolveLocale({ cookie: cookie.value, source: source.value, candidates })
+  if (i18n.locale.value !== decision.locale) await i18n.setLocale(decision.locale)
+  if (cookie.value !== decision.locale) cookie.value = decision.locale
+  // Só se grava a origem quando é uma deteção nova; um cookie antigo sem
+  // origem fica como está (conta como escolha do utilizador).
+  if (decision.source === 'auto' && source.value !== 'auto') source.value = 'auto'
 })
-
-function matchLocale(candidates: string[], supported: string[]): string | null {
-  const lower = candidates.map((c) => c.toLowerCase())
-
-  for (const c of lower) {
-    const exact = supported.find((s) => s.toLowerCase() === c)
-    if (exact) return exact
-  }
-
-  for (const c of lower) {
-    const lang = c.split('-')[0]
-    const byLanguage = supported.find((s) => s.toLowerCase().split('-')[0] === lang)
-    if (byLanguage) return byLanguage
-  }
-
-  return null
-}

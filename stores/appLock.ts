@@ -68,7 +68,7 @@ function plugin(): NativeBiometricApi {
 // motivo (visto no telemóvel: nativo=true, suportado=false, motivo vazio).
 function withTimeout<T>(p: Promise<T>, stage: string, ms = 6000): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`sem resposta em "${stage}" após ${ms / 1000}s`)), ms)
+    const timer = setTimeout(() => reject(new Error(`no response from "${stage}" after ${ms / 1000}s`)), ms)
     p.then(
       (v) => {
         clearTimeout(timer)
@@ -87,6 +87,10 @@ export const useAppLockStore = defineStore('appLock', () => {
   const native = ref(false) // a correr dentro da app Android (Capacitor)
   // Porque não está disponível (mostrado nas Definições em vez de esconder o
   // cartão em silêncio — sem isto era impossível perceber o motivo).
+  // Upgrade 06 — `reasonCode` é traduzido na interface
+  // (`settings.biometric.reason.*`); `reason` é o detalhe técnico, em inglês,
+  // mostrado só dentro de "Detalhes técnicos" (era português para todos).
+  const reasonCode = ref<'' | 'notNative' | 'checking' | 'noBiometrics' | 'pluginError'>('')
   const reason = ref('')
   const enabled = ref(false)
   const locked = ref(false)
@@ -97,20 +101,25 @@ export const useAppLockStore = defineStore('appLock', () => {
     try {
       native.value = Capacitor.isNativePlatform()
       if (!native.value) {
-        reason.value = `plataforma ${Capacitor.getPlatform()} (não é a app nativa)`
+        reasonCode.value = 'notNative'
+        reason.value = `platform ${Capacitor.getPlatform()} (not the native app)`
         return false
       }
-      reason.value = 'a chamar isAvailable() no Android…'
-      const res = await withTimeout(plugin().isAvailable({ useFallback: false }), 'isAvailable() nativo')
+      reasonCode.value = 'checking'
+      reason.value = 'calling isAvailable() on Android…'
+      const res = await withTimeout(plugin().isAvailable({ useFallback: false }), 'native isAvailable()')
       if (!res.isAvailable) {
-        reason.value = `sem biometria disponível (código ${res.errorCode ?? 'n/d'}, ecrã de bloqueio seguro: ${res.deviceIsSecure})`
+        reasonCode.value = 'noBiometrics'
+        reason.value = `no biometrics available (code ${res.errorCode ?? 'n/a'}, secure lock screen: ${res.deviceIsSecure})`
         return false
       }
+      reasonCode.value = ''
       reason.value = ''
       return true
     } catch (e: any) {
       // Não engolir: o erro do plugin é mostrado nas Definições.
-      reason.value = `erro do plugin: ${String(e?.message || e).slice(0, 160)}`
+      reasonCode.value = 'pluginError'
+      reason.value = `plugin error: ${String(e?.message || e).slice(0, 160)}`
       return false
     }
   }
@@ -185,5 +194,5 @@ export const useAppLockStore = defineStore('appLock', () => {
     }
   }
 
-  return { supported, native, reason, enabled, locked, init, unlock, enable, disable: () => setEnabled(false), reconcile }
+  return { supported, native, reason, reasonCode, enabled, locked, init, unlock, enable, disable: () => setEnabled(false), reconcile }
 })

@@ -44,7 +44,10 @@
     telemóvel);
   - com `user`, a escolha manual fica sempre;
   - escolher nas Definições ou no ecrã de entrada grava `user`;
-  - cookies atuais sem origem contam como `auto`.
+  - cookies atuais sem origem contam como `user` (decidido na implementação):
+    a escolha nas Definições gravava o mesmo cookie, por isso não se
+    distingue de uma deteção. Assim ninguém vê a língua mudar sozinha depois
+    do deploy; só as deteções novas ficam `auto`.
 - **Traduzir os textos fixos** (pontos 3 e 5):
   - estado do treino por chave i18n;
   - diagnóstico da biometria: frase traduzida para o utilizador e o detalhe
@@ -59,16 +62,46 @@
   exceções para comentários e emojis), e outro que confirma que as 6 línguas
   têm as mesmas chaves.
 
+## Implementação (2026-10-10)
+
+- **Lógica de língua:** `shared/locale.ts` (pura, testada).
+  - `plugins/locale.ts` usa-a a cada visita.
+  - `composables/useAppLocale.ts` faz a escolha manual (Definições e
+    `LanguageSwitcher`).
+- **Defeito da Fase 7 encontrado pelos testes:** a correspondência procurava
+  primeiro um código exato em **toda** a lista do dispositivo, por isso "de-AT,
+  en" dava inglês. Agora segue a ordem de preferência: para cada língua, o
+  código exato ou só a língua.
+- **Seletor:** `components/ui/LanguageSwitcher.vue` no login, na recuperação de
+  password e nas páginas legais. Os nomes das línguas aparecem sempre na
+  própria língua.
+- **Tradução das categorias:**
+  - `POST /api/categories/translate-defaults` (`dryRun` conta);
+  - só as `isDefault` com um nome por omissão de qualquer língua (nunca
+    renomeadas);
+  - um nome já ocupado fica como está;
+  - nas Definições, ao mudar de língua, aparece "Traduzi-las para esta
+    língua?".
+- **Textos fixos:**
+  - o estado do treino nas Previsões passa por i18n;
+  - na biometria, um código traduzido e o detalhe técnico, em inglês, dentro
+    de "Detalhes técnicos";
+  - as Previsões e o cartão do painel ficam sem "ConvNeXt-1D", "Layer
+    Normalization" nem "Epoch".
+- **Verificação contínua** (`tests/i18nConsistency.test.ts`):
+  - as 6 línguas com as mesmas chaves;
+  - nenhum texto acentuado escrito diretamente no código do cliente.
+
 ## Tarefas
 
-- [ ] Componente `LanguageSwitcher` (login e páginas públicas; reutilizado
+- [x] Componente `LanguageSwitcher` (login e páginas públicas; reutilizado
       nas Definições).
-- [ ] `plugins/locale.ts`: origem `auto`/`user`; re-deteção com `auto`.
-- [ ] Chaves i18n para o treino das Previsões e para a biometria; textos das
+- [x] `plugins/locale.ts`: origem `auto`/`user`; re-deteção com `auto`.
+- [x] Chaves i18n para o treino das Previsões e para a biometria; textos das
       Previsões sem jargão.
-- [ ] `POST /api/categories/translate-defaults` (só as não renomeadas) e o
+- [x] `POST /api/categories/translate-defaults` (só as não renomeadas) e o
       pedido de confirmação ao mudar de língua.
-- [ ] Testes:
+- [x] Testes:
   - unitários: deteção e origem;
   - integração: tradução só das não renomeadas;
   - E2E: mudar a língua no login antes de criar conta, e a conta nasce
@@ -77,8 +110,8 @@
 
 ## Critérios de aceitação
 
-- [ ] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
+- [x] Quem abre a app numa língua que não percebe muda-a no ecrã de entrada,
       antes de criar conta.
-- [ ] Com a língua "automática", mudar a língua do telemóvel muda a da app na
+- [x] Com a língua "automática", mudar a língua do telemóvel muda a da app na
       visita seguinte; uma escolha manual nunca é substituída.
-- [ ] Nenhum texto visível em português quando a app está noutra língua.
+- [x] Nenhum texto visível em português quando a app está noutra língua.

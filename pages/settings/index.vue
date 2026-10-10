@@ -39,6 +39,20 @@
       <select v-model="currentLocale" data-testid="settings-language-select" class="form-select w-full sm:w-auto">
         <option v-for="l in availableLocales" :key="l.code" :value="l.code">{{ l.name }}</option>
       </select>
+      <!-- Upgrade 06 — categorias por omissão nunca renomeadas acompanham a língua, se o utilizador quiser -->
+      <div
+        v-if="translatableCount > 0"
+        class="mt-4 bg-brand-600/10 border border-brand-500/20 rounded-2xl p-3 flex items-center justify-between gap-3 flex-wrap"
+        data-testid="translate-categories-offer"
+      >
+        <p class="text-white/70 text-sm">{{ t('settings.language.translateCategories', { count: translatableCount }) }}</p>
+        <div class="flex gap-2">
+          <button class="btn-secondary text-xs py-1.5 px-3" type="button" @click="translatableCount = 0">{{ t('settings.language.translateNo') }}</button>
+          <button class="btn-primary text-xs py-1.5 px-3" type="button" data-testid="translate-categories-confirm" :disabled="translating" @click="translateCategories">
+            {{ t('settings.language.translateYes') }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Moeda de apresentação (Fase 10) -->
@@ -182,22 +196,40 @@ const auth = useAuthStore()
 const finance = useFinanceStore()
 const toast = useToastStore()
 const currentTier = useSubscription().tier
-const { t, locale, locales, setLocale } = useI18n()
+const { t } = useI18n()
 
-// Fase 7, tarefa 1 — a escolha manual aqui grava o mesmo cookie que
-// `plugins/locale.ts` usa para a deteção automática (não delegado no
-// `detectBrowserLanguage` do módulo — está desligado de propósito, ver
-// nuxt.config.ts); por isso, depois desta escolha, a deteção por
-// Accept-Language nunca mais é repetida.
-const localeCookie = useCookie<string | null>('financeflow_locale', { maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' })
-const availableLocales = computed(() => locales.value as { code: string; name: string }[])
+// Fase 7 / Upgrade 06 — a escolha manual grava a língua com origem `user`
+// (composables/useAppLocale.ts): a deteção automática deixa de a substituir.
+const { locale, available: availableLocales, chooseLocale } = useAppLocale()
+const translatableCount = ref(0)
+const translating = ref(false)
 const currentLocale = computed({
   get: () => locale.value,
-  set: (code: string) => {
-    setLocale(code as typeof locale.value)
-    localeCookie.value = code
+  set: async (code: string) => {
+    if (!(await chooseLocale(code))) return
+    // Quantas categorias por omissão (nunca renomeadas) mudariam de nome.
+    try {
+      const res = await $fetch<{ count: number }>('/api/categories/translate-defaults', { method: 'POST', body: { locale: code, dryRun: true } })
+      translatableCount.value = res.count
+    } catch {
+      translatableCount.value = 0
+    }
   },
 })
+
+async function translateCategories() {
+  translating.value = true
+  try {
+    await $fetch('/api/categories/translate-defaults', { method: 'POST', body: { locale: locale.value } })
+    translatableCount.value = 0
+    await finance.fetchCategories()
+    toast.success(t('settings.language.translateDone'))
+  } catch {
+    toast.error(t('auth.errorGeneric'))
+  } finally {
+    translating.value = false
+  }
+}
 
 const showCatModal = ref(false)
 const catFilter = ref('all')

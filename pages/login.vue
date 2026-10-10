@@ -1,5 +1,9 @@
 <template>
   <main class="min-h-screen auth-bg flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Upgrade 06 — escolher a língua antes de entrar -->
+    <div class="absolute top-4 left-4 z-20">
+      <LanguageSwitcher />
+    </div>
     <button
       v-if="auth.isAuthenticated"
       class="absolute top-4 right-4 z-20 btn-secondary text-sm py-2 px-4 flex items-center gap-2"

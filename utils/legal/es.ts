@@ -40,6 +40,7 @@ export function legalEs(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "EasyPay — procesamiento de pagos (tarjeta, domiciliación, MB WAY, Multibanco).",
             "Google (Google Play) — distribución de la app Android y pago de las suscripciones compradas dentro de ella. Google gestiona esos pagos como vendedor, según su propia política de privacidad; para asociar la compra a tu cuenta solo le enviamos un identificador de cuenta cifrado (nunca tu nombre, tu email ni datos financieros de la app).",
             "Anthropic — proveedor del modelo de IA usado en las funciones descritas en el punto 5.",
+            "Resend — envío de los emails de la cuenta (por ejemplo, el enlace para establecer una nueva contraseña). Solo recibe tu dirección de email y el contenido de esos mensajes.",
             "Twelve Data — datos de mercado y tipos de cambio. Solo recibe símbolos de mercado y pares de divisas, nunca datos personales ni tus importes.",
             "Sentry — monitorización de errores técnicos, configurada para no enviar el contenido de las peticiones, cookies ni cabeceras.",
             "Algunos de estos proveedores pueden tener subencargados o infraestructura fuera del Espacio Económico Europeo; en ese caso se aplican las garantías previstas en el RGPD, en particular las cláusulas contractuales tipo aprobadas por la Comisión Europea.",

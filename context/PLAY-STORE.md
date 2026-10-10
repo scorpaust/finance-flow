@@ -8,7 +8,9 @@ diz respeito a dados tem de bater certo com a Política de Privacidade
 
 **Categoria**: Finanças. **Público-alvo**: 18+ (a app lida com dinheiro,
 pagamentos e investimentos). **Email de contacto**: o publicado nos Termos.
-**Política de privacidade**: `<APP_URL>/privacy` (pública, sem login).
+**Política de privacidade**: `https://www.financeflow-webapp.pt/privacy`
+(pública, sem login). **Site**: `https://www.financeflow-webapp.pt`
+(mudados na Play Console a 2026-10-10, Upgrade 05).
 
 ### PT-PT
 
@@ -234,7 +236,8 @@ do valor sem IVA. No site, com a isenção, o operador recebe o preço inteiro.
      `google-play-developer-notifications@system.gserviceaccount.com` a
      função _Pub/Sub Publisher_;
    - criar uma subscrição **push** para
-     `https://financeflow-webapp.netlify.app/api/billing/google-play/rtdn`,
+     `https://www.financeflow-webapp.pt/api/billing/google-play/rtdn` (era o
+     `.netlify.app` até 2026-10-10),
      com **autenticação ativada**: escolher uma conta de serviço para o push
      e definir a audiência (por exemplo o próprio URL);
    - Netlify: `GOOGLE_PLAY_RTDN_AUDIENCE` (a audiência) e

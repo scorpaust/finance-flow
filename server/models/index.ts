@@ -143,6 +143,10 @@ export interface IUser extends Document {
   // as notificações da Google (RTDN) chegarem à conta certa mesmo antes de a
   // app confirmar a compra (server/utils/googlePlay.ts).
   playAccountId?: string
+  // Upgrade 05 — versão das sessões, assinada no cookie (server/utils/session.ts).
+  // Mudar ou recuperar a password incrementa-a, e as sessões abertas noutros
+  // dispositivos deixam de valer. Contas sem o campo: 0.
+  sessionVersion?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -164,6 +168,7 @@ const UserSchema = new Schema<IUser>(
     termsVersion:         { type: String },
     displayCurrency:      { type: String, default: 'EUR', uppercase: true, minlength: 3, maxlength: 3 },
     playAccountId:        { type: String },
+    sessionVersion:       { type: Number, default: 0 },
   },
   { timestamps: true }
 )
@@ -559,3 +564,30 @@ const AiBudgetProposalSchema = new Schema<IAiBudgetProposal>({
 export const AiBudgetProposal: Model<IAiBudgetProposal> =
   mongoose.models.AiBudgetProposal ||
   mongoose.model<IAiBudgetProposal>('AiBudgetProposal', AiBudgetProposalSchema)
+
+// ─── PASSWORD RESET TOKEN ────────────────────────────────────────────────────
+// Upgrade 05 — link de recuperação de password. O `_id` é o SHA-256 do token
+// (o token em claro só existe no email): a procura é pelo hash e a unicidade
+// vem do índice `_id`, que existe sempre (mesmo motivo de DocumentScanUsage).
+// Uso único (`usedAt`) e validade curta (`expiresAt`); pedir outro apaga os
+// anteriores do mesmo utilizador.
+export interface IPasswordResetToken extends Document<string> {
+  userId: mongoose.Types.ObjectId
+  expiresAt: Date
+  usedAt: Date | null
+  createdAt: Date
+}
+
+const PasswordResetTokenSchema = new Schema<IPasswordResetToken>({
+  _id:       { type: String },
+  userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  expiresAt: { type: Date, required: true },
+  usedAt:    { type: Date, default: null },
+  createdAt: { type: Date, required: true },
+})
+// Limpeza automática uma hora depois de expirar (só desempenho: a validade é
+// sempre verificada no código).
+PasswordResetTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 3600 })
+export const PasswordResetToken: Model<IPasswordResetToken> =
+  mongoose.models.PasswordResetToken ||
+  mongoose.model<IPasswordResetToken>('PasswordResetToken', PasswordResetTokenSchema)

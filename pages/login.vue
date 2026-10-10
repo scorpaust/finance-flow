@@ -123,6 +123,15 @@
                   required
                 />
               </div>
+              <!-- Upgrade 05 — recuperação de password -->
+              <NuxtLink
+                v-if="mode === 'login'"
+                to="/forgot-password"
+                data-testid="login-forgot"
+                class="inline-block mt-2 text-xs text-white/50 hover:text-white underline"
+              >
+                {{ t('auth.forgotPassword') }}
+              </NuxtLink>
             </div>
 
             <!-- Aceitação explícita: desmarcada por omissão e obrigatória (validada
@@ -144,6 +153,14 @@
                 </template>
               </i18n-t>
             </label>
+
+            <div
+              v-if="passwordWasReset && !errorMessage"
+              class="bg-emerald-500/[0.12] border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-300 text-sm"
+              data-testid="login-reset-done"
+            >
+              {{ t('passwordReset.doneNotice') }}
+            </div>
 
             <div
               v-if="errorMessage"
@@ -239,6 +256,9 @@ const errorMessage = ref('')
 const mode = ref<'login' | 'register'>('login')
 const step = ref<'credentials' | 'twoFactor'>('credentials')
 const twoFactorCode = ref('')
+// Upgrade 05 — chegada depois de definir uma nova password (/reset-password).
+const route = useRoute()
+const passwordWasReset = computed(() => route.query.reset === '1')
 
 const form = reactive({
   name: '',

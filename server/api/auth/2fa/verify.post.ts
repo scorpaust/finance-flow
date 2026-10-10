@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
   const { code } = await validateBody(event, VerifySchema)
 
-  const user = await User.findById(userId).select('+twoFactorSecret +twoFactorBackupCodes twoFactorEnabled name email image')
+  const user = await User.findById(userId).select('+twoFactorSecret +twoFactorBackupCodes twoFactorEnabled name email image sessionVersion')
   if (!user?.twoFactorEnabled) {
     clearAppSession(event)
     throw createError({ statusCode: 401, message: serverT(locale, 'twoFactor.pendingExpired') })
@@ -59,6 +59,6 @@ export default defineEventHandler(async (event) => {
 
   if (usedBackup) await user.save()
 
-  issueSession(event, user._id.toString())
+  issueSession(event, user._id.toString(), user.sessionVersion ?? 0)
   return { user: toPublicUser(user) }
 })

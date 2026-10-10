@@ -58,6 +58,7 @@
     "emailLabel": "Email",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Minimo 8 caratteri",
+    "forgotPassword": "Password dimenticata?",
     "submitLogin": "Accedi",
     "submitRegister": "Crea account",
     "submitting": "Autenticazione...",
@@ -73,6 +74,23 @@
     "twoFactorSubmit": "Verifica",
     "twoFactorBackButton": "Torna all'accesso",
     "acceptTerms": "Ho letto e accetto i {terms} e l'{privacy}."
+  },
+  "passwordReset": {
+    "forgotTitle": "Recupera la password",
+    "forgotDescription": "Inserisci l'email del tuo account. Ti invieremo un link per impostare una nuova password.",
+    "forgotSubmit": "Invia link",
+    "forgotSent": "Se esiste un account con questa email, abbiamo inviato un link per impostare una nuova password. Controlla anche la cartella spam. Il link è valido per 30 minuti.",
+    "backToLogin": "Torna all'accesso",
+    "resetTitle": "Imposta una nuova password",
+    "resetDescription": "Scegli una nuova password per il tuo account. Dovrai accedere di nuovo su tutti i dispositivi.",
+    "newPasswordLabel": "Nuova password",
+    "confirmPasswordLabel": "Conferma la nuova password",
+    "resetSubmit": "Salva nuova password",
+    "missingToken": "Questo link è incompleto. Apri di nuovo il link dell'email o richiedine uno nuovo.",
+    "askNewLink": "Richiedi un nuovo link",
+    "tooShort": "La password deve avere almeno 8 caratteri",
+    "mismatch": "Le password non coincidono",
+    "doneNotice": "Password cambiata. Ora puoi accedere con la nuova password."
   },
   "dashboard": {
     "greetingHello": "Ciao",
@@ -180,6 +198,14 @@
       "toastEnabled": "Autenticazione a due fattori attivata",
       "toastDisabled": "Autenticazione a due fattori disattivata",
       "errorGeneric": "Qualcosa è andato storto — riprova"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Cambia la password del tuo account. Le sessioni aperte sugli altri dispositivi verranno chiuse.",
+      "openButton": "Cambia password",
+      "currentLabel": "Password attuale",
+      "saveButton": "Salva",
+      "toastChanged": "Password cambiata"
     },
     "title": "Impostazioni",
     "subtitle": "Gestisci categorie, gruppi e preferenze",

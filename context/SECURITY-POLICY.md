@@ -15,7 +15,8 @@ que não guarda, processa nem transmite dados de cartão).
 
 Abrange:
 
-- a app web em https://financeflow-webapp.netlify.app;
+- a app web em https://www.financeflow-webapp.pt (e no antigo
+  https://financeflow-webapp.netlify.app, que serve o mesmo site);
 - a app Android `com.dinismcosta.financeflow`;
 - o código em github.com/scorpaust/finance-flow;
 - as contas de administração dos fornecedores listados na secção 3.

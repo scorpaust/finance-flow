@@ -45,6 +45,11 @@ export default async function setup() {
     EASYPAY_API_BASE_URL: stub.baseUrl,
     ANTHROPIC_API_KEY: 'test-key',
     ANTHROPIC_API_BASE_URL: stub.baseUrl,
+    // Upgrade 05 — emails (Resend) também vão para o servidor simulado.
+    RESEND_API_KEY: 're_test',
+    EMAIL_FROM: 'FinanceFlow <noreply@mail.example.test>',
+    RESEND_API_BASE_URL: stub.baseUrl,
+    APP_URL: 'https://app.example.test',
     TWELVE_DATA_API_KEY: 'test-key',
     TWELVE_DATA_API_BASE_URL: stub.baseUrl,
     GOOGLE_PLAY_SERVICE_ACCOUNT: googleServiceAccount,

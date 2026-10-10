@@ -300,7 +300,8 @@ repor uma chave de upload, e só com Play App Signing ativo.
   `ADMIN_SECRET` **gerados de novo**, nunca copiados do `.env` de
   desenvolvimento.
 - Webhook EasyPay: no painel da EasyPay, apontar para
-  `<APP_URL>/api/subscription/easypay/webhook` (primeiro na conta sandbox;
+  `<APP_URL>/api/subscription/easypay/webhook` (desde 2026-10-10:
+  `https://www.financeflow-webapp.pt/api/subscription/easypay/webhook`) (primeiro na conta sandbox;
   na conta de produção quando se ligar `EASYPAY_ENV=production`).
 - Crons (`.github/workflows/cron.yml`): secrets `APP_URL` e `CRON_SECRET` no
   GitHub (o mesmo `CRON_SECRET` do Netlify).
@@ -424,3 +425,33 @@ MONGODB_URI=<uri-de-produção> MONGODB_DB_NAME=financeflow-prod \
   tester poder pedir outra (1 pedido por mês).
 - As credenciais do `.env` local não têm acesso a `financeflow-prod`: é
   preciso a ligação de produção (a mesma do backup).
+
+## Domínio próprio e emails (Upgrade 05)
+
+Domínio `financeflow-webapp.pt` (registado pelo utilizador a 2026-10-10). DNS
+no registador (não na Netlify):
+
+| Tipo | Nome | Valor | Para quê |
+|---|---|---|---|
+| A | `@` | `75.2.60.5` | site (Netlify) |
+| CNAME | `www` | `financeflow-webapp.netlify.app` | site (Netlify) — domínio principal |
+| TXT | `resend._domainkey.mail` | chave DKIM da Resend | emails |
+| MX | `send.mail` | `feedback-smtp.eu-west-1.amazonses.com` (10) | emails (devoluções) |
+| TXT | `send.mail` | `v=spf1 include:amazonses.com ~all` | emails |
+| TXT | `_dmarc` | `v=DMARC1; p=none;` → mais tarde `p=quarantine` | emails |
+
+- **Netlify**: `www.financeflow-webapp.pt` é o domínio principal (o apex
+  redireciona). Certificado Let's Encrypt automático.
+- **Endereços que dependem do domínio** (todos mudados a 2026-10-10): `APP_URL`
+  (Netlify e secret do GitHub para os crons), webhook da EasyPay, endpoint da
+  subscrição push do Pub/Sub (RTDN da Google Play — a "audience" ficou igual),
+  links da Play Console (política de privacidade, site, eliminação de dados) e
+  `capacitor.config.ts` (app 1.2.3+).
+- **`.netlify.app`**: continua a servir o mesmo site para as versões ≤ 1.2.2 da
+  app Android. Redirecioná-lo para o domínio só quando já ninguém as usar.
+- **Emails (Resend)**: domínio `mail.financeflow-webapp.pt`, região Irlanda
+  (eu-west-1), plano grátis (3 000/mês, 100/dia). Variáveis `RESEND_API_KEY` e
+  `EMAIL_FROM` no Netlify (+ redeploy). Se os emails não chegarem: ver o
+  estado do domínio e os registos de envio no painel da Resend, e o log
+  `email.send_failed` na Netlify.
+

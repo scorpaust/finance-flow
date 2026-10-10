@@ -64,9 +64,25 @@ async function startControlServer(mongoUri) {
   await client.connect()
   const db = client.db('financeflow')
 
+  // Upgrade 05 — emails "enviados" pela app (a Resend do E2E é este servidor).
+  const emails = []
+
   const server = createServer(async (req, res) => {
-    const path = (req.url || '').split('?')[0]
+    const [path, query = ''] = (req.url || '').split('?')
     const body = await readJsonBody(req)
+
+    if (path === '/emails' && req.method === 'POST') {
+      emails.push(body)
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ id: `e2e-${emails.length}` }))
+      return
+    }
+    // Último email enviado para um endereço (o spec lê o link de recuperação daqui).
+    if (path === '/__e2e/last-email' && req.method === 'GET') {
+      const to = new URLSearchParams(query).get('to')
+      const found = [...emails].reverse().find((e) => e?.to?.[0] === to)
+      res.writeHead(found ? 200 : 404, { 'content-type': 'application/json' }).end(JSON.stringify(found || {}))
+      return
+    }
 
     if (path === '/__e2e/set-tier' && req.method === 'POST') {
       await db.collection('users').updateOne(
@@ -231,6 +247,10 @@ async function main() {
     EASYPAY_API_KEY: 'e2e-key',
     ANTHROPIC_API_KEY: 'e2e-key',
     ANTHROPIC_API_BASE_URL: `http://127.0.0.1:${CONTROL_PORT}`,
+    // Upgrade 05 — emails para o servidor de controlo, nunca para a Resend real.
+    RESEND_API_KEY: 'e2e-key',
+    EMAIL_FROM: 'FinanceFlow <noreply@e2e.test>',
+    RESEND_API_BASE_URL: `http://127.0.0.1:${CONTROL_PORT}`,
     TWELVE_DATA_API_KEY: 'e2e-key',
     // Sem GEOLITE2_DB_PATH: país fica sempre desconhecido, nunca Portugal —
     // ver server/utils/geo.ts e a nota em e2e/i18n-flow.spec.ts sobre o que

@@ -504,6 +504,34 @@
     "submit": "Enviar",
     "thanks": "Obrigado pela tua opinião!"
   },
+  "help": {
+    "title": "Ajuda",
+    "subtitle": "Respostas às perguntas mais frequentes.",
+    "searchPlaceholder": "Pesquisar na ajuda…",
+    "noResults": "Não encontrámos nada. Tenta outras palavras ou escreve-nos.",
+    "contactCta": "Não encontraste a resposta? Escreve-nos.",
+    "signInToWrite": "Entrar para escrever",
+    "learnMore": "Saber mais"
+  },
+  "onboarding": {
+    "title": "Primeiros passos",
+    "progress": "{done} de {total} feitos",
+    "dismiss": "Não mostrar mais",
+    "doneAria": "Feito",
+    "todoAria": "Por fazer",
+    "steps": {
+      "expense": "Regista a primeira despesa",
+      "income": "Regista a receita do mês",
+      "budget": "Define um teto num grupo de orçamento",
+      "security": "Ativa a autenticação de dois fatores"
+    },
+    "actions": {
+      "expense": "Registar",
+      "income": "Registar",
+      "budget": "Abrir grupos",
+      "security": "Abrir definições"
+    }
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

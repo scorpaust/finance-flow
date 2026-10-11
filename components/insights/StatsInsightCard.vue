@@ -2,6 +2,7 @@
   <div>
     <div class="flex items-center gap-2 mb-4">
       <h3 class="font-display font-bold text-lg text-white">{{ t('statsInsights.title') }}</h3>
+      <HelpLink topic="ai-data" />
       <span class="text-xs px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-300 font-semibold">Pro</span>
     </div>
 

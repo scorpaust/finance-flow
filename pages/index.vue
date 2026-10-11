@@ -57,6 +57,10 @@
       <NuxtLink to="/settings" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2">
         <Settings class="w-4 h-4" /> {{ t('dashboard.navSettings') }}
       </NuxtLink>
+      <!-- Upgrade 08 — ajuda visível no telemóvel (antes só no fim do menu e das Definições) -->
+      <NuxtLink to="/feedback?from=/" class="btn-secondary text-sm py-2 px-4 flex items-center gap-2" data-testid="dashboard-help-link">
+        <LifeBuoy class="w-4 h-4" /> {{ t('nav.feedback') }}
+      </NuxtLink>
     </div>
 
     <!-- KPI Cards -->
@@ -95,6 +99,9 @@
         :loading="loading"
       />
     </div>
+
+    <!-- Upgrade 08 — primeiros passos (contas novas) -->
+    <OnboardingChecklist ref="onboardingRef" @add-transaction="openManual" />
 
     <!-- Upgrade 09 — pedido de opinião (1 a 5), só na web e uma vez -->
     <RatingPrompt />
@@ -362,7 +369,7 @@
 </template>
 
 <script setup lang="ts">
-import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp } from 'lucide-vue-next'
+import { Brain, Loader2, LogOut, Plus, ArrowLeftRight, Layers, BarChart3, Settings, TrendingUp, LifeBuoy } from 'lucide-vue-next'
 import type { Transaction, DocumentScanResult } from '~/types'
 import { greetingKey } from '~/shared/greeting'
 import { PREDICTION_MIN_MONTHS } from '~/shared/forecast'
@@ -383,6 +390,7 @@ const predictionResult = ref<any>(null)
 const selectedPeriod = ref('6')
 const donutType = ref<'income' | 'expense'>('expense')
 const showModal = ref(false)
+const onboardingRef = ref<{ reload: () => Promise<void> } | null>(null)
 const editTx = ref<Transaction | null>(null)
 const scanPrefill = ref<DocumentScanResult | null>(null)
 
@@ -499,6 +507,7 @@ async function onSaved() {
   toast.success(t('dashboard.toastTransactionSaved'))
   await finance.fetchTransactions({ page: 1 })
   await loadStats()
+  onboardingRef.value?.reload()
 }
 
 onMounted(async () => {

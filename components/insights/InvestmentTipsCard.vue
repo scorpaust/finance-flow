@@ -3,6 +3,7 @@
     <div class="flex items-center gap-2 flex-wrap">
       <h3 class="font-semibold text-white flex items-center gap-2">
         <Lightbulb class="w-4 h-4 text-yellow-400" /> {{ t('investment.tips.title') }}
+        <HelpLink topic="investment-tips" />
       </h3>
       <span class="text-xs px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-300 font-semibold">{{ t('investment.tips.premiumBadge') }}</span>
     </div>

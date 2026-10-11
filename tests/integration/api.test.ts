@@ -1650,3 +1650,37 @@ describe('ajuda e opinião (Upgrade 09)', () => {
     expect(await (await ask(r2.cookie)).json()).toEqual({ show: false })
   })
 })
+
+describe('primeiros passos (Upgrade 08)', () => {
+  const get = (cookie: string) => fetch('/api/onboarding', { headers: { cookie } })
+  const stepDone = (body: { steps: { id: string; done: boolean }[] }, id: string) => body.steps.find((s) => s.id === id)!.done
+
+  it('exige sessão', async () => {
+    expect((await fetch('/api/onboarding')).status).toBe(401)
+    expect((await fetch('/api/onboarding/dismiss', { method: 'POST' })).status).toBe(401)
+  })
+
+  it('o progresso reflete os dados da conta e fechar esconde a lista', async () => {
+    const email = uniqueEmail('onboarding')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    let body = await (await get(cookie)).json()
+    expect(body).toMatchObject({ show: true, done: 0, total: 3 })
+
+    const category = await Category.findOne({ userId: user!._id, type: 'expense' })
+    await Transaction.create({ userId: user!._id, type: 'expense', amount: 12, description: 'café', categoryId: category!._id, date: new Date() })
+    body = await (await get(cookie)).json()
+    expect(stepDone(body, 'expense')).toBe(true)
+    expect(stepDone(body, 'income')).toBe(false)
+
+    // Pro: um grupo com teto conta como passo do orçamento.
+    await setTier(email, 'pro')
+    await TransactionGroup.create({ userId: user!._id, name: 'Casa', monthlyLimit: 500 })
+    body = await (await get(cookie)).json()
+    expect(body.total).toBe(4)
+    expect(stepDone(body, 'budget')).toBe(true)
+
+    expect((await fetch('/api/onboarding/dismiss', { method: 'POST', headers: { cookie } })).status).toBe(200)
+    expect((await (await get(cookie)).json()).show).toBe(false)
+  })
+})

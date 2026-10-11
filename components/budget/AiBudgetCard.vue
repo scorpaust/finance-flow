@@ -3,6 +3,7 @@
     <div class="flex items-center gap-2 mb-1 flex-wrap">
       <Sparkles class="w-4 h-4 text-brand-400" />
       <h3 class="font-display font-bold text-lg text-white">{{ t('aiBudget.title') }}</h3>
+      <HelpLink topic="ai-budget" />
       <span class="text-xs px-2 py-0.5 rounded-full bg-brand-600/30 text-brand-300 font-semibold">{{ t('tiers.premium') }}</span>
     </div>
 

@@ -28,7 +28,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
-        <h2 class="font-display font-bold text-2xl text-white">{{ t('groups.title') }}</h2>
+        <h2 class="font-display font-bold text-2xl text-white flex items-center gap-2">{{ t('groups.title') }} <HelpLink topic="groups" /></h2>
         <p class="text-white/40 text-xs mt-0.5">{{ t('groups.subtitle') }}</p>
       </div>
       <button class="btn-primary text-sm flex items-center gap-2" @click="showModal = true">

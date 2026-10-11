@@ -12,7 +12,7 @@
           {{ t('common.backToDashboard') }}
         </button>
         <h2 class="font-display font-bold text-2xl text-white flex items-center gap-2">
-          <span>🤖</span> {{ t('predictions.title') }}
+          <span>🤖</span> {{ t('predictions.title') }} <HelpLink topic="forecast-how" />
         </h2>
         <p class="text-white/40 text-xs mt-1">{{ t('predictions.subtitle') }}</p>
       </div>

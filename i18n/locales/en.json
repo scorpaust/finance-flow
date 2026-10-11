@@ -504,6 +504,34 @@
     "submit": "Send",
     "thanks": "Thanks for your feedback!"
   },
+  "help": {
+    "title": "Help",
+    "subtitle": "Answers to the most frequent questions.",
+    "searchPlaceholder": "Search help…",
+    "noResults": "We couldn't find anything. Try other words or write to us.",
+    "contactCta": "Didn't find the answer? Write to us.",
+    "signInToWrite": "Sign in to write",
+    "learnMore": "Learn more"
+  },
+  "onboarding": {
+    "title": "Getting started",
+    "progress": "{done} of {total} done",
+    "dismiss": "Don't show again",
+    "doneAria": "Done",
+    "todoAria": "To do",
+    "steps": {
+      "expense": "Log your first expense",
+      "income": "Log this month's income",
+      "budget": "Set a limit on a budget group",
+      "security": "Turn on two-factor authentication"
+    },
+    "actions": {
+      "expense": "Log",
+      "income": "Log",
+      "budget": "Open groups",
+      "security": "Open settings"
+    }
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

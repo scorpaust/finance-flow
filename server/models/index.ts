@@ -152,6 +152,8 @@ export interface IUser extends Document {
   reviewPromptedAt?: Date | null
   // Upgrade 09 — quando foi mostrado o pedido de opinião (1 a 5) na web.
   ratingPromptedAt?: Date | null
+  // Upgrade 08 — "Não mostrar mais" na lista de primeiros passos.
+  onboardingDismissedAt?: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -176,6 +178,7 @@ const UserSchema = new Schema<IUser>(
     sessionVersion:       { type: Number, default: 0 },
     reviewPromptedAt:     { type: Date, default: null },
     ratingPromptedAt:     { type: Date, default: null },
+    onboardingDismissedAt: { type: Date, default: null },
   },
   { timestamps: true }
 )

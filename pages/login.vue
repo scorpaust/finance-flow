@@ -234,6 +234,7 @@
           {{ t('auth.footerNote') }}
         </p>
         <p v-if="step === 'credentials'" class="text-center text-white/40 text-xs mt-2 space-x-3">
+          <NuxtLink to="/help" class="hover:text-white/70 underline" data-testid="login-help">{{ t('help.title') }}</NuxtLink>
           <NuxtLink to="/terms" class="hover:text-white/70 underline">{{ t('legal.terms') }}</NuxtLink>
           <NuxtLink to="/privacy" class="hover:text-white/70 underline">{{ t('legal.privacy') }}</NuxtLink>
           <!-- Fase 8, ponto 9 — Livro de Reclamações Eletrónico, obrigatório

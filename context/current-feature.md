@@ -1,8 +1,18 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/09-feedback-e-suporte.md -->
+<!-- Ver especificação completa em context/features/upgrades/08-primeiros-passos-e-ajuda.md -->
 
 ## Estado
+
+**Upgrade 08 — primeiros passos e ajuda na app: Em progresso** (2026-10-11;
+`context/features/upgrades/08-primeiros-passos-e-ajuda.md`). Branch
+`feature/upgrade-08-primeiros-passos`. Implementado e testado:
+- unitários 136/136;
+- integração 62/62;
+- E2E 12/12;
+- type-check sem erros.
+
+Falta o merge e o deploy. Só web.
 
 **Upgrade 09 — feedback e suporte na app: Em produção** (deploy de 2026-10-11;
 `context/features/upgrades/09-feedback-e-suporte.md`). Branch

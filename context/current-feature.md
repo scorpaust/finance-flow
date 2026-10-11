@@ -4,9 +4,10 @@
 
 ## Estado
 
-**Upgrade 07 — ficha da loja (ASO) nas 6 línguas: Em progresso** (2026-10-10;
+**Upgrade 07 — ficha da loja (ASO) nas 6 línguas: Em produção** (deploy de 2026-10-11; definido a 2026-10-10;
 `context/features/upgrades/07-ficha-da-loja-aso.md`). Branch
-`feature/upgrade-07-ficha-loja`.
+`feature/upgrade-07-ficha-loja` (merge `c07dd69`). Falta o utilizador
+colar as fichas e as imagens na Play Console e carregar o `.aab` 1.2.4.
 
 **Upgrade 10 — funções da Netlify sem o limite de 4 KB: Em produção** (deploy de 2026-10-10)
 (2026-10-10; `context/features/upgrades/10-funcoes-netlify-sem-limite-4kb.md`).
@@ -125,7 +126,7 @@ Tarefas:
 - [x] Capturas de ecrã e gráfico de funcionalidades nas 6 línguas.
 - [x] Pedido de avaliação (In-App Review) com as regras da Google.
 - [x] Integração 56/56, E2E 9/9, capturas nas 6 línguas (16 cada), `.aab`
-      1.2.4 (versionCode 9, com o plugin). Merge e deploy a seguir.
+      1.2.4 (versionCode 9, com o plugin). Merge e deploy (2026-10-11).
 - [ ] Utilizador: colar as fichas e as imagens na Play Console (Gerir
       traduções) e carregar o `.aab`.
 
@@ -2587,4 +2588,10 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   (versionCode 9) com o `@capacitor-community/in-app-review`. Notado (fora
   deste upgrade): o formato compacto dos valores põe sempre o símbolo depois
   ("3.7k €"), mesmo em inglês.
+- 2026-10-11: **Upgrade 07 em produção** (merge `c07dd69`, preset `netlify`).
+  Verificado: páginas, login, `review-prompt` (401 sem sessão; `prompt:
+  false` para uma conta com menos de 30 dias, sem gastar o pedido), preços da
+  Google Play. Notas de lançamento da 1.2.4 nas 6 línguas dadas ao
+  utilizador. Falta: fichas e imagens na Play Console, `.aab` 1.2.4 nos
+  testes fechados.
 

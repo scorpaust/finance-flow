@@ -4,7 +4,7 @@
 
 ## Estado
 
-**Upgrade 09 — feedback e suporte na app: Em progresso** (2026-10-11;
+**Upgrade 09 — feedback e suporte na app: Em produção** (deploy de 2026-10-11;
 `context/features/upgrades/09-feedback-e-suporte.md`). Branch
 `feature/upgrade-09-feedback`.
 
@@ -134,12 +134,12 @@ Tarefas:
 - [x] Política de Privacidade nas 6 línguas.
 - [x] Unitários 130/130, type-check 0.
 - [x] Integração 60/60 (4 novos), E2E 10/10 (novo `feedback-flow`).
-- [ ] Deploy (só web).
+- [x] Deploy (só web).
 
 ## Critérios de aceitação
 
-- [ ] Qualquer utilizador contacta o suporte sem sair da app, na sua língua.
-- [ ] O operador recebe a mensagem com o contexto técnico e responde com um
+- [x] Qualquer utilizador contacta o suporte sem sair da app, na sua língua.
+- [x] O operador recebe a mensagem com o contexto técnico e responde com um
       clique.
 
 ## Histórico
@@ -2614,4 +2614,10 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   `onMounted` (como no login, Upgrade 03, e no seletor de língua, Upgrade
   06); o HTML do SSR já os traz `disabled`. Integração 60/60, E2E 10/10 e os
   dois testes em causa repetidos à parte com a correção.
+- 2026-10-11: **Upgrade 09 em produção** (merge `a5e8cff`, preset `netlify`).
+  Verificado: `/feedback` com sessão, `POST /api/feedback` 401 sem sessão e
+  400 com mensagem curta, `rating-prompt` não aparece a contas novas, botão
+  de `/reset-password` chega `disabled` do SSR, Política de Privacidade com
+  as mensagens de ajuda. Nenhuma mensagem real enviada (chegaria ao
+  operador): falta o utilizador testar uma mensagem de ponta a ponta.
 

@@ -150,6 +150,8 @@ export interface IUser extends Document {
   // Upgrade 07 — quando foi pedida a avaliação na Google Play (In-App Review).
   // Pedida no máximo uma vez por conta.
   reviewPromptedAt?: Date | null
+  // Upgrade 09 — quando foi mostrado o pedido de opinião (1 a 5) na web.
+  ratingPromptedAt?: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -173,6 +175,7 @@ const UserSchema = new Schema<IUser>(
     playAccountId:        { type: String },
     sessionVersion:       { type: Number, default: 0 },
     reviewPromptedAt:     { type: Date, default: null },
+    ratingPromptedAt:     { type: Date, default: null },
   },
   { timestamps: true }
 )
@@ -595,3 +598,33 @@ PasswordResetTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 3600 })
 export const PasswordResetToken: Model<IPasswordResetToken> =
   mongoose.models.PasswordResetToken ||
   mongoose.model<IPasswordResetToken>('PasswordResetToken', PasswordResetTokenSchema)
+
+// ─── FEEDBACK ────────────────────────────────────────────────────────────────
+// Upgrade 09 — mensagens de "Ajuda e opinião" e respostas ao pedido de opinião
+// (1 a 5). Guardadas para o operador responder e contar temas; apagadas com a
+// conta e incluídas na exportação de dados. O contexto técnico é só o
+// necessário (plataforma, versão da app, língua, plano, página) — nunca dados
+// financeiros.
+export interface IFeedback extends Document {
+  userId: mongoose.Types.ObjectId
+  type: 'idea' | 'problem' | 'question' | 'payment' | 'rating'
+  message: string
+  rating?: number | null
+  contactOk: boolean
+  context: { platform: string; appVersion?: string; page?: string; locale: string; plan: string }
+  createdAt: Date
+}
+
+const FeedbackSchema = new Schema<IFeedback>(
+  {
+    userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    type:      { type: String, enum: ['idea', 'problem', 'question', 'payment', 'rating'], required: true },
+    message:   { type: String, default: '', maxlength: 2000 },
+    rating:    { type: Number, min: 1, max: 5, default: null },
+    contactOk: { type: Boolean, default: false },
+    context:   { type: Schema.Types.Mixed, required: true },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
+)
+export const Feedback: Model<IFeedback> =
+  mongoose.models.Feedback || mongoose.model<IFeedback>('Feedback', FeedbackSchema)

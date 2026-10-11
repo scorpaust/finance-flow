@@ -1,8 +1,12 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/07-ficha-da-loja-aso.md -->
+<!-- Ver especificação completa em context/features/upgrades/09-feedback-e-suporte.md -->
 
 ## Estado
+
+**Upgrade 09 — feedback e suporte na app: Em progresso** (2026-10-11;
+`context/features/upgrades/09-feedback-e-suporte.md`). Branch
+`feature/upgrade-09-feedback`.
 
 **Upgrade 07 — ficha da loja (ASO) nas 6 línguas: Em produção** (deploy de 2026-10-11; definido a 2026-10-10;
 `context/features/upgrades/07-ficha-da-loja-aso.md`). Branch
@@ -117,25 +121,26 @@ completo abaixo.
 
 ## Objetivos
 
-UPGRADE 07 — a ficha da Play Store completa e com palavras-chave nas 6
-línguas, com imagens na língua de cada ficha, e avaliações reais pedidas
-dentro da app (sem testemunhos inventados).
+UPGRADE 09 — qualquer utilizador contacta o suporte sem sair da app, na sua
+língua; o operador recebe a mensagem com o contexto técnico e responde com um
+clique.
 
 Tarefas:
-- [x] Textos nas 6 línguas (`assets/store/listing/`), com o teste dos limites.
-- [x] Capturas de ecrã e gráfico de funcionalidades nas 6 línguas.
-- [x] Pedido de avaliação (In-App Review) com as regras da Google.
-- [x] Integração 56/56, E2E 9/9, capturas nas 6 línguas (16 cada), `.aab`
-      1.2.4 (versionCode 9, com o plugin). Merge e deploy (2026-10-11).
-- [ ] Utilizador: colar as fichas e as imagens na Play Console (Gerir
-      traduções) e carregar o `.aab`.
+- [x] Página "Ajuda e opinião" (menu lateral e Definições) e `POST
+      /api/feedback` (guarda, email ao operador com Reply-To, confirmação ao
+      utilizador, 5/dia).
+- [x] Pedido de opinião (1 a 5) na web, uma vez.
+- [x] Coleção `Feedback` apagada com a conta e incluída na exportação.
+- [x] Política de Privacidade nas 6 línguas.
+- [x] Unitários 130/130, type-check 0.
+- [x] Integração 60/60 (4 novos), E2E 10/10 (novo `feedback-flow`).
+- [ ] Deploy (só web).
 
 ## Critérios de aceitação
 
-- [ ] Ficha completa nas 6 línguas, com as funcionalidades atuais.
-- [x] Capturas de ecrã na língua de cada ficha.
-- [x] O pedido de avaliação aparece no máximo uma vez e nunca depois de um
-      erro.
+- [ ] Qualquer utilizador contacta o suporte sem sair da app, na sua língua.
+- [ ] O operador recebe a mensagem com o contexto técnico e responde com um
+      clique.
 
 ## Histórico
 
@@ -2594,4 +2599,19 @@ db:sync-indexes`, com `--dry`). O `--dry` no Atlas de desenvolvimento não
   Google Play. Notas de lançamento da 1.2.4 nas 6 línguas dadas ao
   utilizador. Falta: fichas e imagens na Play Console, `.aab` 1.2.4 nos
   testes fechados.
+- 2026-10-11: Definido como funcionalidade atual — UPGRADE 09. Branch
+  `feature/upgrade-09-feedback`. Implementado: página "Ajuda e opinião",
+  `POST /api/feedback` (email ao operador com Reply-To só com autorização,
+  confirmação ao utilizador na língua dele, 5/dia), pedido de opinião de 1 a
+  5 na web (uma vez, nunca a quem já teve o da loja), coleção `Feedback`
+  (apagada com a conta, incluída na exportação), Política de Privacidade nas
+  6 línguas (data 2026-10-11). Unitários 130/130, type-check 0.
+- 2026-10-11: **CI do GitHub falhou** no push do Upgrade 07: o teste
+  `password-reset-flow` carregava em "Guardar" antes da hidratação de
+  `/reset-password` (máquina rápida), o formulário fazia um envio normal e a
+  página recarregava. Também afetava pessoas com telemóveis lentos.
+  Correção: botões de `/forgot-password` e `/reset-password` desativados até
+  `onMounted` (como no login, Upgrade 03, e no seletor de língua, Upgrade
+  06); o HTML do SSR já os traz `disabled`. Integração 60/60, E2E 10/10 e os
+  dois testes em causa repetidos à parte com a correção.
 

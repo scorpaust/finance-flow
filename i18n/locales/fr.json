@@ -46,7 +46,8 @@
     "newTransaction": "Nouvelle transaction",
     "new": "Nouveau",
     "totalBalance": "Solde total",
-    "appTagline": "Finances personnelles"
+    "appTagline": "Finances personnelles",
+    "feedback": "Aide et avis"
   },
   "auth": {
     "loginTab": "Connexion",
@@ -267,6 +268,11 @@
       "deleteWarning": "Cela supprime définitivement ton compte, tes transactions, catégories, groupes et investissements. Irréversible. Un abonnement à renouvellement automatique est d'abord annulé.",
       "deleteConfirm": "Supprimer définitivement",
       "errorGeneric": "Une erreur est survenue — réessaie"
+    },
+    "help": {
+      "title": "Aide et avis",
+      "description": "Questions, problèmes ou idées : parle-nous sans quitter l'app.",
+      "button": "Nous écrire"
     }
   },
   "transactionModal": {
@@ -468,6 +474,35 @@
     "title": "Limites des catégories",
     "subtitle": "Ce que tu as déjà dépensé ce mois-ci dans chaque catégorie avec une limite",
     "spent": "{spent} sur {limit}"
+  },
+  "feedback": {
+    "title": "Aide et avis",
+    "subtitle": "Une question, un problème ou une idée ? Écris-nous — nous lisons tout.",
+    "typeLabel": "À quel sujet ?",
+    "types": {
+      "idea": "Idée",
+      "problem": "Problème",
+      "question": "Question",
+      "payment": "Paiement"
+    },
+    "messageLabel": "Message",
+    "messagePlaceholder": "Dis-nous ce qui se passe ou ce que tu aimerais voir dans l'app…",
+    "counter": "{count}/{max}",
+    "contactLabel": "Vous pouvez me contacter par e-mail pour répondre",
+    "submit": "Envoyer",
+    "successTitle": "Message envoyé",
+    "successBody": "Merci ! Nous répondons sous 2 jours ouvrés, par e-mail.",
+    "successBodyNoContact": "Merci ! Nous lisons tous les messages.",
+    "another": "Envoyer un autre",
+    "errorGeneric": "Impossible d'envoyer pour le moment. Réessaie dans un instant.",
+    "responseNote": "Nous répondons dans ta langue. Tu peux aussi écrire directement à {email}."
+  },
+  "rating": {
+    "title": "Comment ça se passe ?",
+    "question": "De 1 à 5, recommanderais-tu FinanceFlow ?",
+    "commentPlaceholder": "Tu veux nous dire pourquoi ? (facultatif)",
+    "submit": "Envoyer",
+    "thanks": "Merci pour ton avis !"
   },
   "investment": {
     "assetClass": {

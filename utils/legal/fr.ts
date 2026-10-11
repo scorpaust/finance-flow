@@ -21,6 +21,7 @@ export function legalFr(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "Abonnement : formule, statut et références de paiement. Les données de carte, d'IBAN ou de téléphone MB WAY sont collectées directement par EasyPay et ne passent jamais par nos serveurs. Pour les achats effectués dans l'app Android, le paiement a lieu sur Google Play : nous ne conservons que l'identifiant de l'achat, le produit et le statut de l'abonnement que Google nous communique.",
             "Préférences : langue de l'interface et, sur Android, si tu as activé le verrouillage biométrique (conservé uniquement sur ton téléphone ; l'app ne reçoit jamais ton empreinte digitale ni ton visage).",
             "Données techniques : ton adresse IP sert à déduire ton pays (au moyen d'une base de données locale, sans l'envoyer à des tiers) et à limiter les tentatives abusives ; nous conservons des journaux de sécurité (par exemple les tentatives de connexion échouées) sans mots de passe, codes ni contenu de tes données.",
+            "Messages d'aide et avis que tu envoies depuis l'app : le texte, le type, ta note de 1 à 5 (si tu en donnes une), si tu acceptes d'être contacté, et le contexte technique nécessaire pour t'aider (plateforme, version de l'app, langue, formule et page). Ils servent à te répondre et à améliorer l'app ; ils sont supprimés avec ton compte et inclus dans l'export de tes données.",
           ],
         },
         {
@@ -40,7 +41,7 @@ export function legalFr(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "EasyPay — traitement des paiements (carte, prélèvement, MB WAY, Multibanco).",
             "Google (Google Play) — distribution de l'app Android et paiement des abonnements achetés dans celle-ci. Google traite ces paiements en tant que vendeur, selon sa propre politique de confidentialité ; pour associer l'achat à ton compte, nous ne lui envoyons qu'un identifiant de compte chiffré (jamais ton nom, ton e-mail ni les données financières de l'app).",
             "Anthropic — fournisseur du modèle d'IA utilisé pour les fonctionnalités décrites au point 5.",
-            "Resend — envoi des e-mails liés au compte (par exemple, le lien pour définir un nouveau mot de passe). Ne reçoit que ton adresse e-mail et le contenu de ces messages.",
+            "Resend — envoi des e-mails liés au compte et au support (par exemple, le lien pour définir un nouveau mot de passe ou la confirmation d'un message d'aide). Ne reçoit que ton adresse e-mail et le contenu de ces messages.",
             "Twelve Data — données de marché et taux de change. Ne reçoit que des symboles de marché et des paires de devises, jamais de données personnelles ni tes montants.",
             "Sentry — surveillance des erreurs techniques, configurée pour ne pas envoyer le contenu des requêtes, les cookies ni les en-têtes.",
             "Certains de ces fournisseurs peuvent avoir des sous-traitants ou une infrastructure en dehors de l'Espace économique européen ; dans ce cas, les garanties prévues par le RGPD s'appliquent, notamment les clauses contractuelles types de la Commission européenne.",

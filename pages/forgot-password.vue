@@ -37,7 +37,7 @@
           <AlertCircle class="w-4 h-4 shrink-0" />
           {{ errorMessage }}
         </div>
-        <button :disabled="loading" data-testid="forgot-submit" class="btn-primary w-full flex items-center justify-center gap-2" type="submit">
+        <button :disabled="loading || !mounted" data-testid="forgot-submit" class="btn-primary w-full flex items-center justify-center gap-2" type="submit">
           <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
           {{ t('passwordReset.forgotSubmit') }}
         </button>
@@ -63,6 +63,11 @@ const email = ref('')
 const loading = ref(false)
 const sent = ref(false)
 const errorMessage = ref('')
+// A página aparece antes da hidratação (SSR): um envio feito nesse intervalo
+// era um envio normal do browser (recarregava a página e perdia-se — o E2E no
+// CI apanhou-o). O botão fica desativado até o Vue assumir, como no login.
+const mounted = ref(false)
+onMounted(() => { mounted.value = true })
 
 useHead({ title: computed(() => t('passwordReset.forgotTitle')) })
 

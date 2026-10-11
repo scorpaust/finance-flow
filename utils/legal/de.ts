@@ -21,6 +21,7 @@ export function legalDe(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "Abonnement: Plan, Status und Zahlungsreferenzen. Karten-, IBAN- oder MB-WAY-Telefondaten werden direkt von EasyPay erhoben und laufen nie über unsere Server. Bei Käufen in der Android-App erfolgt die Zahlung über Google Play: Wir speichern nur die Kaufkennung, das Produkt und den Abostatus, den Google uns mitteilt.",
             "Einstellungen: Sprache der Oberfläche und unter Android, ob du die biometrische Sperre aktiviert hast (nur auf deinem Telefon gespeichert; die App erhält nie deinen Fingerabdruck oder dein Gesicht).",
             "Technische Daten: Deine IP-Adresse wird verwendet, um dein Land zu ermitteln (über eine lokale Datenbank, ohne sie an Dritte zu senden) und um missbräuchliche Versuche zu begrenzen; wir führen Sicherheitsprotokolle (zum Beispiel fehlgeschlagene Anmeldeversuche) ohne Passwörter, Codes oder den Inhalt deiner Daten.",
+            "Hilfe- und Feedback-Nachrichten, die du aus der App sendest: der Text, die Art, deine Bewertung von 1 bis 5 (falls du eine abgibst), ob du kontaktiert werden möchtest, und der technische Kontext, der zur Hilfe nötig ist (Plattform, App-Version, Sprache, Plan und Seite). Sie dienen dazu, dir zu antworten und die App zu verbessern; sie werden mit deinem Konto gelöscht und sind im Export deiner Daten enthalten.",
           ],
         },
         {
@@ -40,7 +41,7 @@ export function legalDe(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "EasyPay — Zahlungsabwicklung (Karte, Lastschrift, MB WAY, Multibanco).",
             "Google (Google Play) — Vertrieb der Android-App und Bezahlung der darin gekauften Abonnements. Google wickelt diese Zahlungen als Verkäufer nach seiner eigenen Datenschutzerklärung ab; um den Kauf mit deinem Konto zu verknüpfen, senden wir Google nur eine verschlüsselte Kontokennung (nie deinen Namen, deine E-Mail oder Finanzdaten aus der App).",
             "Anthropic — Anbieter des KI-Modells, das für die in Abschnitt 5 beschriebenen Funktionen verwendet wird.",
-            "Resend — Versand der Konto-E-Mails (zum Beispiel des Links zum Festlegen eines neuen Passworts). Erhält nur deine E-Mail-Adresse und den Inhalt dieser Nachrichten.",
+            "Resend — Versand der Konto- und Support-E-Mails (zum Beispiel des Links zum Festlegen eines neuen Passworts oder der Bestätigung einer Hilfenachricht). Erhält nur deine E-Mail-Adresse und den Inhalt dieser Nachrichten.",
             "Twelve Data — Marktdaten und Wechselkurse. Erhält nur Marktsymbole und Währungspaare, nie personenbezogene Daten oder deine Beträge.",
             "Sentry — Überwachung technischer Fehler, so konfiguriert, dass weder Anfrageinhalte noch Cookies oder Header gesendet werden.",
             "Einige dieser Anbieter können Unterauftragsverarbeiter oder Infrastruktur außerhalb des Europäischen Wirtschaftsraums haben; in diesem Fall gelten die von der DSGVO vorgesehenen Garantien, insbesondere die Standardvertragsklauseln der Europäischen Kommission.",

@@ -46,7 +46,8 @@
     "newTransaction": "Neue Transaktion",
     "new": "Neu",
     "totalBalance": "Gesamtsaldo",
-    "appTagline": "Privatfinanzen"
+    "appTagline": "Privatfinanzen",
+    "feedback": "Hilfe & Feedback"
   },
   "auth": {
     "loginTab": "Anmelden",
@@ -267,6 +268,11 @@
       "deleteWarning": "Dadurch werden dein Konto, deine Transaktionen, Kategorien, Gruppen und Investitionen dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden. Ein Abonnement mit automatischer Verlängerung wird zuvor gekündigt.",
       "deleteConfirm": "Endgültig löschen",
       "errorGeneric": "Etwas ist schiefgelaufen — versuche es erneut"
+    },
+    "help": {
+      "title": "Hilfe & Feedback",
+      "description": "Fragen, Probleme oder Ideen: Sprich mit uns, ohne die App zu verlassen.",
+      "button": "Schreib uns"
     }
   },
   "transactionModal": {
@@ -468,6 +474,35 @@
     "title": "Kategorie-Limits",
     "subtitle": "Wie viel du diesen Monat in jeder Kategorie mit Limit schon ausgegeben hast",
     "spent": "{spent} von {limit}"
+  },
+  "feedback": {
+    "title": "Hilfe & Feedback",
+    "subtitle": "Eine Frage, ein Problem oder eine Idee? Schreib uns — wir lesen alles.",
+    "typeLabel": "Worum geht es?",
+    "types": {
+      "idea": "Idee",
+      "problem": "Problem",
+      "question": "Frage",
+      "payment": "Zahlung"
+    },
+    "messageLabel": "Nachricht",
+    "messagePlaceholder": "Erzähl uns, was passiert oder was du dir in der App wünschst…",
+    "counter": "{count}/{max}",
+    "contactLabel": "Ihr dürft mich für eine Antwort per E-Mail kontaktieren",
+    "submit": "Senden",
+    "successTitle": "Nachricht gesendet",
+    "successBody": "Danke! Wir antworten innerhalb von 2 Werktagen per E-Mail.",
+    "successBodyNoContact": "Danke! Wir lesen jede Nachricht.",
+    "another": "Weitere senden",
+    "errorGeneric": "Senden ist gerade nicht möglich. Versuch es gleich noch einmal.",
+    "responseNote": "Wir antworten in deiner Sprache. Du kannst auch direkt an {email} schreiben."
+  },
+  "rating": {
+    "title": "Wie läuft es?",
+    "question": "Wie wahrscheinlich ist es auf einer Skala von 1 bis 5, dass du FinanceFlow empfiehlst?",
+    "commentPlaceholder": "Magst du uns sagen, warum? (optional)",
+    "submit": "Senden",
+    "thanks": "Danke für dein Feedback!"
   },
   "investment": {
     "assetClass": {

@@ -50,7 +50,7 @@
               <NuxtLink v-if="linkExpired" to="/forgot-password" class="underline ml-1">{{ t('passwordReset.askNewLink') }}</NuxtLink>
             </span>
           </div>
-          <button :disabled="loading" data-testid="reset-submit" class="btn-primary w-full flex items-center justify-center gap-2" type="submit">
+          <button :disabled="loading || !mounted" data-testid="reset-submit" class="btn-primary w-full flex items-center justify-center gap-2" type="submit">
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
             {{ t('passwordReset.resetSubmit') }}
           </button>
@@ -79,6 +79,11 @@ const confirm = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 const linkExpired = ref(false)
+// A página aparece antes da hidratação (SSR): um envio feito nesse intervalo
+// era um envio normal do browser (recarregava a página e perdia-se — o E2E no
+// CI apanhou-o). O botão fica desativado até o Vue assumir, como no login.
+const mounted = ref(false)
+onMounted(() => { mounted.value = true })
 
 useHead({ title: computed(() => t('passwordReset.resetTitle')) })
 

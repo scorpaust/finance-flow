@@ -74,6 +74,7 @@ projeto (ver `pages/subscription/index.vue`).
 |---|---|
 | `RESEND_API_KEY` | Upgrade 05 — chave da Resend (permissão "Sending access", domínio `mail.financeflow-webapp.pt`) para os emails da conta: recuperação de password e aviso de password alterada (`server/utils/email.ts`). Lida em runtime (não no `runtimeConfig`). Sem ela os emails não são enviados (só ficam no log) |
 | `EMAIL_FROM` | Upgrade 05 — remetente dos emails: `FinanceFlow <noreply@mail.financeflow-webapp.pt>` |
+| `SUPPORT_INBOX` | Upgrade 09 — opcional, para onde vão as mensagens de "Ajuda e opinião". Sem ela: o contacto dos Termos (`dinismiguelcosta@gmail.com`) |
 | `EMAIL_REPLY_TO` | Upgrade 05 — opcional, endereço para onde vão as respostas aos emails |
 | `RESEND_API_BASE_URL` | Só nos testes (integração e E2E apontam para o servidor simulado). Nunca definir em produção |
 | `ANTHROPIC_API_KEY` | Chave da API Anthropic (`claude-haiku-4-5`) — interpretação de estatísticas e dicas de investimento (Fase 3), digitalização de documentos (Fase 5). Só no servidor, nunca em `public` |

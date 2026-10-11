@@ -21,6 +21,7 @@ export function legalEs(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "Suscripción: plan, estado y referencias de pago. Los datos de tarjeta, IBAN o teléfono MB WAY los recoge directamente EasyPay y nunca pasan por nuestros servidores. En las compras hechas en la app Android, el pago se hace en Google Play: solo guardamos el identificador de la compra, el producto y el estado de la suscripción que Google nos comunica.",
             "Preferencias: idioma de la interfaz y, en Android, si has activado el bloqueo biométrico (guardado solo en tu teléfono; la app nunca recibe tu huella dactilar ni tu cara).",
             "Datos técnicos: tu dirección IP se usa para deducir tu país (con una base de datos local, sin enviarla a terceros) y para limitar intentos abusivos; guardamos registros de seguridad (por ejemplo, intentos de inicio de sesión fallidos) sin contraseñas, códigos ni el contenido de tus datos.",
+            "Mensajes de ayuda y opinión que envías desde la app: el texto, el tipo, tu valoración del 1 al 5 (si la das), si aceptas que te contactemos, y el contexto técnico necesario para ayudarte (plataforma, versión de la app, idioma, plan y página). Sirven para responderte y mejorar la app; se eliminan con tu cuenta y se incluyen en la exportación de tus datos.",
           ],
         },
         {
@@ -40,7 +41,7 @@ export function legalEs(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "EasyPay — procesamiento de pagos (tarjeta, domiciliación, MB WAY, Multibanco).",
             "Google (Google Play) — distribución de la app Android y pago de las suscripciones compradas dentro de ella. Google gestiona esos pagos como vendedor, según su propia política de privacidad; para asociar la compra a tu cuenta solo le enviamos un identificador de cuenta cifrado (nunca tu nombre, tu email ni datos financieros de la app).",
             "Anthropic — proveedor del modelo de IA usado en las funciones descritas en el punto 5.",
-            "Resend — envío de los emails de la cuenta (por ejemplo, el enlace para establecer una nueva contraseña). Solo recibe tu dirección de email y el contenido de esos mensajes.",
+            "Resend — envío de los emails de la cuenta y del soporte (por ejemplo, el enlace para establecer una nueva contraseña o la confirmación de un mensaje de ayuda). Solo recibe tu dirección de email y el contenido de esos mensajes.",
             "Twelve Data — datos de mercado y tipos de cambio. Solo recibe símbolos de mercado y pares de divisas, nunca datos personales ni tus importes.",
             "Sentry — monitorización de errores técnicos, configurada para no enviar el contenido de las peticiones, cookies ni cabeceras.",
             "Algunos de estos proveedores pueden tener subencargados o infraestructura fuera del Espacio Económico Europeo; en ese caso se aplican las garantías previstas en el RGPD, en particular las cláusulas contractuales tipo aprobadas por la Comisión Europea.",

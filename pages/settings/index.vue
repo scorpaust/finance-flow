@@ -63,6 +63,12 @@
     <TwoFactorCard />
     <BiometricLockCard />
     <AccountDataCard />
+    <!-- Upgrade 09 — ajuda e opinião -->
+    <div class="glass-card rounded-3xl p-6">
+      <h3 class="font-semibold text-white mb-2 flex items-center gap-2"><LifeBuoy class="w-4 h-4 text-brand-400" /> {{ t('settings.help.title') }}</h3>
+      <p class="text-white/40 text-xs mb-4">{{ t('settings.help.description') }}</p>
+      <NuxtLink to="/feedback?from=/settings" class="btn-secondary text-sm py-2 inline-flex" data-testid="settings-feedback-link">{{ t('settings.help.button') }}</NuxtLink>
+    </div>
 
     <!-- Subscription -->
     <div class="glass-card rounded-3xl p-6">
@@ -187,7 +193,7 @@
 <script setup lang="ts">
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
-import { User, Tag, Plus, Trash2, X, ArrowLeft, Crown, Languages } from 'lucide-vue-next'
+import { User, Tag, Plus, Trash2, X, ArrowLeft, Crown, Languages, LifeBuoy } from 'lucide-vue-next'
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '~/types'
 
 definePageMeta({ layout: 'default' })

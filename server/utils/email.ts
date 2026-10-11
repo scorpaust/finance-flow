@@ -19,6 +19,9 @@ export interface EmailMessage {
   subject: string
   text: string
   html: string
+  // Upgrade 09 — para onde vão as respostas (ex. o email do utilizador numa
+  // mensagem de suporte); senão, EMAIL_REPLY_TO.
+  replyTo?: string
 }
 
 export async function sendEmail(message: EmailMessage): Promise<boolean> {
@@ -40,7 +43,7 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
         subject: message.subject,
         html: message.html,
         text: message.text,
-        ...(process.env.EMAIL_REPLY_TO ? { reply_to: process.env.EMAIL_REPLY_TO } : {}),
+        ...(message.replyTo || process.env.EMAIL_REPLY_TO ? { reply_to: message.replyTo || process.env.EMAIL_REPLY_TO } : {}),
       }),
     })
     if (!res.ok) {

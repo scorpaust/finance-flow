@@ -21,6 +21,7 @@ export function legalIt(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "Abbonamento: piano, stato e riferimenti di pagamento. I dati di carta, IBAN o telefono MB WAY sono raccolti direttamente da EasyPay e non passano mai dai nostri server. Per gli acquisti fatti nell'app Android, il pagamento avviene su Google Play: conserviamo solo l'identificativo dell'acquisto, il prodotto e lo stato dell'abbonamento che Google ci comunica.",
             "Preferenze: lingua dell'interfaccia e, su Android, se hai attivato il blocco biometrico (salvato solo sul tuo telefono; l'app non riceve mai la tua impronta digitale o il tuo volto).",
             "Dati tecnici: il tuo indirizzo IP serve a dedurre il tuo paese (con un database locale, senza inviarlo a terzi) e a limitare i tentativi abusivi; conserviamo registri di sicurezza (ad esempio tentativi di accesso falliti) senza password, codici né il contenuto dei tuoi dati.",
+            "Messaggi di aiuto e opinioni che invii dall'app: il testo, il tipo, la tua valutazione da 1 a 5 (se la dai), se accetti di essere contattato, e il contesto tecnico necessario per aiutarti (piattaforma, versione dell'app, lingua, piano e pagina). Servono per risponderti e migliorare l'app; vengono eliminati con l'account e inclusi nell'esportazione dei tuoi dati.",
           ],
         },
         {
@@ -40,7 +41,7 @@ export function legalIt(updated: string): { privacy: LegalDoc; terms: LegalDoc }
             "EasyPay — elaborazione dei pagamenti (carta, addebito diretto, MB WAY, Multibanco).",
             "Google (Google Play) — distribuzione dell'app Android e pagamento degli abbonamenti acquistati al suo interno. Google gestisce questi pagamenti come venditore, secondo la propria informativa sulla privacy; per collegare l'acquisto al tuo account le inviamo solo un identificativo dell'account cifrato (mai il tuo nome, la tua e-mail o i dati finanziari dell'app).",
             "Anthropic — fornitore del modello di IA usato per le funzionalità descritte al punto 5.",
-            "Resend — invio delle email dell'account (ad esempio, il link per impostare una nuova password). Riceve solo il tuo indirizzo email e il contenuto di questi messaggi.",
+            "Resend — invio delle email dell'account e del supporto (ad esempio, il link per impostare una nuova password o la conferma di un messaggio di aiuto). Riceve solo il tuo indirizzo email e il contenuto di questi messaggi.",
             "Twelve Data — dati di mercato e tassi di cambio. Riceve solo simboli di mercato e coppie di valute, mai dati personali né i tuoi importi.",
             "Sentry — monitoraggio degli errori tecnici, configurato per non inviare il contenuto delle richieste, i cookie né le intestazioni.",
             "Alcuni di questi fornitori possono avere sub-responsabili o infrastrutture al di fuori dello Spazio economico europeo; in tal caso si applicano le garanzie previste dal GDPR, in particolare le clausole contrattuali tipo approvate dalla Commissione europea.",

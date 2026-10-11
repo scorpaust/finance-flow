@@ -46,7 +46,8 @@
     "newTransaction": "New Transaction",
     "new": "New",
     "totalBalance": "Total balance",
-    "appTagline": "Personal Finance"
+    "appTagline": "Personal Finance",
+    "feedback": "Help & feedback"
   },
   "auth": {
     "loginTab": "Sign in",
@@ -267,6 +268,11 @@
       "deleteWarning": "This permanently deletes your account, transactions, categories, groups and investments. It cannot be undone. A subscription with automatic renewal is cancelled first.",
       "deleteConfirm": "Delete forever",
       "errorGeneric": "Something went wrong — try again"
+    },
+    "help": {
+      "title": "Help & feedback",
+      "description": "Questions, problems or ideas: talk to us without leaving the app.",
+      "button": "Write to us"
     }
   },
   "transactionModal": {
@@ -468,6 +474,35 @@
     "title": "Category limits",
     "subtitle": "How much you've spent this month in each category with a limit",
     "spent": "{spent} of {limit}"
+  },
+  "feedback": {
+    "title": "Help & feedback",
+    "subtitle": "A question, a problem or an idea? Write to us — we read everything.",
+    "typeLabel": "What's it about?",
+    "types": {
+      "idea": "Idea",
+      "problem": "Problem",
+      "question": "Question",
+      "payment": "Payment"
+    },
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us what's happening or what you'd like to see in the app…",
+    "counter": "{count}/{max}",
+    "contactLabel": "You can contact me by email to reply",
+    "submit": "Send",
+    "successTitle": "Message sent",
+    "successBody": "Thank you! We reply within 2 business days, by email.",
+    "successBodyNoContact": "Thank you! We read every message.",
+    "another": "Send another",
+    "errorGeneric": "Couldn't send right now. Please try again shortly.",
+    "responseNote": "We reply in your language. You can also write directly to {email}."
+  },
+  "rating": {
+    "title": "How is it going?",
+    "question": "From 1 to 5, how likely are you to recommend FinanceFlow?",
+    "commentPlaceholder": "Want to tell us why? (optional)",
+    "submit": "Send",
+    "thanks": "Thanks for your feedback!"
   },
   "investment": {
     "assetClass": {

@@ -168,7 +168,7 @@
 <script setup lang="ts">
 import {
   Home, ArrowLeftRight, BarChart3, Settings,
-  LogOut, Menu, Plus, Brain, Layers, ChevronLeft, TrendingUp,
+  LogOut, Menu, Plus, Brain, Layers, ChevronLeft, TrendingUp, LifeBuoy,
 } from 'lucide-vue-next'
 import { format } from 'date-fns'
 
@@ -199,6 +199,8 @@ const navItems = computed(() => [
   { path: '/predictions',  label: t('nav.predictions'),  icon: Brain },
   { path: '/investimento', label: t('nav.investments'),  icon: TrendingUp },
   { path: '/settings',     label: t('nav.settings'),     icon: Settings },
+  // Upgrade 09 — ajuda e opinião
+  { path: '/feedback',     label: t('nav.feedback'),     icon: LifeBuoy },
 ])
 
 function isActive(path: string) {

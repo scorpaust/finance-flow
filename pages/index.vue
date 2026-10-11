@@ -96,6 +96,9 @@
       />
     </div>
 
+    <!-- Upgrade 09 — pedido de opinião (1 a 5), só na web e uma vez -->
+    <RatingPrompt />
+
     <!-- AI forecast entry point -->
     <div class="glass-card rounded-3xl p-5 border border-brand-500/20">
       <div class="flex flex-col lg:flex-row lg:items-center gap-4">

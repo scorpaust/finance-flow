@@ -46,7 +46,8 @@
     "newTransaction": "Nueva transacción",
     "new": "Nuevo",
     "totalBalance": "Saldo total",
-    "appTagline": "Finanzas personales"
+    "appTagline": "Finanzas personales",
+    "feedback": "Ayuda y opinión"
   },
   "auth": {
     "loginTab": "Entrar",
@@ -267,6 +268,11 @@
       "deleteWarning": "Esto elimina de forma permanente tu cuenta, transacciones, categorías, grupos e inversiones. No se puede deshacer. Una suscripción con renovación automática se cancela antes.",
       "deleteConfirm": "Eliminar para siempre",
       "errorGeneric": "Algo salió mal — inténtalo de nuevo"
+    },
+    "help": {
+      "title": "Ayuda y opinión",
+      "description": "Dudas, problemas o ideas: habla con nosotros sin salir de la app.",
+      "button": "Escríbenos"
     }
   },
   "transactionModal": {
@@ -468,6 +474,35 @@
     "title": "Límites de las categorías",
     "subtitle": "Cuánto has gastado este mes en cada categoría con límite",
     "spent": "{spent} de {limit}"
+  },
+  "feedback": {
+    "title": "Ayuda y opinión",
+    "subtitle": "¿Una duda, un problema o una idea? Escríbenos — lo leemos todo.",
+    "typeLabel": "¿Sobre qué?",
+    "types": {
+      "idea": "Idea",
+      "problem": "Problema",
+      "question": "Pregunta",
+      "payment": "Pago"
+    },
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Cuéntanos qué pasa o qué te gustaría ver en la app…",
+    "counter": "{count}/{max}",
+    "contactLabel": "Podéis contactarme por email para responder",
+    "submit": "Enviar",
+    "successTitle": "Mensaje enviado",
+    "successBody": "¡Gracias! Respondemos en un máximo de 2 días laborables, por email.",
+    "successBodyNoContact": "¡Gracias! Leemos todos los mensajes.",
+    "another": "Enviar otro",
+    "errorGeneric": "No se pudo enviar ahora. Inténtalo de nuevo en un momento.",
+    "responseNote": "Respondemos en tu idioma. También puedes escribir directamente a {email}."
+  },
+  "rating": {
+    "title": "¿Qué tal va?",
+    "question": "Del 1 al 5, ¿cuánto recomendarías FinanceFlow?",
+    "commentPlaceholder": "¿Quieres contarnos por qué? (opcional)",
+    "submit": "Enviar",
+    "thanks": "¡Gracias por tu opinión!"
   },
   "investment": {
     "assetClass": {

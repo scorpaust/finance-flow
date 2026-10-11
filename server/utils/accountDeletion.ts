@@ -9,6 +9,7 @@ import {
   DocumentScanUsage,
   AiBudgetProposal,
   PasswordResetToken,
+  Feedback,
 } from '../models'
 import { cancelSubscription } from './easypay'
 import { cancelPlaySubscription } from './googlePlay'
@@ -43,6 +44,7 @@ export async function deleteUserAccount(userId: string): Promise<void> {
     InvestmentTipsCache.deleteOne({ _id: String(userId) }),
     AiBudgetProposal.deleteMany({ userId }),
     PasswordResetToken.deleteMany({ userId }),
+    Feedback.deleteMany({ userId }),
   ])
   await User.deleteOne({ _id: userId })
 }

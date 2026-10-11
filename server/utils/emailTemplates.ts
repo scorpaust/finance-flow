@@ -152,3 +152,66 @@ export function passwordChangedEmail(opts: { to: string; name: string; locale: S
     html: layout(paragraphs),
   }
 }
+
+// ─── Upgrade 09 — ajuda e opinião ───────────────────────────────────────────
+
+const FEEDBACK_TYPE_PT: Record<string, string> = {
+  idea: 'Ideia',
+  problem: 'Problema',
+  question: 'Pergunta',
+  payment: 'Pagamento',
+  rating: 'Opinião (1 a 5)',
+}
+
+// Para o operador (em português). Responder ao email responde ao utilizador
+// (Reply-To), só se ele aceitou ser contactado.
+export function feedbackToOperatorEmail(opts: {
+  to: string
+  userEmail: string
+  userName: string
+  userId: string
+  type: string
+  message: string
+  rating?: number | null
+  contactOk: boolean
+  context: { platform: string; appVersion?: string; page?: string; locale: string; plan: string }
+}): EmailMessage {
+  const c = opts.context
+  const lines = [
+    `Tipo: ${FEEDBACK_TYPE_PT[opts.type] || opts.type}`,
+    ...(opts.rating ? [`Avaliação: ${opts.rating}/5`] : []),
+    `De: ${opts.userName} <${opts.userEmail}> (id ${opts.userId})`,
+    `Pode ser contactado: ${opts.contactOk ? 'sim (responder a este email responde-lhe)' : 'NÃO'}`,
+    `Plano: ${c.plan} · Língua: ${c.locale} · Plataforma: ${c.platform}${c.appVersion ? ` ${c.appVersion}` : ''}${c.page ? ` · Página: ${c.page}` : ''}`,
+  ]
+  const body = opts.message || '(sem texto)'
+  return {
+    to: opts.to,
+    subject: `[FinanceFlow] ${FEEDBACK_TYPE_PT[opts.type] || opts.type}${opts.rating ? ` ${opts.rating}/5` : ''} — ${opts.userEmail}`,
+    text: [...lines, '', body].join('\n'),
+    html: `<!doctype html><html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111827">` +
+      lines.map((l) => `<p style="margin:0 0 4px">${escapeHtml(l)}</p>`).join('') +
+      `<hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"><p style="white-space:pre-wrap;line-height:1.5">${escapeHtml(body)}</p></body></html>`,
+    ...(opts.contactOk ? { replyTo: opts.userEmail } : {}),
+  }
+}
+
+const RECEIVED: Record<ServerLocale, { subject: string; greeting: (n: string) => string; body: string; quote: string }> = {
+  'pt-PT': { subject: 'Recebemos a tua mensagem — FinanceFlow', greeting: (n) => `Olá${n ? ` ${n}` : ''},`, body: 'Obrigado por nos escreveres. Respondemos em até 2 dias úteis, para este endereço.', quote: 'A tua mensagem:' },
+  en: { subject: 'We received your message — FinanceFlow', greeting: (n) => `Hi${n ? ` ${n}` : ''},`, body: 'Thanks for writing to us. We reply within 2 business days, to this address.', quote: 'Your message:' },
+  fr: { subject: 'Nous avons reçu ton message — FinanceFlow', greeting: (n) => `Bonjour${n ? ` ${n}` : ''},`, body: "Merci de nous avoir écrit. Nous répondons sous 2 jours ouvrés, à cette adresse.", quote: 'Ton message :' },
+  de: { subject: 'Wir haben deine Nachricht erhalten — FinanceFlow', greeting: (n) => `Hallo${n ? ` ${n}` : ''},`, body: 'Danke für deine Nachricht. Wir antworten innerhalb von 2 Werktagen an diese Adresse.', quote: 'Deine Nachricht:' },
+  it: { subject: 'Abbiamo ricevuto il tuo messaggio — FinanceFlow', greeting: (n) => `Ciao${n ? ` ${n}` : ''},`, body: 'Grazie per averci scritto. Rispondiamo entro 2 giorni lavorativi, a questo indirizzo.', quote: 'Il tuo messaggio:' },
+  es: { subject: 'Hemos recibido tu mensaje — FinanceFlow', greeting: (n) => `Hola${n ? ` ${n}` : ''},`, body: 'Gracias por escribirnos. Respondemos en un máximo de 2 días laborables, a esta dirección.', quote: 'Tu mensaje:' },
+}
+
+// Confirmação para o utilizador (na língua dele), só se aceitou ser contactado.
+export function feedbackReceivedEmail(opts: { to: string; name: string; message: string; locale: ServerLocale }): EmailMessage {
+  const t = RECEIVED[opts.locale] || RECEIVED.en
+  return {
+    to: opts.to,
+    subject: t.subject,
+    text: [t.greeting(opts.name), '', t.body, '', t.quote, opts.message, '', 'FinanceFlow'].join('\n'),
+    html: layout([t.greeting(opts.name), t.body, t.quote, opts.message]),
+  }
+}

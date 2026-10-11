@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createSign } from 'node:crypto'
-import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -1566,5 +1566,87 @@ describe('pedido de avaliação na Google Play (Upgrade 07)', () => {
     expect((await User.findById(user!._id).lean())!.reviewPromptedAt).toBeTruthy()
 
     expect((await fetch('/api/account/review-prompt', { method: 'POST' })).status).toBe(401)
+  })
+})
+
+describe('ajuda e opinião (Upgrade 09)', () => {
+  const send = (cookie: string, body: unknown) =>
+    fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: JSON.stringify(body) })
+  const emailsTo = async (address: string) =>
+    (await stub.requests()).filter((r) => r.path === '/emails' && r.body?.to?.[0] === address)
+
+  it('guarda, envia ao operador com Reply-To e confirma ao utilizador (se aceitou ser contactado)', async () => {
+    const email = uniqueEmail('feedback')
+    const { cookie } = await register(email)
+    const res = await send(cookie, {
+      type: 'problem',
+      message: 'O gráfico de estatísticas não abre no telemóvel.',
+      contactOk: true,
+      context: { platform: 'android', appVersion: '1.2.4', page: '/stats' },
+    })
+    expect(res.status).toBe(200)
+
+    const operator = (await stub.requests()).filter((r) => r.path === '/emails' && r.body?.subject?.includes(email))
+    expect(operator).toHaveLength(1)
+    expect(operator[0].body.reply_to).toBe(email)
+    expect(operator[0].body.text).toContain('O gráfico de estatísticas não abre')
+    expect(operator[0].body.text).toContain('android 1.2.4')
+    expect(operator[0].body.text).toContain('/stats')
+    expect(await emailsTo(email)).toHaveLength(1)
+
+    const user = await User.findOne({ email })
+    const stored = await Feedback.findOne({ userId: user!._id }).lean()
+    expect(stored).toMatchObject({ type: 'problem', contactOk: true })
+    expect(stored!.context).toMatchObject({ platform: 'android', appVersion: '1.2.4', page: '/stats', plan: 'free' })
+
+    // Exportação de dados inclui as mensagens.
+    const exported = await (await fetch('/api/account/export', { headers: { cookie } })).json()
+    expect(exported.feedback).toHaveLength(1)
+  })
+
+  it('sem autorização de contacto: só o email ao operador, sem Reply-To', async () => {
+    const email = uniqueEmail('feedback-nocontact')
+    const { cookie } = await register(email)
+    expect((await send(cookie, { type: 'idea', message: 'Modo escuro automático.', contactOk: false })).status).toBe(200)
+    const operator = (await stub.requests()).filter((r) => r.path === '/emails' && r.body?.subject?.includes(email))
+    expect(operator).toHaveLength(1)
+    expect(operator[0].body.reply_to).toBeUndefined()
+    expect(await emailsTo(email)).toHaveLength(0)
+  })
+
+  it('valida, exige sessão e limita a 5 mensagens por dia', async () => {
+    expect((await fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'idea', message: 'olá mundo' }) })).status).toBe(401)
+    const { cookie } = await register(uniqueEmail('feedback-limit'))
+    expect((await send(cookie, { type: 'idea', message: 'x' })).status).toBe(400)
+    expect((await send(cookie, { type: 'idea', message: 'a'.repeat(2001) })).status).toBe(400)
+    expect((await send(cookie, { type: 'rating' })).status).toBe(400)
+    expect((await send(cookie, { type: 'outra', message: 'mensagem válida' })).status).toBe(400)
+    for (let i = 0; i < 5; i++) expect((await send(cookie, { type: 'question', message: `Pergunta ${i}` })).status).toBe(200)
+    const sixth = await send(cookie, { type: 'question', message: 'Mais uma' })
+    expect(sixth.status).toBe(429)
+    expect((await sixth.json()).data?.error).toBe('feedback_daily_limit')
+  })
+
+  it('pedido de opinião (1 a 5): só com 30+ dias e 10+ transações, uma vez, e nunca a quem já teve o da loja', async () => {
+    const ask = (cookie: string) => fetch('/api/feedback/rating-prompt', { method: 'POST', headers: { cookie } })
+    const email = uniqueEmail('rating')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    expect(await (await ask(cookie)).json()).toEqual({ show: false })
+
+    const category = await Category.findOne({ userId: user!._id, type: 'expense' })
+    await Transaction.insertMany(Array.from({ length: 10 }, (_, i) => ({ userId: user!._id, type: 'expense', amount: 3 + i, description: 'x', categoryId: category!._id, date: new Date() })))
+    await User.collection.updateOne({ _id: user!._id }, { $set: { createdAt: new Date(Date.now() - 31 * 86_400_000) } })
+    expect(await (await ask(cookie)).json()).toEqual({ show: true })
+    expect(await (await ask(cookie)).json()).toEqual({ show: false })
+    expect((await send(cookie, { type: 'rating', rating: 4, message: '' })).status).toBe(200)
+
+    // Quem já recebeu o pedido de avaliação da loja (Android) não recebe este.
+    const email2 = uniqueEmail('rating-store')
+    const r2 = await register(email2)
+    const u2 = await User.findOne({ email: email2 })
+    await Transaction.insertMany(Array.from({ length: 10 }, (_, i) => ({ userId: u2!._id, type: 'expense', amount: 3 + i, description: 'x', categoryId: category!._id, date: new Date() })))
+    await User.collection.updateOne({ _id: u2!._id }, { $set: { createdAt: new Date(Date.now() - 31 * 86_400_000), reviewPromptedAt: new Date() } })
+    expect(await (await ask(r2.cookie)).json()).toEqual({ show: false })
   })
 })

@@ -32,22 +32,47 @@
 4. **Limites contra abuso:** 5 mensagens/dia por conta; texto até 2000
    caracteres.
 
+## Implementação (2026-10-11)
+
+- **Página `/feedback` "Ajuda e opinião"** (`components/feedback/FeedbackForm.vue`):
+  - ligação no menu lateral e nas Definições (com `?from=` para saber de
+    onde veio);
+  - tipo (ideia, problema, pergunta, pagamento), mensagem até 2000
+    caracteres e "podem contactar-me por email" (ligado por omissão).
+- **`POST /api/feedback`:**
+  - guarda na coleção `Feedback` o contexto: plataforma, versão da app no
+    Android (`App.getInfo`), página, língua e plano;
+  - envia-te um email (em português) com o `Reply-To` do utilizador, só se
+    ele aceitou ser contactado;
+  - envia a confirmação ao utilizador, na língua dele, também só se aceitou;
+  - limite de 5 por conta por dia (`withinIdentityQuota`);
+  - destino: `SUPPORT_INBOX` ou, por omissão, o contacto dos Termos.
+- **Pedido de opinião (1 a 5)** no painel, só na web (`RatingPrompt.vue`,
+  `POST /api/feedback/rating-prompt`):
+  - mesmas condições do pedido da loja (30+ dias, 10+ transações);
+  - nunca a quem já teve o pedido da loja, e uma única vez;
+  - a resposta vai como `type: 'rating'`.
+- **A conta apagada apaga as mensagens;** a exportação de dados inclui-as.
+- **Política de Privacidade (6 línguas, ponto 2):** as mensagens de ajuda e o
+  que se guarda; a Resend também envia os emails de suporte; data
+  2026-10-11.
+
 ## Tarefas
 
-- [ ] `POST /api/feedback` (sessão obrigatória; limites; email ao operador e
+- [x] `POST /api/feedback` (sessão obrigatória; limites; email ao operador e
       confirmação ao utilizador).
-- [ ] Modelo `Feedback` e limpeza na eliminação de conta; exportação de
+- [x] Modelo `Feedback` e limpeza na eliminação de conta; exportação de
       dados inclui-o.
-- [ ] Formulário (componente partilhado) nas 6 línguas.
-- [ ] Política de Privacidade (6 línguas): mensagens de suporte e o que se
+- [x] Formulário (componente partilhado) nas 6 línguas.
+- [x] Política de Privacidade (6 línguas): mensagens de suporte e o que se
       guarda.
-- [ ] Testes:
+- [x] Testes:
   - integração com a Resend simulada: email ao operador com Reply-To,
     confirmação ao utilizador, limites;
   - E2E: enviar uma mensagem a partir das Definições.
 
 ## Critérios de aceitação
 
-- [ ] Qualquer utilizador contacta o suporte sem sair da app, na sua língua.
-- [ ] O operador recebe a mensagem com o contexto técnico e responde com um
+- [x] Qualquer utilizador contacta o suporte sem sair da app, na sua língua.
+- [x] O operador recebe a mensagem com o contexto técnico e responde com um
       clique.

@@ -83,7 +83,18 @@ async function requestStructuredJson<T>(opts: {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
-    logEvent('error', 'anthropic.http_error', { status: res.status, detail: detail.slice(0, 500) })
+    // 401/403: a chave expirou, foi apagada ou desativada na Console. Evento
+    // próprio para se ver logo nos logs da Netlify que é preciso uma chave
+    // nova (e um redeploy), em vez de um erro genérico do fornecedor.
+    if (res.status === 401 || res.status === 403) {
+      logEvent('error', 'anthropic.auth_failed', {
+        status: res.status,
+        hint: 'ANTHROPIC_API_KEY inválida, expirada ou desativada — criar uma chave nova na Console, atualizar na Netlify e fazer redeploy',
+        detail: detail.slice(0, 500),
+      })
+    } else {
+      logEvent('error', 'anthropic.http_error', { status: res.status, detail: detail.slice(0, 500) })
+    }
     throw createError({ statusCode: 502, message: GENERIC_UPSTREAM_MESSAGE, data: { error: 'ai_upstream_error' } })
   }
 

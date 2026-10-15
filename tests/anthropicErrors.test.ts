@@ -21,6 +21,15 @@ describe('erros da Anthropic', () => {
     expect(loggedEvents(log)).toEqual(['anthropic.auth_failed'])
   })
 
+  it('usa a chave do ambiente da função antes da do build (secret da Netlify)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('x', { status: 500 }))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubEnv('ANTHROPIC_API_KEY', 'chave-do-ambiente')
+    await expect(call()).rejects.toBeTruthy()
+    vi.unstubAllEnvs()
+    expect((fetchSpy.mock.calls[0][1]!.headers as Record<string, string>)['x-api-key']).toBe('chave-do-ambiente')
+  })
+
   it('outros erros continuam como anthropic.http_error', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('overloaded', { status: 529 }))
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})

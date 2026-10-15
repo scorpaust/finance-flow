@@ -44,8 +44,12 @@ async function requestStructuredJson<T>(opts: {
   schema: JsonSchema
   maxTokens?: number
 }): Promise<{ data: T; usage: AnthropicUsage }> {
-  const config = useRuntimeConfig()
-  if (!config.anthropicApiKey) {
+  // A chave lê-se do ambiente da função, em runtime: o build é feito nesta
+  // máquina e uma variável "secret" da Netlify chega ao build só como
+  // asteriscos — o valor fixado no runtimeConfig seria esse (401). O
+  // runtimeConfig fica como recurso para dev/testes.
+  const apiKey = process.env.ANTHROPIC_API_KEY || useRuntimeConfig().anthropicApiKey
+  if (!apiKey) {
     throw createError({
       statusCode: 500,
       message: 'Anthropic não configurado (ANTHROPIC_API_KEY em falta)',
@@ -55,7 +59,7 @@ async function requestStructuredJson<T>(opts: {
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
-      'x-api-key': config.anthropicApiKey,
+      'x-api-key': apiKey,
       'anthropic-version': ANTHROPIC_VERSION,
       'anthropic-beta': STRUCTURED_OUTPUTS_BETA,
       'content-type': 'application/json',

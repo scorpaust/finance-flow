@@ -1,5 +1,6 @@
 import { User } from '../../models'
 import { requireCronSecret } from '../../utils/cron'
+import { retryPendingInvoices } from '../../utils/invoicing'
 
 // Job de expiração/downgrade — ver tarefa 7 da especificação da Fase 2. Sem
 // scheduler no projeto (sem node-cron nem Nitro scheduled tasks configuradas),
@@ -55,8 +56,12 @@ export default defineEventHandler(async (event) => {
     await user.save()
   }
 
+  // Upgrade 11 — faturas que ficaram por emitir (InvoiceXpress por configurar ou em erro).
+  const invoices = await retryPendingInvoices()
+
   return {
     expiredCount: expired.length,
+    invoicesRetried: invoices.tried,
     remindersDue: needsReminder.map((u) => ({
       userId: u._id,
       email: u.email,

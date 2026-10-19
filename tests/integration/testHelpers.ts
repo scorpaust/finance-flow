@@ -31,6 +31,13 @@ export function stubClient(baseUrl: string) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ method, path, body, status }),
       }),
+    // Upgrade 11 — código de resposta do InvoiceXpress simulado (200 = tudo bem).
+    setInvoiceXpressStatus: (status: number) =>
+      fetch(`${baseUrl}/__control/invoicexpress`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }),
     setGoogleStatus: (status: number) =>
       fetch(`${baseUrl}/__control/google`, {
         method: 'POST',

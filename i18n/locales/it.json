@@ -796,7 +796,11 @@
     "errorCancel": "Errore durante l'annullamento",
     "toastPaymentNotYetConfirmed": "Non abbiamo ancora ricevuto la conferma del pagamento — riprova più tardi.",
     "errorCheckPayment": "Errore durante la verifica del pagamento",
-    "toastPaymentCanceled": "Pagamento annullato"
+    "toastPaymentCanceled": "Pagamento annullato",
+    "fiscalIdLabel": "NIF per la fattura (facoltativo)",
+    "fiscalIdPlaceholder": "Es.: 123456789",
+    "fiscalIdHint": "Senza NIF, la fattura è intestata a \"Consumidor final\" (consumatore finale). Ricevi la fattura-ricevuta via email.",
+    "fiscalIdInvalid": "NIF non valido — controlla le 9 cifre o lascia vuoto."
   },
   "predictions": {
     "backToDashboard": "Torna alla dashboard",

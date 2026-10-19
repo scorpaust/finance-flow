@@ -49,6 +49,9 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
   const googleSubscriptions = new Map<string, StoredResponse>()
   // Catálogo da Play Console (monetization.subscriptions.get), por produto.
   const googleProducts = new Map<string, unknown>()
+  // Upgrade 11 — InvoiceXpress: código de resposta e numeração das faturas.
+  let invoicexpressStatus = 200
+  let invoiceSeq = 0
 
   function resetAll() {
     anthropicResponse = {
@@ -60,6 +63,7 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
     googleStatus = 200
     googleSubscriptions.clear()
     googleProducts.clear()
+    invoicexpressStatus = 200
   }
 
   const server = createServer(async (req, res) => {
@@ -98,6 +102,11 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
       res.writeHead(204).end()
       return
     }
+    if (path === '/__control/invoicexpress' && method === 'POST') {
+      invoicexpressStatus = (body as { status?: number })?.status ?? 200
+      res.writeHead(204).end()
+      return
+    }
     if (path === '/__control/requests' && method === 'GET') {
       res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(requests))
       return
@@ -111,6 +120,26 @@ export async function startStubProviders(opts: { jwks?: object[] } = {}): Promis
     if (path === '/emails' && method === 'POST') {
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({ id: `email-${requests.length}` }))
+      return
+    }
+
+    // Upgrade 11 — o "InvoiceXpress": cria, finaliza e envia faturas-recibo.
+    if (path.startsWith('/invoice_receipts')) {
+      if (invoicexpressStatus >= 300) {
+        res.writeHead(invoicexpressStatus, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ errors: [{ error: 'stub: falha simulada' }] }))
+        return
+      }
+      res.writeHead(200, { 'content-type': 'application/json' })
+      if (path === '/invoice_receipts.json' && method === 'POST') {
+        invoiceSeq += 1
+        res.end(JSON.stringify({ invoice_receipt: { id: 9000 + invoiceSeq, status: 'draft' } }))
+      } else if (path.endsWith('/change-state.json')) {
+        const id = path.split('/')[2]
+        res.end(JSON.stringify({ invoice_receipt: { id: Number(id), status: 'final', inverted_sequence_number: `FR 2026/${id}` } }))
+      } else {
+        res.end('')
+      }
       return
     }
 

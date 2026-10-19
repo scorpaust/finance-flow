@@ -1,5 +1,6 @@
 import { User } from '../models'
 import { logEvent } from './logger'
+import { invoicePayment } from './invoicing'
 import { decodeMerchantKey, getSubscriptionResource, getSingle, getCheckoutStatus, type EasyPayResource } from './easypay'
 
 // O `id` que confirmamos nem sempre é claramente "o id da subscrição" vs. "o
@@ -126,6 +127,11 @@ export async function syncSubscriptionCreate(resourceId: string): Promise<void> 
       appliedPaymentIds: withApplied(applied, resourceId),
     },
   })
+  // Upgrade 11 — cartão: a 1.ª cobrança é imediata. Débito direto: aqui só
+  // há mandato; a fatura sai com a cobrança (syncCapture).
+  if (paymentMethod === 'cc') {
+    await invoicePayment({ userId: decoded.userId, paymentId: resourceId, tier: decoded.tier, periodMonths: 1, prepaid: false, value: resource.value })
+  }
 }
 
 // MB WAY/Multibanco: pagamento único do valor total de um período fixo
@@ -188,6 +194,9 @@ async function syncSinglePayment(paymentId: string, decoded: { userId: string; t
         paymentMethod === 'multibanco' && method?.expiration_date ? new Date(method.expiration_date) : undefined,
     },
   })
+  if (activeNow) {
+    await invoicePayment({ userId: decoded.userId, paymentId, tier: decoded.tier, periodMonths, prepaid: true, value: resource?.value })
+  }
 }
 
 // Confirmação manual de um pagamento MB WAY/Multibanco ainda 'pending' —
@@ -217,6 +226,15 @@ export async function checkPendingPayment(userId: string): Promise<{ status: str
       sub.multibancoExpiresAt = null
     }
     await user!.save()
+    const decoded = resource.key ? decodeMerchantKey(resource.key) : null
+    await invoicePayment({
+      userId,
+      paymentId: sub.easypaySubscriptionId,
+      tier: decoded?.tier || (sub.tier as 'pro' | 'premium'),
+      periodMonths: decoded?.periodMonths || 1,
+      prepaid: true,
+      value: resource.value,
+    })
     return { status: 'active' }
   }
 
@@ -279,6 +297,9 @@ export async function syncFromCheckout(checkoutId: string, expectedUserId?: stri
         appliedPaymentIds: withApplied(applied, paymentId),
       },
     })
+    if (decoded.paymentMethod === 'cc') {
+      await invoicePayment({ userId: decoded.userId, paymentId, tier: decoded.tier, periodMonths: 1, prepaid: false, value: checkout.value })
+    }
     return
   }
 
@@ -329,4 +350,12 @@ export async function syncCapture(resourceId: string): Promise<void> {
   }
   sub.appliedPaymentIds = withApplied(applied, resourceId)
   await user.save()
+  await invoicePayment({
+    userId: String(user._id),
+    paymentId: resourceId,
+    tier: decoded.tier,
+    periodMonths: decoded.periodMonths || 1,
+    prepaid,
+    value: resource.value,
+  })
 }

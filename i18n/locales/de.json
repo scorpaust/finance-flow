@@ -796,7 +796,11 @@
     "errorCancel": "Fehler beim Kündigen",
     "toastPaymentNotYetConfirmed": "Wir haben die Zahlungsbestätigung noch nicht erhalten — versuche es später erneut.",
     "errorCheckPayment": "Fehler beim Prüfen der Zahlung",
-    "toastPaymentCanceled": "Zahlung storniert"
+    "toastPaymentCanceled": "Zahlung storniert",
+    "fiscalIdLabel": "Steuernummer (NIF) für die Rechnung (optional)",
+    "fiscalIdPlaceholder": "z. B. 123456789",
+    "fiscalIdHint": "Ohne NIF wird die Rechnung auf „Consumidor final“ (Endverbraucher) ausgestellt. Du erhältst die Rechnung mit Quittung per E-Mail.",
+    "fiscalIdInvalid": "Ungültige NIF — prüfe die 9 Ziffern oder lass das Feld leer."
   },
   "predictions": {
     "backToDashboard": "Zurück zur Übersicht",

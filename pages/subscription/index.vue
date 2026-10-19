@@ -163,6 +163,23 @@
         </div>
       </div>
 
+      <!-- Upgrade 11 — NIF opcional para a fatura-recibo (vazio = Consumidor final). -->
+      <div>
+        <label class="form-label" for="subscription-fiscal-id">{{ t('subscription.fiscalIdLabel') }}</label>
+        <input
+          id="subscription-fiscal-id"
+          v-model="fiscalId"
+          class="form-input mt-1.5"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="20"
+          :placeholder="t('subscription.fiscalIdPlaceholder')"
+          data-testid="subscription-fiscal-id"
+        />
+        <p v-if="fiscalIdInvalid" class="text-red-400 text-xs mt-1" data-testid="subscription-fiscal-id-error">{{ t('subscription.fiscalIdInvalid') }}</p>
+        <p v-else class="text-white/40 text-xs mt-1">{{ t('subscription.fiscalIdHint') }}</p>
+      </div>
+
       <p class="text-white/50 text-sm text-center">
         <template v-if="selectedMethod === 'mbway' || selectedMethod === 'multibanco'">
           {{ t('subscription.totalLabel') }}: <span class="text-brand-300 font-bold">{{ formatPrice(prepaidTotal) }}</span>
@@ -174,7 +191,7 @@
       <button
         class="btn-primary w-full"
         type="button"
-        :disabled="submitting"
+        :disabled="submitting || fiscalIdInvalid"
         @click="beginCheckout"
       >
         {{ submitting ? t('subscription.openingEasyPay') : t('subscription.continueButton') }}
@@ -289,6 +306,7 @@ import {
   type PlayPrepaidPeriod,
 } from '~/shared/playBilling'
 import type { PlayConfig, PlayProduct } from '~/composables/usePlayBilling'
+import { isValidPortugueseNif, normalizeFiscalId } from '~/shared/fiscalId'
 
 definePageMeta({ layout: 'default' })
 
@@ -328,7 +346,16 @@ const METHODS = computed(() =>
   ALL_METHODS.value.filter((m) => m.value === 'cc' || m.value === 'dd' || availablePrepaidMethods.value.includes(m.value))
 )
 
+// Upgrade 11 — NIF para a fatura, pré-preenchido com o que ficou guardado.
+const fiscalId = ref('')
+const fiscalIdInvalid = computed(() => !!normalizeFiscalId(fiscalId.value) && !isValidPortugueseNif(fiscalId.value))
+
 onMounted(async () => {
+  $fetch<{ fiscalId?: string }>('/api/subscription')
+    .then((r) => {
+      if (!fiscalId.value && r.fiscalId) fiscalId.value = r.fiscalId
+    })
+    .catch(() => {})
   try {
     const r = await $fetch<{ prepaidMethods: string[] }>('/api/subscription/payment-methods')
     availablePrepaidMethods.value = r.prepaidMethods
@@ -409,13 +436,14 @@ async function beginCheckout() {
             body: {
               tier: selectedTier.value,
               method: selectedMethod.value,
+              fiscalId: fiscalId.value.trim(),
             },
           })
         ).manifest
       : (
           await $fetch<{ manifest: any }>('/api/subscription/easypay/create-prepaid', {
             method: 'POST',
-            body: { tier: selectedTier.value, method: selectedMethod.value, periodMonths: periodMonths.value },
+            body: { tier: selectedTier.value, method: selectedMethod.value, periodMonths: periodMonths.value, fiscalId: fiscalId.value.trim() },
           })
         ).manifest
 

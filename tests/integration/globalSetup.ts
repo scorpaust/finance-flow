@@ -49,6 +49,10 @@ export default async function setup() {
     RESEND_API_KEY: 're_test',
     EMAIL_FROM: 'FinanceFlow <noreply@mail.example.test>',
     RESEND_API_BASE_URL: stub.baseUrl,
+    // Upgrade 11 — faturação (InvoiceXpress) no servidor simulado.
+    INVOICEXPRESS_ACCOUNT: 'conta-teste',
+    INVOICEXPRESS_API_KEY: 'test-key',
+    INVOICEXPRESS_API_BASE_URL: stub.baseUrl,
     APP_URL: 'https://app.example.test',
     TWELVE_DATA_API_KEY: 'test-key',
     TWELVE_DATA_API_BASE_URL: stub.baseUrl,

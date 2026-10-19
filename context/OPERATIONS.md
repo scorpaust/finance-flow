@@ -90,7 +90,8 @@ opcional, é o que serve de prova do consentimento.
    ele foi avisado e concordou.
 3. Só depois de receberes essa confirmação, processas o reembolso. O passo
    depende de onde foi feita a compra:
-   - **Site (EasyPay):** à mão, no dashboard da EasyPay.
+   - **Site (EasyPay):** à mão, no dashboard da EasyPay, e a nota de
+     crédito da fatura-recibo no InvoiceXpress (Upgrade 11).
    - **App Android (Google Play):** não há nada a fazer à mão. O passo 4
      pede o reembolso à Google pela API (revoke com reembolso total) e
      termina o acesso. Se a resposta trouxer `googlePlayRefundFailed: true`,
@@ -336,6 +337,68 @@ pública.
    uma compra de teste de cada tipo feita por um testador de licenças.
    Rollout faseado 20% → 50% → 100%, pelo menos 48 h em cada passo, a vigiar
    o Sentry e os registos do Netlify.
+
+## Passagem a produção (Upgrade 11)
+
+Ordem recomendada (2026-10-19). Faturação primeiro, para nenhuma venda real
+ficar sem fatura.
+
+1. **InvoiceXpress:**
+   - confirmar na conta os dados da empresa, a série de faturas-recibo
+     comunicada à AT e o imposto `IVA0` (isenção M10, art. 53.º);
+   - em Definições → API, copiar o nome da conta (o subdomínio) e a chave;
+   - na Netlify, criar `INVOICEXPRESS_ACCOUNT` e `INVOICEXPRESS_API_KEY`
+     (a chave pode ser marcada como secreta; é lida em runtime).
+2. **EasyPay de produção:**
+   - no BackOffice de produção, criar as credenciais da API e ativar os
+     métodos do Checkout (cartão, débito direto, MB WAY, Multibanco);
+   - configurar a notificação (webhook) para
+     `https://www.financeflow-webapp.pt/api/subscription/easypay/webhook`;
+   - na Netlify, mudar `EASYPAY_ENV=production`, `EASYPAY_ACCOUNT_ID` e
+     `EASYPAY_API_KEY` (a chave pode ser secreta).
+3. **Redeploy** (`npm run deploy:netlify`). Sem ele nada muda; o
+   `EASYPAY_ENV` também vai para o browser, no build.
+4. **Teste real:**
+   - uma compra de baixo valor (1 mês Pro com MB WAY) com a tua conta;
+   - confirmar o plano ativo e a fatura-recibo no email e no InvoiceXpress;
+   - nos logs, confirmar `invoice.issued` (e nenhum
+     `invoice.duplicate_skipped` inesperado);
+   - reembolsar na EasyPay e emitir a nota de crédito no InvoiceXpress.
+5. **Contas de teste:**
+   - 1 dia depois, entrar em cada conta `tester-*@example.com` e apagá-la
+     em Definições → Eliminar conta (apaga todos os dados);
+   - as contas de teste da Play Console (testadores de licenças) podem
+     ficar.
+6. **Play Console:** pedir o acesso à produção (fim dos testes fechados),
+   promover o `.aab` e fazer o rollout faseado (ver "Lançamento e rollout").
+
+### Premium oferecido (conta do operador)
+
+```bash
+MONGODB_URI=<uri-de-produção> MONGODB_DB_NAME=financeflow-prod \
+  node scripts/grant-plan.mjs --dry premium dinismiguelcosta@gmail.com
+# sem --dry para aplicar; "free" retira
+```
+
+O plano fica ativo, sem fornecedor e sem data de fim, e o cron não lhe toca.
+A conta tem de existir (registo na app). O script recusa mexer numa conta
+com subscrição paga em curso.
+
+### Faturas — vigiar e resolver
+
+- **Eventos no log:**
+  - `invoice.issued`: emitida;
+  - `invoice.not_configured`: faltam as variáveis;
+  - `invoice.issue_failed`: erro do InvoiceXpress (repete no cron diário,
+    até 10 vezes);
+  - `invoice.duplicate_skipped`: o mesmo pagamento, chegado com outro id
+    (confirmar no InvoiceXpress que a pessoa tem a fatura).
+- **Pendentes com 10 tentativas:** procurar na coleção `invoices`
+  (`status: 'pending'`) e emitir à mão no InvoiceXpress.
+- **Reembolso:** emitir a nota de crédito da fatura no InvoiceXpress (à mão),
+  além do reembolso na EasyPay.
+- **Google Play:** faturar à Google Commerce Ltd o valor recebido no mês
+  (relatório de pagamentos da Play Console).
 
 ## Rollback
 

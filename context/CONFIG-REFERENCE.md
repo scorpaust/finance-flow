@@ -23,7 +23,7 @@
 
 | Variável | Descrição |
 |---|---|
-| `EASYPAY_ENV` | `test` / `production` (determina o host da API — sandbox `api.test.easypay.pt`) |
+| `EASYPAY_ENV` | `test` / `production` (determina o host da API — sandbox `api.test.easypay.pt`). Desde o Upgrade 11, `EASYPAY_ENV`, `EASYPAY_ACCOUNT_ID` e `EASYPAY_API_KEY` são lidas em runtime (podem ser secretas na Netlify); o modo de teste do checkout no browser vem do build, por isso mudar de ambiente exige redeploy |
 | `EASYPAY_ACCOUNT_ID` | AccountId da conta EasyPay |
 | `EASYPAY_API_KEY` | ApiKey da conta EasyPay (server-side apenas) |
 | `CRON_SECRET` | Segredo partilhado com o cron externo que invoca `check-expirations` (header `x-cron-secret`) — mesma variável usada pelo cron de `market-snapshot` da Fase 3 |
@@ -72,6 +72,10 @@ projeto (ver `pages/subscription/index.vue`).
 
 | Variável | Descrição |
 |---|---|
+| `INVOICEXPRESS_ACCOUNT` | Upgrade 11 — subdomínio da conta InvoiceXpress (`https://<conta>.app.invoicexpress.com`). Com `INVOICEXPRESS_API_KEY`, cada pagamento EasyPay confirmado gera uma fatura-recibo enviada por email (`server/utils/invoicing.ts`). Vazias = as faturas ficam pendentes e o cron diário emite-as quando forem configuradas. Lidas em runtime |
+| `INVOICEXPRESS_API_KEY` | Upgrade 11 — chave da API do InvoiceXpress (pode ser secreta na Netlify) |
+| `INVOICEXPRESS_TAX_NAME` / `INVOICEXPRESS_TAX_EXEMPTION` | Upgrade 11 — opcionais: imposto e motivo de isenção da fatura. Por omissão `IVA0` e `M10` (art. 53.º do CIVA) |
+| `INVOICEXPRESS_API_BASE_URL` | Só nos testes (servidor simulado). Nunca definir em produção |
 | `RESEND_API_KEY` | Upgrade 05 — chave da Resend (permissão "Sending access", domínio `mail.financeflow-webapp.pt`) para os emails da conta: recuperação de password e aviso de password alterada (`server/utils/email.ts`). Lida em runtime (não no `runtimeConfig`). Sem ela os emails não são enviados (só ficam no log) |
 | `EMAIL_FROM` | Upgrade 05 — remetente dos emails: `FinanceFlow <noreply@mail.financeflow-webapp.pt>` |
 | `SUPPORT_INBOX` | Upgrade 09 — opcional, para onde vão as mensagens de "Ajuda e opinião". Sem ela: o contacto dos Termos (`dinismiguelcosta@gmail.com`) |

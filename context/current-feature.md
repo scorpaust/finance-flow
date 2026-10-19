@@ -1,8 +1,29 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/08-primeiros-passos-e-ajuda.md -->
+<!-- Ver especificação completa em context/features/upgrades/11-producao-e-faturacao.md -->
 
 ## Estado
+
+**Upgrade 11 — passagem a produção e faturação (InvoiceXpress): Em progresso**
+(2026-10-19; `context/features/upgrades/11-producao-e-faturacao.md`). Branch
+`feature/upgrade-11-producao`.
+
+Feito no código:
+- fatura-recibo automática por pagamento EasyPay;
+- NIF opcional;
+- credenciais EasyPay lidas em runtime;
+- script de Premium oferecido;
+- privacidade atualizada nas 6 línguas.
+
+Testes: unitários 142/142, integração 66/66, E2E 12/12, type-check sem
+erros.
+
+Falta do operador (`OPERATIONS.md`, "Passagem a produção"):
+- credenciais do InvoiceXpress e da EasyPay de produção na Netlify;
+- webhook da EasyPay de produção;
+- compra real de teste;
+- apagar as contas `tester-*` a 2026-10-20;
+- acesso à produção na Play Console.
 
 **Upgrade 08 — primeiros passos e ajuda na app: Em produção** (deploy de 2026-10-11;
 `context/features/upgrades/08-primeiros-passos-e-ajuda.md`). Branch

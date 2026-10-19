@@ -154,6 +154,11 @@ export interface IUser extends Document {
   ratingPromptedAt?: Date | null
   // Upgrade 08 — "Não mostrar mais" na lista de primeiros passos.
   onboardingDismissedAt?: Date | null
+  // Upgrade 11 — NIF opcional para as faturas das compras no site (vazio =
+  // "Consumidor final").
+  fiscalId?: string | null
+  // Língua do email da fatura (a do site quando a pessoa começou o pagamento).
+  billingLocale?: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -179,6 +184,8 @@ const UserSchema = new Schema<IUser>(
     reviewPromptedAt:     { type: Date, default: null },
     ratingPromptedAt:     { type: Date, default: null },
     onboardingDismissedAt: { type: Date, default: null },
+    fiscalId: { type: String, default: null },
+    billingLocale: { type: String, default: null },
   },
   { timestamps: true }
 )
@@ -631,3 +638,44 @@ const FeedbackSchema = new Schema<IFeedback>(
 )
 export const Feedback: Model<IFeedback> =
   mongoose.models.Feedback || mongoose.model<IFeedback>('Feedback', FeedbackSchema)
+
+// ─── INVOICE ─────────────────────────────────────────────────────────────────
+// Upgrade 11 — uma fatura-recibo (InvoiceXpress) por pagamento EasyPay
+// confirmado. `paymentId` é único: um pagamento nunca gera duas faturas,
+// venha a confirmação do checkout, do webhook ou do botão "Verificar
+// pagamento". Fica `pending` enquanto o InvoiceXpress não estiver configurado
+// ou falhar, e o cron diário volta a tentar. Não é apagada com a conta
+// (obrigação fiscal de conservar a faturação).
+export interface IInvoice extends Document {
+  userId: mongoose.Types.ObjectId
+  paymentId: string
+  tier: 'pro' | 'premium'
+  periodMonths: number
+  amount: number
+  status: 'pending' | 'issued' | 'skipped'
+  invoicexpressId?: string | null
+  invoiceNumber?: string | null
+  attempts: number
+  lastError?: string | null
+  issuedAt?: Date | null
+  createdAt: Date
+}
+
+const InvoiceSchema = new Schema<IInvoice>(
+  {
+    userId:          { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    paymentId:       { type: String, required: true, unique: true },
+    tier:            { type: String, enum: ['pro', 'premium'], required: true },
+    periodMonths:    { type: Number, required: true, min: 1 },
+    amount:          { type: Number, required: true, min: 0 },
+    status:          { type: String, enum: ['pending', 'issued', 'skipped'], default: 'pending', index: true },
+    invoicexpressId: { type: String, default: null },
+    invoiceNumber:   { type: String, default: null },
+    attempts:        { type: Number, default: 0 },
+    lastError:       { type: String, default: null },
+    issuedAt:        { type: Date, default: null },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
+)
+export const Invoice: Model<IInvoice> =
+  mongoose.models.Invoice || mongoose.model<IInvoice>('Invoice', InvoiceSchema)

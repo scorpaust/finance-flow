@@ -19,9 +19,21 @@ const EASYPAY_GENERIC_MESSAGE = 'Payment provider is temporarily unavailable —
 // Fase 8, ponto 6 — `EASYPAY_API_BASE_URL` só existe nos testes de
 // integração, para apontar a um servidor simulado local (nunca EasyPay real
 // nos testes). Sem essa variável, o comportamento é exatamente o de sempre.
+// Upgrade 11 — credenciais lidas do ambiente da função em runtime (com o
+// runtimeConfig como recurso para dev/testes): uma variável marcada como
+// secreta no Netlify chega só em asteriscos ao build local.
+function easypayConfig() {
+  const config = useRuntimeConfig()
+  return {
+    env: process.env.EASYPAY_ENV || config.easypayEnv,
+    accountId: process.env.EASYPAY_ACCOUNT_ID || config.easypayAccountId,
+    apiKey: process.env.EASYPAY_API_KEY || config.easypayApiKey,
+  }
+}
+
 const EASYPAY_API_BASE = () =>
   process.env.EASYPAY_API_BASE_URL ||
-  (useRuntimeConfig().easypayEnv === 'production'
+  (easypayConfig().env === 'production'
     ? 'https://api.easypay.pt/2.0'
     : 'https://api.test.easypay.pt/2.0')
 
@@ -29,8 +41,8 @@ async function easypayFetch<T>(
   path: string,
   options: { method?: string; body?: unknown } = {}
 ): Promise<T> {
-  const config = useRuntimeConfig()
-  if (!config.easypayAccountId || !config.easypayApiKey) {
+  const config = easypayConfig()
+  if (!config.accountId || !config.apiKey) {
     throw createError({
       statusCode: 500,
       message: 'EasyPay não configurado (EASYPAY_ACCOUNT_ID/EASYPAY_API_KEY em falta)',
@@ -40,8 +52,8 @@ async function easypayFetch<T>(
   const res = await fetch(`${EASYPAY_API_BASE()}${path}`, {
     method: options.method || 'GET',
     headers: {
-      AccountId: config.easypayAccountId,
-      ApiKey: config.easypayApiKey,
+      AccountId: config.accountId,
+      ApiKey: config.apiKey,
       'Content-Type': 'application/json',
     },
     body: options.body ? JSON.stringify(options.body) : undefined,

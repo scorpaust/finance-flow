@@ -796,7 +796,11 @@
     "errorCancel": "Error canceling",
     "toastPaymentNotYetConfirmed": "We haven't received payment confirmation yet — try again later.",
     "errorCheckPayment": "Error checking payment",
-    "toastPaymentCanceled": "Payment canceled"
+    "toastPaymentCanceled": "Payment canceled",
+    "fiscalIdLabel": "Tax number (NIF) for the invoice (optional)",
+    "fiscalIdPlaceholder": "E.g. 123456789",
+    "fiscalIdHint": "Without a NIF, the invoice is issued to \"Consumidor final\" (final consumer). You get the invoice-receipt by email.",
+    "fiscalIdInvalid": "Invalid NIF — check the 9 digits or leave it blank."
   },
   "predictions": {
     "backToDashboard": "Back to dashboard",

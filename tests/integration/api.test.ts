@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createSign } from 'node:crypto'
-import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback } from '../../server/models/index'
+import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -1682,5 +1682,119 @@ describe('primeiros passos (Upgrade 08)', () => {
 
     expect((await fetch('/api/onboarding/dismiss', { method: 'POST', headers: { cookie } })).status).toBe(200)
     expect((await (await get(cookie)).json()).show).toBe(false)
+  })
+})
+
+describe('faturação InvoiceXpress (Upgrade 11)', () => {
+  const ixRequests = async () => (await stub.requests()).filter((r) => r.path.startsWith('/invoice_receipts'))
+  const webhook = (id: string, type: string) =>
+    fetch('/api/subscription/easypay/webhook', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, type }) })
+
+  it('cartão: uma fatura-recibo com NIF, IVA 0% (M10), enviada por email, uma só vez por pagamento', async () => {
+    const email = uniqueEmail('fatura-cc')
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    await stub.setEasyPayResponse('POST', '/checkout', { id: 'checkout-fatura-1', session: 's', config: {} })
+    const create = await fetch('/api/subscription/easypay/create-subscription', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ tier: 'premium', method: 'cc', fiscalId: '123 456 789' }),
+    })
+    expect(create.status).toBe(200)
+    expect((await User.findOne({ email }))!.fiscalId).toBe('123456789')
+
+    const key = encodeMerchantKey(String(user!._id), 'premium', 'cc')
+    await stub.setEasyPayResponse('GET', '/subscription/sub-fatura-1', { id: 'sub-fatura-1', status: 'active', key, value: 21.99 })
+    expect((await webhook('sub-fatura-1', 'subscription_create')).status).toBe(200)
+    expect((await webhook('sub-fatura-1', 'subscription_create')).status).toBe(200)
+
+    const invoices = await Invoice.find({ userId: user!._id }).lean()
+    expect(invoices).toHaveLength(1)
+    expect(invoices[0]).toMatchObject({ status: 'issued', amount: 21.99, tier: 'premium', periodMonths: 1 })
+    expect(invoices[0].invoiceNumber).toMatch(/^FR 2026\//)
+
+    const reqs = await ixRequests()
+    const created = reqs.filter((r) => r.path === '/invoice_receipts.json')
+    expect(created).toHaveLength(1)
+    expect(created[0].body.invoice).toMatchObject({ tax_exemption: 'M10', client: { fiscal_id: '123456789', email } })
+    expect(created[0].body.invoice.items[0]).toMatchObject({ unit_price: '21.99', tax: { name: 'IVA0' } })
+    expect(reqs.some((r) => r.path.endsWith('/change-state.json') && r.body.invoice.state === 'finalized')).toBe(true)
+    expect(reqs.filter((r) => r.path.endsWith('/email-document.json'))).toHaveLength(1)
+
+    // A mesma cobrança confirmada outra vez pelo checkout (outro id): não fatura duas vezes.
+    await stub.setEasyPayResponse('GET', '/checkout/checkout-fatura-1', {
+      id: 'checkout-fatura-1',
+      value: 21.99,
+      payment: { id: 'pay-fatura-1', status: 'success', key },
+    })
+    const confirm = await fetch('/api/subscription/easypay/confirm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ checkoutId: 'checkout-fatura-1' }),
+    })
+    expect(confirm.status).toBe(200)
+    expect(await Invoice.countDocuments({ userId: user!._id, status: 'issued' })).toBe(1)
+    expect((await ixRequests()).filter((r) => r.path === '/invoice_receipts.json')).toHaveLength(1)
+  })
+
+  it('NIF inválido é recusado antes do pagamento', async () => {
+    const { cookie } = await register(uniqueEmail('fatura-nif'))
+    const res = await fetch('/api/subscription/easypay/create-prepaid', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({ tier: 'pro', method: 'mbway', periodMonths: 3, fiscalId: '123456780' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('InvoiceXpress em baixo: o pagamento ativa na mesma e a fatura sai no cron seguinte', async () => {
+    const email = uniqueEmail('fatura-retry')
+    await register(email)
+    const user = await User.findOne({ email })
+    const paymentId = 'mb-fatura-retry-1'
+    await User.updateOne(
+      { email },
+      {
+        $set: {
+          'subscription.tier': 'pro',
+          'subscription.status': 'pending',
+          'subscription.provider': 'easypay',
+          'subscription.paymentMethod': 'multibanco',
+          'subscription.billingMode': 'manual_reference',
+          'subscription.easypaySubscriptionId': paymentId,
+          'subscription.currentPeriodEnd': new Date(Date.now() + 90 * 864e5),
+        },
+      }
+    )
+    await stub.setEasyPayResponse('GET', `/single/${paymentId}`, {
+      id: paymentId,
+      status: 'paid',
+      value: 23.99,
+      key: encodeMerchantKey(String(user!._id), 'pro', 'multibanco', 3),
+    })
+
+    await stub.setInvoiceXpressStatus(503)
+    expect((await webhook(paymentId, 'capture')).status).toBe(200)
+    expect((await User.findOne({ email }))!.subscription.status).toBe('active')
+    expect(await Invoice.findOne({ paymentId }).lean()).toMatchObject({ status: 'pending', attempts: 1, periodMonths: 3, amount: 23.99 })
+
+    await stub.setInvoiceXpressStatus(200)
+    const cron = await fetch('/api/subscription/check-expirations', { method: 'POST', headers: { 'x-cron-secret': env.CRON_SECRET } })
+    expect(cron.status).toBe(200)
+    expect(await Invoice.findOne({ paymentId }).lean()).toMatchObject({ status: 'issued' })
+  })
+
+  it('débito direto: sem fatura no mandato, fatura na cobrança', async () => {
+    const email = uniqueEmail('fatura-dd')
+    await register(email)
+    const user = await User.findOne({ email })
+    const key = encodeMerchantKey(String(user!._id), 'pro', 'dd')
+    await stub.setEasyPayResponse('GET', '/subscription/sub-dd-fatura', { id: 'sub-dd-fatura', status: 'active', key })
+    await webhook('sub-dd-fatura', 'subscription_create')
+    expect(await Invoice.countDocuments({ userId: user!._id })).toBe(0)
+
+    await stub.setEasyPayResponse('GET', '/single/cap-dd-fatura', { id: 'cap-dd-fatura', status: 'paid', value: 8.49, key })
+    await webhook('cap-dd-fatura', 'subscription_capture')
+    expect(await Invoice.findOne({ userId: user!._id }).lean()).toMatchObject({ status: 'issued', paymentId: 'cap-dd-fatura', amount: 8.49 })
   })
 })

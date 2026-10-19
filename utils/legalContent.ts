@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-10-11";
+export const LEGAL_UPDATED = "2026-10-19";
 
 import { legalFr } from "./legal/fr";
 import { legalDe } from "./legal/de";
@@ -47,6 +47,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "Conta: nome, email e um hash da tua password (nunca guardamos a password em texto). Se ativares a autenticação de dois fatores, guardamos o segredo do autenticador encriptado e apenas hashes dos códigos de recuperação.",
             "Dados financeiros que tu introduzes: transações, categorias, grupos e orçamentos, e o registo de investimentos. Se preencheres o questionário de perfil de investidor, guardamos as respostas.",
             "Subscrição: o plano, o estado e as referências do pagamento. Os dados de cartão, IBAN ou telemóvel MB WAY são recolhidos diretamente pela EasyPay e nunca passam pelos nossos servidores. Nas compras feitas na app Android, o pagamento é feito na Google Play: guardamos só o identificador da compra, o produto e o estado da subscrição que a Google nos comunica.",
+            "Faturação das compras feitas no site: nome, email e, se o indicares, o NIF, que constam da fatura-recibo. As faturas são conservadas durante o prazo exigido pela lei fiscal (10 anos), mesmo depois de eliminares a conta.",
             "Preferências: idioma da interface e, no Android, se ativaste o bloqueio por biometria (guardado apenas no teu telemóvel; a app nunca recebe a tua impressão digital ou rosto).",
             "Dados técnicos: o teu endereço IP é usado para deduzir o país (com uma base de dados local, sem o enviar a terceiros) e para limitar tentativas abusivas; mantemos registos de segurança (por exemplo, tentativas de início de sessão falhadas) sem passwords, códigos nem o conteúdo dos teus dados.",
             "Mensagens de ajuda e opinião que envias pela app: o texto, o tipo, a avaliação de 1 a 5 (se a deres), se aceitas ser contactado, e o contexto técnico necessário para te ajudar (plataforma, versão da app, língua, plano e página). Servem para te responder e melhorar a app; são apagadas com a conta e incluídas na exportação dos teus dados.",
@@ -67,6 +68,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "MongoDB Atlas — alojamento da base de dados onde ficam os teus dados.",
             "Netlify — alojamento da aplicação; processa os pedidos feitos à app, incluindo o endereço IP.",
             "EasyPay — processamento de pagamentos (cartão, débito direto, MB WAY, Multibanco).",
+            "InvoiceXpress — programa de faturação certificado que emite e te envia por email as faturas das compras feitas no site. Recebe o teu nome, email, NIF (se o indicares), o plano e o valor pago.",
             "Google (Google Play) — distribuição da app Android e pagamento das subscrições compradas dentro dela. A Google trata esses pagamentos como vendedora, segundo a sua própria política de privacidade; para associar a compra à tua conta enviamos-lhe só um identificador cifrado da conta (nunca o teu nome, email ou dados financeiros da app).",
             "Anthropic — fornecedor do modelo de IA usado nas funcionalidades descritas no ponto 5.",
             "Resend — envio dos emails da conta e do suporte (por exemplo, o link para definir uma nova password ou a confirmação de uma mensagem de ajuda). Só recebe o teu endereço de email e o conteúdo dessas mensagens.",
@@ -139,6 +141,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "Account: name, email and a hash of your password (we never store the password itself). If you enable two-factor authentication we store the authenticator secret encrypted and only hashes of the recovery codes.",
             "Financial data you enter: transactions, categories, groups and budgets, and your investment records. If you complete the investor-profile questionnaire, we store your answers.",
             "Subscription: plan, status and payment references. Card, IBAN or MB WAY phone details are collected directly by EasyPay and never pass through our servers. For purchases made in the Android app, payment happens on Google Play: we only keep the purchase identifier, the product and the subscription status that Google sends us.",
+            "Invoicing for purchases made on the website: name, email and, if you provide it, your Portuguese tax number (NIF), which appear on the invoice-receipt. Invoices are kept for the period required by tax law (10 years), even after you delete your account.",
             "Preferences: interface language and, on Android, whether you enabled biometric lock (stored only on your phone; the app never receives your fingerprint or face).",
             "Technical data: your IP address is used to infer your country (through a local database, without sending it to third parties) and to limit abusive attempts; we keep security logs (for example failed sign-in attempts) without passwords, codes or the content of your data.",
             "Help and feedback messages you send from the app: the text, the type, your 1-to-5 rating (if you give one), whether you agree to be contacted, and the technical context needed to help you (platform, app version, language, plan and page). They are used to reply to you and improve the app; they are deleted with your account and included in your data export.",
@@ -159,6 +162,7 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "MongoDB Atlas — hosting of the database that stores your data.",
             "Netlify — application hosting; processes the requests made to the app, including your IP address.",
             "EasyPay — payment processing (card, direct debit, MB WAY, Multibanco).",
+            "InvoiceXpress — certified invoicing software that issues and emails you the invoices for purchases made on the website. It receives your name, email, NIF (if you provide it), the plan and the amount paid.",
             "Google (Google Play) — distribution of the Android app and payment of subscriptions bought inside it. Google handles those payments as the seller, under its own privacy policy; to link the purchase to your account we only send Google an encrypted account identifier (never your name, email or financial data from the app).",
             "Anthropic — provider of the AI model used for the features described in section 5.",
             "Resend — sending of account and support emails (for example, the link to set a new password or the confirmation of a help message). It only receives your email address and the content of those messages.",

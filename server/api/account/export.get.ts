@@ -1,4 +1,4 @@
-import { User, Category, TransactionGroup, Transaction, Investment, Feedback } from '../../models'
+import { User, Category, TransactionGroup, Transaction, Investment, Feedback, Invoice } from '../../models'
 import { requireAuth } from '../../utils/auth'
 import { enforceRateLimit } from '../../utils/rateLimit'
 
@@ -14,13 +14,15 @@ export default defineEventHandler(async (event) => {
   const user = await User.findById(userId).select('-passwordHash -twoFactorSecret -twoFactorBackupCodes').lean()
   if (!user) throw createError({ statusCode: 401, message: 'Unauthorized' })
 
-  const [categories, groups, transactions, investments, feedback] = await Promise.all([
+  const [categories, groups, transactions, investments, feedback, invoices] = await Promise.all([
     Category.find({ userId }).lean(),
     TransactionGroup.find({ userId }).lean(),
     Transaction.find({ userId }).sort({ date: -1 }).lean(),
     Investment.find({ userId }).lean(),
     // Upgrade 09 — mensagens de ajuda/opinião enviadas pela app.
     Feedback.find({ userId }).sort({ createdAt: -1 }).lean(),
+    // Upgrade 11 — faturas das compras no site (número, valor, data).
+    Invoice.find({ userId }).select('-_id -__v -lastError -attempts').sort({ createdAt: -1 }).lean(),
   ])
 
   setResponseHeader(event, 'Content-Type', 'application/json; charset=utf-8')
@@ -35,5 +37,6 @@ export default defineEventHandler(async (event) => {
     transactions,
     investments,
     feedback,
+    invoices,
   }
 })

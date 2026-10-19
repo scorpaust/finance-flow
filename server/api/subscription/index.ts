@@ -22,11 +22,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 405, message: 'Method not allowed' })
   }
 
-  let user = await User.findById(userId).select('subscription').lean<{ subscription?: IUserSubscription }>()
+  let user = await User.findById(userId).select('subscription fiscalId').lean<{ subscription?: IUserSubscription; fiscalId?: string | null }>()
   // Upgrade 01 — plano da Google Play com o período já passado: a renovação
   // pode ter acontecido sem a notificação da Google ter chegado. Lê de novo.
   if (await refreshPlayIfStale(user?.subscription)) {
-    user = await User.findById(userId).select('subscription').lean<{ subscription?: IUserSubscription }>()
+    user = await User.findById(userId).select('subscription fiscalId').lean<{ subscription?: IUserSubscription; fiscalId?: string | null }>()
   }
   const subscription = user?.subscription || DEFAULT_SUBSCRIPTION
 
@@ -36,5 +36,6 @@ export default defineEventHandler(async (event) => {
 
   // O client decide a UI a partir de `subscription.tier` — tem de bater com o que
   // o servidor realmente aplica (ver effectiveTier em shared/features.ts).
-  return { subscription: { ...subscription, tier: effectiveTier(subscription) }, daysUntilExpiry }
+  // Upgrade 11 — NIF guardado para as faturas (pré-preenche o campo do pagamento).
+  return { subscription: { ...subscription, tier: effectiveTier(subscription) }, daysUntilExpiry, fiscalId: user?.fiscalId || '' }
 })

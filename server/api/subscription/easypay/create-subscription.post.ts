@@ -5,6 +5,7 @@ import { User } from '../../../models'
 import { getServerLocale, serverT } from '../../../utils/i18n'
 import { enforceRateLimit } from '../../../utils/rateLimit'
 import { z } from 'zod'
+import { isValidPortugueseNif, normalizeFiscalId } from '../../../../shared/fiscalId'
 import { validateBody } from '../../../utils/validate'
 import { assertNoActiveAutoRenew, assertNoActivePlaySubscription } from '../../../utils/subscriptionGuard'
 
@@ -21,17 +22,21 @@ export default defineEventHandler(async (event) => {
   // do lado da EasyPay e pode ser usado para enumerar/abusar o fluxo).
   await enforceRateLimit(event, { name: 'checkout-create', limit: 10, windowSeconds: 60 * 60, identity: userId })
   const locale = getServerLocale(event)
-  const { tier, method } = await validateBody(
+  const { tier, method, fiscalId } = await validateBody(
     event,
     z.object({
       tier: z.enum(['pro', 'premium'], 'subscriptionApi.invalidTier'),
       method: z.enum(['cc', 'dd'], 'subscriptionApi.invalidMethodCcDd'),
+      // Upgrade 11 — NIF opcional para a fatura (vazio = Consumidor final).
+      fiscalId: z.string().max(20).optional().refine((v) => !v || !normalizeFiscalId(v) || isValidPortugueseNif(v), 'subscriptionApi.invalidFiscalId'),
     })
   )
 
   await assertNoActiveAutoRenew(event, userId)
   await assertNoActivePlaySubscription(event, userId)
 
+  // Guardados para a fatura deste pagamento (emitida quando a EasyPay o confirmar).
+  await User.updateOne({ _id: userId }, { $set: { billingLocale: locale, ...(fiscalId !== undefined ? { fiscalId: normalizeFiscalId(fiscalId) || null } : {}) } })
   const user = await User.findById(userId).select('name email').lean<{ name: string; email: string }>()
   if (!user) throw createError({ statusCode: 404, message: serverT(locale, 'subscriptionApi.userNotFound') })
 

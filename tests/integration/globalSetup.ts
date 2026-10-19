@@ -53,6 +53,8 @@ export default async function setup() {
     INVOICEXPRESS_ACCOUNT: 'conta-teste',
     INVOICEXPRESS_API_KEY: 'test-key',
     INVOICEXPRESS_API_BASE_URL: stub.baseUrl,
+    // Em produção só se fatura com EASYPAY_ENV=production; os testes usam a "sandbox".
+    INVOICING_ALLOW_SANDBOX: 'true',
     APP_URL: 'https://app.example.test',
     TWELVE_DATA_API_KEY: 'test-key',
     TWELVE_DATA_API_BASE_URL: stub.baseUrl,

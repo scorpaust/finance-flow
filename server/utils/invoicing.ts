@@ -50,6 +50,12 @@ const EMAIL: Record<ServerLocale, { subject: (n: string) => string; body: (name:
 
 const IX_LANGUAGE: Record<ServerLocale, 'pt' | 'en' | 'es'> = { 'pt-PT': 'pt', en: 'en', fr: 'en', de: 'en', it: 'en', es: 'es' }
 
+export function invoicingEnabled(): boolean {
+  const env = process.env.EASYPAY_ENV || useRuntimeConfig().easypayEnv
+  // INVOICING_ALLOW_SANDBOX só existe nos testes de integração.
+  return env === 'production' || process.env.INVOICING_ALLOW_SANDBOX === 'true'
+}
+
 export async function resolveAmount(tier: 'pro' | 'premium', periodMonths: number, prepaid: boolean, value?: unknown): Promise<number> {
   const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
   if (Number.isFinite(n) && n > 0) return Math.round(n * 100) / 100
@@ -67,6 +73,9 @@ export async function invoicePayment(input: {
   prepaid: boolean
   value?: unknown
 }): Promise<void> {
+  // Pagamentos da sandbox da EasyPay nunca geram fatura (nem pendente: o cron
+  // emiti-la-ia a sério quando o InvoiceXpress fosse configurado).
+  if (!invoicingEnabled()) return
   try {
     const existing = await Invoice.findOne({ paymentId: input.paymentId })
     if (existing) {

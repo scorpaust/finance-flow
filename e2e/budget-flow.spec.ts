@@ -28,7 +28,7 @@ test.use({ extraHTTPHeaders: { 'x-forwarded-for': '10.42.0.2' } })
 test('pedir a proposta, aplicar e ver os limites nos grupos; desfazer', async ({ page }) => {
   const email = `e2e-budget-${Date.now()}@example.com`
 
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Orçamento E2E')
   await page.getByTestId('login-email').fill(email)

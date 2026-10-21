@@ -1,9 +1,20 @@
+import { landingLocaleFromPath, landingSlugFor } from '~/shared/landing'
+
+// Upgrade 12 — quem chega à raiz sem sessão vê a página de apresentação na sua
+// língua (/pt, /en, …); na app Android (cookie `ff_native`, gravado por
+// plugins/native-flag.client.ts) vai direto para o login.
+function anonymousTarget(path: string): string {
+  if (path !== '/' || useCookie('ff_native').value) return '/login'
+  const i18n = useNuxtApp().$i18n as { locale: { value: string } }
+  return `/${landingSlugFor(i18n.locale.value)}`
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   // /privacy e /terms têm de ser públicas: são obrigatórias para a Play Store
   // e têm de ser legíveis antes de criar conta. Upgrade 05 — a recuperação de
   // password também (quem a usa não tem sessão).
   const publicRoutes = ['/login', '/privacy', '/terms', '/forgot-password', '/reset-password', '/help']
-  const isPublic = publicRoutes.some(r => to.path.startsWith(r))
+  const isPublic = publicRoutes.some(r => to.path.startsWith(r)) || landingLocaleFromPath(to.path) !== null
   if (isPublic) return
 
   if (import.meta.server) {
@@ -21,7 +32,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // teste num dispositivo Android real).
     const sessionCookie = useCookie('session')
     if (!sessionCookie.value) {
-      return navigateTo('/login')
+      return navigateTo(anonymousTarget(to.path))
     }
     return
   }
@@ -33,6 +44,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   await auth.fetchSession()
 
   if (!auth.isAuthenticated) {
-    return navigateTo('/login')
+    return navigateTo(anonymousTarget(to.path))
   }
 })

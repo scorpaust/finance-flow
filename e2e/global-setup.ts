@@ -22,7 +22,8 @@ export default async function globalSetup() {
     // As rotas protegidas (middleware/auth.global.ts) redirecionam para
     // /login sem sessão — sem uma conta, o Vite nunca chegaria a descobrir
     // as dependências dessas páginas.
-    await page.goto(`${base}/`, { timeout: 120_000 })
+    await page.goto(`${base}/en`, { timeout: 120_000 })
+    await page.goto(`${base}/login`, { timeout: 120_000 })
     await page.getByTestId('login-tab-register').click()
     await page.getByTestId('login-name').fill('Warmup')
     await page.getByTestId('login-email').fill(`e2e-warmup-${Date.now()}@example.com`)

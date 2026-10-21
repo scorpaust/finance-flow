@@ -26,5 +26,5 @@ const route = useRoute()
 const fromPage = computed(() => (typeof route.query.from === 'string' ? route.query.from : undefined))
 // O contacto publicado nos Termos (o mesmo de server/utils/emailTemplates.ts).
 const SUPPORT_EMAIL = 'dinismiguelcosta@gmail.com'
-useHead({ title: computed(() => t('feedback.title')) })
+useHead({ title: computed(() => t('feedback.title')), meta: [{ name: 'robots', content: 'noindex' }] })
 </script>

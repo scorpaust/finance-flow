@@ -532,6 +532,62 @@
       "security": "Ouvrir les paramètres"
     }
   },
+  "landing": {
+    "metaTitle": "FinanceFlow — finances personnelles avec IA : dépenses, budgets et prévisions",
+    "metaDescription": "Suis tes dépenses et revenus, fixe des budgets par groupe, scanne tes reçus et obtiens prévisions et statistiques par IA. Gratuit, sur le web et Android.",
+    "heroTitle": "Tes finances, claires et maîtrisées",
+    "heroSubtitle": "Enregistre tes dépenses en quelques secondes, fixe des budgets qui marchent et laisse l'IA te montrer où va ton argent — et où il ira ensuite.",
+    "ctaStart": "Commencer gratuitement",
+    "ctaOpenApp": "Ouvrir l'app",
+    "ctaPlay": "Disponible sur Google Play",
+    "signIn": "Se connecter",
+    "heroNote": "Gratuit pour toujours avec la formule Gratuite. Sans carte.",
+    "featuresTitle": "Tout ce qu’il faut pour gérer ton argent",
+    "features": {
+      "track": {
+        "title": "Dépenses et revenus en quelques secondes",
+        "text": "Enregistre chaque mouvement avec catégorie et date, ou scanne le reçu et laisse l'IA remplir."
+      },
+      "budgets": {
+        "title": "Budgets par groupe",
+        "text": "Regroupe des catégories (maison, loisirs…), fixe un plafond et sois prévenu avant de le dépasser."
+      },
+      "ai": {
+        "title": "Statistiques expliquées par l'IA",
+        "text": "Graphiques par catégorie et par mois, avec des conseils concrets pour épargner — en langage simple."
+      },
+      "forecasts": {
+        "title": "Prévisions et budget suggéré",
+        "text": "Vois combien tu vas dépenser les prochains mois et reçois une proposition de budget basée sur ton historique."
+      },
+      "invest": {
+        "title": "Portefeuille d'investissements",
+        "text": "Suis actions, ETF et autres actifs, leur valeur, et reçois des conseils pédagogiques adaptés à ton profil."
+      },
+      "security": {
+        "title": "Privé et sécurisé",
+        "text": "Authentification à deux facteurs, verrouillage biométrique sur Android, et tes données ne sont jamais vendues."
+      }
+    },
+    "screensTitle": "Pensée pour le mobile, parfaite sur l'ordinateur",
+    "screens": {
+      "dashboard": "Tableau de bord du mois",
+      "transactions": "Liste des transactions",
+      "stats": "Statistiques par catégorie",
+      "investments": "Portefeuille d'investissements"
+    },
+    "plansTitle": "Des formules simples, sans surprise",
+    "plansSubtitle": "Commence gratuitement et change de formule quand tu veux. Résiliable à tout moment.",
+    "perMonth": "/mois",
+    "free": "Gratuit",
+    "popular": "Le plus choisi",
+    "planCta": "Choisir",
+    "faqTitle": "Questions fréquentes",
+    "faqMore": "Voir toute l'aide",
+    "finalTitle": "Prêt à remettre tes finances en ordre ?",
+    "finalText": "Crée ton compte en moins d’une minute.",
+    "footerLanguages": "Langues"
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

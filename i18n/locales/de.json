@@ -532,6 +532,62 @@
       "security": "Einstellungen öffnen"
     }
   },
+  "landing": {
+    "metaTitle": "FinanceFlow — Finanzen mit KI: Ausgaben, Budgets und Prognosen",
+    "metaDescription": "Erfasse Ausgaben und Einnahmen, lege Budgets nach Gruppen fest, scanne Belege und erhalte KI-Prognosen und Statistiken. Kostenlos, im Web und auf Android.",
+    "heroTitle": "Deine Finanzen, klar und im Griff",
+    "heroSubtitle": "Erfasse Ausgaben in Sekunden, lege Budgets fest, die funktionieren, und lass dir von der KI zeigen, wohin dein Geld geht — und wohin es als Nächstes geht.",
+    "ctaStart": "Kostenlos starten",
+    "ctaOpenApp": "App öffnen",
+    "ctaPlay": "Jetzt bei Google Play",
+    "signIn": "Anmelden",
+    "heroNote": "Im kostenlosen Plan für immer gratis. Keine Karte nötig.",
+    "featuresTitle": "Alles, was du für deine Finanzen brauchst",
+    "features": {
+      "track": {
+        "title": "Ausgaben und Einnahmen in Sekunden",
+        "text": "Erfasse jede Buchung mit Kategorie und Datum, oder scanne den Beleg und lass die KI ausfüllen."
+      },
+      "budgets": {
+        "title": "Budgets nach Gruppen",
+        "text": "Fasse Kategorien zu Gruppen zusammen (Wohnen, Freizeit…), setze ein Limit und werde gewarnt, bevor du es überschreitest."
+      },
+      "ai": {
+        "title": "Statistiken, von der KI erklärt",
+        "text": "Diagramme nach Kategorie und Monat, mit konkreten Spartipps — in einfacher Sprache."
+      },
+      "forecasts": {
+        "title": "Prognosen und Budgetvorschlag",
+        "text": "Sieh, wie viel du in den nächsten Monaten ausgibst, und erhalte einen Budgetvorschlag auf Basis deiner Historie."
+      },
+      "invest": {
+        "title": "Anlage-Portfolio",
+        "text": "Erfasse Aktien, ETFs und andere Werte, verfolge ihren Wert und erhalte Lerntipps passend zu deinem Profil."
+      },
+      "security": {
+        "title": "Privat und sicher",
+        "text": "Zwei-Faktor-Authentifizierung, biometrische Sperre auf Android, und deine Daten werden nie verkauft."
+      }
+    },
+    "screensTitle": "Fürs Handy gemacht, top am Computer",
+    "screens": {
+      "dashboard": "Übersicht über den Monat",
+      "transactions": "Liste der Buchungen",
+      "stats": "Statistiken nach Kategorie",
+      "investments": "Anlage-Portfolio"
+    },
+    "plansTitle": "Einfache Pläne, keine Überraschungen",
+    "plansSubtitle": "Starte kostenlos und wechsle den Plan, wann du willst. Jederzeit kündbar.",
+    "perMonth": "/Monat",
+    "free": "Kostenlos",
+    "popular": "Am beliebtesten",
+    "planCta": "Wählen",
+    "faqTitle": "Häufige Fragen",
+    "faqMore": "Gesamte Hilfe ansehen",
+    "finalTitle": "Bereit, deine Finanzen zu ordnen?",
+    "finalText": "Erstelle dein Konto in weniger als einer Minute.",
+    "footerLanguages": "Sprachen"
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

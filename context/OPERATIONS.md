@@ -400,6 +400,29 @@ com subscrição paga em curso.
 - **Google Play:** faturar à Google Commerce Ltd o valor recebido no mês
   (relatório de pagamentos da Play Console).
 
+## Google Search Console (Upgrade 12)
+
+Para o Google indexar as páginas de apresentação e mostrar como o site aparece
+nas pesquisas:
+
+1. Em https://search.google.com/search-console, adicionar uma propriedade do
+   tipo **Domínio**: `financeflow-webapp.pt`.
+2. Verificar com o registo **TXT** que o Google indica, no DNS do domínio (no
+   mesmo sítio onde estão os registos da Netlify e da Resend). Pode demorar
+   algumas horas.
+3. Em **Sitemaps**, submeter `https://www.financeflow-webapp.pt/sitemap.xml`.
+4. Em **Inspeção de URL**, pedir a indexação de `/pt` e `/en`.
+5. Ligar a Search Console à Play Console (Utilizadores e permissões →
+   associar), para o Google ligar o site à app.
+
+Validar a partilha social:
+- Facebook: https://developers.facebook.com/tools/debug/;
+- LinkedIn: https://www.linkedin.com/post-inspector/;
+- X: colar o link num rascunho.
+
+Regenerar as imagens (gráficos ou capturas da loja novos):
+`node scripts/gen-landing-assets.mjs . public`.
+
 ## Rollback
 
 - **Web** (a maioria dos problemas, incluindo na app Android): Netlify →

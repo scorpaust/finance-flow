@@ -33,5 +33,5 @@ const { t } = useI18n()
 const auth = useAuthStore()
 // O contacto publicado nos Termos.
 const SUPPORT_EMAIL = 'dinismiguelcosta@gmail.com'
-useHead({ title: computed(() => t('help.title')) })
+usePublicSeo({ title: () => t('help.title'), description: () => t('help.subtitle'), path: '/help' })
 </script>

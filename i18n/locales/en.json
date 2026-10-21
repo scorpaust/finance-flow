@@ -532,6 +532,62 @@
       "security": "Open settings"
     }
   },
+  "landing": {
+    "metaTitle": "FinanceFlow — AI personal finance: expenses, budgets and forecasts",
+    "metaDescription": "Track expenses and income, set group budgets, scan receipts and get AI forecasts and statistics. Start for free, on the web and on Android.",
+    "heroTitle": "Your finances, clear and under control",
+    "heroSubtitle": "Log expenses in seconds, set budgets that actually work and let AI show you where your money goes — and where it is heading.",
+    "ctaStart": "Start for free",
+    "ctaOpenApp": "Open the app",
+    "ctaPlay": "Get it on Google Play",
+    "signIn": "Sign in",
+    "heroNote": "Free forever on the Free plan. No card needed.",
+    "featuresTitle": "Everything you need to manage your money",
+    "features": {
+      "track": {
+        "title": "Expenses and income in seconds",
+        "text": "Log every transaction with a category and date, or scan the receipt and let AI fill it in."
+      },
+      "budgets": {
+        "title": "Group budgets",
+        "text": "Combine categories into groups (home, leisure…), set a limit and get a heads-up before you go over."
+      },
+      "ai": {
+        "title": "Statistics explained by AI",
+        "text": "Charts by category and month, with concrete tips to save — in plain language."
+      },
+      "forecasts": {
+        "title": "Forecasts and a suggested budget",
+        "text": "See how much you will spend in the coming months and get a budget proposal based on your history."
+      },
+      "invest": {
+        "title": "Investment portfolio",
+        "text": "Track stocks, ETFs and other assets, follow their value and get educational tips for your profile."
+      },
+      "security": {
+        "title": "Private and secure",
+        "text": "Two-factor authentication, biometric lock on Android, and your data is never sold."
+      }
+    },
+    "screensTitle": "Built for your phone, great on your computer",
+    "screens": {
+      "dashboard": "Dashboard with the month at a glance",
+      "transactions": "Transaction list",
+      "stats": "Statistics by category",
+      "investments": "Investment portfolio"
+    },
+    "plansTitle": "Simple plans, no surprises",
+    "plansSubtitle": "Start for free and switch plans whenever you like. Cancel anytime.",
+    "perMonth": "/month",
+    "free": "Free",
+    "popular": "Most popular",
+    "planCta": "Choose",
+    "faqTitle": "Frequently asked questions",
+    "faqMore": "See all help",
+    "finalTitle": "Ready to get your finances in order?",
+    "finalText": "Create your account in under a minute.",
+    "footerLanguages": "Languages"
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

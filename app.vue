@@ -30,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import { SITE_URL, landingLocaleFromPath, landingSlugFor } from '~/shared/landing'
+
 const { t, locale } = useI18n()
 
 // Lighthouse (2026-10-08) — <html lang> e descrição da página no idioma ativo
@@ -38,6 +40,19 @@ const { t, locale } = useI18n()
 useHead({
   htmlAttrs: { lang: () => locale.value },
   meta: [{ name: 'description', content: () => t('meta.description') }],
+})
+// Upgrade 12 — partilha em redes sociais (Open Graph e cartões do X). Imagem na
+// língua ativa; as páginas públicas acrescentam título, descrição e endereço.
+useSeoMeta({
+  ogSiteName: 'FinanceFlow',
+  ogType: 'website',
+  ogTitle: 'FinanceFlow',
+  ogDescription: () => t('meta.description'),
+  ogImage: () => `${SITE_URL}/og/og-${landingSlugFor(locale.value)}.png`,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  ogImageAlt: 'FinanceFlow',
+  twitterCard: 'summary_large_image',
 })
 const auth = useAuthStore()
 const appLock = useAppLockStore()
@@ -50,9 +65,10 @@ const route = useRoute()
 // lê; o resultado viaja no payload para a hidratação dar o mesmo HTML. Com
 // cookie (pode haver sessão) fica tudo como antes.
 const hadSessionCookie = useState('had-session-cookie', () => !!useCookie('session').value)
-const PUBLIC_ROUTES = ['/login', '/privacy', '/terms']
+const PUBLIC_ROUTES = ['/login', '/privacy', '/terms', '/help']
 const showLoadingScreen = computed(() =>
-  auth.loading && !(PUBLIC_ROUTES.some(r => route.path.startsWith(r)) && !hadSessionCookie.value)
+  auth.loading &&
+  !((PUBLIC_ROUTES.some(r => route.path.startsWith(r)) || landingLocaleFromPath(route.path)) && !hadSessionCookie.value)
 )
 
 // A sessão é carregada por plugins/init.client.ts antes da 1.ª navegação; o

@@ -532,6 +532,62 @@
       "security": "Apri le impostazioni"
     }
   },
+  "landing": {
+    "metaTitle": "FinanceFlow — finanze personali con IA: spese, budget e previsioni",
+    "metaDescription": "Tieni traccia di spese ed entrate, imposta budget per gruppo, scansiona le ricevute e ottieni previsioni e statistiche con l'IA. Gratis, sul web e su Android.",
+    "heroTitle": "Le tue finanze, chiare e sotto controllo",
+    "heroSubtitle": "Registra le spese in pochi secondi, imposta budget che funzionano e lascia che l'IA ti mostri dove vanno i tuoi soldi — e dove andranno.",
+    "ctaStart": "Inizia gratis",
+    "ctaOpenApp": "Apri l'app",
+    "ctaPlay": "Disponibile su Google Play",
+    "signIn": "Accedi",
+    "heroNote": "Gratis per sempre con il piano Gratuito. Senza carta.",
+    "featuresTitle": "Tutto ciò che ti serve per gestire i tuoi soldi",
+    "features": {
+      "track": {
+        "title": "Spese ed entrate in pochi secondi",
+        "text": "Registra ogni movimento con categoria e data, oppure scansiona la ricevuta e lascia compilare all'IA."
+      },
+      "budgets": {
+        "title": "Budget per gruppo",
+        "text": "Raggruppa le categorie (casa, svago…), imposta un tetto e ricevi un avviso prima di superarlo."
+      },
+      "ai": {
+        "title": "Statistiche spiegate dall'IA",
+        "text": "Grafici per categoria e mese, con consigli concreti per risparmiare — in parole semplici."
+      },
+      "forecasts": {
+        "title": "Previsioni e budget suggerito",
+        "text": "Scopri quanto spenderai nei prossimi mesi e ricevi una proposta di budget basata sul tuo storico."
+      },
+      "invest": {
+        "title": "Portafoglio di investimenti",
+        "text": "Registra azioni, ETF e altri titoli, seguine il valore e ricevi consigli didattici adatti al tuo profilo."
+      },
+      "security": {
+        "title": "Privato e sicuro",
+        "text": "Autenticazione a due fattori, blocco biometrico su Android e i tuoi dati non vengono mai venduti."
+      }
+    },
+    "screensTitle": "Pensata per il telefono, perfetta sul computer",
+    "screens": {
+      "dashboard": "Riepilogo del mese",
+      "transactions": "Elenco delle transazioni",
+      "stats": "Statistiche per categoria",
+      "investments": "Portafoglio di investimenti"
+    },
+    "plansTitle": "Piani semplici, senza sorprese",
+    "plansSubtitle": "Inizia gratis e cambia piano quando vuoi. Disdici in qualsiasi momento.",
+    "perMonth": "/mese",
+    "free": "Gratuito",
+    "popular": "Il più scelto",
+    "planCta": "Scegli",
+    "faqTitle": "Domande frequenti",
+    "faqMore": "Vedi tutto l'aiuto",
+    "finalTitle": "Pronto a mettere ordine nelle tue finanze?",
+    "finalText": "Crea il tuo account in meno di un minuto.",
+    "footerLanguages": "Lingue"
+  },
   "investment": {
     "assetClass": {
       "etf": "ETF",

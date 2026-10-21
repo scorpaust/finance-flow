@@ -69,7 +69,7 @@ const errorMessage = ref('')
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 
-useHead({ title: computed(() => t('passwordReset.forgotTitle')) })
+usePublicSeo({ title: () => t('passwordReset.forgotTitle'), path: '/forgot-password', noindex: true })
 
 async function submit() {
   loading.value = true

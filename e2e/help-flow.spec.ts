@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test'
 test.use({ extraHTTPHeaders: { 'x-forwarded-for': '10.42.0.8' } })
 
 test('conta nova vê os primeiros passos e registar uma despesa marca o passo', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Primeiros Passos E2E')
   await page.getByTestId('login-email').fill(`e2e-onboarding-${Date.now()}@example.com`)

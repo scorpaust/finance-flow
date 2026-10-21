@@ -1,10 +1,14 @@
 # Funcionalidade Atual
 
-<!-- Ver especificação completa em context/features/upgrades/11-producao-e-faturacao.md -->
+<!-- Ver especificação completa em context/features/upgrades/12-apresentacao-e-seo.md -->
 
 ## Estado
 
-**Upgrade 11 — passagem a produção e faturação (InvoiceXpress): Em progresso**
+**Upgrade 12 — páginas de apresentação por língua, SEO e partilha social: Em
+progresso** (2026-10-21; `context/features/upgrades/12-apresentacao-e-seo.md`).
+Branch `feature/upgrade-12-landing-seo`.
+
+**Upgrade 11 — passagem a produção e faturação (InvoiceXpress): Em produção** (EasyPay real desde 2026-10-20; Google Play aprovada para produção a 2026-10-21)
 (2026-10-19; `context/features/upgrades/11-producao-e-faturacao.md`). Branch
 `feature/upgrade-11-producao`.
 

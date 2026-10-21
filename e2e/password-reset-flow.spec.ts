@@ -17,7 +17,7 @@ test('esqueci-me da password: pedir o link, definir a nova e entrar com ela', as
   const email = `e2e-reset-${Date.now()}@example.com`
 
   // Conta nova, e sair.
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Recuperação E2E')
   await page.getByTestId('login-email').fill(email)

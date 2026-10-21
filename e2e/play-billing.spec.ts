@@ -18,7 +18,7 @@ const PASSWORD = randomUUID()
 test.use({ extraHTTPHeaders: { 'x-forwarded-for': '10.42.0.1' } })
 
 async function registerViaUi(page: import('@playwright/test').Page, email: string) {
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Teste E2E')
   await page.getByTestId('login-email').fill(email)

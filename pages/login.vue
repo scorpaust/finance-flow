@@ -256,13 +256,15 @@ definePageMeta({ layout: false })
 const auth = useAuthStore()
 const toast = useToastStore()
 const { t } = useI18n()
+usePublicSeo({ title: () => t('landing.signIn'), path: '/login' })
 const loading = ref(false)
 const errorMessage = ref('')
-const mode = ref<'login' | 'register'>('login')
-const step = ref<'credentials' | 'twoFactor'>('credentials')
-const twoFactorCode = ref('')
 // Upgrade 05 — chegada depois de definir uma nova password (/reset-password).
 const route = useRoute()
+// Upgrade 12 — "Começar grátis" na página de apresentação abre já o registo.
+const mode = ref<'login' | 'register'>(route.query.mode === 'register' ? 'register' : 'login')
+const step = ref<'credentials' | 'twoFactor'>('credentials')
+const twoFactorCode = ref('')
 const passwordWasReset = computed(() => route.query.reset === '1')
 
 const form = reactive({

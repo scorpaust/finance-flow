@@ -11,7 +11,7 @@ test.use({ extraHTTPHeaders: { 'x-forwarded-for': '10.42.0.5' } })
 
 test('enviar uma mensagem de ajuda a partir das Definições', async ({ page }) => {
   const email = `e2e-feedback-${Date.now()}@example.com`
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Opinião E2E')
   await page.getByTestId('login-email').fill(email)

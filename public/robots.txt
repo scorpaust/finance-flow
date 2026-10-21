@@ -1,7 +1,9 @@
-# FinanceFlow — só as páginas públicas interessam a motores de pesquisa;
-# o resto exige sessão. A API nunca é indexada.
+# FinanceFlow — páginas públicas: apresentação por língua, ajuda e textos
+# legais. O resto exige sessão; a API nunca é indexada.
 User-agent: *
-Allow: /login
-Allow: /privacy
-Allow: /terms
+Allow: /
 Disallow: /api/
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://www.financeflow-webapp.pt/sitemap.xml

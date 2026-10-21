@@ -51,7 +51,7 @@ function uniqueEmail(label: string): string {
 const PASSWORD = randomUUID()
 
 async function registerViaUi(page: import('@playwright/test').Page, opts: { email: string; name?: string }) {
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   if (opts.name) await page.getByTestId('login-name').fill(opts.name)
   await page.getByTestId('login-email').fill(opts.email)

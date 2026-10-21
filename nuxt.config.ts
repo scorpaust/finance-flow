@@ -310,7 +310,9 @@ export default defineNuxtConfig({
         // Mesmo logótipo do ícone Android/manifest PWA (Fase 4, tarefa 6) —
         // sem isto o browser não tinha favicon explícito nenhum.
         { rel: 'icon', type: 'image/svg+xml', href: '/icons/icon-192x192.svg' },
-        { rel: 'apple-touch-icon', href: '/icons/icon-192x192.svg' },
+        // Upgrade 12 — PNG: o iOS e as redes sociais ignoram ícones em SVG.
+        { rel: 'icon', type: 'image/png', sizes: '48x48', href: '/favicon-48.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/apple-touch-icon.png' },
       ],
       meta: [
         // Sem maximum-scale/user-scalable=no: bloquear o pinch-zoom falha o

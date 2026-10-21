@@ -20,7 +20,7 @@ async function chooseCurrency(page: import('@playwright/test').Page, code: strin
 
 test('mudar a moeda para dólares e voltar ao euro', async ({ page, request }) => {
   const email = `e2e-fx-${Date.now()}@example.com`
-  await page.goto('/')
+  await page.goto('/login')
   await page.getByTestId('login-tab-register').click()
   await page.getByTestId('login-name').fill('Teste Moeda')
   await page.getByTestId('login-email').fill(email)

@@ -85,7 +85,7 @@ const linkExpired = ref(false)
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 
-useHead({ title: computed(() => t('passwordReset.resetTitle')) })
+usePublicSeo({ title: () => t('passwordReset.resetTitle'), path: '/reset-password', noindex: true })
 
 async function submit() {
   errorMessage.value = ''

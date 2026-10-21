@@ -38,5 +38,5 @@ const content = computed(() => {
   return docs[locale.value as LegalLocale] || docs.en
 })
 
-useHead({ title: computed(() => content.value.title) })
+usePublicSeo({ title: () => content.value.title, path: `/${props.doc}` })
 </script>

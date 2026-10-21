@@ -5,8 +5,17 @@
 ## Estado
 
 **Upgrade 12 — páginas de apresentação por língua, SEO e partilha social: Em
-progresso** (2026-10-21; `context/features/upgrades/12-apresentacao-e-seo.md`).
-Branch `feature/upgrade-12-landing-seo`.
+produção** (deploy de 2026-10-22; `context/features/upgrades/12-apresentacao-e-seo.md`).
+
+Verificado em produção:
+- `/` sem sessão redireciona para a língua (`/de` com browser em alemão);
+- as 6 páginas com canónico, 7 `hreflang` e `og:image` por língua;
+- 2 blocos de dados estruturados;
+- `/sitemap.xml` e `robots.txt`;
+- caminho desconhecido dá 404.
+
+Falta do operador: Google Search Console (domínio, sitemap, indexação) e
+validar a partilha no depurador do Facebook.
 
 **Upgrade 11 — passagem a produção e faturação (InvoiceXpress): Em produção** (EasyPay real desde 2026-10-20; Google Play aprovada para produção a 2026-10-21)
 (2026-10-19; `context/features/upgrades/11-producao-e-faturacao.md`). Branch

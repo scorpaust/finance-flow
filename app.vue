@@ -30,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import { isBlogPath } from '~/shared/blog'
 import { SITE_URL, landingLocaleFromPath, landingSlugFor } from '~/shared/landing'
 
 const { t, locale } = useI18n()
@@ -68,7 +69,7 @@ const hadSessionCookie = useState('had-session-cookie', () => !!useCookie('sessi
 const PUBLIC_ROUTES = ['/login', '/privacy', '/terms', '/help']
 const showLoadingScreen = computed(() =>
   auth.loading &&
-  !((PUBLIC_ROUTES.some(r => route.path.startsWith(r)) || landingLocaleFromPath(route.path)) && !hadSessionCookie.value)
+  !((PUBLIC_ROUTES.some(r => route.path.startsWith(r)) || landingLocaleFromPath(route.path) || isBlogPath(route.path)) && !hadSessionCookie.value)
 )
 
 // A sessão é carregada por plugins/init.client.ts antes da 1.ª navegação; o

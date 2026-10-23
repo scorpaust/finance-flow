@@ -1037,6 +1037,14 @@
     "documentScanMore": "Bis zu {n} Dokumente/Monat scannen",
     "prioritySupport": "Bevorzugter Support"
   },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Praktische Tipps zum Sparen, Budgetieren und für den Überblick über deine Finanzen.",
+    "allPosts": "Alle Artikel",
+    "readingTime": "{n} Min. Lesezeit",
+    "ctaTitle": "Setz es mit FinanceFlow in die Praxis um",
+    "ctaText": "Erfasse Ausgaben in Sekunden, lege Limits pro Kategorie fest und erhalte eine Warnung, bevor du sie überschreitest. Kostenlos starten."
+  },
   "meta": {
     "description": "FinanceFlow: Ausgaben, Budgets und Investitionen im Blick, mit KI-Prognosen und -Analysen."
   }

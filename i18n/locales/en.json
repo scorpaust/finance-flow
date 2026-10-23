@@ -1037,6 +1037,14 @@
     "documentScanMore": "Scan up to {n} documents/month",
     "prioritySupport": "Priority support"
   },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Practical tips to save money, build a budget and take control of your finances.",
+    "allPosts": "All articles",
+    "readingTime": "{n} min read",
+    "ctaTitle": "Put this into practice with FinanceFlow",
+    "ctaText": "Log expenses in seconds, set limits per category and get an alert before you go over. Start for free."
+  },
   "meta": {
     "description": "FinanceFlow: track spending, budgets and investments, with AI forecasts and insights."
   }

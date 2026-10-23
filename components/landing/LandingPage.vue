@@ -143,6 +143,7 @@
     <!-- Rodapé -->
     <footer class="max-w-6xl mx-auto px-4 sm:px-8 py-10 border-t border-white/10 text-sm text-white/50 flex flex-col sm:flex-row gap-6 justify-between">
       <div class="flex flex-wrap gap-4">
+        <NuxtLink v-if="hasBlog" :to="`/${slug}/blog`" class="hover:text-white" data-testid="landing-blog">{{ t('blog.title') }}</NuxtLink>
         <NuxtLink to="/help" class="hover:text-white">{{ t('help.title') }}</NuxtLink>
         <NuxtLink to="/privacy" class="hover:text-white">{{ t('legal.privacy') }}</NuxtLink>
         <NuxtLink to="/terms" class="hover:text-white">{{ t('legal.terms') }}</NuxtLink>
@@ -167,6 +168,7 @@
 
 <script setup lang="ts">
 import { BarChart3, Brain, Check, ChevronDown, PiggyBank, Receipt, ShieldCheck, Smartphone, TrendingUp } from 'lucide-vue-next'
+import { blogPostsFor } from '~/shared/blog'
 import { PLAN_HIGHLIGHTS } from '~/shared/features'
 import { HREFLANG, LANDING_FAQ_IDS, LANDING_SLUGS, OG_LOCALE, SITE_URL, playStoreUrl, type LandingSlug } from '~/shared/landing'
 import { HELP_CONTENT } from '~/utils/helpContent'
@@ -182,6 +184,7 @@ const auth = useAuthStore()
 const locale = computed(() => LANDING_SLUGS[props.slug])
 const playUrl = computed(() => playStoreUrl(locale.value))
 const year = new Date().getFullYear()
+const hasBlog = computed(() => blogPostsFor(props.slug).length > 0)
 const TIERS = ['free', 'pro', 'premium'] as const
 
 // Nomes de cada língua na própria língua (os mesmos do seletor, nuxt.config.ts).

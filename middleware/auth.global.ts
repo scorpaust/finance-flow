@@ -1,3 +1,4 @@
+import { isBlogPath } from '~/shared/blog'
 import { landingLocaleFromPath, landingSlugFor } from '~/shared/landing'
 
 // Upgrade 12 — quem chega à raiz sem sessão vê a página de apresentação na sua
@@ -14,7 +15,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // e têm de ser legíveis antes de criar conta. Upgrade 05 — a recuperação de
   // password também (quem a usa não tem sessão).
   const publicRoutes = ['/login', '/privacy', '/terms', '/forgot-password', '/reset-password', '/help']
-  const isPublic = publicRoutes.some(r => to.path.startsWith(r)) || landingLocaleFromPath(to.path) !== null
+  // Upgrade 13 — o blog (/pt/blog/…) também.
+  const isPublic = publicRoutes.some(r => to.path.startsWith(r)) || landingLocaleFromPath(to.path) !== null || isBlogPath(to.path)
   if (isPublic) return
 
   if (import.meta.server) {

@@ -1037,6 +1037,14 @@
     "documentScanMore": "Scansione fino a {n} documenti/mese",
     "prioritySupport": "Assistenza prioritaria"
   },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Consigli pratici per risparmiare, fare un budget e tenere sotto controllo le tue finanze.",
+    "allPosts": "Tutti gli articoli",
+    "readingTime": "{n} min di lettura",
+    "ctaTitle": "Mettilo in pratica con FinanceFlow",
+    "ctaText": "Registra le spese in pochi secondi, imposta limiti per categoria e ricevi un avviso prima di superarli. Inizia gratis."
+  },
   "meta": {
     "description": "FinanceFlow: controlla spese, budget e investimenti, con previsioni e analisi basate sull’IA."
   }

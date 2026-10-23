@@ -1037,6 +1037,14 @@
     "documentScanMore": "Numérisation jusqu’à {n} documents/mois",
     "prioritySupport": "Support prioritaire"
   },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Des conseils pratiques pour épargner, faire un budget et maîtriser vos finances.",
+    "allPosts": "Tous les articles",
+    "readingTime": "{n} min de lecture",
+    "ctaTitle": "Mettez-le en pratique avec FinanceFlow",
+    "ctaText": "Enregistrez vos dépenses en quelques secondes, fixez des limites par catégorie et recevez une alerte avant de les dépasser. Commencez gratuitement."
+  },
   "meta": {
     "description": "FinanceFlow : suis tes dépenses, budgets et investissements, avec prévisions et analyses par IA."
   }

@@ -1,3 +1,4 @@
+import { BLOG_POSTS, blogLangs } from '../../shared/blog'
 import { HREFLANG, LANDING_SLUGS, SITE_URL, type LandingSlug } from '../../shared/landing'
 
 // Upgrade 12 — mapa do site para os motores de pesquisa (referido no
@@ -22,10 +23,17 @@ export function buildSitemap(lastmod: string): string {
     { path: '/privacy', priority: '0.3' },
     { path: '/terms', priority: '0.3' },
   ].map((p) => `  <url>\n    <loc>${SITE_URL}${p.path}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${p.priority}</priority>\n  </url>`)
+  // Upgrade 13 — blog: a lista de cada língua com artigos e cada artigo (com a
+  // data da última alteração do próprio artigo).
+  const blog = [
+    ...blogLangs().map((s) => `  <url>\n    <loc>${SITE_URL}/${s}/blog</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`),
+    ...BLOG_POSTS.map((p) => `  <url>\n    <loc>${SITE_URL}/${p.lang}/blog/${p.slug}</loc>\n    <lastmod>${p.updated || p.published}</lastmod>\n    <priority>0.8</priority>\n  </url>`),
+  ]
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...landing,
+    ...blog,
     ...pages,
     '</urlset>',
     '',

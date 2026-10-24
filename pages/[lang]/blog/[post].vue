@@ -1,5 +1,5 @@
 <template>
-  <BlogShell :slug="slug">
+  <BlogShell :slug="slug" :languages="languages">
     <article v-if="post" data-testid="blog-article">
       <NuxtLink :to="`/${slug}/blog`" class="text-brand-300 hover:text-white text-sm">← {{ t('blog.allPosts') }}</NuxtLink>
       <h1 class="font-display font-bold text-3xl sm:text-4xl leading-tight mt-6">{{ post.title }}</h1>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { findBlogPost, readingMinutes } from '~/shared/blog'
+import { blogPostPath, findBlogPost, readingMinutes, translationsOf } from '~/shared/blog'
 import { HREFLANG, LANDING_SLUGS, OG_LOCALE, SITE_URL, isLandingSlug } from '~/shared/landing'
 
 // Upgrade 13 — um artigo do blog (/pt/blog/<slug>). Conteúdo em shared/blog/.
@@ -38,9 +38,11 @@ const slug = await useSlugLocale()
 const route = useRoute()
 const { t } = useI18n()
 const post = computed(() => findBlogPost(slug.value, String(route.params.post)))
+// O mesmo artigo nas outras línguas (rodapé e hreflang).
+const languages = computed(() => (post.value ? translationsOf(post.value) : []).map((p) => ({ lang: p.lang, path: blogPostPath(p) })))
 const formatDate = (d: string) => new Intl.DateTimeFormat(LANDING_SLUGS[slug.value], { dateStyle: 'long' }).format(new Date(`${d}T12:00:00Z`))
 
-const url = computed(() => `${SITE_URL}/${slug.value}/blog/${post.value?.slug}`)
+const url = computed(() => (post.value ? `${SITE_URL}${blogPostPath(post.value)}` : ''))
 const image = computed(() => `${SITE_URL}/og/og-${slug.value}.png`)
 useSeoMeta({
   title: () => `${post.value?.title} · FinanceFlow`,
@@ -57,7 +59,11 @@ useSeoMeta({
   robots: 'index, follow',
 })
 useHead(() => ({
-  link: [{ rel: 'canonical', href: url.value }],
+  link: [
+    { rel: 'canonical', href: url.value },
+    ...languages.value.map((l) => ({ rel: 'alternate', hreflang: HREFLANG[l.lang], href: `${SITE_URL}${l.path}` })),
+    ...languages.value.filter((l) => l.lang === 'en').map((l) => ({ rel: 'alternate', hreflang: 'x-default', href: `${SITE_URL}${l.path}` })),
+  ],
   script: post.value
     ? [{
         type: 'application/ld+json',

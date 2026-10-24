@@ -1,4 +1,4 @@
-import { BLOG_POSTS, blogLangs } from '../../shared/blog'
+import { BLOG_POSTS, blogLangs, blogPostPath, translationsOf, type BlogPost } from '../../shared/blog'
 import { HREFLANG, LANDING_SLUGS, SITE_URL, type LandingSlug } from '../../shared/landing'
 
 // Upgrade 12 — mapa do site para os motores de pesquisa (referido no
@@ -10,6 +10,16 @@ function alternates(): string {
   return [
     ...slugs.map((s) => `    <xhtml:link rel="alternate" hreflang="${HREFLANG[s]}" href="${SITE_URL}/${s}"/>`),
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}/en"/>`,
+  ].join('\n')
+}
+
+// As traduções de um artigo (o próprio incluído).
+function postAlternates(post: BlogPost): string {
+  const all = translationsOf(post)
+  const en = all.find((p) => p.lang === 'en')
+  return [
+    ...all.map((p) => `    <xhtml:link rel="alternate" hreflang="${HREFLANG[p.lang]}" href="${SITE_URL}${blogPostPath(p)}"/>`),
+    ...(en ? [`    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${blogPostPath(en)}"/>`] : []),
   ].join('\n')
 }
 
@@ -27,7 +37,7 @@ export function buildSitemap(lastmod: string): string {
   // data da última alteração do próprio artigo).
   const blog = [
     ...blogLangs().map((s) => `  <url>\n    <loc>${SITE_URL}/${s}/blog</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`),
-    ...BLOG_POSTS.map((p) => `  <url>\n    <loc>${SITE_URL}/${p.lang}/blog/${p.slug}</loc>\n    <lastmod>${p.updated || p.published}</lastmod>\n    <priority>0.8</priority>\n  </url>`),
+    ...BLOG_POSTS.map((p) => `  <url>\n    <loc>${SITE_URL}${blogPostPath(p)}</loc>\n    <lastmod>${p.updated || p.published}</lastmod>\n    <priority>0.8</priority>\n${postAlternates(p)}\n  </url>`),
   ]
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',

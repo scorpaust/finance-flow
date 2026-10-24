@@ -1,6 +1,7 @@
 import type { BlogPost } from './index'
 
 export const comoPouparDinheiro: BlogPost = {
+  key: 'save-money',
   slug: 'como-poupar-dinheiro',
   lang: 'pt',
   title: 'Como poupar dinheiro: 6 passos que funcionam mesmo',
@@ -43,6 +44,6 @@ export const comoPouparDinheiro: BlogPost = {
 
     { type: 'h2', text: 'O que fazer a seguir' },
     { type: 'p', text: 'Não precisas de aplicar os seis passos de uma vez. Começa pelo primeiro: regista os gastos durante um mês. Tudo o resto fica mais fácil quando sabes para onde vai o dinheiro.' },
-    { type: 'p', text: 'Podes fazê-lo num caderno ou numa folha de cálculo. O que importa é manteres o registo. Se preferires uma app, o FinanceFlow foi feito para isto: registas um gasto em segundos, defines limites mensais por categoria e recebes um alerta antes de passares o limite. Há um plano gratuito.' },
+    { type: 'p', text: 'Podes fazê-lo num caderno ou numa folha de cálculo. O que importa é manteres o registo. Se preferires uma app, o FinanceFlow foi feito para isto: registas um gasto em segundos e vês para onde vai o dinheiro, por categoria e por mês, no plano gratuito. Nos planos pagos, defines limites mensais por categoria e recebes um alerta antes de passares o limite.' },
   ],
 }

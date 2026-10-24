@@ -1,5 +1,5 @@
 <template>
-  <BlogShell :slug="slug">
+  <BlogShell :slug="slug" :languages="languages">
     <h1 class="font-display font-bold text-4xl mt-6">{{ t('blog.title') }}</h1>
     <p class="text-white/60 mt-3">{{ t('blog.subtitle') }}</p>
     <div class="mt-10 space-y-4">
@@ -19,8 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { blogPostsFor, readingMinutes } from '~/shared/blog'
-import { LANDING_SLUGS, OG_LOCALE, SITE_URL, isLandingSlug } from '~/shared/landing'
+import { blogLangs, blogPostsFor, readingMinutes } from '~/shared/blog'
+import { HREFLANG, LANDING_SLUGS, OG_LOCALE, SITE_URL, isLandingSlug } from '~/shared/landing'
 
 // Upgrade 13 — lista dos artigos de uma língua (/pt/blog). Uma língua sem
 // artigos não tem blog (404).
@@ -32,6 +32,7 @@ definePageMeta({
 const slug = await useSlugLocale()
 const { t } = useI18n()
 const posts = computed(() => blogPostsFor(slug.value))
+const languages = blogLangs().map((lang) => ({ lang, path: `/${lang}/blog` }))
 const formatDate = (d: string) => new Intl.DateTimeFormat(LANDING_SLUGS[slug.value], { dateStyle: 'long' }).format(new Date(`${d}T12:00:00Z`))
 
 const url = computed(() => `${SITE_URL}/${slug.value}/blog`)
@@ -47,6 +48,10 @@ useSeoMeta({
   robots: 'index, follow',
 })
 useHead(() => ({
-  link: [{ rel: 'canonical', href: url.value }],
+  link: [
+    { rel: 'canonical', href: url.value },
+    ...languages.map((l) => ({ rel: 'alternate', hreflang: HREFLANG[l.lang], href: `${SITE_URL}${l.path}` })),
+    ...(languages.some((l) => l.lang === 'en') ? [{ rel: 'alternate', hreflang: 'x-default', href: `${SITE_URL}/en/blog` }] : []),
+  ],
 }))
 </script>

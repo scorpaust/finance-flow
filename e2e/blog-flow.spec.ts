@@ -26,11 +26,14 @@ test('o artigo tem canónico, Open Graph de artigo e dados estruturados', async 
   expect(ld.some((s) => s.includes('"BlogPosting"'))).toBe(true)
 })
 
-test('línguas sem artigos e artigos inexistentes dão 404', async ({ page }) => {
-  expect((await page.goto('/en/blog'))?.status()).toBe(404)
+test('o artigo liga às traduções; artigos inexistentes dão 404', async ({ page }) => {
+  await page.goto('/pt/blog/como-poupar-dinheiro')
+  await expect(page.locator('head link[rel="alternate"][hreflang]')).toHaveCount(7)
+  await page.getByTestId('blog-languages').getByRole('link', { name: 'English' }).click()
+  await page.waitForURL('**/en/blog/how-to-save-money')
+  await expect(page.getByTestId('blog-article').locator('h1')).toContainText('How to save money')
   expect((await page.goto('/pt/blog/nao-existe'))?.status()).toBe(404)
-  await page.goto('/en')
-  await expect(page.getByTestId('landing-blog')).toHaveCount(0)
+  expect((await page.goto('/en/blog/como-poupar-dinheiro'))?.status()).toBe(404)
 })
 
 test('o sitemap inclui o blog', async ({ request }) => {

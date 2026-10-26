@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import { z } from 'zod'
-import { getServerLocale, serverT } from './i18n'
+import { getServerLocale, hasServerMessage, serverT } from './i18n'
 
 // Helper fino sobre `readValidatedBody`/`getValidatedQuery` do h3 (Fase 8,
 // ponto 1) — converte um `ZodError` num 400 com uma mensagem legível, em vez
@@ -16,10 +16,16 @@ import { getServerLocale, serverT } from './i18n'
 // (dicionário sem essa entrada), por isso passa sempre por aqui sem risco —
 // schemas que só querem uma mensagem genérica em inglês não precisam de
 // nenhuma entrada no dicionário.
+//
+// As mensagens por omissão do próprio Zod ("Invalid input", "Expected number,
+// received null"…) não são chaves do dicionário e chegavam ao utilizador em
+// inglês, qualquer que fosse a língua: nesse caso devolve-se uma mensagem
+// genérica traduzida (`validation.invalidInput`).
 function formatZodMessage(event: H3Event, error: z.ZodError): string {
+  const locale = getServerLocale(event)
   const first = error.issues[0]
-  if (!first) return 'Invalid request'
-  return serverT(getServerLocale(event), first.message)
+  if (!first) return serverT(locale, 'validation.invalidInput')
+  return hasServerMessage(first.message) ? serverT(locale, first.message) : serverT(locale, 'validation.invalidInput')
 }
 
 export async function validateBody<T extends z.ZodTypeAny>(event: H3Event, schema: T): Promise<z.infer<T>> {

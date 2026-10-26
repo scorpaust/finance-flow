@@ -9,9 +9,11 @@ const GroupUpdateSchema = z.object({
   name: z.string().trim().min(1, 'groups.nameRequired').optional(),
   description: z.string().trim().optional(),
   color: z.string().trim().optional(),
-  monthlyLimit: z.union([z.number(), z.string()]).optional(),
-  weeklyLimit: z.union([z.number(), z.string()]).optional(),
-  alertThreshold: z.union([z.number(), z.string()]).optional(),
+  // `null` = campo esvaziado no formulário: tira o teto (0) / repõe o alerta
+  // por omissão (80 %). Ver o comentário igual em ./index.ts.
+  monthlyLimit: z.union([z.number(), z.string()]).nullish(),
+  weeklyLimit: z.union([z.number(), z.string()]).nullish(),
+  alertThreshold: z.union([z.number(), z.string()]).nullish(),
 })
 
 export default defineEventHandler(async (event) => {

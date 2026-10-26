@@ -36,6 +36,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Categoria inválida',
     'transactions.notFound': 'Transação não encontrada',
     'groups.nameRequired': 'Nome obrigatório',
+    'validation.invalidInput': 'Dados inválidos — verifica os campos do formulário',
     'categories.nameAndTypeRequired': 'Nome e tipo obrigatórios',
     'categories.customLimitReached': 'Limite de {limit} categorias personalizadas do plano Gratuito atingido',
     'categories.alreadyExists': 'Categoria já existe',
@@ -116,6 +117,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Invalid category',
     'transactions.notFound': 'Transaction not found',
     'groups.nameRequired': 'Name required',
+    'validation.invalidInput': 'Invalid data — please check the form fields',
     'categories.nameAndTypeRequired': 'Name and type required',
     'categories.customLimitReached': 'Free plan limit of {limit} custom categories reached',
     'categories.alreadyExists': 'Category already exists',
@@ -196,6 +198,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Catégorie invalide',
     'transactions.notFound': 'Transaction introuvable',
     'groups.nameRequired': 'Nom obligatoire',
+    'validation.invalidInput': 'Données invalides — vérifiez les champs du formulaire',
     'categories.nameAndTypeRequired': 'Nom et type obligatoires',
     'categories.customLimitReached': 'Limite de {limit} catégories personnalisées du plan Gratuit atteinte',
     'categories.alreadyExists': 'Cette catégorie existe déjà',
@@ -276,6 +279,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Ungültige Kategorie',
     'transactions.notFound': 'Transaktion nicht gefunden',
     'groups.nameRequired': 'Name erforderlich',
+    'validation.invalidInput': 'Ungültige Eingabe — bitte überprüfe die Formularfelder',
     'categories.nameAndTypeRequired': 'Name und Typ erforderlich',
     'categories.customLimitReached': 'Limit von {limit} benutzerdefinierten Kategorien des kostenlosen Plans erreicht',
     'categories.alreadyExists': 'Kategorie existiert bereits',
@@ -356,6 +360,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Categoria non valida',
     'transactions.notFound': 'Transazione non trovata',
     'groups.nameRequired': 'Nome obbligatorio',
+    'validation.invalidInput': 'Dati non validi — controlla i campi del modulo',
     'categories.nameAndTypeRequired': 'Nome e tipo obbligatori',
     'categories.customLimitReached': 'Limite di {limit} categorie personalizzate del piano Gratuito raggiunto',
     'categories.alreadyExists': 'Categoria già esistente',
@@ -436,6 +441,7 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.invalidCategory': 'Categoría inválida',
     'transactions.notFound': 'Transacción no encontrada',
     'groups.nameRequired': 'Nombre obligatorio',
+    'validation.invalidInput': 'Datos no válidos — revisa los campos del formulario',
     'categories.nameAndTypeRequired': 'Nombre y tipo obligatorios',
     'categories.customLimitReached': 'Límite de {limit} categorías personalizadas del plan Gratis alcanzado',
     'categories.alreadyExists': 'La categoría ya existe',
@@ -500,6 +506,11 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'twoFactor.invalidPassword': 'Contraseña incorrecta',
     'twoFactor.pendingExpired': 'Sesión de verificación caducada — inicia sesión de nuevo',
   },
+}
+
+// A chave existe no dicionário (o inglês é a referência)?
+export function hasServerMessage(key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(MESSAGES.en, key)
 }
 
 export function serverT(locale: ServerLocale, key: string, params?: Record<string, string | number>): string {

@@ -8,9 +8,12 @@ const GroupCreateSchema = z.object({
   name: z.string().trim().min(1, 'groups.nameRequired'),
   description: z.string().trim().optional(),
   color: z.string().trim().optional(),
-  monthlyLimit: z.union([z.number(), z.string()]).optional(),
-  weeklyLimit: z.union([z.number(), z.string()]).optional(),
-  alertThreshold: z.union([z.number(), z.string()]).optional(),
+  // `null` = campo deixado vazio no formulário (pages/groups/index.vue envia
+  // `null`): sem teto (0) ou alerta por omissão (80 %). Antes só aceitava
+  // número/texto e criar um grupo sem teto semanal dava "Invalid input".
+  monthlyLimit: z.union([z.number(), z.string()]).nullish(),
+  weeklyLimit: z.union([z.number(), z.string()]).nullish(),
+  alertThreshold: z.union([z.number(), z.string()]).nullish(),
 })
 
 export default defineEventHandler(async (event) => {

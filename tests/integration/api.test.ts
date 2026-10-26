@@ -1798,3 +1798,44 @@ describe('faturação InvoiceXpress (Upgrade 11)', () => {
     expect(await Invoice.findOne({ userId: user!._id }).lean()).toMatchObject({ status: 'issued', paymentId: 'cap-dd-fatura', amount: 8.49 })
   })
 })
+
+describe('grupos: tetos vazios e mensagens de validação traduzidas', () => {
+  // Bug de 2026-10-26: o formulário envia `null` num teto deixado vazio e o
+  // servidor respondia 400 "Invalid input" (em inglês, mesmo com a app em
+  // português).
+  const send = (method: string, path: string, cookie: string, body: unknown) =>
+    fetch(path, {
+      method,
+      headers: { 'content-type': 'application/json', cookie: `${cookie}; financeflow_locale=pt-PT` },
+      body: JSON.stringify(body),
+    })
+
+  it('cria e atualiza um grupo com tetos vazios (null)', async () => {
+    const email = uniqueEmail('group-null')
+    const { cookie } = await register(email)
+    await setTier(email, 'pro')
+
+    const created = await send('POST', '/api/groups', cookie, { name: 'Casa', description: '', color: '#6366f1', monthlyLimit: 300, weeklyLimit: null, alertThreshold: 80 })
+    expect(created.status).toBe(200)
+    const group = await created.json()
+    expect(group).toMatchObject({ name: 'Casa', monthlyLimit: 300, weeklyLimit: 0, alertThreshold: 80 })
+
+    const updated = await send('PUT', `/api/groups/${group._id}`, cookie, { monthlyLimit: null, weeklyLimit: 50, alertThreshold: null })
+    expect(updated.status).toBe(200)
+    expect(await updated.json()).toMatchObject({ monthlyLimit: 0, weeklyLimit: 50, alertThreshold: 80 })
+  })
+
+  it('erros de validação chegam na língua da app', async () => {
+    const email = uniqueEmail('group-invalid')
+    const { cookie } = await register(email)
+    await setTier(email, 'pro')
+
+    const wrongType = await send('POST', '/api/groups', cookie, { name: 'Casa', weeklyLimit: { x: 1 } })
+    expect(wrongType.status).toBe(400)
+    expect((await wrongType.json()).message).toBe('Dados inválidos — verifica os campos do formulário')
+
+    const noName = await send('POST', '/api/groups', cookie, { name: '  ' })
+    expect(noName.status).toBe(400)
+    expect((await noName.json()).message).toBe('Nome obrigatório')
+  })
+})

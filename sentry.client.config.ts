@@ -7,6 +7,8 @@ Sentry.init({
   environment: process.env.NODE_ENV,
   sendDefaultPii: false,
   tracesSampleRate: 0.1,
+  // 404 de rotas inexistentes (URLs escritos à mão, bots): já mostram o error.vue, não são bugs.
+  ignoreErrors: [/^Page Not Found: /],
   beforeSend(event) {
     if (event.request) {
       delete event.request.data

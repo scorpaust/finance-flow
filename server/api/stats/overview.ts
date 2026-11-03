@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { readMonthsQuery } from '../../utils/queryFilters'
 import { Transaction, TransactionGroup } from '../../models'
 import { requireAuth } from '../../utils/auth'
+import { previousMonthPeriodEnd } from '../../../shared/forecast'
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuth(event)
@@ -9,18 +10,27 @@ export default defineEventHandler(async (event) => {
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  // A app aceita datas futuras: sem este limite contavam como mês corrente.
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+  // A variação compara períodos iguais (1 a 3 de novembro com 1 a 3 de outubro):
+  // contra o mês anterior inteiro, o início de cada mês parecia sempre uma queda.
+  const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+  const prevPeriodEnd = previousMonthPeriodEnd(now)
   const rangeStart = new Date(now.getFullYear(), now.getMonth() - months + 1, 1)
   const uid = new mongoose.Types.ObjectId(userId)
 
-  const [currentMonth, prevMonth, totals, monthly, byCategoryRaw, groups, byGroupRaw] = await Promise.all([
+  const [currentMonth, currentToDate, prevMonth, totals, monthly, byCategoryRaw, groups, byGroupRaw] = await Promise.all([
     Transaction.aggregate([
-      { $match: { userId: uid, date: { $gte: startOfMonth } } },
+      { $match: { userId: uid, date: { $gte: startOfMonth, $lt: startOfNextMonth } } },
       { $group: { _id: '$type', total: { $sum: '$amount' }, count: { $sum: 1 } } },
     ]),
     Transaction.aggregate([
-      { $match: { userId: uid, date: { $gte: prevMonthStart, $lte: prevMonthEnd } } },
+      { $match: { userId: uid, date: { $gte: startOfMonth, $lt: startOfTomorrow } } },
+      { $group: { _id: '$type', total: { $sum: '$amount' } } },
+    ]),
+    Transaction.aggregate([
+      { $match: { userId: uid, date: { $gte: prevMonthStart, $lt: prevPeriodEnd } } },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },
     ]),
     Transaction.aggregate([
@@ -39,7 +49,7 @@ export default defineEventHandler(async (event) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]),
     Transaction.aggregate([
-      { $match: { userId: uid, date: { $gte: rangeStart } } },
+      { $match: { userId: uid, date: { $gte: rangeStart, $lt: startOfNextMonth } } },
       {
         $group: {
           _id: { categoryId: '$categoryId', type: '$type' },
@@ -61,7 +71,7 @@ export default defineEventHandler(async (event) => {
     ]),
     TransactionGroup.find({ userId }).lean(),
     Transaction.aggregate([
-      { $match: { userId: uid, type: 'expense', date: { $gte: startOfMonth } } },
+      { $match: { userId: uid, type: 'expense', date: { $gte: startOfMonth, $lt: startOfNextMonth } } },
       {
         $lookup: {
           from: 'categories',
@@ -82,6 +92,12 @@ export default defineEventHandler(async (event) => {
   for (const r of currentMonth) {
     if (r._id === 'income') { cm.income = r.total; cm.incomeCount = r.count }
     else { cm.expense = r.total; cm.expenseCount = r.count }
+  }
+
+  const ctd = { income: 0, expense: 0 }
+  for (const r of currentToDate) {
+    if (r._id === 'income') ctd.income = r.total
+    else ctd.expense = r.total
   }
 
   const pm = { income: 0, expense: 0 }
@@ -151,9 +167,10 @@ export default defineEventHandler(async (event) => {
       currentMonthExpense: cm.expense,
       currentMonthBalance: cm.income - cm.expense,
       currentMonthTransactions: cm.incomeCount + cm.expenseCount,
-      savingsRate: cm.income > 0 ? ((cm.income - cm.expense) / cm.income) * 100 : 0,
-      incomeChange: pm.income > 0 ? ((cm.income - pm.income) / pm.income) * 100 : 0,
-      expenseChange: pm.expense > 0 ? ((cm.expense - pm.expense) / pm.expense) * 100 : 0,
+      // Sem receitas a taxa não existe (null): 0 % pareceria um mês equilibrado.
+      savingsRate: cm.income > 0 ? ((cm.income - cm.expense) / cm.income) * 100 : null,
+      incomeChange: pm.income > 0 ? ((ctd.income - pm.income) / pm.income) * 100 : 0,
+      expenseChange: pm.expense > 0 ? ((ctd.expense - pm.expense) / pm.expense) * 100 : 0,
       avgMonthlyIncome: avgIncome,
       avgMonthlyExpense: avgExpense,
       totalTransactions: tt.incomeCount + tt.expenseCount,

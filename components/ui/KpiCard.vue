@@ -27,7 +27,7 @@
             ? 'bg-emerald-500/[0.15] text-emerald-400 border border-emerald-500/25'
             : 'bg-rose-500/[0.15] text-rose-400 border border-rose-500/25'"
         >
-          <TrendingUp v-if="changePositive" class="w-3 h-3" />
+          <TrendingUp v-if="(change || 0) >= 0" class="w-3 h-3" />
           <TrendingDown v-else class="w-3 h-3" />
           {{ Math.abs(change || 0).toFixed(1) }}%
         </div>
@@ -41,13 +41,16 @@
       <!-- Value -->
       <p v-else class="font-display font-bold text-2xl text-white">
         <template v-if="isPercentage">
-          <span :class="savingsRateClass">{{ (value || 0).toFixed(1) }}%</span>
+          <span :class="savingsRateClass">{{ value == null ? '—' : `${value.toFixed(1)}%` }}</span>
         </template>
         <template v-else>{{ formatCompact(value || 0) }}</template>
       </p>
 
       <p v-if="change !== undefined && !loading" class="text-white/30 text-xs mt-1">
-        {{ t('common.vsLastMonth') }}
+        {{ t('common.vsSamePeriodLastMonth') }}
+      </p>
+      <p v-else-if="note && !loading" class="text-white/30 text-xs mt-1">
+        {{ note }}
       </p>
     </div>
   </div>
@@ -58,13 +61,14 @@ import { TrendingUp, TrendingDown } from 'lucide-vue-next'
 
 const props = defineProps<{
   title: string
-  value?: number
+  value?: number | null
   change?: number
   icon: string
   color: string
   loading?: boolean
   isPercentage?: boolean
   invert?: boolean
+  note?: string
 }>()
 
 const { t } = useI18n()
@@ -89,7 +93,8 @@ const changePositive = computed(() => {
 })
 
 const savingsRateClass = computed(() => {
-  const v = props.value ?? 0
+  const v = props.value
+  if (v == null) return 'text-white/40'
   if (v >= 20) return 'text-emerald-400'
   if (v >= 0)  return 'text-yellow-400'
   return 'text-rose-400'

@@ -10,6 +10,7 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'Como fazer um orçamento mensal em 7 passos',
     description: 'Do objetivo à revisão do mês: um método simples para fazer um orçamento realista, com poupança incluída e sem deixar de viver.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'Um orçamento não serve para te proibir coisas. Serve para decidires antes para onde vai o dinheiro, em vez de descobrires depois. Estes sete passos funcionam para quem vive sozinho, em casal ou com filhos.' },
 
@@ -35,6 +36,14 @@ export const budgetStepsPosts: BlogPost[] = [
       { type: 'h2', text: '7. Revê o mês e ajusta' },
       { type: 'p', text: 'No fim de cada mês, olha para as categorias com desvios. Uma categoria que rebenta todos os meses tem um limite irrealista: sobe-o e tira a diferença de outra. Revê também os objetivos, porque a vida muda e o orçamento tem de mudar com ela.' },
 
+      { type: 'h2', text: 'Três erros que fazem um orçamento falhar' },
+      { type: 'ul', items: [
+        'Planear para um mês perfeito: o carro vai à oficina, há um aniversário que não previste, e o plano desmorona. Um orçamento tem de funcionar nos meses normais, não só nos ideais.',
+        'Misturar despesas fixas e variáveis: a renda quase não muda, o supermercado e o lazer mudam todos os meses. Com tudo na mesma linha, não vês onde podes cortar.',
+        'Não deixar margem: um orçamento que encaixa ao cêntimo abandona-se à primeira surpresa. Reserva uma pequena parte do rendimento para imprevistos, por exemplo 5 a 10%.',
+      ] },
+      { type: 'tip', text: 'Não esperes pelo fim do mês: regista os gastos quando os fazes e dedica cinco minutos por semana a ver como vais. Assim corriges a tempo, enquanto ainda dá para mudar alguma coisa.' },
+
       { type: 'h2', text: 'O que faz um orçamento resultar' },
       { type: 'ul', items: [
         'Realista: um orçamento demasiado apertado é abandonado ao fim de duas semanas.',
@@ -52,6 +61,7 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'How to make a monthly budget in 7 steps',
     description: 'From setting a goal to reviewing the month: a simple method for a realistic budget that includes savings and still lets you live.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'A budget is not there to forbid things. It is there so you decide in advance where your money goes, instead of finding out afterwards. These seven steps work whether you live alone, as a couple or with children.' },
 
@@ -77,6 +87,14 @@ export const budgetStepsPosts: BlogPost[] = [
       { type: 'h2', text: '7. Review the month and adjust' },
       { type: 'p', text: 'At the end of each month, look at the categories with variances. A category that goes over every month has an unrealistic limit: raise it and take the difference from another. Review your goals too, because life changes and your budget has to change with it.' },
 
+      { type: 'h2', text: 'Three mistakes that make a budget fail' },
+      { type: 'ul', items: [
+        'Planning for a perfect month: the car goes to the garage, there is a birthday you did not expect, and the plan falls apart. A budget has to work in normal months, not just ideal ones.',
+        'Mixing fixed and variable expenses: rent barely changes, while groceries and leisure change every month. With everything on one line, you cannot see where to cut back.',
+        'Leaving no margin: a budget that fits to the last cent gets abandoned at the first surprise. Set aside a small part of your income for the unexpected, for example 5 to 10%.',
+      ] },
+      { type: 'tip', text: 'Don\'t wait for the end of the month: log spending as it happens and take five minutes a week to see how you are doing. That way you can correct course while there is still time to change something.' },
+
       { type: 'h2', text: 'What makes a budget work' },
       { type: 'ul', items: [
         'Realistic: a budget that is too tight gets abandoned within two weeks.',
@@ -94,6 +112,7 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'Cómo hacer un presupuesto mensual en 7 pasos',
     description: 'Del objetivo a la revisión del mes: un método sencillo para un presupuesto realista, con el ahorro incluido y sin dejar de vivir.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'Un presupuesto no sirve para prohibirte cosas. Sirve para decidir antes adónde va el dinero, en lugar de descubrirlo después. Estos siete pasos funcionan tanto si vives solo como en pareja o con hijos.' },
 
@@ -119,6 +138,14 @@ export const budgetStepsPosts: BlogPost[] = [
       { type: 'h2', text: '7. Revisa el mes y ajusta' },
       { type: 'p', text: 'Al final de cada mes, mira las categorías con desviaciones. Una categoría que se pasa todos los meses tiene un límite poco realista: súbelo y saca la diferencia de otra. Revisa también los objetivos, porque la vida cambia y el presupuesto tiene que cambiar con ella.' },
 
+      { type: 'h2', text: 'Tres errores que hacen fracasar un presupuesto' },
+      { type: 'ul', items: [
+        'Planificar para un mes perfecto: el coche va al taller, hay un cumpleaños que no previste y el plan se viene abajo. Un presupuesto tiene que funcionar en los meses normales, no solo en los ideales.',
+        'Mezclar gastos fijos y variables: el alquiler apenas cambia, mientras que el supermercado y el ocio cambian cada mes. Con todo en la misma línea, no ves dónde puedes recortar.',
+        'No dejar margen: un presupuesto que cuadra al céntimo se abandona a la primera sorpresa. Reserva una pequeña parte de los ingresos para imprevistos, por ejemplo del 5 al 10 %.',
+      ] },
+      { type: 'tip', text: 'No esperes a final de mes: registra los gastos cuando los haces y dedica cinco minutos a la semana a ver cómo vas. Así corriges a tiempo, cuando todavía se puede cambiar algo.' },
+
       { type: 'h2', text: 'Qué hace que un presupuesto funcione' },
       { type: 'ul', items: [
         'Realista: un presupuesto demasiado ajustado se abandona en dos semanas.',
@@ -136,6 +163,7 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'Comment faire un budget mensuel en 7 étapes',
     description: 'De l\'objectif au bilan du mois : une méthode simple pour un budget réaliste, épargne comprise, qui vous laisse quand même vivre.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'Un budget n\'est pas là pour vous interdire des choses. Il sert à décider à l\'avance où va votre argent, au lieu de le découvrir après coup. Ces sept étapes fonctionnent que vous viviez seul, en couple ou avec des enfants.' },
 
@@ -161,6 +189,14 @@ export const budgetStepsPosts: BlogPost[] = [
       { type: 'h2', text: '7. Faites le bilan du mois et ajustez' },
       { type: 'p', text: 'À la fin de chaque mois, regardez les catégories qui présentent des écarts. Une catégorie qui dépasse tous les mois a un plafond irréaliste : relevez-le et prenez la différence ailleurs. Revoyez aussi vos objectifs, car la vie change et le budget doit suivre.' },
 
+      { type: 'h2', text: 'Trois erreurs qui font échouer un budget' },
+      { type: 'ul', items: [
+        'Prévoir un mois parfait : la voiture part au garage, un anniversaire imprévu arrive, et le plan s\'effondre. Un budget doit fonctionner les mois normaux, pas seulement les mois idéaux.',
+        'Mélanger dépenses fixes et variables : le loyer ne change presque pas, alors que les courses et les loisirs changent chaque mois. Avec tout sur la même ligne, vous ne voyez pas où réduire.',
+        'Ne laisser aucune marge : un budget calé au centime près est abandonné à la première surprise. Réservez une petite part de vos revenus aux imprévus, par exemple 5 à 10 %.',
+      ] },
+      { type: 'tip', text: 'N\'attendez pas la fin du mois : notez vos dépenses au moment où vous les faites et prenez cinq minutes par semaine pour faire le point. Vous corrigez ainsi à temps, tant qu\'il est encore possible de changer quelque chose.' },
+
       { type: 'h2', text: 'Ce qui fait qu\'un budget fonctionne' },
       { type: 'ul', items: [
         'Réaliste : un budget trop serré est abandonné au bout de deux semaines.',
@@ -178,11 +214,12 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'Ein Monatsbudget erstellen: in 7 Schritten',
     description: 'Vom Ziel bis zum Monatsrückblick: eine einfache Methode für ein realistisches Budget, das Sparen einplant und trotzdem Luft zum Leben lässt.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'Ein Budget ist nicht dazu da, dir etwas zu verbieten. Es hilft dir, vorher zu entscheiden, wohin dein Geld geht, statt es hinterher festzustellen. Diese sieben Schritte funktionieren für Singles, Paare und Familien.' },
 
       { type: 'h2', text: '1. Setz dir konkrete Ziele' },
-      { type: 'p', text: '„“ ist kein Ziel, sondern ein Wunsch. Ein Ziel sagt, was, wie viel und bis wann: „“ oder „“. Mit Betrag und Frist weißt du, wie viel du jeden Monat zurücklegen musst.' },
+      { type: 'p', text: '„Mehr sparen“ ist kein Ziel, sondern ein Wunsch. Ein Ziel sagt, was, wie viel und bis wann: „1800 € für einen Notgroschen in 12 Monaten zurücklegen“ oder „die Kreditkarte bis Juni abbezahlen“. Mit Betrag und Frist weißt du, wie viel du jeden Monat zurücklegen musst.' },
 
       { type: 'h2', text: '2. Schätz dein Einkommen vorsichtig' },
       { type: 'p', text: 'Plane mit dem Nettoeinkommen, das sicher kommt. Boni, Sonderzahlungen oder Geschenke zählen erst, wenn sie auf dem Konto sind. Wenn dein Einkommen schwankt, geh vom niedrigsten Wert der letzten Monate aus.' },
@@ -203,6 +240,14 @@ export const budgetStepsPosts: BlogPost[] = [
       { type: 'h2', text: '7. Schau auf den Monat zurück und passe an' },
       { type: 'p', text: 'Sieh dir am Monatsende die Kategorien mit Abweichungen an. Eine Kategorie, die jeden Monat überzogen wird, hat ein unrealistisches Limit: Erhöhe es und nimm die Differenz aus einer anderen. Überprüfe auch deine Ziele, denn das Leben ändert sich und das Budget muss mitziehen.' },
 
+      { type: 'h2', text: 'Drei Fehler, an denen ein Budget scheitert' },
+      { type: 'ul', items: [
+        'Für einen perfekten Monat planen: Das Auto muss in die Werkstatt, ein Geburtstag kommt dazu, und der Plan bricht zusammen. Ein Budget muss in normalen Monaten funktionieren, nicht nur in idealen.',
+        'Fixe und variable Ausgaben vermischen: Die Miete ändert sich kaum, Lebensmittel und Freizeit jeden Monat. Steht alles in einer Zeile, siehst du nicht, wo du kürzen kannst.',
+        'Keinen Puffer einplanen: Ein Budget, das auf den Cent aufgeht, wird bei der ersten Überraschung aufgegeben. Reservier einen kleinen Teil deines Einkommens für Unvorhergesehenes, zum Beispiel 5 bis 10 %.',
+      ] },
+      { type: 'tip', text: 'Warte nicht bis zum Monatsende: Erfasse Ausgaben sofort und nimm dir pro Woche fünf Minuten, um zu sehen, wo du stehst. So kannst du rechtzeitig gegensteuern, solange sich noch etwas ändern lässt.' },
+
       { type: 'h2', text: 'Was ein Budget erfolgreich macht' },
       { type: 'ul', items: [
         'Realistisch: Ein zu knappes Budget wird nach zwei Wochen aufgegeben.',
@@ -220,6 +265,7 @@ export const budgetStepsPosts: BlogPost[] = [
     title: 'Come fare un budget mensile in 7 passi',
     description: 'Dall\'obiettivo alla revisione del mese: un metodo semplice per un budget realistico, con il risparmio incluso e senza smettere di vivere.',
     published: '2026-10-24',
+    updated: '2026-11-03',
     blocks: [
       { type: 'p', text: 'Un budget non serve a vietarti le cose. Serve a decidere prima dove vanno i soldi, invece di scoprirlo dopo. Questi sette passi funzionano sia se vivi da solo, sia in coppia o con figli.' },
 
@@ -244,6 +290,14 @@ export const budgetStepsPosts: BlogPost[] = [
 
       { type: 'h2', text: '7. Rivedi il mese e correggi' },
       { type: 'p', text: 'A fine mese guarda le categorie con scostamenti. Una categoria che sfora ogni mese ha un limite irrealistico: alzalo e prendi la differenza da un\'altra. Rivedi anche gli obiettivi, perché la vita cambia e il budget deve cambiare con lei.' },
+
+      { type: 'h2', text: 'Tre errori che fanno fallire un budget' },
+      { type: 'ul', items: [
+        'Pianificare per un mese perfetto: l\'auto finisce dal meccanico, c\'è un compleanno che non avevi previsto e il piano crolla. Un budget deve funzionare nei mesi normali, non solo in quelli ideali.',
+        'Mescolare spese fisse e variabili: l\'affitto cambia poco, mentre spesa alimentare e tempo libero cambiano ogni mese. Con tutto sulla stessa riga non vedi dove puoi tagliare.',
+        'Non lasciare margine: un budget che torna al centesimo si abbandona alla prima sorpresa. Metti da parte una piccola quota del reddito per gli imprevisti, per esempio dal 5 al 10%.',
+      ] },
+      { type: 'tip', text: 'Non aspettare la fine del mese: registra le spese quando le fai e dedica cinque minuti alla settimana a vedere come stai andando. Così correggi in tempo, finché si può ancora cambiare qualcosa.' },
 
       { type: 'h2', text: 'Cosa fa funzionare un budget' },
       { type: 'ul', items: [

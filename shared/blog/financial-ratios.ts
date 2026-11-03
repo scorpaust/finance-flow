@@ -150,7 +150,7 @@ export const financialRatiosPosts: BlogPost[] = [
     description: 'Verschuldung, Liquidität, Monate an Reserve, Kreditraten und Sparquote: wie du jede Kennzahl berechnest und welche Werte du anstreben solltest.',
     published: '2026-10-24',
     blocks: [
-      { type: 'p', text: 'Das Gefühl, dass „“, verrät nicht, wo das Problem liegt. Fünf einfache Divisionen schon. Du brauchst dafür vier Zahlen: was du besitzt, was du schuldest, was du verdienst und was du im Monat ausgibst.' },
+      { type: 'p', text: 'Das Gefühl, dass „das Geld nicht reicht“, verrät nicht, wo das Problem liegt. Fünf einfache Divisionen schon. Du brauchst dafür vier Zahlen: was du besitzt, was du schuldest, was du verdienst und was du im Monat ausgibst.' },
       { type: 'tip', text: 'Wir nutzen durchgehend dasselbe Beispiel: 50.000 € Vermögen (davon 3.000 € auf Konten), 15.000 € Schulden (davon 750 € in den nächsten Monaten fällig), 2.000 € brutto und 1.500 € netto, 1.500 € monatliche Ausgaben, 180 € Kreditraten (ohne Baufinanzierung) und 150 € Sparbetrag pro Monat.' },
 
       { type: 'h2', text: '1. Verschuldungsquote' },

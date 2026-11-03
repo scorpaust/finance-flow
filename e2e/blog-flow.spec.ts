@@ -9,7 +9,8 @@ test('da apresentação ao artigo, sem sessão, e depois ao registo', async ({ p
   await page.getByTestId('landing-blog').click()
   await page.waitForURL('**/pt/blog')
   await expect(page.getByTestId('blog')).toBeVisible()
-  await page.getByTestId('blog-post-link').first().click()
+  // Por título: a lista mostra os mais recentes primeiro, e cada artigo novo muda a ordem.
+  await page.getByTestId('blog-post-link').filter({ hasText: 'Como poupar dinheiro' }).click()
   await page.waitForURL('**/pt/blog/como-poupar-dinheiro')
   await expect(page.getByTestId('blog-article').locator('h1')).toContainText('Como poupar dinheiro')
   await page.getByTestId('blog-cta').getByRole('link', { name: /Começar grátis/ }).click()

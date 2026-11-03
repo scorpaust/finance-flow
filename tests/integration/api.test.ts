@@ -1870,6 +1870,7 @@ describe('painel: taxa de poupança', () => {
     ])
     expect(overview.currentMonthExpense).toBe(200)
     expect(overview.savingsRate).toBe(80)
+    expect(overview.currentBalance).toBe(800)
   })
 
   it('despesas muito acima das receitas dão uma taxa negativa real', async () => {

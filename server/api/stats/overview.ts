@@ -33,8 +33,9 @@ export default defineEventHandler(async (event) => {
       { $match: { userId: uid, date: { $gte: prevMonthStart, $lt: prevPeriodEnd } } },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },
     ]),
+    // Saldo até hoje: uma despesa com data futura só conta quando chegar essa data.
     Transaction.aggregate([
-      { $match: { userId: uid } },
+      { $match: { userId: uid, date: { $lt: startOfTomorrow } } },
       { $group: { _id: '$type', total: { $sum: '$amount' }, count: { $sum: 1 } } },
     ]),
     Transaction.aggregate([

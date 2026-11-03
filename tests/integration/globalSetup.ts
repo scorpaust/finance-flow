@@ -40,6 +40,7 @@ export default async function setup() {
     TWO_FACTOR_ENCRYPTION_KEY: randomBytes(32).toString('hex'),
     CRON_SECRET: randomBytes(16).toString('hex'),
     ADMIN_SECRET: randomBytes(16).toString('hex'),
+    HOLO_WEBHOOK_SECRET: randomBytes(16).toString('hex'),
     EASYPAY_ACCOUNT_ID: 'test-account',
     EASYPAY_API_KEY: 'test-key',
     EASYPAY_API_BASE_URL: stub.baseUrl,

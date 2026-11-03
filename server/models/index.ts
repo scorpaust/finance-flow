@@ -679,3 +679,47 @@ const InvoiceSchema = new Schema<IInvoice>(
 )
 export const Invoice: Model<IInvoice> =
   mongoose.models.Invoice || mongoose.model<IInvoice>('Invoice', InvoiceSchema)
+
+// Artigos recebidos pelo webhook da Holo, à espera de revisão (nunca são
+// mostrados no site). O _id é o id do artigo na Holo: uma nova entrega do mesmo
+// artigo atualiza o documento, sem depender de um índice criado à parte.
+export interface IHoloArticle {
+  _id: string
+  slug: string
+  title: string
+  excerpt?: string | null
+  contentHtml?: string | null
+  contentMarkdown?: string | null
+  metaTitle?: string | null
+  metaDescription?: string | null
+  featuredImage?: string | null
+  images?: { url: string; alt?: string | null }[] | null
+  publishedAt?: string | null
+  lastEvent: 'article.published' | 'article.updated'
+  lastDeliveryId: string
+  status: 'pending' | 'exported'
+  createdAt: Date
+  updatedAt: Date
+}
+
+const HoloArticleSchema = new Schema<IHoloArticle>(
+  {
+    _id:             { type: String, required: true },
+    slug:            { type: String, required: true },
+    title:           { type: String, required: true },
+    excerpt:         { type: String, default: null },
+    contentHtml:     { type: String, default: null },
+    contentMarkdown: { type: String, default: null },
+    metaTitle:       { type: String, default: null },
+    metaDescription: { type: String, default: null },
+    featuredImage:   { type: String, default: null },
+    images:          { type: [{ _id: false, url: String, alt: String }], default: null },
+    publishedAt:     { type: String, default: null },
+    lastEvent:       { type: String, enum: ['article.published', 'article.updated'], required: true },
+    lastDeliveryId:  { type: String, required: true },
+    status:          { type: String, enum: ['pending', 'exported'], default: 'pending' },
+  },
+  { timestamps: true }
+)
+export const HoloArticle: Model<IHoloArticle> =
+  mongoose.models.HoloArticle || mongoose.model<IHoloArticle>('HoloArticle', HoloArticleSchema)

@@ -3,8 +3,8 @@ import { setup, fetch } from '@nuxt/test-utils/e2e'
 import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
-import { createSign } from 'node:crypto'
-import { User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
+import { createHmac, createSign } from 'node:crypto'
+import { HoloArticle, User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -1899,5 +1899,110 @@ describe('painel: taxa de poupança', () => {
       { type: 'expense', amount: 200, date: thisMonth },
     ])
     expect(overview.savingsRate).toBeNull()
+  })
+})
+
+describe('webhook da Holo', () => {
+  const ARTICLE_ID = '22222222-2222-4222-8222-222222222222'
+  const payload = (over: Record<string, unknown> = {}, article: Record<string, unknown> = {}) => ({
+    event: 'article.published',
+    test: false,
+    version: 1,
+    deliveryId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+    sentAt: '2026-11-03T10:30:00.000Z',
+    brand: { id: '11111111-1111-4111-8111-111111111111', name: 'FinanceFlow' },
+    article: {
+      id: ARTICLE_ID,
+      slug: 'artigo-de-teste',
+      title: 'Artigo de teste',
+      excerpt: 'Resumo',
+      contentHtml: '<p>Olá</p>',
+      contentMarkdown: 'Olá',
+      metaTitle: 'Meta',
+      metaDescription: 'Descrição',
+      featuredImage: null,
+      images: [],
+      publishedAt: '2026-11-03T10:00:00.000Z',
+      isRepublish: false,
+      ...article,
+    },
+    ...over,
+  })
+  const deliver = (raw: string, signature?: string, contentType = 'application/json') =>
+    fetch('/api/webhooks/holo', {
+      method: 'POST',
+      headers: {
+        'content-type': contentType,
+        'user-agent': 'Holo-Webhooks/1.0',
+        'x-holo-event': 'article.published',
+        'x-holo-delivery': 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        ...(signature === undefined ? {} : { 'x-holo-signature': signature }),
+      },
+      body: raw,
+    })
+  const signatureOf = (raw: string) => 'sha256=' + createHmac('sha256', env.HOLO_WEBHOOK_SECRET).update(raw).digest('hex')
+  const signed = (body: unknown, contentType?: string) => {
+    const raw = JSON.stringify(body)
+    return deliver(raw, signatureOf(raw), contentType)
+  }
+
+  beforeEach(async () => {
+    await HoloArticle.deleteMany({})
+  })
+
+  it('recusa com 401 em JSON, sem assinatura, com assinatura errada ou com o corpo alterado', async () => {
+    const raw = JSON.stringify(payload())
+    for (const res of [
+      await deliver(raw),
+      await deliver(raw, 'sha256=' + '0'.repeat(64)),
+      await deliver(raw + ' ', signatureOf(raw)),
+    ]) {
+      expect(res.status).toBe(401)
+      expect(res.headers.get('content-type')).toContain('application/json')
+    }
+    expect(await HoloArticle.countDocuments()).toBe(0)
+  })
+
+  it('o corpo não é interpretado antes de verificar a assinatura', async () => {
+    expect((await deliver('{isto não é JSON', 'sha256=' + '0'.repeat(64))).status).toBe(401)
+  })
+
+  it('o Send Test responde 200 e não guarda nada', async () => {
+    const res = await signed(payload({ test: true }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ received: true, test: true, stored: false })
+    expect(await HoloArticle.countDocuments()).toBe(0)
+  })
+
+  it('guarda o artigo por rever, sem o pôr no ar, e sem url na resposta', async () => {
+    const res = await signed(payload())
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toMatchObject({ received: true, stored: true, status: 'pending_review' })
+    expect(body.url).toBeUndefined()
+    const doc = await HoloArticle.findById(ARTICLE_ID).lean()
+    expect(doc).toMatchObject({ slug: 'artigo-de-teste', contentMarkdown: 'Olá', status: 'pending', lastEvent: 'article.published' })
+    expect((await fetch('/pt/blog/artigo-de-teste')).status).toBe(404)
+  })
+
+  it('uma nova tentativa não duplica; uma atualização volta a ficar por rever', async () => {
+    await signed(payload())
+    expect((await signed(payload())).status).toBe(200)
+    expect(await HoloArticle.countDocuments()).toBe(1)
+
+    await HoloArticle.updateOne({ _id: ARTICLE_ID }, { status: 'exported' })
+    await signed(payload({ event: 'article.updated', deliveryId: 'bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee' }, { title: 'Título novo', isRepublish: true }))
+    expect(await HoloArticle.findById(ARTICLE_ID).lean()).toMatchObject({ title: 'Título novo', status: 'pending', lastEvent: 'article.updated' })
+    expect(await HoloArticle.countDocuments()).toBe(1)
+  })
+
+  it('assinado mas inválido: 400 em JSON; outro tipo de conteúdo: 415', async () => {
+    const invalid = await signed(payload({ version: 2 }))
+    expect(invalid.status).toBe(400)
+    expect(invalid.headers.get('content-type')).toContain('application/json')
+    expect((await signed(payload(), 'text/plain')).status).toBe(415)
+    const raw = '{isto não é JSON'
+    expect((await deliver(raw, signatureOf(raw))).status).toBe(400)
+    expect(await HoloArticle.countDocuments()).toBe(0)
   })
 })

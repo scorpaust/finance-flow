@@ -1,9 +1,12 @@
 import { LANDING_SLUGS, type LandingSlug } from '../landing'
+import { appOrExcelPosts } from './app-or-excel'
 import { budgetStepsPosts } from './budget-steps'
 import { budgetingMethodsPosts } from './budgeting-methods'
 import { cashFlowPosts } from './cash-flow'
+import { chooseFinanceAppPosts } from './choose-finance-app'
 import { financialRatiosPosts } from './financial-ratios'
 import { monthlyExpensesPosts } from './monthly-expenses'
+import { startInvestingPosts } from './start-investing'
 import { netWorthPosts } from './net-worth'
 import { geldSparen } from './de-geld-sparen'
 import { howToSaveMoney } from './en-how-to-save-money'
@@ -47,6 +50,9 @@ export const BLOG_POSTS: BlogPost[] = [
   ...financialRatiosPosts,
   ...budgetingMethodsPosts,
   ...monthlyExpensesPosts,
+  ...appOrExcelPosts,
+  ...startInvestingPosts,
+  ...chooseFinanceAppPosts,
 ]
 
 // Caminho do artigo nesta língua.

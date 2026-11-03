@@ -68,7 +68,6 @@
       <KpiCard
         :title="t('dashboard.kpiBalance')"
         :value="stats?.overview.currentBalance || 0"
-        :change="stats?.overview.incomeChange"
         icon="💰"
         color="brand"
         :loading="loading"
@@ -92,7 +91,8 @@
       />
       <KpiCard
         :title="t('dashboard.kpiSavingsRate')"
-        :value="stats?.overview.savingsRate || 0"
+        :value="stats?.overview.savingsRate"
+        :note="t('dashboard.kpiMonthInProgress')"
         icon="🎯"
         color="purple"
         :is-percentage="true"

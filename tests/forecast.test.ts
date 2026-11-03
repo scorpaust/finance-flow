@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   PREDICTION_MIN_MONTHS,
   addMonths,
+  previousMonthPeriodEnd,
   currentMonthKey,
   forecastSeries,
   linearRegression,
@@ -94,5 +95,20 @@ describe('previsão simples (tendência limitada)', () => {
     const { slope, intercept } = linearRegression([2, 4, 6])
     expect(slope).toBeCloseTo(2)
     expect(intercept).toBeCloseTo(2)
+  })
+})
+
+describe('previousMonthPeriodEnd', () => {
+  it('termina no início do dia seguinte, um mês antes', () => {
+    expect(previousMonthPeriodEnd(new Date(2026, 10, 3, 15, 30))).toEqual(new Date(2026, 9, 4))
+  })
+
+  it('em meses mais curtos, fica pelo fim do mês anterior', () => {
+    expect(previousMonthPeriodEnd(new Date(2026, 2, 31))).toEqual(new Date(2026, 2, 1))
+    expect(previousMonthPeriodEnd(new Date(2028, 2, 31))).toEqual(new Date(2028, 2, 1))
+  })
+
+  it('em janeiro, recua para dezembro do ano anterior', () => {
+    expect(previousMonthPeriodEnd(new Date(2027, 0, 15))).toEqual(new Date(2026, 11, 16))
   })
 })

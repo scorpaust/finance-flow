@@ -131,7 +131,10 @@
           </thead>
           <tbody>
             <tr v-for="(row, i) in monthlyTableData" :key="i">
-              <td class="font-medium capitalize">{{ row.label }}</td>
+              <td class="font-medium capitalize">
+                {{ row.label }}
+                <span v-if="row.inProgress" class="ml-1 text-xs font-normal normal-case text-white/40">({{ t('stats.monthInProgress') }})</span>
+              </td>
               <td class="text-right text-emerald-400 font-semibold">{{ formatCurrency(row.income) }}</td>
               <td class="text-right text-rose-400 font-semibold">{{ formatCurrency(row.expense) }}</td>
               <td class="text-right font-bold" :class="row.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'">
@@ -145,7 +148,7 @@
                   <div
                     class="h-full rounded-full transition-all duration-700"
                     :style="{
-                      width: Math.max(0, Math.min(100, row.income > 0 ? (row.balance / row.income) * 100 : 0)) + '%',
+                      width: progressWidth(row) + '%',
                       background: row.balance >= 0 ? '#10b981' : '#f43f5e'
                     }"
                   />
@@ -253,6 +256,13 @@ const summaryCards = computed(() => {
   ]
 })
 
+// Largura da barra: a poupança do mês, ou o excesso de despesa nos meses
+// negativos (a vermelho). Sem receitas, um mês negativo fica com a barra cheia.
+function progressWidth(row: { income: number; balance: number }) {
+  if (row.income > 0) return Math.min(100, Math.abs((row.balance / row.income) * 100))
+  return row.balance < 0 ? 100 : 0
+}
+
 const monthlyTableData = computed(() =>
   [...(stats.value?.monthly || [])].reverse().map((m: any) => {
     const [year, month] = m.month.split('-')
@@ -260,6 +270,7 @@ const monthlyTableData = computed(() =>
     return {
       ...m,
       label: format(d, 'MMMM yyyy', { locale: dateFnsLocale.value }),
+      inProgress: m.month === format(new Date(), 'yyyy-MM'),
     }
   })
 )

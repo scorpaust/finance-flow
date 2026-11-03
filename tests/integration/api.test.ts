@@ -1839,3 +1839,65 @@ describe('grupos: tetos vazios e mensagens de validação traduzidas', () => {
     expect((await noName.json()).message).toBe('Nome obrigatório')
   })
 })
+
+describe('painel: taxa de poupança', () => {
+  async function seed(email: string, rows: { type: 'income' | 'expense'; amount: number; date: Date }[]) {
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const expense = await Category.findOne({ userId: user!._id, type: 'expense' })
+    const income = await Category.findOne({ userId: user!._id, type: 'income' })
+    await Transaction.insertMany(rows.map((r) => ({
+      ...r,
+      userId: user!._id,
+      categoryId: r.type === 'income' ? income!._id : expense!._id,
+      description: 'Teste',
+      currency: 'EUR',
+    })))
+    const res = await fetch('/api/stats/overview?months=3', { headers: { cookie } })
+    expect(res.status).toBe(200)
+    return (await res.json()).overview
+  }
+
+  const now = new Date()
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1, 12)
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 12)
+
+  it('uma despesa com data futura não conta no mês corrente', async () => {
+    const overview = await seed('poupanca-futura@example.com', [
+      { type: 'income', amount: 1000, date: thisMonth },
+      { type: 'expense', amount: 200, date: thisMonth },
+      { type: 'expense', amount: 5000, date: nextMonth },
+    ])
+    expect(overview.currentMonthExpense).toBe(200)
+    expect(overview.savingsRate).toBe(80)
+    expect(overview.currentBalance).toBe(800)
+  })
+
+  it('despesas muito acima das receitas dão uma taxa negativa real', async () => {
+    const overview = await seed('poupanca-negativa@example.com', [
+      { type: 'income', amount: 100, date: thisMonth },
+      { type: 'expense', amount: 500, date: thisMonth },
+    ])
+    expect(overview.savingsRate).toBe(-400)
+  })
+
+  it('a variação compara com o mesmo período do mês anterior', async () => {
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 12)
+    const overview = await seed('poupanca-periodo@example.com', [
+      { type: 'income', amount: 100, date: thisMonth },
+      { type: 'income', amount: 200, date: prevMonth },
+      { type: 'expense', amount: 300, date: thisMonth },
+      { type: 'expense', amount: 100, date: prevMonth },
+      { type: 'expense', amount: 900, date: nextMonth },
+    ])
+    expect(overview.incomeChange).toBe(-50)
+    expect(overview.expenseChange).toBe(200)
+  })
+
+  it('sem receitas no mês a taxa é null, não 0', async () => {
+    const overview = await seed('poupanca-sem-receitas@example.com', [
+      { type: 'expense', amount: 200, date: thisMonth },
+    ])
+    expect(overview.savingsRate).toBeNull()
+  })
+})

@@ -44,6 +44,15 @@ export interface MonthlyPoint {
 
 // Separa os meses completos do mês em curso. Meses futuros (transações
 // agendadas com data à frente) também ficam de fora.
+// Fim (exclusivo) do mesmo período no mês anterior: no dia 3 é o início do dia 4
+// do mês anterior. Em 31 de março, sem 31 de fevereiro, é o fim de fevereiro.
+export function previousMonthPeriodEnd(now: Date = new Date()): Date {
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const lastDayOfPrevMonth = new Date(year, month, 0).getDate()
+  return new Date(year, month - 1, Math.min(now.getDate(), lastDayOfPrevMonth) + 1)
+}
+
 export function splitCompleteMonths<T extends { month: string }>(
   series: T[],
   currentMonth: string

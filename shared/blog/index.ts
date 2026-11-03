@@ -3,6 +3,7 @@ import { budgetStepsPosts } from './budget-steps'
 import { budgetingMethodsPosts } from './budgeting-methods'
 import { cashFlowPosts } from './cash-flow'
 import { financialRatiosPosts } from './financial-ratios'
+import { monthlyExpensesPosts } from './monthly-expenses'
 import { netWorthPosts } from './net-worth'
 import { geldSparen } from './de-geld-sparen'
 import { howToSaveMoney } from './en-how-to-save-money'
@@ -45,6 +46,7 @@ export const BLOG_POSTS: BlogPost[] = [
   ...netWorthPosts,
   ...financialRatiosPosts,
   ...budgetingMethodsPosts,
+  ...monthlyExpensesPosts,
 ]
 
 // Caminho do artigo nesta língua.

@@ -34,6 +34,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'Em vez de tentares adivinhar o melhor momento, investe o mesmo valor todos os meses. Compras mais unidades quando os preços estão baixos e menos quando estão altos, o que suaviza as oscilações, embora não evite perdas. Decide o valor e a data, e assim tiras a pressão de escolher quando comprar.' },
       { type: 'tip', text: 'Exemplo: 50 € por mês durante dez anos são 6000 € investidos, antes de ganhos, perdas, comissões e impostos. Podes começar com menos e aumentar o valor quando o teu orçamento permitir.' },
 
+      { type: 'h2', text: 'Quanto precisas para começar' },
+      { type: 'p', text: 'Não há um mínimo universal: depende da plataforma e do produto. O que conta é a proporção. Um orçamento simples mostra-te quanto fica livre no fim do mês, e é daí que sai o valor: se forem 20 ou 50 €, já é um ponto de partida. Um valor modesto que consegues cumprir todos os meses vale mais do que um valor alto que te obriga a falhar.' },
+      { type: 'h2', text: 'Em valores pequenos, os custos pesam mais' },
+      { type: 'p', text: 'Uma comissão fixa de 5 € numa compra de 25 € leva logo 20% do valor. O que fica investido são 20 €, que teriam de subir 25% só para voltares aos 25 €. Por isso, antes de escolheres, confirma:' },
+      { type: 'ul', items: [
+        'As comissões por operação, e se são fixas ou uma percentagem do valor.',
+        'Os custos de custódia ou de manutenção da conta.',
+        'Os custos correntes do produto: um ponto percentual a mais por ano faz muita diferença ao fim de décadas.',
+      ] },
+
       { type: 'h2', text: 'Erros comuns de quem está a começar' },
       { type: 'ul', items: [
         'Esperar pelo momento perfeito e nunca começar.',
@@ -42,6 +52,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Comprar por recomendação de terceiros algo que não percebes.',
         'Ignorar as comissões e os impostos.',
       ] },
+
+      { type: 'h2', text: 'Se o mercado cair' },
+      { type: 'p', text: 'Vai acontecer. Quedas de 10% ou 20% fazem parte do funcionamento dos mercados, e a primeira é a mais desconfortável. Se o objetivo e o prazo não mudaram, uma queda não é, por si só, motivo para vender: vender torna definitiva uma perda que até aí estava só no papel. Ainda assim, nada garante quando nem se o valor recupera, e é por isso que só deves investir dinheiro de que não vais precisar em breve.' },
+      { type: 'p', text: 'Se a queda te tira o sono, o risco talvez seja alto demais para ti. Revê-o com calma e ajusta os próximos reforços, sem decidires no pior momento.' },
 
       { type: 'h2', text: 'Como acompanhar o que investes' },
       { type: 'p', text: 'Um registo simples chega para saberes quanto investiste, quanto vale hoje e se o plano continua a fazer sentido. Pode ser uma folha de cálculo, desde que a mantenhas atualizada.' },
@@ -78,6 +92,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'Instead of trying to guess the best moment, invest the same amount every month. You buy more units when prices are low and fewer when they are high, which smooths out fluctuations, although it does not prevent losses. Decide the amount and the date, and the pressure of choosing when to buy goes away.' },
       { type: 'tip', text: 'Example: €50 a month for ten years is €6,000 invested, before gains, losses, fees and taxes. You can start with less and raise the amount when your budget allows.' },
 
+      { type: 'h2', text: 'How much you need to start' },
+      { type: 'p', text: 'There is no universal minimum: it depends on the platform and the product. What matters is proportion. A simple budget shows how much is left at the end of the month, and that is where the amount comes from: if it is €20 or €50, that is already a starting point. A modest amount you can keep up every month is worth more than a high one you keep missing.' },
+      { type: 'h2', text: 'With small amounts, costs weigh more' },
+      { type: 'p', text: 'A fixed €5 fee on a €25 purchase takes 20% of the amount straight away. Only €20 ends up invested, and it would have to rise 25% just to get back to €25. So before you choose, check:' },
+      { type: 'ul', items: [
+        'The fees per transaction, and whether they are fixed or a percentage of the amount.',
+        'Custody or account maintenance costs.',
+        'The ongoing costs of the product: one extra percentage point a year makes a big difference over decades.',
+      ] },
+
       { type: 'h2', text: 'Common beginner mistakes' },
       { type: 'ul', items: [
         'Waiting for the perfect moment and never starting.',
@@ -86,6 +110,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Buying something you do not understand because someone recommended it.',
         'Ignoring fees and taxes.',
       ] },
+
+      { type: 'h2', text: 'If the market falls' },
+      { type: 'p', text: 'It will happen. Falls of 10% or 20% are part of how markets work, and the first one is the most uncomfortable. If your goal and timeframe have not changed, a fall alone is no reason to sell: selling makes a loss permanent that until then was only on paper. Even so, nothing guarantees when or whether the value will recover, which is why you should only invest money you will not need soon.' },
+      { type: 'p', text: 'If a fall keeps you up at night, the risk may be too high for you. Review it calmly and adjust your next top-ups, without deciding at the worst moment.' },
 
       { type: 'h2', text: 'How to keep track of your investments' },
       { type: 'p', text: 'A simple record is enough to know how much you invested, what it is worth today and whether the plan still makes sense. A spreadsheet will do, as long as you keep it up to date.' },
@@ -122,6 +150,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'En lugar de intentar adivinar el mejor momento, invierte el mismo importe cada mes. Compras más participaciones cuando los precios están bajos y menos cuando están altos, lo que suaviza las oscilaciones, aunque no evita las pérdidas. Decide el importe y la fecha, y así te quitas la presión de elegir cuándo comprar.' },
       { type: 'tip', text: 'Ejemplo: 50 € al mes durante diez años son 6000 € invertidos, antes de ganancias, pérdidas, comisiones e impuestos. Puedes empezar con menos y aumentar el importe cuando tu presupuesto lo permita.' },
 
+      { type: 'h2', text: 'Cuánto necesitas para empezar' },
+      { type: 'p', text: 'No hay un mínimo universal: depende de la plataforma y del producto. Lo que cuenta es la proporción. Un presupuesto sencillo te muestra cuánto queda libre a final de mes, y de ahí sale el importe: si son 20 o 50 €, ya es un punto de partida. Un importe modesto que puedes cumplir todos los meses vale más que uno alto que te obliga a fallar.' },
+      { type: 'h2', text: 'Con importes pequeños, los costes pesan más' },
+      { type: 'p', text: 'Una comisión fija de 5 € en una compra de 25 € se lleva de entrada el 20 % del importe. Lo que queda invertido son 20 €, que tendrían que subir un 25 % solo para volver a los 25 €. Por eso, antes de elegir, comprueba:' },
+      { type: 'ul', items: [
+        'Las comisiones por operación, y si son fijas o un porcentaje del importe.',
+        'Los costes de custodia o de mantenimiento de la cuenta.',
+        'Los costes corrientes del producto: un punto porcentual más al año marca mucha diferencia al cabo de décadas.',
+      ] },
+
       { type: 'h2', text: 'Errores comunes de quien empieza' },
       { type: 'ul', items: [
         'Esperar el momento perfecto y no empezar nunca.',
@@ -130,6 +168,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Comprar por recomendación de otros algo que no entiendes.',
         'Ignorar las comisiones y los impuestos.',
       ] },
+
+      { type: 'h2', text: 'Si el mercado cae' },
+      { type: 'p', text: 'Va a ocurrir. Las caídas del 10 % o el 20 % forman parte del funcionamiento de los mercados, y la primera es la más incómoda. Si el objetivo y el plazo no han cambiado, una caída no es, por sí sola, motivo para vender: vender hace definitiva una pérdida que hasta entonces solo existía sobre el papel. Aun así, nada garantiza cuándo ni si el valor se recuperará, y por eso solo debes invertir dinero que no vayas a necesitar pronto.' },
+      { type: 'p', text: 'Si la caída te quita el sueño, quizá el riesgo sea demasiado alto para ti. Revísalo con calma y ajusta las próximas aportaciones, sin decidir en el peor momento.' },
 
       { type: 'h2', text: 'Cómo seguir lo que inviertes' },
       { type: 'p', text: 'Un registro sencillo basta para saber cuánto has invertido, cuánto vale hoy y si el plan sigue teniendo sentido. Puede ser una hoja de cálculo, siempre que la mantengas al día.' },
@@ -166,6 +208,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'Au lieu d\'essayer de deviner le meilleur moment, investissez le même montant chaque mois. Vous achetez plus de parts quand les prix sont bas et moins quand ils sont hauts, ce qui lisse les fluctuations, sans pour autant éviter les pertes. Fixez le montant et la date, et la pression de choisir quand acheter disparaît.' },
       { type: 'tip', text: 'Exemple : 50 € par mois pendant dix ans font 6000 € investis, avant gains, pertes, frais et impôts. Vous pouvez commencer avec moins et augmenter le montant quand votre budget le permet.' },
 
+      { type: 'h2', text: 'De combien avez-vous besoin pour commencer' },
+      { type: 'p', text: 'Il n\'existe pas de minimum universel : cela dépend de la plateforme et du produit. Ce qui compte, c\'est la proportion. Un budget simple montre ce qui reste disponible en fin de mois, et c\'est de là que vient le montant : si c\'est 20 ou 50 €, c\'est déjà un point de départ. Un montant modeste que vous tenez chaque mois vaut mieux qu\'un montant élevé que vous n\'arrivez pas à tenir.' },
+      { type: 'h2', text: 'Sur de petits montants, les frais pèsent plus' },
+      { type: 'p', text: 'Des frais fixes de 5 € sur un achat de 25 € prennent d\'emblée 20 % du montant. Il ne reste que 20 € investis, qui devraient monter de 25 % simplement pour revenir à 25 €. Avant de choisir, vérifiez donc :' },
+      { type: 'ul', items: [
+        'Les frais par opération, et s\'ils sont fixes ou proportionnels au montant.',
+        'Les frais de garde ou de tenue de compte.',
+        'Les frais courants du produit : un point de pourcentage de plus par an fait une grande différence au bout de plusieurs décennies.',
+      ] },
+
       { type: 'h2', text: 'Erreurs courantes des débutants' },
       { type: 'ul', items: [
         'Attendre le moment parfait et ne jamais commencer.',
@@ -174,6 +226,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Acheter sur recommandation un produit que vous ne comprenez pas.',
         'Ignorer les frais et les impôts.',
       ] },
+
+      { type: 'h2', text: 'Si le marché baisse' },
+      { type: 'p', text: 'Cela arrivera. Des baisses de 10 % ou 20 % font partie du fonctionnement des marchés, et la première est la plus inconfortable. Si votre objectif et votre horizon n\'ont pas changé, une baisse n\'est pas, à elle seule, une raison de vendre : vendre rend définitive une perte qui, jusque-là, n\'existait que sur le papier. Pour autant, rien ne garantit ni quand ni si la valeur remontera, et c\'est pourquoi il ne faut investir que l\'argent dont vous n\'aurez pas besoin bientôt.' },
+      { type: 'p', text: 'Si la baisse vous empêche de dormir, le risque est peut-être trop élevé pour vous. Réexaminez-le à tête reposée et ajustez vos prochains versements, sans décider au pire moment.' },
 
       { type: 'h2', text: 'Comment suivre vos investissements' },
       { type: 'p', text: 'Un suivi simple suffit pour savoir combien vous avez investi, ce que cela vaut aujourd\'hui et si le plan a toujours du sens. Un tableur convient, à condition de le tenir à jour.' },
@@ -210,6 +266,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'Statt den besten Moment erraten zu wollen, investiere jeden Monat denselben Betrag. Du kaufst mehr Anteile, wenn die Kurse niedrig sind, und weniger, wenn sie hoch sind. Das glättet Schwankungen, verhindert aber keine Verluste. Lege Betrag und Datum fest, dann entfällt der Druck, den Kaufzeitpunkt zu wählen.' },
       { type: 'tip', text: 'Beispiel: 50 € im Monat über zehn Jahre sind 6000 € investiert, vor Gewinnen, Verlusten, Gebühren und Steuern. Du kannst mit weniger anfangen und den Betrag erhöhen, wenn dein Budget es erlaubt.' },
 
+      { type: 'h2', text: 'Wie viel du zum Start brauchst' },
+      { type: 'p', text: 'Ein allgemeines Minimum gibt es nicht: Es hängt von der Plattform und vom Produkt ab. Entscheidend ist das Verhältnis. Ein einfaches Budget zeigt dir, wie viel am Monatsende frei bleibt, und daraus ergibt sich der Betrag: Wenn es 20 oder 50 € sind, ist das schon ein Anfang. Ein bescheidener Betrag, den du jeden Monat schaffst, ist mehr wert als ein hoher, den du immer wieder auslassen musst.' },
+      { type: 'h2', text: 'Bei kleinen Beträgen fallen Kosten stärker ins Gewicht' },
+      { type: 'p', text: 'Eine feste Gebühr von 5 € auf einen Kauf von 25 € nimmt dir sofort 20 % des Betrags. Investiert sind dann nur 20 €, die um 25 % steigen müssten, nur um wieder bei 25 € zu sein. Prüfe deshalb vor der Wahl:' },
+      { type: 'ul', items: [
+        'Die Gebühren pro Transaktion und ob sie fest oder ein Prozentsatz des Betrags sind.',
+        'Die Kosten für Depot oder Kontoführung.',
+        'Die laufenden Kosten des Produkts: Ein Prozentpunkt mehr pro Jahr macht über Jahrzehnte einen großen Unterschied.',
+      ] },
+
       { type: 'h2', text: 'Häufige Anfängerfehler' },
       { type: 'ul', items: [
         'Auf den perfekten Moment warten und nie anfangen.',
@@ -218,6 +284,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Auf Empfehlung etwas kaufen, das du nicht verstehst.',
         'Gebühren und Steuern ignorieren.',
       ] },
+
+      { type: 'h2', text: 'Wenn der Markt fällt' },
+      { type: 'p', text: 'Das wird passieren. Rückgänge von 10 % oder 20 % gehören zu den Märkten dazu, und der erste ist der unangenehmste. Wenn sich Ziel und Zeitraum nicht geändert haben, ist ein Rückgang allein kein Grund zu verkaufen: Ein Verkauf macht aus einem Verlust, der bis dahin nur auf dem Papier stand, einen endgültigen. Trotzdem garantiert nichts, wann oder ob sich der Wert erholt. Deshalb solltest du nur Geld investieren, das du nicht bald brauchst.' },
+      { type: 'p', text: 'Wenn dir ein Rückgang den Schlaf raubt, ist das Risiko vielleicht zu hoch für dich. Überprüfe es in Ruhe und passe deine nächsten Einzahlungen an, statt im schlechtesten Moment zu entscheiden.' },
 
       { type: 'h2', text: 'So behältst du deine Anlagen im Blick' },
       { type: 'p', text: 'Eine einfache Übersicht reicht, um zu wissen, wie viel du investiert hast, was es heute wert ist und ob der Plan noch sinnvoll ist. Eine Tabelle genügt, solange du sie aktuell hältst.' },
@@ -254,6 +324,16 @@ export const startInvestingPosts: BlogPost[] = [
       { type: 'p', text: 'Invece di cercare di indovinare il momento migliore, investi la stessa somma ogni mese. Compri più quote quando i prezzi sono bassi e meno quando sono alti, il che attenua le oscillazioni, anche se non evita le perdite. Decidi l\'importo e la data, e la pressione di scegliere quando comprare sparisce.' },
       { type: 'tip', text: 'Esempio: 50 € al mese per dieci anni sono 6000 € investiti, prima di guadagni, perdite, commissioni e tasse. Puoi iniziare con meno e aumentare l\'importo quando il tuo budget lo consente.' },
 
+      { type: 'h2', text: 'Quanto ti serve per iniziare' },
+      { type: 'p', text: 'Non esiste un minimo universale: dipende dalla piattaforma e dal prodotto. Quello che conta è la proporzione. Un budget semplice ti mostra quanto resta libero a fine mese, ed è da lì che viene l\'importo: se sono 20 o 50 €, è già un punto di partenza. Una somma modesta che riesci a rispettare ogni mese vale più di una somma alta che ti costringe a saltare dei mesi.' },
+      { type: 'h2', text: 'Con piccole somme, i costi pesano di più' },
+      { type: 'p', text: 'Una commissione fissa di 5 € su un acquisto di 25 € si porta via subito il 20% dell\'importo. Restano investiti 20 €, che dovrebbero salire del 25% solo per tornare a 25 €. Perciò, prima di scegliere, controlla:' },
+      { type: 'ul', items: [
+        'Le commissioni per operazione, e se sono fisse o una percentuale dell\'importo.',
+        'I costi di custodia o di gestione del conto.',
+        'I costi correnti del prodotto: un punto percentuale in più all\'anno fa molta differenza nel corso dei decenni.',
+      ] },
+
       { type: 'h2', text: 'Errori comuni di chi inizia' },
       { type: 'ul', items: [
         'Aspettare il momento perfetto e non iniziare mai.',
@@ -262,6 +342,10 @@ export const startInvestingPosts: BlogPost[] = [
         'Comprare su consiglio altrui qualcosa che non capisci.',
         'Ignorare commissioni e tasse.',
       ] },
+
+      { type: 'h2', text: 'Se il mercato scende' },
+      { type: 'p', text: 'Succederà. Cali del 10% o del 20% fanno parte del funzionamento dei mercati, e il primo è il più scomodo. Se l\'obiettivo e l\'orizzonte non sono cambiati, un calo non è di per sé un motivo per vendere: vendere rende definitiva una perdita che fino a quel momento era solo sulla carta. Tuttavia nulla garantisce quando né se il valore si riprenderà, ed è per questo che devi investire solo denaro che non ti servirà a breve.' },
+      { type: 'p', text: 'Se il calo ti toglie il sonno, forse il rischio è troppo alto per te. Rivedilo con calma e correggi i prossimi versamenti, senza decidere nel momento peggiore.' },
 
       { type: 'h2', text: 'Come seguire i tuoi investimenti' },
       { type: 'p', text: 'Un semplice registro basta per sapere quanto hai investito, quanto vale oggi e se il piano ha ancora senso. Va bene un foglio di calcolo, purché lo tenga aggiornato.' },

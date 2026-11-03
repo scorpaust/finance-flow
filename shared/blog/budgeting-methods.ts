@@ -192,7 +192,7 @@ export const budgetingMethodsPosts: BlogPost[] = [
         'Chancen (extern): Überstunden oder freiberufliche Aufträge, kostenlose Konten, eine geplante Gehaltserhöhung.',
         'Risiken (extern): Die Miete könnte steigen, die Preise ziehen an, im Job drohen Kürzungen.',
       ] },
-      { type: 'p', text: 'Wähle dann für jedes Feld eine Maßnahme: eine Stärke nutzen, eine Schwäche beheben, eine Chance ergreifen und dich gegen ein Risiko absichern. Sehr oft ist die erste Schwäche „“, und genau da kommt die Budget-Methode ins Spiel.' },
+      { type: 'p', text: 'Wähle dann für jedes Feld eine Maßnahme: eine Stärke nutzen, eine Schwäche beheben, eine Chance ergreifen und dich gegen ein Risiko absichern. Sehr oft ist die erste Schwäche „ich weiß nicht, wie viel ich ausgebe“, und genau da kommt die Budget-Methode ins Spiel.' },
 
       { type: 'h2', text: 'Über FinanceFlow' },
       { type: 'p', text: 'Wenn du dich für eine App entscheidest: FinanceFlow läuft im Browser und auf Android, in sechs Sprachen. Im kostenlosen Tarif erfasst du Einnahmen und Ausgaben nach Kategorie und siehst die Monatsübersicht. In den bezahlten Tarifen funktionieren Gruppen wie digitale Umschläge, mit einem Monats- oder Wochenlimit und einer Warnung, wenn du dich ihm näherst. Außerdem kannst du Belege fotografieren, statt zu tippen, und alles als CSV exportieren.' },

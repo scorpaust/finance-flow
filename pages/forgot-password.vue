@@ -14,22 +14,24 @@
       </div>
 
       <form v-else class="space-y-4" @submit.prevent="submit">
-        <div>
-          <label class="form-label" for="forgot-email">{{ t('auth.emailLabel') }}</label>
-          <div class="relative">
-            <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              id="forgot-email"
-              v-model="email"
-              type="email"
-              data-testid="forgot-email"
-              class="form-input pl-9"
-              autocomplete="email"
-              placeholder="nome@email.com"
-              required
-            />
+        <fieldset :disabled="!mounted" class="space-y-4 min-w-0 m-0 p-0 border-0">
+          <div>
+            <label class="form-label" for="forgot-email">{{ t('auth.emailLabel') }}</label>
+            <div class="relative">
+              <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input
+                id="forgot-email"
+                v-model="email"
+                type="email"
+                data-testid="forgot-email"
+                class="form-input pl-9"
+                autocomplete="email"
+                placeholder="nome@email.com"
+                required
+              />
+            </div>
           </div>
-        </div>
+        </fieldset>
         <div
           v-if="errorMessage"
           class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
@@ -65,7 +67,9 @@ const sent = ref(false)
 const errorMessage = ref('')
 // A página aparece antes da hidratação (SSR): um envio feito nesse intervalo
 // era um envio normal do browser (recarregava a página e perdia-se — o E2E no
-// CI apanhou-o). O botão fica desativado até o Vue assumir, como no login.
+// CI apanhou-o). E o que se escreve antes disso é apagado ao hidratar (o v-model
+// repõe o valor vazio), por isso o campo e o botão ficam desativados até o Vue
+// assumir, como no login.
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 

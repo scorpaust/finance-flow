@@ -1996,6 +1996,23 @@ describe('webhook da Holo', () => {
     expect(await HoloArticle.countDocuments()).toBe(1)
   })
 
+  it('se o slug já está no ar, responde com o endereço real, e o artigo continua por rever', async () => {
+    const body = await (await signed(payload({}, { slug: 'como-poupar-dinheiro' }))).json()
+    expect(body.url).toBe('https://www.financeflow-webapp.pt/pt/blog/como-poupar-dinheiro')
+    expect(await HoloArticle.findById(ARTICLE_ID).lean()).toMatchObject({ status: 'pending' })
+  })
+
+  it('os endereços sem língua levam ao artigo; os que não existem dão 404, sem passar pelo login', async () => {
+    const go = (path: string) => fetch(path, { redirect: 'manual' })
+    const post = await go('/blog/how-to-save-money?utm_source=holo')
+    expect(post.status).toBe(301)
+    expect(post.headers.get('location')).toBe('/en/blog/how-to-save-money?utm_source=holo')
+    expect((await go('/blog/como-poupar-dinheiro')).headers.get('location')).toBe('/pt/blog/como-poupar-dinheiro')
+    expect((await go('/blog')).headers.get('location')).toBe('/pt/blog')
+    expect((await go('/blog/nao-existe')).status).toBe(404)
+    expect((await go('/blog/a/b')).status).toBe(404)
+  })
+
   it('assinado mas inválido: 400 em JSON; outro tipo de conteúdo: 415', async () => {
     const invalid = await signed(payload({ version: 2 }))
     expect(invalid.status).toBe(400)

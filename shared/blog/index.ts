@@ -77,6 +77,11 @@ export function findBlogPost(lang: LandingSlug, slug: string): BlogPost | undefi
   return BLOG_POSTS.find((p) => p.lang === lang && p.slug === slug)
 }
 
+// Em qualquer língua: para quando só se conhece o slug (a Holo não sabe da língua).
+export function findBlogPostBySlug(slug: string): BlogPost | undefined {
+  return BLOG_POSTS.find((p) => p.slug === slug)
+}
+
 // Línguas com blog, pela ordem das línguas do site.
 export function blogLangs(): LandingSlug[] {
   return (Object.keys(LANDING_SLUGS) as LandingSlug[]).filter((lang) => BLOG_POSTS.some((p) => p.lang === lang))

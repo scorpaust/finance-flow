@@ -2,11 +2,13 @@ import { HoloArticle } from '../../models'
 import { enforceRateLimit } from '../../utils/rateLimit'
 import { logEvent } from '../../utils/logger'
 import { HoloDeliverySchema, verifyHoloSignature } from '../../utils/holoWebhook'
+import { blogPostPath, findBlogPostBySlug } from '../../../shared/blog'
+import { SITE_URL } from '../../../shared/landing'
 
 // Recebe os artigos publicados na Holo e guarda-os como rascunho: nada vai para
 // o site sem revisão. O blog vive no código (shared/blog/), com as 6 línguas, e
 // os rascunhos costumam prometer funcionalidades que a app não tem. Para os ler:
-// scripts/export-holo-drafts.mjs. Sem `url` na resposta, porque ainda não estão no ar.
+// scripts/export-holo-drafts.mjs. A resposta só leva `url` se esse slug já estiver no ar.
 export default defineEventHandler(async (event) => {
   await enforceRateLimit(event, { name: 'holo-webhook', limit: 60, windowSeconds: 60 })
 
@@ -69,5 +71,6 @@ export default defineEventHandler(async (event) => {
   }
 
   logEvent('info', 'holo_webhook.stored', { delivery: deliveryId, articleId: id, event: holoEvent })
-  return { received: true, stored: true, status: 'pending_review', deliveryId }
+  const live = findBlogPostBySlug(article.slug)
+  return { received: true, stored: true, status: 'pending_review', deliveryId, ...(live ? { url: `${SITE_URL}${blogPostPath(live)}` } : {}) }
 })

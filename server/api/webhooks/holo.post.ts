@@ -18,7 +18,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const rawBody = (await readRawBody(event, false)) ?? Buffer.alloc(0)
-  const secret = useRuntimeConfig().holoWebhookSecret
+  // Lido em runtime, não do runtimeConfig: uma variável marcada como secreta no
+  // Netlify chega mascarada ao build local do CLI, e todas as entregas davam 401.
+  const secret = (process.env.HOLO_WEBHOOK_SECRET || '').trim()
   const deliveryHeader = getRequestHeader(event, 'x-holo-delivery')
 
   if (!verifyHoloSignature(rawBody, getRequestHeader(event, 'x-holo-signature'), secret)) {

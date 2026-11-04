@@ -4,8 +4,11 @@ import { budgetStepsPosts } from './budget-steps'
 import { budgetingMethodsPosts } from './budgeting-methods'
 import { cashFlowPosts } from './cash-flow'
 import { chooseFinanceAppPosts } from './choose-finance-app'
+import { creditCardDebtPosts } from './credit-card-debt'
+import { financeAppClearViewPosts } from './finance-app-clear-view'
 import { financialRatiosPosts } from './financial-ratios'
 import { monthlyExpensesPosts } from './monthly-expenses'
+import { organizeFinancesPosts } from './organize-finances'
 import { startInvestingPosts } from './start-investing'
 import { netWorthPosts } from './net-worth'
 import { geldSparen } from './de-geld-sparen'
@@ -53,6 +56,9 @@ export const BLOG_POSTS: BlogPost[] = [
   ...appOrExcelPosts,
   ...startInvestingPosts,
   ...chooseFinanceAppPosts,
+  ...financeAppClearViewPosts,
+  ...organizeFinancesPosts,
+  ...creditCardDebtPosts,
 ]
 
 // Caminho do artigo nesta língua.

@@ -12,33 +12,35 @@
       <template v-else>
         <p class="text-white/50 text-sm leading-relaxed mb-6">{{ t('passwordReset.resetDescription') }}</p>
         <form class="space-y-4" @submit.prevent="submit">
-          <div>
-            <label class="form-label" for="reset-password">{{ t('passwordReset.newPasswordLabel') }}</label>
-            <input
-              id="reset-password"
-              v-model="password"
-              type="password"
-              data-testid="reset-password"
-              class="form-input"
-              autocomplete="new-password"
-              minlength="8"
-              :placeholder="t('auth.passwordPlaceholder')"
-              required
-            />
-          </div>
-          <div>
-            <label class="form-label" for="reset-confirm">{{ t('passwordReset.confirmPasswordLabel') }}</label>
-            <input
-              id="reset-confirm"
-              v-model="confirm"
-              type="password"
-              data-testid="reset-confirm"
-              class="form-input"
-              autocomplete="new-password"
-              minlength="8"
-              required
-            />
-          </div>
+          <fieldset :disabled="!mounted" class="space-y-4 min-w-0 m-0 p-0 border-0">
+            <div>
+              <label class="form-label" for="reset-password">{{ t('passwordReset.newPasswordLabel') }}</label>
+              <input
+                id="reset-password"
+                v-model="password"
+                type="password"
+                data-testid="reset-password"
+                class="form-input"
+                autocomplete="new-password"
+                minlength="8"
+                :placeholder="t('auth.passwordPlaceholder')"
+                required
+              />
+            </div>
+            <div>
+              <label class="form-label" for="reset-confirm">{{ t('passwordReset.confirmPasswordLabel') }}</label>
+              <input
+                id="reset-confirm"
+                v-model="confirm"
+                type="password"
+                data-testid="reset-confirm"
+                class="form-input"
+                autocomplete="new-password"
+                minlength="8"
+                required
+              />
+            </div>
+          </fieldset>
           <div
             v-if="errorMessage"
             class="flex items-center gap-2 bg-rose-500/[0.15] border border-rose-500/30 rounded-2xl px-4 py-3 text-rose-400 text-sm"
@@ -81,7 +83,9 @@ const errorMessage = ref('')
 const linkExpired = ref(false)
 // A página aparece antes da hidratação (SSR): um envio feito nesse intervalo
 // era um envio normal do browser (recarregava a página e perdia-se — o E2E no
-// CI apanhou-o). O botão fica desativado até o Vue assumir, como no login.
+// CI apanhou-o). E o que se escreve antes disso é apagado ao hidratar (o v-model
+// repõe o valor vazio), por isso os campos e o botão ficam desativados até o Vue
+// assumir, como no login.
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 

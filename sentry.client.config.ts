@@ -8,7 +8,8 @@ Sentry.init({
   sendDefaultPii: false,
   tracesSampleRate: 0.1,
   // 404 de rotas inexistentes (URLs escritos à mão, bots): já mostram o error.vue, não são bugs.
-  ignoreErrors: [/^Page Not Found: /],
+  // 401 da API: sessão expirada com a página aberta, já leva ao login (stores/auth.ts).
+  ignoreErrors: [/^Page Not Found: /, /^(FetchError: )?\[[A-Z]+\] "\/api\/[^"]*": 401/],
   beforeSend(event) {
     if (event.request) {
       delete event.request.data

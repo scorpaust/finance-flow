@@ -27,6 +27,8 @@ export default defineNuxtPlugin(() => {
   globalThis.$fetch = $fetch.create({
     onResponseError({ response }) {
       if (response.status === 403 && (response._data as any)?.data?.error === 'feature_locked') refresh(true)
+      // Aqui também, e não noutro plugin: um 2.º `$fetch.create` substituía este gancho.
+      if (response.status === 401) void auth.checkSessionAfter401()
     },
   }) as typeof $fetch
 })

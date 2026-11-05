@@ -101,6 +101,30 @@ export const useAuthStore = defineStore('auth', () => {
     await navigateTo('/login')
   }
 
+  // A sessão guardada aqui só é lida uma vez, por isso pode ter expirado no
+  // servidor com a página aberta. Um 401 sozinho não chega para o concluir (uma
+  // password errada ao apagar a conta também o dá): pergunta-se ao servidor.
+  // Sem `loading`, para não desmontar a página de quem tem a sessão válida.
+  let expiryCheck: Promise<void> | null = null
+
+  function checkSessionAfter401(): Promise<void> {
+    if (!user.value) return Promise.resolve()
+    if (!expiryCheck) expiryCheck = doCheckSessionAfter401().finally(() => { expiryCheck = null })
+    return expiryCheck
+  }
+
+  async function doCheckSessionAfter401() {
+    try {
+      const data = await $fetch<{ user: User | null }>('/api/auth/session')
+      if (data.user) return
+    } catch {
+      return // rede ou servidor indisponível: não é "sem sessão"
+    }
+    user.value     = null
+    _fetched.value = false
+    await navigateTo('/login')
+  }
+
   const isAuthenticated = computed(() => !!user.value)
 
   return {
@@ -112,6 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
     verifyTwoFactor,
     setTwoFactorEnabled,
     registerWithPassword,
+    checkSessionAfter401,
     signOut,
   }
 })

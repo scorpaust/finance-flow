@@ -1873,12 +1873,13 @@ describe('painel: taxa de poupança', () => {
     expect(overview.currentBalance).toBe(800)
   })
 
-  it('despesas muito acima das receitas dão uma taxa negativa real', async () => {
+  it('despesas acima das receitas: a taxa fica em 0 % e o mês é marcado como acima', async () => {
     const overview = await seed('poupanca-negativa@example.com', [
       { type: 'income', amount: 100, date: thisMonth },
       { type: 'expense', amount: 500, date: thisMonth },
     ])
-    expect(overview.savingsRate).toBe(-400)
+    expect(overview.savingsRate).toBe(0)
+    expect(overview.overspent).toBe(true)
   })
 
   it('a variação compara com o mesmo período do mês anterior', async () => {

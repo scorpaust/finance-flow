@@ -92,7 +92,8 @@
       <KpiCard
         :title="t('dashboard.kpiSavingsRate')"
         :value="stats?.overview.savingsRate"
-        :note="t('dashboard.kpiMonthInProgress')"
+        :note="t(stats?.overview.overspent ? 'dashboard.kpiOverspent' : 'dashboard.kpiMonthInProgress')"
+        :danger="stats?.overview.overspent"
         icon="🎯"
         color="purple"
         :is-percentage="true"
@@ -480,7 +481,6 @@ async function handleDelete(id: string) {
   try {
     await finance.deleteTransaction(id)
     toast.success(t('dashboard.toastTransactionDeleted'))
-    await loadStats()
   } catch {
     toast.error(t('dashboard.toastDeleteError'))
   }
@@ -506,9 +506,11 @@ async function onSaved() {
   scanPrefill.value = null
   toast.success(t('dashboard.toastTransactionSaved'))
   await finance.fetchTransactions({ page: 1 })
-  await loadStats()
   onboardingRef.value?.reload()
 }
+
+// Os totais seguem qualquer transação nova, alterada ou apagada (stores/finance.ts).
+watch(() => finance.revision, () => { void loadStats() })
 
 onMounted(async () => {
   await Promise.all([

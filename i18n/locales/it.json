@@ -115,6 +115,7 @@
     "kpiExpense": "Uscite (mese)",
     "kpiSavingsRate": "Tasso di risparmio",
     "kpiMonthInProgress": "Mese in corso",
+    "kpiOverspent": "Hai speso più di quanto hai ricevuto",
     "forecastTitle": "Previsioni con IA",
     "forecastDescription": "Una previsione di entrate, spese e saldo per i prossimi 3 mesi, fatta sul tuo dispositivo.",
     "forecastRun": "Esegui previsione",

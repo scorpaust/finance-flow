@@ -115,6 +115,7 @@
     "kpiExpense": "Ausgaben (Monat)",
     "kpiSavingsRate": "Sparquote",
     "kpiMonthInProgress": "Laufender Monat",
+    "kpiOverspent": "Du hast mehr ausgegeben als eingenommen",
     "forecastTitle": "KI-Prognosen",
     "forecastDescription": "Eine Prognose deiner Einnahmen, Ausgaben und deines Saldos für die nächsten 3 Monate, auf deinem Gerät erstellt.",
     "forecastRun": "Prognose ausführen",

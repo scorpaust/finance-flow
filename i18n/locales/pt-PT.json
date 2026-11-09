@@ -115,6 +115,7 @@
     "kpiExpense": "Despesas (mês)",
     "kpiSavingsRate": "Taxa de Poupança",
     "kpiMonthInProgress": "Mês em curso",
+    "kpiOverspent": "Gastaste mais do que recebeste",
     "forecastTitle": "Previsões com IA",
     "forecastDescription": "Previsão das receitas, despesas e saldo dos próximos 3 meses, feita no teu dispositivo.",
     "forecastRun": "Executar previsão",

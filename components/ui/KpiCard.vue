@@ -69,6 +69,8 @@ const props = defineProps<{
   isPercentage?: boolean
   invert?: boolean
   note?: string
+  // Taxa de poupança: gastou-se mais do que se recebeu (o valor fica em 0 %).
+  danger?: boolean
 }>()
 
 const { t } = useI18n()
@@ -95,6 +97,7 @@ const changePositive = computed(() => {
 const savingsRateClass = computed(() => {
   const v = props.value
   if (v == null) return 'text-white/40'
+  if (props.danger) return 'text-rose-400'
   if (v >= 20) return 'text-emerald-400'
   if (v >= 0)  return 'text-yellow-400'
   return 'text-rose-400'

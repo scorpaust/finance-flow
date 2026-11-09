@@ -11,6 +11,10 @@ export const useFinanceStore = defineStore('finance', () => {
   const filters      = ref<FilterOptions>({
     type: 'all', page: 1, limit: 20, sortBy: 'date', sortOrder: 'desc',
   })
+  // Sobe a cada transação criada, alterada ou apagada, venha de onde vier (o
+  // botão "+ Novo" do layout, por exemplo): o painel observa-o para recarregar
+  // os totais, que antes só mudavam ao sair e voltar.
+  const revision     = ref(0)
 
   async function fetchTransactions(opts?: Partial<FilterOptions>) {
     loading.value = true
@@ -35,12 +39,14 @@ export const useFinanceStore = defineStore('finance', () => {
 
   async function createTransaction(data: Partial<Transaction>) {
     const tx = await $fetch<Transaction>('/api/transactions', { method: 'POST', body: data })
+    revision.value++
     await fetchTransactions()
     return tx
   }
 
   async function updateTransaction(id: string, data: Partial<Transaction>) {
     const tx = await $fetch<Transaction>(`/api/transactions/${id}`, { method: 'PUT', body: data })
+    revision.value++
     const idx = transactions.value.findIndex(t => t._id === id)
     if (idx >= 0) transactions.value[idx] = tx
     return tx
@@ -48,6 +54,7 @@ export const useFinanceStore = defineStore('finance', () => {
 
   async function deleteTransaction(id: string) {
     await $fetch(`/api/transactions/${id}`, { method: 'DELETE' })
+    revision.value++
     transactions.value = transactions.value.filter(t => t._id !== id)
     total.value        = Math.max(0, total.value - 1)
   }
@@ -74,7 +81,7 @@ export const useFinanceStore = defineStore('finance', () => {
   const expenseCategories = computed(() => categories.value.filter(c => c.type === 'expense' || c.type === 'both'))
 
   return {
-    transactions, categories, total, currentPage, totalPages, loading, filters,
+    transactions, categories, total, currentPage, totalPages, loading, filters, revision,
     incomeCategories, expenseCategories,
     fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
     fetchCategories, createCategory, deleteCategory,

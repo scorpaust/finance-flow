@@ -169,7 +169,10 @@ export default defineEventHandler(async (event) => {
       currentMonthBalance: cm.income - cm.expense,
       currentMonthTransactions: cm.incomeCount + cm.expenseCount,
       // Sem receitas a taxa não existe (null): 0 % pareceria um mês equilibrado.
-      savingsRate: cm.income > 0 ? ((cm.income - cm.expense) / cm.income) * 100 : null,
+      // Nunca abaixo de 0 %: gastar mais do que se recebe é `overspent`, não uma
+      // "poupança" de -2000 %.
+      savingsRate: cm.income > 0 ? Math.max(0, ((cm.income - cm.expense) / cm.income) * 100) : null,
+      overspent: cm.expense > cm.income,
       incomeChange: pm.income > 0 ? ((ctd.income - pm.income) / pm.income) * 100 : 0,
       expenseChange: pm.expense > 0 ? ((ctd.expense - pm.expense) / pm.expense) * 100 : 0,
       avgMonthlyIncome: avgIncome,

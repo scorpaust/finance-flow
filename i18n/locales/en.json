@@ -115,6 +115,7 @@
     "kpiExpense": "Expenses (month)",
     "kpiSavingsRate": "Savings Rate",
     "kpiMonthInProgress": "Month in progress",
+    "kpiOverspent": "You spent more than you received",
     "forecastTitle": "AI forecasts",
     "forecastDescription": "A forecast of your income, expenses and balance for the next 3 months, made on your device.",
     "forecastRun": "Run forecast",

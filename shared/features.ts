@@ -32,6 +32,7 @@ export type FeatureKey =
   | 'investmentTracker'
   | 'aiBudget'
   | 'aiReorganize'
+  | 'statementImport'
 
 // Tier mínimo que desbloqueia cada feature.
 const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
@@ -60,6 +61,9 @@ const FEATURE_MATRIX: Record<FeatureKey, SubscriptionTier> = {
   // IA reorganiza categorias e grupos com aprovação explícita de cada
   // alteração, só Premium (decisão do utilizador de 2026-11-09).
   aiReorganize: 'premium',
+  // Importar o extrato bancário em PDF, revisto antes de entrar, só Premium
+  // (decisão do utilizador de 2026-11-09). Ver shared/statementImport.ts.
+  statementImport: 'premium',
 }
 
 const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, pro: 1, premium: 2 }
@@ -151,6 +155,7 @@ export const PLAN_HIGHLIGHTS: Record<SubscriptionTier, PlanHighlight[]> = {
     { id: 'predictions', features: ['predictions'] },
     { id: 'aiBudget', features: ['aiBudget'] },
     { id: 'aiReorganize', features: ['aiReorganize'] },
+    { id: 'statementImport', features: ['statementImport'] },
     { id: 'investmentTracker', features: ['investmentTracker'] },
     { id: 'aiInvestmentTips', features: ['aiInvestmentTips'] },
     { id: 'documentScanMore', params: { n: TIER_LIMITS.premium.documentScansPerMonth } },

@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createHmac, createSign } from 'node:crypto'
-import { AiReorgProposal, HoloArticle, User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
+import { AiReorgProposal, StatementImport, HoloArticle, User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -2222,5 +2222,135 @@ describe('reorganização de categorias e grupos com IA', () => {
     const res = await post('/api/reorganize', cookie)
     expect(res.status).toBe(429)
     expect((await res.json()).data.error).toBe('reorganize_monthly_limit')
+  })
+})
+
+describe('importação de extratos bancários em PDF', () => {
+  // "%PDF-1.4" e pouco mais: o servidor não abre o PDF, só o envia à IA (simulada).
+  const PDF = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\n').toString('base64')
+  const post = (path: string, cookie: string, body?: unknown) =>
+    fetch(path, { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) })
+
+  async function premium(label: string) {
+    const email = uniqueEmail(label)
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+    const user = await User.findOne({ email })
+    const expense = await Category.findOne({ userId: user!._id, type: 'expense' }).lean()
+    const income = await Category.findOne({ userId: user!._id, type: 'income' }).lean()
+    return { cookie, user: user!, expense: expense!, income: income! }
+  }
+  const row = (o: Record<string, unknown>) => ({ category: null, newCategory: null, internalTransfer: false, ...o })
+
+  it('Pro não tem acesso; um ficheiro que não é PDF é recusado', async () => {
+    const pro = uniqueEmail('extrato-pro')
+    const { cookie: proCookie } = await register(pro)
+    await setTier(pro, 'pro')
+    expect((await post('/api/statements', proCookie)).status).toBe(403)
+
+    const { cookie } = await premium('extrato-ficheiro')
+    const { id } = await (await post('/api/statements', cookie)).json()
+    const res = await post(`/api/statements/${id}/extract`, cookie, { data: Buffer.from('nao e um pdf').toString('base64'), pages: 1 })
+    expect(res.status).toBe(400)
+  })
+
+  it('lê, assinala duplicados, importa o aprovado e desfaz', async () => {
+    const { cookie, user, expense, income } = await premium('extrato-completo')
+    const existing = await Transaction.create({
+      userId: user._id, type: 'expense', amount: 42.5, description: 'Compras', categoryId: expense._id, date: new Date('2026-10-06T00:00:00Z'),
+    })
+    await stub.setAnthropicResponse(anthropicTextResponse({
+      isStatement: true,
+      rows: [
+        row({ date: '2026-10-05', description: 'Continente Lisboa', amount: 42.5, type: 'expense', category: expense.name }),
+        row({ date: '2026-10-07', description: 'Ginásio Fit', amount: 30, type: 'expense', newCategory: 'Ginásio' }),
+        row({ date: '2026-10-23', description: 'Salário', amount: 1200, type: 'income', category: income.name }),
+        row({ date: '23/10/2026', description: 'Inválida', amount: 5, type: 'expense' }),
+      ],
+    }))
+
+    const { id } = await (await post('/api/statements', cookie)).json()
+    const extracted = await post(`/api/statements/${id}/extract`, cookie, { data: PDF, pages: 1 })
+    expect(extracted.status).toBe(200)
+    const { rows } = await extracted.json()
+    expect(rows).toHaveLength(3)
+    expect(rows[0].duplicateOf).toMatchObject({ id: String(existing._id) })
+    expect(rows[1]).toMatchObject({ categoryId: null, newCategory: 'Ginásio', duplicateOf: null })
+    // Nada é gravado só por ler.
+    expect(await Transaction.countDocuments({ userId: user._id })).toBe(1)
+
+    const commit = await post(`/api/statements/${id}/commit`, cookie, {
+      rows: [
+        { action: 'update', ...pick(rows[0]), existingId: rows[0].duplicateOf.id },
+        { action: 'import', ...pick(rows[1]) },
+        { action: 'import', ...pick(rows[2]) },
+      ],
+    })
+    expect(commit.status).toBe(200)
+    expect(await commit.json()).toMatchObject({ created: 2, updated: 1, categoriesCreated: 1 })
+    expect(await Transaction.countDocuments({ userId: user._id, importId: id })).toBe(2)
+    expect(await Category.exists({ userId: user._id, name: 'Ginásio' })).not.toBeNull()
+    expect((await Transaction.findById(existing._id).lean())!.description).toBe('Continente Lisboa')
+    // Não se importa duas vezes.
+    expect((await post(`/api/statements/${id}/commit`, cookie, { rows: [{ action: 'import', ...pick(rows[2]) }] })).status).toBe(404)
+
+    const undo = await post(`/api/statements/${id}/undo`, cookie)
+    expect(undo.status).toBe(200)
+    expect(await Transaction.countDocuments({ userId: user._id })).toBe(1)
+    expect((await Transaction.findById(existing._id).lean())!.description).toBe('Compras')
+    expect(await Category.exists({ userId: user._id, name: 'Ginásio' })).toBeNull()
+  })
+
+  it('um documento que não é um extrato dá 422', async () => {
+    const { cookie } = await premium('extrato-outro')
+    await stub.setAnthropicResponse(anthropicTextResponse({ isStatement: false, rows: [] }))
+    const { id } = await (await post('/api/statements', cookie)).json()
+    const res = await post(`/api/statements/${id}/extract`, cookie, { data: PDF, pages: 1 })
+    expect(res.status).toBe(422)
+    expect((await res.json()).data.error).toBe('statements_not_a_statement')
+  })
+
+  it('limite de 10 importações por mês', async () => {
+    const { cookie, user } = await premium('extrato-limite')
+    await StatementImport.insertMany(Array.from({ length: 10 }, () => ({ userId: user._id })))
+    const res = await post('/api/statements', cookie)
+    expect(res.status).toBe(429)
+    expect((await res.json()).data.error).toBe('statements_monthly_limit')
+  })
+
+  function pick(r: any) {
+    return { date: r.date, description: r.description, amount: r.amount, type: r.type, categoryId: r.categoryId, newCategory: r.newCategory }
+  }
+})
+
+describe('importação de extratos: moeda das configurações', () => {
+  const PDF = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\n').toString('base64')
+  const post = (path: string, cookie: string, body?: unknown) =>
+    fetch(path, { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) })
+
+  it('em dólares: guarda o valor original em USD e o equivalente em euros', async () => {
+    const email = uniqueEmail('extrato-usd')
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+    await User.updateOne({ email }, { displayCurrency: 'USD' })
+    await FxCache.deleteMany({ _id: 'rate:USD' })
+    await FxCache.create({ _id: 'rate:USD', value: 1.25, day: '2026-01-01' })
+    const user = await User.findOne({ email })
+    const expense = await Category.findOne({ userId: user!._id, type: 'expense' }).lean()
+    await stub.setAnthropicResponse(anthropicTextResponse({
+      isStatement: true,
+      rows: [{ date: '2026-10-05', description: 'Store', amount: 50, type: 'expense', category: expense!.name, newCategory: null, internalTransfer: false }],
+    }))
+
+    const { id } = await (await post('/api/statements', cookie)).json()
+    const extracted = await (await post(`/api/statements/${id}/extract`, cookie, { data: PDF, pages: 1 })).json()
+    expect(extracted.currency).toBe('USD')
+    const r = extracted.rows[0]
+    const commit = await post(`/api/statements/${id}/commit`, cookie, {
+      rows: [{ action: 'import', date: r.date, description: r.description, amount: r.amount, type: r.type, categoryId: r.categoryId, newCategory: null }],
+    })
+    expect(commit.status).toBe(200)
+    const tx = await Transaction.findOne({ userId: user!._id, importId: id }).lean()
+    expect(tx).toMatchObject({ currency: 'USD', originalAmount: 50, amount: 40 })
   })
 })

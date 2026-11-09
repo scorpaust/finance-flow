@@ -7,7 +7,7 @@
 // contratos de consumo do que por as autorizar). Reverter para true a
 // qualquer momento volta a mostrar o aviso de rascunho nas páginas.
 export const LEGAL_IS_DRAFT = false;
-export const LEGAL_UPDATED = "2026-10-19";
+export const LEGAL_UPDATED = "2026-11-09";
 
 import { legalFr } from "./legal/fr";
 import { legalDe } from "./legal/de";
@@ -84,6 +84,8 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "Dicas de investimento (plano Premium): enviamos as respostas do teu perfil de investidor, um resumo agregado das tuas finanças e o contexto de mercado do dia. Neste momento não enviamos nenhum dado do teu registo de investimentos (portfolio); se isso vier a mudar, esta política é atualizada antes.",
             "Orçamento sugerido (plano Premium): enviamos, por categoria de despesa, o nome e os totais mensais já calculados (média, mínimo, máximo), a receita mensal esperada e as percentagens de fundo de maneio e de poupança que escolhes — nunca as descrições das tuas transações. Só quando pedes uma proposta, no máximo uma vez por mês.",
             "Digitalização de documentos (planos Pro e Premium): a imagem ou PDF que carregas é enviado à Anthropic para extrair os campos, é processado em memória e não é guardado por nós. Evita carregar documentos com dados pessoais que não sejam necessários (por exemplo, NIF ou morada num recibo de vencimento).",
+            "Reorganização de categorias e grupos (plano Premium): enviamos os nomes das tuas categorias e grupos, o número de transações e o total de cada categoria, e as descrições mais frequentes das transações de cada uma (por exemplo, o nome de uma loja). Só quando pedes uma proposta; nada muda sem escolheres o que aplicar.",
+            "Importação de extratos bancários (plano Premium): o PDF que carregas é enviado à Anthropic para extrair os movimentos, é processado em memória e não é guardado por nós. Um extrato contém dados como o teu nome, o IBAN e os saldos; só ficam na app as transações que aprovares.",
             "O conteúdo gerado por IA é meramente informativo e pode conter erros; não constitui aconselhamento financeiro.",
           ],
         },
@@ -178,6 +180,8 @@ const PT_EN: Record<LegalDocKey, { "pt-PT": LegalDoc; en: LegalDoc }> = {
             "Investment tips (Premium plan): we send your investor-profile answers, an aggregated summary of your finances and the day’s market context. We do not currently send any data from your investment records (portfolio); if that changes, this policy is updated first.",
             "Suggested budget (Premium plan): for each expense category we send its name and already-calculated monthly totals (average, minimum, maximum), your expected monthly income and the working-capital and savings percentages you choose — never the descriptions of your transactions. Only when you ask for a proposal, at most once a month.",
             "Document scanning (Pro and Premium plans): the image or PDF you upload is sent to Anthropic to extract the fields, processed in memory and not stored by us. Avoid uploading documents with personal data that is not needed (for example tax ID or address on a payslip).",
+            "Category and group reorganisation (Premium plan): we send the names of your categories and groups, the number of transactions and the total of each category, and the most frequent transaction descriptions in each one (for example, a shop name). Only when you ask for a proposal; nothing changes unless you choose what to apply.",
+            "Bank statement import (Premium plan): the PDF you upload is sent to Anthropic to extract the transactions, processed in memory and not stored by us. A statement contains data such as your name, IBAN and balances; only the transactions you approve are kept in the app.",
             "AI-generated content is for information only, may contain errors and is not financial advice.",
           ],
         },

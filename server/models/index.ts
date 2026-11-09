@@ -271,6 +271,8 @@ export interface ITransaction extends Document {
   // campo (transações antigas), é preenchido em GET /api/transactions/recurring.
   nextDueAt?:           Date | null
   recurrenceAnchorDay?: number | null
+  // Importação de extrato que a criou (StatementImport), para a poder desfazer.
+  importId?:  mongoose.Types.ObjectId | null
   notes?:     string
   groupId?:   mongoose.Types.ObjectId
   // Fase 7, tarefa 6 — `amount` continua a ser sempre o valor em EUR (usado,
@@ -302,6 +304,7 @@ const TransactionSchema = new Schema<ITransaction>(
     },
     nextDueAt:           { type: Date, default: null },
     recurrenceAnchorDay: { type: Number, default: null, min: 1, max: 31 },
+    importId:            { type: Schema.Types.ObjectId, default: null, index: { sparse: true } },
     notes:          { type: String, trim: true },
     groupId:        { type: Schema.Types.ObjectId, ref: 'TransactionGroup', default: null },
     currency:       { type: String, default: 'EUR', uppercase: true, trim: true },
@@ -628,6 +631,42 @@ AiReorgProposalSchema.index({ userId: 1, createdAt: -1 })
 export const AiReorgProposal: Model<IAiReorgProposal> =
   mongoose.models.AiReorgProposal ||
   mongoose.model<IAiReorgProposal>('AiReorgProposal', AiReorgProposalSchema)
+
+// ─── STATEMENT IMPORT ─────────────────────────────
+// Importação de um extrato bancário em PDF (shared/statementImport.ts). O PDF
+// nunca é guardado: só ficam as transações aprovadas, ligadas por `importId`,
+// e o que é preciso para desfazer.
+export interface IStatementImport extends Document {
+  userId:            mongoose.Types.ObjectId
+  status:            'extracting' | 'committed' | 'undone'
+  pages:             number
+  rowsExtracted:     number
+  created:           number
+  createdCategories: mongoose.Types.ObjectId[]
+  // Transações já existentes que a importação atualizou, com os valores de antes.
+  updated:           { id: string; description: string; categoryId: string; groupId: string | null }[]
+  committedAt:       Date | null
+  createdAt:         Date
+  updatedAt:         Date
+}
+
+const StatementImportSchema = new Schema<IStatementImport>(
+  {
+    userId:            { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    status:            { type: String, enum: ['extracting', 'committed', 'undone'], default: 'extracting' },
+    pages:             { type: Number, default: 0 },
+    rowsExtracted:     { type: Number, default: 0 },
+    created:           { type: Number, default: 0 },
+    createdCategories: { type: [Schema.Types.ObjectId], default: [] },
+    updated:           { type: Schema.Types.Mixed, default: () => [] },
+    committedAt:       { type: Date, default: null },
+  },
+  { timestamps: true }
+)
+StatementImportSchema.index({ userId: 1, createdAt: -1 })
+export const StatementImport: Model<IStatementImport> =
+  mongoose.models.StatementImport ||
+  mongoose.model<IStatementImport>('StatementImport', StatementImportSchema)
 
 // ─── PASSWORD RESET TOKEN ────────────────────────────────────────────────────
 // Upgrade 05 — link de recuperação de password. O `_id` é o SHA-256 do token

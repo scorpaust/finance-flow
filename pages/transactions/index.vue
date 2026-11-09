@@ -23,6 +23,10 @@
           {{ t('transactions.newTransaction') }}
         </button>
         <DocumentScanButton @scanned="onScanned" @manual="openManual" />
+        <NuxtLink to="/transactions/import" class="btn-secondary text-sm py-2 flex items-center gap-2" data-testid="statement-import-link">
+          <FileUp class="w-4 h-4" />
+          {{ t('statementImport.button') }}
+        </NuxtLink>
       </div>
     </div>
 
@@ -212,7 +216,7 @@
 <script setup lang="ts">
 // Import explícito: `navigateTo` é usado no template, e só assim o type-check o vê.
 import { navigateTo } from '#imports'
-import { Plus, Search, X, Download, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-vue-next'
+import { Plus, Search, X, Download, ChevronLeft, ChevronRight, ArrowLeft, FileUp } from 'lucide-vue-next'
 import type { Transaction, DocumentScanResult, FilterOptions } from '~/types'
 
 definePageMeta({ layout: 'default' })

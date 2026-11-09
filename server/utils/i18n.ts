@@ -62,6 +62,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'Não há nenhuma reorganização para desfazer',
 
     'reorganize.undoBlocked': 'Já registaste transações nas categorias novas, por isso não é possível desfazer',
+
+
+    'statements.monthlyLimit': 'Já usaste as {limit} importações de extratos deste mês',
+
+
+    'statements.notFound': 'Esta importação já não está disponível. Começa de novo.',
+
+
+    'statements.invalidFile': 'O ficheiro tem de ser um PDF',
+
+
+    'statements.tooLarge': 'Estas páginas são demasiado grandes. Experimenta exportar o extrato do banco outra vez, em PDF de texto.',
+
+
+    'statements.tooManyPages': 'No máximo {max} páginas por importação',
+
+
+    'statements.notAStatement': 'Este documento não parece um extrato bancário ou de cartão',
+
+
+    'statements.invalidRows': 'Há linhas sem data, valor, descrição ou categoria válidos',
+
+
+    'statements.nothingToUndo': 'Não há nenhuma importação para desfazer',
     'investorProfile.invalidRiskTolerance': 'riskTolerance inválido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel inválido',
     'investorProfile.invalidHorizonYears': 'horizonYears inválido',
@@ -159,6 +183,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'There is no reorganisation to undo',
 
     'reorganize.undoBlocked': 'You have already recorded transactions in the new categories, so this cannot be undone',
+
+
+    'statements.monthlyLimit': 'You have used all {limit} statement imports this month',
+
+
+    'statements.notFound': 'This import is no longer available. Please start again.',
+
+
+    'statements.invalidFile': 'The file must be a PDF',
+
+
+    'statements.tooLarge': 'These pages are too large. Try exporting the statement from your bank again as a text PDF.',
+
+
+    'statements.tooManyPages': 'At most {max} pages per import',
+
+
+    'statements.notAStatement': 'This document does not look like a bank or card statement',
+
+
+    'statements.invalidRows': 'Some rows have no valid date, amount, description or category',
+
+
+    'statements.nothingToUndo': 'There is no import to undo',
     'investorProfile.invalidRiskTolerance': 'Invalid riskTolerance',
     'investorProfile.invalidKnowledgeLevel': 'Invalid knowledgeLevel',
     'investorProfile.invalidHorizonYears': 'Invalid horizonYears',
@@ -256,6 +304,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'Aucune réorganisation à annuler',
 
     'reorganize.undoBlocked': 'Vous avez déjà enregistré des transactions dans les nouvelles catégories, l\'annulation n\'est donc pas possible',
+
+
+    'statements.monthlyLimit': 'Vous avez utilisé les {limit} importations de relevés de ce mois',
+
+
+    'statements.notFound': 'Cette importation n\'est plus disponible. Recommencez.',
+
+
+    'statements.invalidFile': 'Le fichier doit être un PDF',
+
+
+    'statements.tooLarge': 'Ces pages sont trop volumineuses. Essayez d\'exporter à nouveau le relevé depuis votre banque, en PDF texte.',
+
+
+    'statements.tooManyPages': 'Au maximum {max} pages par importation',
+
+
+    'statements.notAStatement': 'Ce document ne ressemble pas à un relevé bancaire ou de carte',
+
+
+    'statements.invalidRows': 'Certaines lignes n\'ont pas de date, de montant, de libellé ou de catégorie valides',
+
+
+    'statements.nothingToUndo': 'Aucune importation à annuler',
     'investorProfile.invalidRiskTolerance': 'riskTolerance invalide',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel invalide',
     'investorProfile.invalidHorizonYears': 'horizonYears invalide',
@@ -353,6 +425,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'Es gibt keine Neuordnung zum Rückgängigmachen',
 
     'reorganize.undoBlocked': 'Du hast bereits Transaktionen in den neuen Kategorien erfasst, daher kann dies nicht rückgängig gemacht werden',
+
+
+    'statements.monthlyLimit': 'Du hast alle {limit} Kontoauszug-Importe dieses Monats genutzt',
+
+
+    'statements.notFound': 'Dieser Import ist nicht mehr verfügbar. Bitte fang neu an.',
+
+
+    'statements.invalidFile': 'Die Datei muss ein PDF sein',
+
+
+    'statements.tooLarge': 'Diese Seiten sind zu groß. Exportiere den Auszug noch einmal aus deiner Bank, als Text-PDF.',
+
+
+    'statements.tooManyPages': 'Höchstens {max} Seiten pro Import',
+
+
+    'statements.notAStatement': 'Dieses Dokument sieht nicht wie ein Konto- oder Kartenauszug aus',
+
+
+    'statements.invalidRows': 'Einige Zeilen haben kein gültiges Datum, keinen Betrag, keine Beschreibung oder Kategorie',
+
+
+    'statements.nothingToUndo': 'Es gibt keinen Import zum Rückgängigmachen',
     'investorProfile.invalidRiskTolerance': 'Ungültige riskTolerance',
     'investorProfile.invalidKnowledgeLevel': 'Ungültiges knowledgeLevel',
     'investorProfile.invalidHorizonYears': 'Ungültige horizonYears',
@@ -450,6 +546,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'Non c\'è nessuna riorganizzazione da annullare',
 
     'reorganize.undoBlocked': 'Hai già registrato transazioni nelle nuove categorie, quindi non è possibile annullare',
+
+
+    'statements.monthlyLimit': 'Hai usato tutte le {limit} importazioni di estratti di questo mese',
+
+
+    'statements.notFound': 'Questa importazione non è più disponibile. Ricomincia.',
+
+
+    'statements.invalidFile': 'Il file deve essere un PDF',
+
+
+    'statements.tooLarge': 'Queste pagine sono troppo grandi. Prova a esportare di nuovo l\'estratto dalla banca, come PDF di testo.',
+
+
+    'statements.tooManyPages': 'Al massimo {max} pagine per importazione',
+
+
+    'statements.notAStatement': 'Questo documento non sembra un estratto conto bancario o della carta',
+
+
+    'statements.invalidRows': 'Alcune righe non hanno data, importo, descrizione o categoria validi',
+
+
+    'statements.nothingToUndo': 'Non c\'è nessuna importazione da annullare',
     'investorProfile.invalidRiskTolerance': 'riskTolerance non valido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel non valido',
     'investorProfile.invalidHorizonYears': 'horizonYears non valido',
@@ -547,6 +667,30 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'reorganize.nothingToUndo': 'No hay ninguna reorganización que deshacer',
 
     'reorganize.undoBlocked': 'Ya has registrado transacciones en las categorías nuevas, por lo que no se puede deshacer',
+
+
+    'statements.monthlyLimit': 'Ya has usado las {limit} importaciones de extractos de este mes',
+
+
+    'statements.notFound': 'Esta importación ya no está disponible. Vuelve a empezar.',
+
+
+    'statements.invalidFile': 'El archivo debe ser un PDF',
+
+
+    'statements.tooLarge': 'Estas páginas son demasiado grandes. Prueba a exportar de nuevo el extracto desde tu banco, en PDF de texto.',
+
+
+    'statements.tooManyPages': 'Como máximo {max} páginas por importación',
+
+
+    'statements.notAStatement': 'Este documento no parece un extracto bancario o de tarjeta',
+
+
+    'statements.invalidRows': 'Hay filas sin fecha, importe, descripción o categoría válidos',
+
+
+    'statements.nothingToUndo': 'No hay ninguna importación que deshacer',
     'investorProfile.invalidRiskTolerance': 'riskTolerance inválido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel inválido',
     'investorProfile.invalidHorizonYears': 'horizonYears inválido',

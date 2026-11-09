@@ -164,7 +164,7 @@ export interface DocumentExtraction {
   confidence: { merchant: ScanConfidence; date: ScanConfidence; amount: ScanConfidence; type: ScanConfidence }
 }
 
-const SUPPORTED_LOCALE_NAMES: Record<string, string> = {
+export const SUPPORTED_LOCALE_NAMES: Record<string, string> = {
   'pt-PT': 'português europeu (Portugal)',
   en: 'inglês',
   fr: 'francês',

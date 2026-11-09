@@ -491,6 +491,37 @@
     "nextRequest": "Nächster Vorschlag ab {date}",
     "errorGeneric": "Der Budgetvorschlag konnte nicht geladen werden. Versuch es gleich noch einmal."
   },
+  "aiReorganize": {
+    "title": "Kategorien und Gruppen mit KI neu ordnen",
+    "lockedDescription": "Die KI analysiert deine Transaktionen und schlägt vor, Kategorien zusammenzuführen, umzubenennen, anzulegen oder zu gruppieren. Du entscheidest, was übernommen wird. Im Premium-Plan verfügbar.",
+    "paywallFeatureLabel": "Die KI-Neuordnung der Kategorien",
+    "intro": "Die KI analysiert deine Transaktionen und schlägt Änderungen an Kategorien und Gruppen vor. Nichts ändert sich ohne deine Auswahl, und du kannst es danach rückgängig machen.",
+    "request": "Vorschlag von der KI anfordern",
+    "usage": "{used} von {limit} Vorschlägen in diesem Monat genutzt",
+    "needData": "Nötig sind mindestens {minTransactions} Transaktionen und {minDays} Tage Verlauf (du hast {transactions} Transaktionen und {days} Tage).",
+    "nothingToChange": "Die KI hat nichts gefunden, was sich zu ändern lohnt.",
+    "apply": "{n} Änderungen übernehmen",
+    "selectAll": "Alle auswählen",
+    "selectNone": "Keine auswählen",
+    "applied": "{n} Änderungen übernommen.",
+    "undo": "Neuordnung rückgängig machen",
+    "confirmUndo": "Kategorien, Gruppen und Transaktionen auf den Stand vor dieser Neuordnung zurücksetzen?",
+    "toastApplied": "Neuordnung übernommen",
+    "toastUndone": "Neuordnung rückgängig gemacht",
+    "noGroup": "ohne Gruppe",
+    "errorGeneric": "Das hat nicht geklappt. Bitte versuch es erneut.",
+    "op": {
+      "createGroup": "Gruppe „{name}“ anlegen",
+      "renameGroup": "Gruppe „{from}“ in „{name}“ umbenennen",
+      "deleteGroup": "Gruppe „{name}“ löschen (ihre Kategorien sind dann ohne Gruppe)",
+      "createCategory": "Kategorie „{name}“ anlegen ({group})",
+      "renameCategory": "Kategorie „{from}“ in „{name}“ umbenennen",
+      "setCategoryGroup": "Kategorie „{name}“ in die Gruppe {group} verschieben",
+      "moveTransactions": "{n} Transaktionen von „{from}“ nach „{into}“ verschieben: {list}",
+      "mergeCategory": "„{from}“ mit „{into}“ zusammenführen ({n} Transaktionen)",
+      "deleteCategory": "Leere Kategorie „{name}“ löschen"
+    }
+  },
   "categoryLimits": {
     "title": "Kategorie-Limits",
     "subtitle": "Wie viel du diesen Monat in jeder Kategorie mit Limit schon ausgegeben hast",
@@ -1057,7 +1088,8 @@
     "investmentTracker": "Erfassung deiner Investitionen",
     "aiInvestmentTips": "KI-Anlagetipps",
     "documentScanMore": "Bis zu {n} Dokumente/Monat scannen",
-    "prioritySupport": "Bevorzugter Support"
+    "prioritySupport": "Bevorzugter Support",
+    "aiReorganize": "KI, die Kategorien und Gruppen neu ordnet (mit deiner Zustimmung)"
   },
   "blog": {
     "title": "Blog",

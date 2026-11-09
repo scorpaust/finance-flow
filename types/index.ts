@@ -38,6 +38,20 @@ export interface Transaction {
   updatedAt: Date
 }
 
+// Transação recorrente por confirmar (GET /api/transactions/recurring).
+export interface RecurringDue {
+  _id: string
+  type: TransactionType
+  description: string
+  recurrence: RecurrenceType
+  category?: Category
+  // Na moeda em que foi registada (`currency`).
+  amount: number
+  currency: string
+  expectedDate: string
+  suggestedDate: string
+}
+
 export interface Toast {
   id: string
   type: 'success' | 'error' | 'info' | 'warning'

@@ -4,6 +4,7 @@ import { requireAuth, sanitizeId } from '../../utils/auth'
 import { resolveTransactionAmount } from '../../utils/transactionCurrency'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { validateBody } from '../../utils/validate'
+import { nextOccurrence } from '../../../shared/recurrence'
 
 // Fase 8, ponto 1 — PUT é uma edição parcial (só os campos enviados mudam),
 // por isso todos os campos são opcionais; ainda assim o formato de cada um é
@@ -61,9 +62,21 @@ export default defineEventHandler(async (event) => {
       tx.set('categoryId', categoryId)
       if (groupId === undefined) tx.groupId = (category as any).groupId || null
     }
+    // Recorrência: sem ela, a transação sai da série. Ao ativá-la, ou ao mudar a
+    // data da transação mais recente da série, a próxima data volta a contar
+    // desta. As transações mais antigas da série (sem `nextDueAt`) não mexem.
+    const wasRecurring = tx.recurrence !== 'none'
+    const isSeriesHead = tx.nextDueAt != null
     if (date !== undefined) tx.date = new Date(date)
     if (tags !== undefined) tx.tags = tags
     if (recurrence !== undefined) tx.recurrence = recurrence
+    if (tx.recurrence === 'none') {
+      tx.nextDueAt = null
+      tx.recurrenceAnchorDay = null
+    } else if (!wasRecurring || ((date !== undefined || recurrence !== undefined) && isSeriesHead)) {
+      tx.recurrenceAnchorDay = tx.date.getUTCDate()
+      tx.nextDueAt = nextOccurrence(tx.date, tx.recurrence, tx.recurrenceAnchorDay)
+    }
     if (notes !== undefined) tx.notes = notes?.trim()
     if (groupId !== undefined) tx.set('groupId', groupId || null)
 

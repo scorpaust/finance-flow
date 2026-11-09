@@ -115,6 +115,7 @@
     "kpiExpense": "Despesas (mês)",
     "kpiSavingsRate": "Taxa de Poupança",
     "kpiMonthInProgress": "Mês em curso",
+    "kpiOverspent": "Gastaste mais do que recebeste",
     "forecastTitle": "Previsões com IA",
     "forecastDescription": "Previsão das receitas, despesas e saldo dos próximos 3 meses, feita no teu dispositivo.",
     "forecastRun": "Executar previsão",
@@ -327,7 +328,8 @@
     "errorDateRequired": "A data é obrigatória.",
     "errorGeneric": "Erro ao guardar. Tenta novamente.",
     "toastCategoryCreated": "Categoria criada!",
-    "toastCategoryCreateError": "Erro ao criar categoria"
+    "toastCategoryCreateError": "Erro ao criar categoria",
+    "recurrenceHint": "Antes de cada nova data, a app pede-te para confirmar o movimento."
   },
   "transactions": {
     "title": "Transações",
@@ -376,6 +378,24 @@
     "recurrenceWeekly": "Semanal",
     "recurrenceMonthly": "Mensal",
     "recurrenceYearly": "Anual"
+  },
+  "recurring": {
+    "title": "Transações recorrentes por confirmar",
+    "subtitle": "Confirma quando o movimento acontecer. Podes acertar o valor e a data.",
+    "income": "Receita",
+    "expense": "Despesa",
+    "expected": "Previsto para {date}",
+    "amount": "Valor",
+    "date": "Data",
+    "confirm": "Confirmar",
+    "skip": "Saltar desta vez",
+    "stop": "Parar recorrência",
+    "confirmStop": "Parar esta recorrência? As transações já registadas mantêm-se.",
+    "invalid": "Indica um valor e uma data.",
+    "toast_confirm": "Transação registada",
+    "toast_skip": "Saltada desta vez",
+    "toast_stop": "Recorrência parada",
+    "error": "Não foi possível concluir. Tenta novamente."
   },
   "groups": {
     "lockedTitle": "Grupos é uma funcionalidade Pro",

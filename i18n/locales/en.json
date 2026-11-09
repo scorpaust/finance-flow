@@ -115,6 +115,7 @@
     "kpiExpense": "Expenses (month)",
     "kpiSavingsRate": "Savings Rate",
     "kpiMonthInProgress": "Month in progress",
+    "kpiOverspent": "You spent more than you received",
     "forecastTitle": "AI forecasts",
     "forecastDescription": "A forecast of your income, expenses and balance for the next 3 months, made on your device.",
     "forecastRun": "Run forecast",
@@ -327,7 +328,8 @@
     "errorDateRequired": "Date is required.",
     "errorGeneric": "Error saving. Please try again.",
     "toastCategoryCreated": "Category created!",
-    "toastCategoryCreateError": "Error creating category"
+    "toastCategoryCreateError": "Error creating category",
+    "recurrenceHint": "Before each new date, the app asks you to confirm the transaction."
   },
   "transactions": {
     "title": "Transactions",
@@ -376,6 +378,24 @@
     "recurrenceWeekly": "Weekly",
     "recurrenceMonthly": "Monthly",
     "recurrenceYearly": "Yearly"
+  },
+  "recurring": {
+    "title": "Recurring transactions to confirm",
+    "subtitle": "Confirm once the transaction happens. You can adjust the amount and date.",
+    "income": "Income",
+    "expense": "Expense",
+    "expected": "Expected on {date}",
+    "amount": "Amount",
+    "date": "Date",
+    "confirm": "Confirm",
+    "skip": "Skip this time",
+    "stop": "Stop recurrence",
+    "confirmStop": "Stop this recurrence? Transactions already recorded are kept.",
+    "invalid": "Enter an amount and a date.",
+    "toast_confirm": "Transaction recorded",
+    "toast_skip": "Skipped this time",
+    "toast_stop": "Recurrence stopped",
+    "error": "Could not complete this. Please try again."
   },
   "groups": {
     "lockedTitle": "Groups is a Pro feature",

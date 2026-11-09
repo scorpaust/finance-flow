@@ -249,6 +249,7 @@
                 <option value="monthly">{{ t('transactionModal.recurrenceMonthly') }}</option>
                 <option value="yearly">{{ t('transactionModal.recurrenceYearly') }}</option>
               </select>
+              <p v-if="form.recurrence !== 'none'" class="text-white/40 text-xs mt-1">{{ t('transactionModal.recurrenceHint') }}</p>
             </div>
             <div>
               <label class="form-label">{{ t('transactionModal.groupLabel') }}</label>

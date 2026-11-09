@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { Transaction, Category } from '../../models'
 import { requireAuth } from '../../utils/auth'
-import { getUserTier } from '../../utils/requireFeature'
 import { resolveTransactionAmount } from '../../utils/transactionCurrency'
-import { TIER_LIMITS } from '../../../shared/features'
+import { assertCanCreateTransaction } from '../../utils/transactionLimit'
+import { nextOccurrence } from '../../../shared/recurrence'
 import { getServerLocale, serverT } from '../../utils/i18n'
 import { validateBody } from '../../utils/validate'
 import { readTransactionListQuery } from '../../utils/queryFilters'
@@ -63,24 +63,15 @@ export default defineEventHandler(async (event) => {
     const { type, amount, currency, description, categoryId, date, tags, recurrence, notes, groupId } =
       await validateBody(event, TransactionCreateSchema)
 
-    const tier = await getUserTier(userId)
-    const monthlyLimit = TIER_LIMITS[tier].transactionsPerMonth
-    if (monthlyLimit !== null) {
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      const countThisMonth = await Transaction.countDocuments({ userId, createdAt: { $gte: startOfMonth } })
-      if (countThisMonth >= monthlyLimit) {
-        throw createError({
-          statusCode: 403,
-          message: serverT(locale, 'transactions.monthlyLimitReached', { limit: monthlyLimit }),
-          data: { error: 'feature_locked', requiredTier: 'pro' },
-        })
-      }
-    }
+    await assertCanCreateTransaction(userId, locale)
 
     const category = await Category.findOne({ _id: categoryId, userId }).lean()
     if (!category) throw createError({ statusCode: 400, message: serverT(locale, 'transactions.invalidCategory') })
 
     const resolved = await resolveTransactionAmount(locale, Number(amount), currency, new Date(date))
+    const when = new Date(date)
+    const rec = recurrence || 'none'
+    const anchorDay = rec === 'none' ? null : when.getUTCDate()
 
     const tx = await Transaction.create({
       userId,
@@ -91,9 +82,11 @@ export default defineEventHandler(async (event) => {
       exchangeRate: resolved.exchangeRate,
       description: description.trim(),
       categoryId,
-      date: new Date(date),
+      date: when,
       tags: tags || [],
-      recurrence: recurrence || 'none',
+      recurrence: rec,
+      recurrenceAnchorDay: anchorDay,
+      nextDueAt: anchorDay === null ? null : nextOccurrence(when, rec, anchorDay),
       notes: notes?.trim(),
       groupId: groupId || (category as any).groupId || null,
     })

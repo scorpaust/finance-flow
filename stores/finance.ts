@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Transaction, Category, FilterOptions, PaginatedResponse } from '~/types'
+import type { Transaction, Category, FilterOptions, PaginatedResponse, RecurringDue } from '~/types'
 
 export const useFinanceStore = defineStore('finance', () => {
   const transactions = ref<Transaction[]>([])
@@ -59,6 +59,18 @@ export const useFinanceStore = defineStore('finance', () => {
     total.value        = Math.max(0, total.value - 1)
   }
 
+  // Recorrência com confirmação (shared/recurrence.ts).
+  function fetchRecurringDue() {
+    return $fetch<RecurringDue[]>('/api/transactions/recurring')
+  }
+
+  async function answerRecurring(id: string, body: { action: 'confirm' | 'skip' | 'stop'; amount?: number; date?: string }) {
+    const res = await $fetch(`/api/transactions/recurring/${id}`, { method: 'POST', body })
+    revision.value++
+    if (body.action === 'confirm') await fetchTransactions()
+    return res
+  }
+
   async function fetchCategories(type?: string) {
     const params: Record<string, any> = {}
     if (type && type !== 'all') params.type = type
@@ -84,6 +96,7 @@ export const useFinanceStore = defineStore('finance', () => {
     transactions, categories, total, currentPage, totalPages, loading, filters, revision,
     incomeCategories, expenseCategories,
     fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
+    fetchRecurringDue, answerRecurring,
     fetchCategories, createCategory, deleteCategory,
   }
 })

@@ -266,6 +266,11 @@ export interface ITransaction extends Document {
   date:       Date
   tags:       string[]
   recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+  // Recorrência com confirmação (shared/recurrence.ts): só a transação mais
+  // recente da série tem `nextDueAt`; ao confirmar, passa para a nova. Sem o
+  // campo (transações antigas), é preenchido em GET /api/transactions/recurring.
+  nextDueAt?:           Date | null
+  recurrenceAnchorDay?: number | null
   notes?:     string
   groupId?:   mongoose.Types.ObjectId
   // Fase 7, tarefa 6 — `amount` continua a ser sempre o valor em EUR (usado,
@@ -295,6 +300,8 @@ const TransactionSchema = new Schema<ITransaction>(
       enum:    ['none', 'daily', 'weekly', 'monthly', 'yearly'],
       default: 'none',
     },
+    nextDueAt:           { type: Date, default: null },
+    recurrenceAnchorDay: { type: Number, default: null, min: 1, max: 31 },
     notes:          { type: String, trim: true },
     groupId:        { type: Schema.Types.ObjectId, ref: 'TransactionGroup', default: null },
     currency:       { type: String, default: 'EUR', uppercase: true, trim: true },
@@ -306,6 +313,7 @@ const TransactionSchema = new Schema<ITransaction>(
 TransactionSchema.index({ userId: 1, date: -1 })
 TransactionSchema.index({ userId: 1, type: 1 })
 TransactionSchema.index({ userId: 1, categoryId: 1 })
+TransactionSchema.index({ userId: 1, nextDueAt: 1 })
 export const Transaction: Model<ITransaction> =
   mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema)
 

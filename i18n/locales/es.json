@@ -328,7 +328,8 @@
     "errorDateRequired": "La fecha es obligatoria.",
     "errorGeneric": "Error al guardar. Inténtalo de nuevo.",
     "toastCategoryCreated": "¡Categoría creada!",
-    "toastCategoryCreateError": "Error al crear la categoría"
+    "toastCategoryCreateError": "Error al crear la categoría",
+    "recurrenceHint": "Antes de cada nueva fecha, la app te pide que confirmes el movimiento."
   },
   "transactions": {
     "title": "Transacciones",
@@ -377,6 +378,24 @@
     "recurrenceWeekly": "Semanal",
     "recurrenceMonthly": "Mensual",
     "recurrenceYearly": "Anual"
+  },
+  "recurring": {
+    "title": "Transacciones recurrentes por confirmar",
+    "subtitle": "Confirma cuando se produzca el movimiento. Puedes ajustar el importe y la fecha.",
+    "income": "Ingreso",
+    "expense": "Gasto",
+    "expected": "Previsto para el {date}",
+    "amount": "Importe",
+    "date": "Fecha",
+    "confirm": "Confirmar",
+    "skip": "Saltar esta vez",
+    "stop": "Detener la recurrencia",
+    "confirmStop": "¿Detener esta recurrencia? Las transacciones ya registradas se mantienen.",
+    "invalid": "Indica un importe y una fecha.",
+    "toast_confirm": "Transacción registrada",
+    "toast_skip": "Saltada esta vez",
+    "toast_stop": "Recurrencia detenida",
+    "error": "No se ha podido completar. Inténtalo de nuevo."
   },
   "groups": {
     "lockedTitle": "Los grupos son una función Pro",

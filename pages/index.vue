@@ -101,6 +101,9 @@
       />
     </div>
 
+    <!-- Transações recorrentes por confirmar -->
+    <RecurringDueCard />
+
     <!-- Upgrade 08 — primeiros passos (contas novas) -->
     <OnboardingChecklist ref="onboardingRef" @add-transaction="openManual" />
 

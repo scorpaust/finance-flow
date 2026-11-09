@@ -328,7 +328,8 @@
     "errorDateRequired": "Das Datum ist erforderlich.",
     "errorGeneric": "Fehler beim Speichern. Bitte erneut versuchen.",
     "toastCategoryCreated": "Kategorie erstellt!",
-    "toastCategoryCreateError": "Fehler beim Erstellen der Kategorie"
+    "toastCategoryCreateError": "Fehler beim Erstellen der Kategorie",
+    "recurrenceHint": "Vor jedem neuen Termin bittet dich die App, die Buchung zu bestätigen."
   },
   "transactions": {
     "title": "Transaktionen",
@@ -377,6 +378,24 @@
     "recurrenceWeekly": "Wöchentlich",
     "recurrenceMonthly": "Monatlich",
     "recurrenceYearly": "Jährlich"
+  },
+  "recurring": {
+    "title": "Wiederkehrende Transaktionen zu bestätigen",
+    "subtitle": "Bestätige, sobald die Buchung erfolgt. Betrag und Datum kannst du anpassen.",
+    "income": "Einnahme",
+    "expense": "Ausgabe",
+    "expected": "Erwartet am {date}",
+    "amount": "Betrag",
+    "date": "Datum",
+    "confirm": "Bestätigen",
+    "skip": "Diesmal überspringen",
+    "stop": "Wiederholung beenden",
+    "confirmStop": "Diese Wiederholung beenden? Bereits erfasste Transaktionen bleiben erhalten.",
+    "invalid": "Gib einen Betrag und ein Datum ein.",
+    "toast_confirm": "Transaktion erfasst",
+    "toast_skip": "Diesmal übersprungen",
+    "toast_stop": "Wiederholung beendet",
+    "error": "Das hat nicht geklappt. Bitte versuch es erneut."
   },
   "groups": {
     "lockedTitle": "Gruppen sind eine Pro-Funktion",

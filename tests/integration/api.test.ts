@@ -2024,3 +2024,105 @@ describe('webhook da Holo', () => {
     expect(await HoloArticle.countDocuments()).toBe(0)
   })
 })
+
+describe('transações recorrentes com confirmação', () => {
+  const day = (offset: number) => {
+    const n = new Date()
+    return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + offset))
+  }
+  const ymd = (d: Date) => d.toISOString().slice(0, 10)
+
+  async function setup(label: string) {
+    const email = uniqueEmail(label)
+    const { cookie } = await register(email)
+    const user = await User.findOne({ email })
+    const income = await Category.findOne({ userId: user!._id, type: 'income' })
+    return { cookie, user: user!, income: income! }
+  }
+  const json = (method: string, path: string, cookie: string, body?: unknown) =>
+    fetch(path, { method, headers: { cookie, 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) })
+  async function due(cookie: string) {
+    const res = await fetch('/api/transactions/recurring', { headers: { cookie } })
+    expect(res.status).toBe(200)
+    return res.json() as Promise<any[]>
+  }
+  async function salary(cookie: string, categoryId: unknown, date: Date, recurrence = 'weekly') {
+    const res = await json('POST', '/api/transactions', cookie, {
+      type: 'income', amount: 1000, description: 'Salário', categoryId: String(categoryId), date: ymd(date), recurrence,
+    })
+    expect(res.status).toBe(200)
+    return res.json()
+  }
+
+  it('só aparece a partir de 3 dias antes da data prevista', async () => {
+    const early = await setup('rec-cedo')
+    await salary(early.cookie, early.income._id, day(-3))
+    expect(await due(early.cookie)).toEqual([])
+
+    const onTime = await setup('rec-a-tempo')
+    await salary(onTime.cookie, onTime.income._id, day(-4))
+    const list = await due(onTime.cookie)
+    expect(list).toHaveLength(1)
+    expect(ymd(new Date(list[0].expectedDate))).toBe(ymd(day(3)))
+    expect(ymd(new Date(list[0].suggestedDate))).toBe(ymd(day(0)))
+  })
+
+  it('confirmar cria a transação com o valor e a data acertados, e a série passa para ela', async () => {
+    const { cookie, user, income } = await setup('rec-confirmar')
+    const first = await salary(cookie, income._id, day(-7))
+    const [item] = await due(cookie)
+    expect(item._id).toBe(first._id)
+
+    const res = await json('POST', `/api/transactions/recurring/${first._id}`, cookie, { action: 'confirm', amount: 1050, date: ymd(day(-1)) })
+    expect(res.status).toBe(200)
+    const created = await res.json()
+    expect(created).toMatchObject({ amount: 1050, description: 'Salário', recurrence: 'weekly' })
+    expect(ymd(new Date(created.date))).toBe(ymd(day(-1)))
+    // A série conta da data prevista (hoje), não da data real (ontem).
+    expect(ymd(new Date(created.nextDueAt))).toBe(ymd(day(7)))
+    expect((await Transaction.findById(first._id).lean())!.nextDueAt).toBeNull()
+    expect(await Transaction.countDocuments({ userId: user._id })).toBe(2)
+    expect(await due(cookie)).toEqual([])
+  })
+
+  it('saltar passa à ocorrência seguinte; parar termina a série sem apagar nada', async () => {
+    const skip = await setup('rec-saltar')
+    const tx = await salary(skip.cookie, skip.income._id, day(-7))
+    expect((await json('POST', `/api/transactions/recurring/${tx._id}`, skip.cookie, { action: 'skip' })).status).toBe(200)
+    expect(ymd((await Transaction.findById(tx._id).lean())!.nextDueAt!)).toBe(ymd(day(7)))
+    expect(await due(skip.cookie)).toEqual([])
+    expect(await Transaction.countDocuments({ userId: skip.user._id })).toBe(1)
+
+    const stop = await setup('rec-parar')
+    const tx2 = await salary(stop.cookie, stop.income._id, day(-7))
+    expect((await json('POST', `/api/transactions/recurring/${tx2._id}`, stop.cookie, { action: 'stop' })).status).toBe(200)
+    expect(await Transaction.findById(tx2._id).lean()).toMatchObject({ recurrence: 'none', nextDueAt: null })
+    expect(await due(stop.cookie)).toEqual([])
+  })
+
+  it('ainda não está na altura: confirmar dá 409 e não cria nada', async () => {
+    const { cookie, user, income } = await setup('rec-cedo-demais')
+    const tx = await salary(cookie, income._id, day(0))
+    expect((await json('POST', `/api/transactions/recurring/${tx._id}`, cookie, { action: 'confirm' })).status).toBe(409)
+    expect(await Transaction.countDocuments({ userId: user._id })).toBe(1)
+  })
+
+  it('transações recorrentes antigas: só a mais recente de cada série é proposta', async () => {
+    const { cookie, user, income } = await setup('rec-antigas')
+    const base = { userId: user._id, type: 'income', amount: 900, description: 'Salário', categoryId: income._id, recurrence: 'weekly', currency: 'EUR', tags: [] }
+    // Sem os campos novos, como as transações gravadas antes desta funcionalidade.
+    await Transaction.collection.insertMany([{ ...base, date: day(-14) }, { ...base, date: day(-7) }])
+    const list = await due(cookie)
+    expect(list).toHaveLength(1)
+    expect(list[0].amount).toBe(900)
+    expect(await Transaction.countDocuments({ userId: user._id, nextDueAt: null })).toBe(1)
+  })
+
+  it('tirar a recorrência numa edição tira a transação da série', async () => {
+    const { cookie, income } = await setup('rec-editar')
+    const tx = await salary(cookie, income._id, day(-7))
+    expect((await json('PUT', `/api/transactions/${tx._id}`, cookie, { recurrence: 'none' })).status).toBe(200)
+    expect(await Transaction.findById(tx._id).lean()).toMatchObject({ recurrence: 'none', nextDueAt: null })
+    expect(await due(cookie)).toEqual([])
+  })
+})

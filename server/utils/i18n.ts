@@ -35,6 +35,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Campos obrigatórios em falta ou inválidos',
     'transactions.invalidCategory': 'Categoria inválida',
     'transactions.notFound': 'Transação não encontrada',
+
+    'transactions.recurringNotDue': 'Esta transação recorrente ainda não está para confirmar',
     'groups.nameRequired': 'Nome obrigatório',
     'validation.invalidInput': 'Dados inválidos — verifica os campos do formulário',
     'categories.nameAndTypeRequired': 'Nome e tipo obrigatórios',
@@ -116,6 +118,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Missing or invalid required fields',
     'transactions.invalidCategory': 'Invalid category',
     'transactions.notFound': 'Transaction not found',
+
+    'transactions.recurringNotDue': 'This recurring transaction is not due yet',
     'groups.nameRequired': 'Name required',
     'validation.invalidInput': 'Invalid data — please check the form fields',
     'categories.nameAndTypeRequired': 'Name and type required',
@@ -197,6 +201,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Champs obligatoires manquants ou invalides',
     'transactions.invalidCategory': 'Catégorie invalide',
     'transactions.notFound': 'Transaction introuvable',
+
+    'transactions.recurringNotDue': 'Cette transaction récurrente n\'est pas encore à confirmer',
     'groups.nameRequired': 'Nom obligatoire',
     'validation.invalidInput': 'Données invalides — vérifiez les champs du formulaire',
     'categories.nameAndTypeRequired': 'Nom et type obligatoires',
@@ -278,6 +284,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Pflichtfelder fehlen oder sind ungültig',
     'transactions.invalidCategory': 'Ungültige Kategorie',
     'transactions.notFound': 'Transaktion nicht gefunden',
+
+    'transactions.recurringNotDue': 'Diese wiederkehrende Transaktion ist noch nicht fällig',
     'groups.nameRequired': 'Name erforderlich',
     'validation.invalidInput': 'Ungültige Eingabe — bitte überprüfe die Formularfelder',
     'categories.nameAndTypeRequired': 'Name und Typ erforderlich',
@@ -359,6 +367,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Campi obbligatori mancanti o non validi',
     'transactions.invalidCategory': 'Categoria non valida',
     'transactions.notFound': 'Transazione non trovata',
+
+    'transactions.recurringNotDue': 'Questa transazione ricorrente non è ancora da confermare',
     'groups.nameRequired': 'Nome obbligatorio',
     'validation.invalidInput': 'Dati non validi — controlla i campi del modulo',
     'categories.nameAndTypeRequired': 'Nome e tipo obbligatori',
@@ -440,6 +450,8 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'transactions.missingRequiredFields': 'Faltan campos obligatorios o no son válidos',
     'transactions.invalidCategory': 'Categoría inválida',
     'transactions.notFound': 'Transacción no encontrada',
+
+    'transactions.recurringNotDue': 'Esta transacción recurrente aún no está para confirmar',
     'groups.nameRequired': 'Nombre obligatorio',
     'validation.invalidInput': 'Datos no válidos — revisa los campos del formulario',
     'categories.nameAndTypeRequired': 'Nombre y tipo obligatorios',

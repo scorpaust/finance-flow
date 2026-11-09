@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { readTestEnv, stubClient, extractCookies, TEST_PASSWORD, WRONG_PASSWORD } from './testHelpers'
 import { encodeMerchantKey } from '../../server/utils/easypay'
 import { createHmac, createSign } from 'node:crypto'
-import { HoloArticle, User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
+import { AiReorgProposal, HoloArticle, User, Category, Transaction, TransactionGroup, Investment, FxCache, AiBudgetProposal, PasswordResetToken, Feedback, Invoice } from '../../server/models/index'
 import { addMonths, currentMonthKey } from '../../shared/forecast'
 import { DEFAULT_CATEGORY_COUNT } from '../../server/utils/defaultCategories'
 
@@ -2124,5 +2124,103 @@ describe('transações recorrentes com confirmação', () => {
     expect((await json('PUT', `/api/transactions/${tx._id}`, cookie, { recurrence: 'none' })).status).toBe(200)
     expect(await Transaction.findById(tx._id).lean()).toMatchObject({ recurrence: 'none', nextDueAt: null })
     expect(await due(cookie)).toEqual([])
+  })
+})
+
+describe('reorganização de categorias e grupos com IA', () => {
+  const post = (path: string, cookie: string, body?: unknown) =>
+    fetch(path, { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) })
+
+  // Conta Premium com 25 despesas antigas numa categoria: 20 "Continente" e 5 "Cinema".
+  async function premiumWithHistory(label: string) {
+    const email = uniqueEmail(label)
+    const { cookie } = await register(email)
+    await setTier(email, 'premium')
+    const user = await User.findOne({ email })
+    const categories = await Category.find({ userId: user!._id }).sort({ name: 1 }).lean()
+    const source = categories.find((c: any) => c.type === 'expense')!
+    const ref = `c${categories.findIndex((c: any) => String(c._id) === String(source._id)) + 1}`
+    const old = new Date(Date.now() - 40 * 86_400_000)
+    await Transaction.insertMany([
+      ...Array.from({ length: 20 }, () => ({ description: 'Continente', amount: 30 })),
+      ...Array.from({ length: 5 }, () => ({ description: 'Cinema', amount: 8 })),
+    ].map((t) => ({ ...t, userId: user!._id, type: 'expense', categoryId: source._id, date: old, currency: 'EUR' })))
+    return { email, cookie, user: user!, source, ref }
+  }
+
+  function proposeLeisure(ref: string) {
+    return stub.setAnthropicResponse(anthropicTextResponse({
+      summary: 'Separar o lazer das compras.',
+      operations: [
+        { kind: 'createCategory', target: null, into: null, newRef: 'n1', name: 'Lazer IA', type: 'expense', icon: '🎬', color: '#22c55e', descriptions: null, reason: 'Cinema não é supermercado.' },
+        { kind: 'moveTransactions', target: ref, into: 'n1', newRef: null, name: null, type: null, icon: null, color: null, descriptions: ['cinema'], reason: 'Junta o lazer.' },
+        // Inválida (ref inexistente): o servidor descarta-a.
+        { kind: 'mergeCategory', target: 'c999', into: ref, newRef: null, name: null, type: null, icon: null, color: null, descriptions: null, reason: 'x' },
+      ],
+    }))
+  }
+
+  it('Pro não tem acesso; sem histórico suficiente o pedido é recusado sem chamar a IA', async () => {
+    const pro = uniqueEmail('reorg-pro')
+    const { cookie: proCookie } = await register(pro)
+    await setTier(pro, 'pro')
+    expect((await post('/api/reorganize', proCookie)).status).toBe(403)
+
+    const fresh = uniqueEmail('reorg-novo')
+    const { cookie } = await register(fresh)
+    await setTier(fresh, 'premium')
+    const res = await post('/api/reorganize', cookie)
+    expect(res.status).toBe(400)
+    expect((await res.json()).data.error).toBe('reorganize_not_enough_data')
+  })
+
+  it('propõe, aplica o escolhido com as dependências e desfaz', async () => {
+    const { cookie, user, source, ref } = await premiumWithHistory('reorg-aplicar')
+    await proposeLeisure(ref)
+
+    const proposed = await post('/api/reorganize', cookie)
+    expect(proposed.status).toBe(200)
+    const state = await proposed.json()
+    expect(state.used).toBe(1)
+    expect(state.proposal.operations.map((o: any) => o.kind)).toEqual(['createCategory', 'moveTransactions'])
+    // Nada muda antes de aplicar.
+    expect(await Category.exists({ userId: user._id, name: 'Lazer IA' })).toBeNull()
+
+    // Só a mudança de transações: a criação da categoria vem com ela.
+    const applied = await post('/api/reorganize/apply', cookie, { id: state.proposal._id, operations: [1] })
+    expect(applied.status).toBe(200)
+    expect((await applied.json()).proposal).toMatchObject({ status: 'applied', canUndo: true })
+    const leisure = await Category.findOne({ userId: user._id, name: 'Lazer IA' }).lean()
+    expect(leisure).not.toBeNull()
+    expect(await Transaction.countDocuments({ userId: user._id, categoryId: leisure!._id })).toBe(5)
+    expect(await Transaction.countDocuments({ userId: user._id, categoryId: source._id })).toBe(20)
+
+    const undone = await post('/api/reorganize/undo', cookie, { id: state.proposal._id })
+    expect(undone.status).toBe(200)
+    expect(await Category.exists({ userId: user._id, name: 'Lazer IA' })).toBeNull()
+    expect(await Transaction.countDocuments({ userId: user._id, categoryId: source._id })).toBe(25)
+    expect((await post('/api/reorganize/undo', cookie, { id: state.proposal._id })).status).toBe(409)
+  })
+
+  it('não desfaz se já há transações novas nas categorias criadas', async () => {
+    const { cookie, user, ref } = await premiumWithHistory('reorg-bloqueado')
+    await proposeLeisure(ref)
+    const state = await (await post('/api/reorganize', cookie)).json()
+    await post('/api/reorganize/apply', cookie, { id: state.proposal._id, operations: [0, 1] })
+    const leisure = await Category.findOne({ userId: user._id, name: 'Lazer IA' }).lean()
+    await Transaction.create({ userId: user._id, type: 'expense', amount: 12, description: 'Teatro', categoryId: leisure!._id, date: new Date() })
+
+    const res = await post('/api/reorganize/undo', cookie, { id: state.proposal._id })
+    expect(res.status).toBe(409)
+    expect((await res.json()).data.error).toBe('reorganize_undo_blocked')
+    expect(await Category.exists({ userId: user._id, name: 'Lazer IA' })).not.toBeNull()
+  })
+
+  it('limite de 5 propostas por mês', async () => {
+    const { cookie, user } = await premiumWithHistory('reorg-limite')
+    await AiReorgProposal.insertMany(Array.from({ length: 5 }, () => ({ userId: user._id, summary: 'x', operations: [] })))
+    const res = await post('/api/reorganize', cookie)
+    expect(res.status).toBe(429)
+    expect((await res.json()).data.error).toBe('reorganize_monthly_limit')
   })
 })

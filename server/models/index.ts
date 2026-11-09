@@ -590,6 +590,45 @@ export const AiBudgetProposal: Model<IAiBudgetProposal> =
   mongoose.models.AiBudgetProposal ||
   mongoose.model<IAiBudgetProposal>('AiBudgetProposal', AiBudgetProposalSchema)
 
+// ─── AI REORGANIZE PROPOSAL ───────────────────────
+// Reorganização de categorias e grupos com IA (shared/reorganize.ts). A IA só
+// propõe; `snapshot` guarda o estado anterior à aplicação, para "Desfazer".
+export interface IAiReorgProposal extends Document {
+  userId:     mongoose.Types.ObjectId
+  status:     'ready' | 'applied' | 'undone'
+  summary:    string
+  operations: any[]
+  appliedOps: number[]
+  snapshot:   {
+    categories:   any[]
+    groups:       any[]
+    transactions: { id: string; categoryId: string; groupId: string | null }[]
+    created:      { categories: string[]; groups: string[] }
+  } | null
+  locale:     string
+  appliedAt:  Date | null
+  createdAt:  Date
+  updatedAt:  Date
+}
+
+const AiReorgProposalSchema = new Schema<IAiReorgProposal>(
+  {
+    userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    status:     { type: String, enum: ['ready', 'applied', 'undone'], default: 'ready' },
+    summary:    { type: String, default: '' },
+    operations: { type: Schema.Types.Mixed, default: () => [] },
+    appliedOps: { type: [Number], default: [] },
+    snapshot:   { type: Schema.Types.Mixed, default: null },
+    locale:     { type: String, default: 'pt-PT' },
+    appliedAt:  { type: Date, default: null },
+  },
+  { timestamps: true }
+)
+AiReorgProposalSchema.index({ userId: 1, createdAt: -1 })
+export const AiReorgProposal: Model<IAiReorgProposal> =
+  mongoose.models.AiReorgProposal ||
+  mongoose.model<IAiReorgProposal>('AiReorgProposal', AiReorgProposalSchema)
+
 // ─── PASSWORD RESET TOKEN ────────────────────────────────────────────────────
 // Upgrade 05 — link de recuperação de password. O `_id` é o SHA-256 do token
 // (o token em claro só existe no email): a procura é pelo hash e a unicidade

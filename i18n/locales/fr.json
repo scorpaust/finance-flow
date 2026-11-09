@@ -491,6 +491,37 @@
     "nextRequest": "Prochaine proposition à partir du {date}",
     "errorGeneric": "Impossible de charger le budget suggéré. Réessaie dans un instant."
   },
+  "aiReorganize": {
+    "title": "Réorganiser catégories et groupes avec l'IA",
+    "lockedDescription": "L'IA analyse vos transactions et propose de fusionner, renommer, créer ou regrouper des catégories. Vous choisissez ce qui s'applique. Disponible avec le plan Premium.",
+    "paywallFeatureLabel": "La réorganisation des catégories par l'IA",
+    "intro": "L'IA analyse vos transactions et propose des modifications des catégories et des groupes. Rien ne change sans votre choix, et vous pouvez annuler ensuite.",
+    "request": "Demander une proposition à l'IA",
+    "usage": "{used} sur {limit} propositions utilisées ce mois-ci",
+    "needData": "Il faut au moins {minTransactions} transactions et {minDays} jours d'historique (vous avez {transactions} transactions et {days} jours).",
+    "nothingToChange": "L'IA n'a rien trouvé qui mérite d'être modifié.",
+    "apply": "Appliquer {n} modifications",
+    "selectAll": "Tout choisir",
+    "selectNone": "Ne rien choisir",
+    "applied": "{n} modifications appliquées.",
+    "undo": "Annuler la réorganisation",
+    "confirmUndo": "Rétablir les catégories, les groupes et les transactions tels qu'ils étaient avant cette réorganisation ?",
+    "toastApplied": "Réorganisation appliquée",
+    "toastUndone": "Réorganisation annulée",
+    "noGroup": "sans groupe",
+    "errorGeneric": "Impossible de terminer. Veuillez réessayer.",
+    "op": {
+      "createGroup": "Créer le groupe « {name} »",
+      "renameGroup": "Renommer le groupe « {from} » en « {name} »",
+      "deleteGroup": "Supprimer le groupe « {name} » (ses catégories n'auront plus de groupe)",
+      "createCategory": "Créer la catégorie « {name} » ({group})",
+      "renameCategory": "Renommer la catégorie « {from} » en « {name} »",
+      "setCategoryGroup": "Déplacer la catégorie « {name} » dans le groupe {group}",
+      "moveTransactions": "Déplacer {n} transactions de « {from} » vers « {into} » : {list}",
+      "mergeCategory": "Fusionner « {from} » dans « {into} » ({n} transactions)",
+      "deleteCategory": "Supprimer la catégorie vide « {name} »"
+    }
+  },
   "categoryLimits": {
     "title": "Limites des catégories",
     "subtitle": "Ce que tu as déjà dépensé ce mois-ci dans chaque catégorie avec une limite",
@@ -1057,7 +1088,8 @@
     "investmentTracker": "Suivi de tes investissements",
     "aiInvestmentTips": "Conseils d’investissement par IA",
     "documentScanMore": "Numérisation jusqu’à {n} documents/mois",
-    "prioritySupport": "Support prioritaire"
+    "prioritySupport": "Support prioritaire",
+    "aiReorganize": "IA qui réorganise catégories et groupes (avec votre accord)"
   },
   "blog": {
     "title": "Blog",

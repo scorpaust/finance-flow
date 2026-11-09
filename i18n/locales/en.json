@@ -491,6 +491,37 @@
     "nextRequest": "Next proposal from {date}",
     "errorGeneric": "Couldn't load the suggested budget. Please try again shortly."
   },
+  "aiReorganize": {
+    "title": "Reorganise categories and groups with AI",
+    "lockedDescription": "The AI looks at your transactions and suggests how to merge, rename, create or group categories. You choose what to apply. Available on the Premium plan.",
+    "paywallFeatureLabel": "AI category reorganisation",
+    "intro": "The AI looks at your transactions and suggests changes to your categories and groups. Nothing changes unless you choose it, and you can undo it afterwards.",
+    "request": "Ask the AI for a proposal",
+    "usage": "{used} of {limit} proposals used this month",
+    "needData": "At least {minTransactions} transactions and {minDays} days of history are needed (you have {transactions} transactions and {days} days).",
+    "nothingToChange": "The AI found nothing worth changing.",
+    "apply": "Apply {n} changes",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "applied": "{n} changes applied.",
+    "undo": "Undo reorganisation",
+    "confirmUndo": "Restore your categories, groups and transactions to how they were before this reorganisation?",
+    "toastApplied": "Reorganisation applied",
+    "toastUndone": "Reorganisation undone",
+    "noGroup": "no group",
+    "errorGeneric": "Could not complete this. Please try again.",
+    "op": {
+      "createGroup": "Create the group \"{name}\"",
+      "renameGroup": "Rename the group \"{from}\" to \"{name}\"",
+      "deleteGroup": "Delete the group \"{name}\" (its categories will have no group)",
+      "createCategory": "Create the category \"{name}\" ({group})",
+      "renameCategory": "Rename the category \"{from}\" to \"{name}\"",
+      "setCategoryGroup": "Move the category \"{name}\" to the group {group}",
+      "moveTransactions": "Move {n} transactions from \"{from}\" to \"{into}\": {list}",
+      "mergeCategory": "Merge \"{from}\" into \"{into}\" ({n} transactions)",
+      "deleteCategory": "Delete the empty category \"{name}\""
+    }
+  },
   "categoryLimits": {
     "title": "Category limits",
     "subtitle": "How much you've spent this month in each category with a limit",
@@ -1057,7 +1088,8 @@
     "investmentTracker": "Track your investments",
     "aiInvestmentTips": "AI investment tips",
     "documentScanMore": "Scan up to {n} documents/month",
-    "prioritySupport": "Priority support"
+    "prioritySupport": "Priority support",
+    "aiReorganize": "AI that reorganises categories and groups (with your approval)"
   },
   "blog": {
     "title": "Blog",

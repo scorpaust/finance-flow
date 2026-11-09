@@ -48,6 +48,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'Não há limites anteriores para repor',
     'budget.invalidPct': 'Percentagem inválida (entre 0 e 50)',
     'budget.invalidLimits': 'Limites inválidos',
+
+    'reorganize.notEnoughData': 'São precisos pelo menos {minTransactions} registos e {minDays} dias de histórico para a IA reorganizar (tens {transactions} registos e {days} dias)',
+
+    'reorganize.monthlyLimit': 'Já usaste as {limit} reorganizações deste mês',
+
+    'reorganize.noProposal': 'Esta proposta já não está disponível',
+
+    'reorganize.invalidSelection': 'Escolhe pelo menos uma alteração',
+
+    'reorganize.conflict': 'As categorias mudaram desde a proposta e nada foi alterado. Pede uma proposta nova.',
+
+    'reorganize.nothingToUndo': 'Não há nenhuma reorganização para desfazer',
+
+    'reorganize.undoBlocked': 'Já registaste transações nas categorias novas, por isso não é possível desfazer',
     'investorProfile.invalidRiskTolerance': 'riskTolerance inválido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel inválido',
     'investorProfile.invalidHorizonYears': 'horizonYears inválido',
@@ -131,6 +145,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'There are no previous limits to restore',
     'budget.invalidPct': 'Invalid percentage (between 0 and 50)',
     'budget.invalidLimits': 'Invalid limits',
+
+    'reorganize.notEnoughData': 'At least {minTransactions} transactions and {minDays} days of history are needed for the AI to reorganise (you have {transactions} transactions and {days} days)',
+
+    'reorganize.monthlyLimit': 'You have used all {limit} reorganisations this month',
+
+    'reorganize.noProposal': 'This proposal is no longer available',
+
+    'reorganize.invalidSelection': 'Choose at least one change',
+
+    'reorganize.conflict': 'Your categories changed since the proposal, so nothing was changed. Request a new proposal.',
+
+    'reorganize.nothingToUndo': 'There is no reorganisation to undo',
+
+    'reorganize.undoBlocked': 'You have already recorded transactions in the new categories, so this cannot be undone',
     'investorProfile.invalidRiskTolerance': 'Invalid riskTolerance',
     'investorProfile.invalidKnowledgeLevel': 'Invalid knowledgeLevel',
     'investorProfile.invalidHorizonYears': 'Invalid horizonYears',
@@ -214,6 +242,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'Aucune limite précédente à rétablir',
     'budget.invalidPct': 'Pourcentage invalide (entre 0 et 50)',
     'budget.invalidLimits': 'Limites invalides',
+
+    'reorganize.notEnoughData': 'Il faut au moins {minTransactions} transactions et {minDays} jours d\'historique pour que l\'IA réorganise (vous avez {transactions} transactions et {days} jours)',
+
+    'reorganize.monthlyLimit': 'Vous avez utilisé les {limit} réorganisations de ce mois',
+
+    'reorganize.noProposal': 'Cette proposition n\'est plus disponible',
+
+    'reorganize.invalidSelection': 'Choisissez au moins une modification',
+
+    'reorganize.conflict': 'Vos catégories ont changé depuis la proposition, rien n\'a été modifié. Demandez une nouvelle proposition.',
+
+    'reorganize.nothingToUndo': 'Aucune réorganisation à annuler',
+
+    'reorganize.undoBlocked': 'Vous avez déjà enregistré des transactions dans les nouvelles catégories, l\'annulation n\'est donc pas possible',
     'investorProfile.invalidRiskTolerance': 'riskTolerance invalide',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel invalide',
     'investorProfile.invalidHorizonYears': 'horizonYears invalide',
@@ -297,6 +339,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'Es gibt keine früheren Limits zum Wiederherstellen',
     'budget.invalidPct': 'Ungültiger Prozentsatz (zwischen 0 und 50)',
     'budget.invalidLimits': 'Ungültige Limits',
+
+    'reorganize.notEnoughData': 'Für die Neuordnung durch die KI sind mindestens {minTransactions} Transaktionen und {minDays} Tage Verlauf nötig (du hast {transactions} Transaktionen und {days} Tage)',
+
+    'reorganize.monthlyLimit': 'Du hast alle {limit} Neuordnungen dieses Monats genutzt',
+
+    'reorganize.noProposal': 'Dieser Vorschlag ist nicht mehr verfügbar',
+
+    'reorganize.invalidSelection': 'Wähle mindestens eine Änderung',
+
+    'reorganize.conflict': 'Deine Kategorien haben sich seit dem Vorschlag geändert, daher wurde nichts geändert. Fordere einen neuen Vorschlag an.',
+
+    'reorganize.nothingToUndo': 'Es gibt keine Neuordnung zum Rückgängigmachen',
+
+    'reorganize.undoBlocked': 'Du hast bereits Transaktionen in den neuen Kategorien erfasst, daher kann dies nicht rückgängig gemacht werden',
     'investorProfile.invalidRiskTolerance': 'Ungültige riskTolerance',
     'investorProfile.invalidKnowledgeLevel': 'Ungültiges knowledgeLevel',
     'investorProfile.invalidHorizonYears': 'Ungültige horizonYears',
@@ -380,6 +436,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'Non ci sono limiti precedenti da ripristinare',
     'budget.invalidPct': 'Percentuale non valida (tra 0 e 50)',
     'budget.invalidLimits': 'Limiti non validi',
+
+    'reorganize.notEnoughData': 'Servono almeno {minTransactions} transazioni e {minDays} giorni di storico perché l\'IA riorganizzi (ne hai {transactions} e {days} giorni)',
+
+    'reorganize.monthlyLimit': 'Hai usato tutte le {limit} riorganizzazioni di questo mese',
+
+    'reorganize.noProposal': 'Questa proposta non è più disponibile',
+
+    'reorganize.invalidSelection': 'Scegli almeno una modifica',
+
+    'reorganize.conflict': 'Le categorie sono cambiate dopo la proposta e non è stato modificato nulla. Chiedi una nuova proposta.',
+
+    'reorganize.nothingToUndo': 'Non c\'è nessuna riorganizzazione da annullare',
+
+    'reorganize.undoBlocked': 'Hai già registrato transazioni nelle nuove categorie, quindi non è possibile annullare',
     'investorProfile.invalidRiskTolerance': 'riskTolerance non valido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel non valido',
     'investorProfile.invalidHorizonYears': 'horizonYears non valido',
@@ -463,6 +533,20 @@ const MESSAGES: Record<ServerLocale, MessageDict> = {
     'budget.nothingToUndo': 'No hay límites anteriores que restaurar',
     'budget.invalidPct': 'Porcentaje no válido (entre 0 y 50)',
     'budget.invalidLimits': 'Límites no válidos',
+
+    'reorganize.notEnoughData': 'Se necesitan al menos {minTransactions} transacciones y {minDays} días de historial para que la IA reorganice (tienes {transactions} transacciones y {days} días)',
+
+    'reorganize.monthlyLimit': 'Ya has usado las {limit} reorganizaciones de este mes',
+
+    'reorganize.noProposal': 'Esta propuesta ya no está disponible',
+
+    'reorganize.invalidSelection': 'Elige al menos un cambio',
+
+    'reorganize.conflict': 'Tus categorías han cambiado desde la propuesta y no se ha modificado nada. Pide una propuesta nueva.',
+
+    'reorganize.nothingToUndo': 'No hay ninguna reorganización que deshacer',
+
+    'reorganize.undoBlocked': 'Ya has registrado transacciones en las categorías nuevas, por lo que no se puede deshacer',
     'investorProfile.invalidRiskTolerance': 'riskTolerance inválido',
     'investorProfile.invalidKnowledgeLevel': 'knowledgeLevel inválido',
     'investorProfile.invalidHorizonYears': 'horizonYears inválido',

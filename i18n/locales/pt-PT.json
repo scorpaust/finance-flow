@@ -491,6 +491,37 @@
     "nextRequest": "Próxima proposta a partir de {date}",
     "errorGeneric": "Não foi possível carregar o orçamento sugerido. Tenta novamente daqui a pouco."
   },
+  "aiReorganize": {
+    "title": "Reorganizar categorias e grupos com IA",
+    "lockedDescription": "A IA analisa as tuas transações e propõe como juntar, renomear, criar ou agrupar categorias. Tu escolhes o que aplicar. Disponível no plano Premium.",
+    "paywallFeatureLabel": "A reorganização de categorias com IA",
+    "intro": "A IA analisa as tuas transações e propõe alterações às categorias e aos grupos. Nada muda sem escolheres, e podes desfazer depois.",
+    "request": "Pedir proposta à IA",
+    "usage": "{used} de {limit} propostas usadas este mês",
+    "needData": "São precisos pelo menos {minTransactions} registos e {minDays} dias de histórico (tens {transactions} registos e {days} dias).",
+    "nothingToChange": "A IA não encontrou nada que valha a pena mudar.",
+    "apply": "Aplicar {n} alterações",
+    "selectAll": "Escolher todas",
+    "selectNone": "Não escolher nenhuma",
+    "applied": "{n} alterações aplicadas.",
+    "undo": "Desfazer reorganização",
+    "confirmUndo": "Repor as categorias, os grupos e as transações como estavam antes desta reorganização?",
+    "toastApplied": "Reorganização aplicada",
+    "toastUndone": "Reorganização desfeita",
+    "noGroup": "sem grupo",
+    "errorGeneric": "Não foi possível concluir. Tenta novamente.",
+    "op": {
+      "createGroup": "Criar o grupo «{name}»",
+      "renameGroup": "Mudar o nome do grupo «{from}» para «{name}»",
+      "deleteGroup": "Apagar o grupo «{name}» (as categorias ficam sem grupo)",
+      "createCategory": "Criar a categoria «{name}» ({group})",
+      "renameCategory": "Mudar o nome da categoria «{from}» para «{name}»",
+      "setCategoryGroup": "Passar a categoria «{name}» para o grupo {group}",
+      "moveTransactions": "Mover {n} transações de «{from}» para «{into}»: {list}",
+      "mergeCategory": "Juntar «{from}» em «{into}» ({n} transações)",
+      "deleteCategory": "Apagar a categoria vazia «{name}»"
+    }
+  },
   "categoryLimits": {
     "title": "Limites das categorias",
     "subtitle": "Quanto já gastaste este mês em cada categoria com limite",
@@ -1057,7 +1088,8 @@
     "investmentTracker": "Registo dos teus investimentos",
     "aiInvestmentTips": "Dicas de investimento com IA",
     "documentScanMore": "Digitalização até {n} documentos/mês",
-    "prioritySupport": "Suporte prioritário"
+    "prioritySupport": "Suporte prioritário",
+    "aiReorganize": "IA que reorganiza categorias e grupos (com a tua aprovação)"
   },
   "blog": {
     "title": "Blog",

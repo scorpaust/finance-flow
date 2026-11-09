@@ -39,6 +39,9 @@
     <!-- Upgrade 04 — orçamento sugerido por IA (Premium; o Pro vê-o bloqueado) -->
     <AiBudgetCard @applied="onBudgetApplied" />
 
+    <!-- Reorganização de categorias e grupos com IA (Premium) -->
+    <AiReorganizeCard @changed="onReorganized" />
+
     <!-- Groups grid -->
     <div v-if="groupsStore.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SkeletonBlock v-for="i in 6" :key="i" rounded="3xl" class="h-36" />
@@ -311,6 +314,7 @@ import type { Group } from '~/stores/groups'
 definePageMeta({ layout: 'default' })
 
 const groupsStore = useGroupsStore()
+const finance = useFinanceStore()
 const toast = useToastStore()
 const { formatCurrency, formatCompact, formatDate, currencySymbol } = useFormatters()
 // Fase 10 — os tetos escrevem-se na moeda de apresentação e gravam-se em euros.
@@ -335,6 +339,13 @@ const categoryLimitsRef = ref<{ reload: () => Promise<void> } | null>(null)
 function onBudgetApplied() {
   groupsStore.fetchGroups()
   categoryLimitsRef.value?.reload()
+}
+
+// Categorias e grupos mudaram: recarrega tudo o que os mostra.
+function onReorganized() {
+  onBudgetApplied()
+  void finance.fetchCategories()
+  finance.revision++
 }
 
 const form = reactive({

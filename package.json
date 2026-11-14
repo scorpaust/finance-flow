@@ -44,7 +44,7 @@
     "date-fns": "^3.6.0",
     "lucide-vue-next": "^0.383.0",
     "mongoose": "^8.3.4",
-    "nuxt": "^3.11.2",
+    "nuxt": "^4.6.4",
     "otpauth": "^9.5.2",
     "pdf-lib": "^1.17.1",
     "pinia": "^2.1.7",
